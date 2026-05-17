@@ -35,7 +35,7 @@ namespace ElecPOE.Controllers
             _helperService = helperService ?? throw new ArgumentNullException(nameof(helperService));
         }
 
-        public async Task<ActionResult<VisitViewModel>> Visitation(Guid CompanyId)
+        public async Task<ActionResult<VisitViewModel>> Visitation(Guid CompanyId, Guid? PlacementId = null)
         {
             if (CompanyId == Guid.Empty)
             {
@@ -94,6 +94,7 @@ namespace ElecPOE.Controllers
                 Mentor = $"{contactInfo.Name} {contactInfo.LastName}",
 
                 CompanyId = CompanyId,
+                PlacementId = PlacementId,
 
             };
 
@@ -117,14 +118,27 @@ namespace ElecPOE.Controllers
                 SelectedEmployeeIDs = string.Join(",", model.SelectedIDArray),
                 CreatedOn = _helperService.GetCurrentTime().ToString(),
                 CreatedBy = $"{OnGetCurrentUser().Name} {OnGetCurrentUser().LastName}",
+                CompanyId = model.CompanyId,
+                PlacementId = model.PlacementId,
                 Date = ParseDateTime(model.Date),
+                DurationMinutes = model.DurationMinutes,
                 HasReport = model.HasReport,
                 IsActive = true,
-                LearnerFeedback = model.LearnerFeedback, 
-                VisitBy = model.VisitBy, 
+                LearnerFeedback = model.LearnerFeedback,
+                AttendanceObserved = model.AttendanceObserved,
+                EngagementObserved = model.EngagementObserved,
+                WorkplaceConditionsObserved = model.WorkplaceConditionsObserved,
+                SafetyObserved = model.SafetyObserved,
+                SkillApplicationObserved = model.SkillApplicationObserved,
+                ObservationNotes = model.ObservationNotes,
+                ActionItems = model.ActionItems,
+                ActionItemDueDate = model.ActionItemDueDate,
+                ActionItemAssignee = model.ActionItemAssignee,
+                VisitBy = model.VisitBy,
                 Mentor = model.Mentor,
-                Report = model.Report ,
-                ReportFile = model.ReportFile,  
+                VisitPurpose = model.VisitPurpose,
+                Report = model.Report,
+                ReportFile = model.ReportFile,
 
             };
 
@@ -149,7 +163,9 @@ namespace ElecPOE.Controllers
                         {
                             TempData["success"] = "Visitation successfully captured";
 
-                            return RedirectToAction(nameof(VisitationList), new { CompanyId  = visit.CompanyId});
+                            return visit.PlacementId.HasValue
+                                ? RedirectToAction("OnPlaceLearner", "LearnerPlacement", new { PlacementId = visit.PlacementId.Value })
+                                : RedirectToAction(nameof(VisitationList), new { CompanyId  = visit.CompanyId});
                         }
                         else
                         {
@@ -181,9 +197,20 @@ namespace ElecPOE.Controllers
                     //CompanyId = CompanyId,
 
                     Date = item.Date,
+                    DurationMinutes = item.DurationMinutes,
+                    PlacementId = item.PlacementId,
                     Company = OnGetCompany(item.CompanyId).Result.CompanyName,
                     HasReport = item.HasReport,
                     LearnerFeedback = item.LearnerFeedback,
+                    AttendanceObserved = item.AttendanceObserved,
+                    EngagementObserved = item.EngagementObserved,
+                    WorkplaceConditionsObserved = item.WorkplaceConditionsObserved,
+                    SafetyObserved = item.SafetyObserved,
+                    SkillApplicationObserved = item.SkillApplicationObserved,
+                    ObservationNotes = item.ObservationNotes,
+                    ActionItems = item.ActionItems,
+                    ActionItemDueDate = item.ActionItemDueDate,
+                    ActionItemAssignee = item.ActionItemAssignee,
                     Mentor = item.Mentor,
                     Report = item.Report,
                     ReportFile = item.ReportFile,
@@ -207,11 +234,22 @@ namespace ElecPOE.Controllers
             {
                 VisitId = VisitId,
                 Company = OnGetCompany(visitation.CompanyId).Result.CompanyName,
+                PlacementId = visitation.PlacementId,
                 Date = visitation.Date.ToString("dddd, dd MMMM yyyy hh:mm tt"),
+                DurationMinutes = visitation.DurationMinutes,
                 SelectedEmployeeIDs = visitation.SelectedEmployeeIDs,
                 CompanyId = visitation.CompanyId, 
                 HasReport = visitation.HasReport, 
                 LearnerFeedback = visitation.LearnerFeedback,
+                AttendanceObserved = visitation.AttendanceObserved,
+                EngagementObserved = visitation.EngagementObserved,
+                WorkplaceConditionsObserved = visitation.WorkplaceConditionsObserved,
+                SafetyObserved = visitation.SafetyObserved,
+                SkillApplicationObserved = visitation.SkillApplicationObserved,
+                ObservationNotes = visitation.ObservationNotes,
+                ActionItems = visitation.ActionItems,
+                ActionItemDueDate = visitation.ActionItemDueDate,
+                ActionItemAssignee = visitation.ActionItemAssignee,
                 Mentor = visitation.Mentor,
                 Report = visitation.Report,
                 SelectedIDArray= visitation.SelectedIDArray,
@@ -264,12 +302,23 @@ namespace ElecPOE.Controllers
 
             Visit visit = new()
             {
-                CompanyId = model.CompanyId,   
+                CompanyId = model.CompanyId,
+                PlacementId = model.PlacementId,
                 Date = ParseDateTime(model.Date),
+                DurationMinutes = model.DurationMinutes,
                 HasReport = model.HasReport,
                 SelectedEmployeeIDs = model.SelectedEmployeeIDs,
                 SelectedIDArray = model.SelectedIDArray,
                 LearnerFeedback = model.LearnerFeedback,
+                AttendanceObserved = model.AttendanceObserved,
+                EngagementObserved = model.EngagementObserved,
+                WorkplaceConditionsObserved = model.WorkplaceConditionsObserved,
+                SafetyObserved = model.SafetyObserved,
+                SkillApplicationObserved = model.SkillApplicationObserved,
+                ObservationNotes = model.ObservationNotes,
+                ActionItems = model.ActionItems,
+                ActionItemDueDate = model.ActionItemDueDate,
+                ActionItemAssignee = model.ActionItemAssignee,
                 Mentor = model.Mentor,
                 ModifiedBy = $"{OnGetCurrentUser().Name} {OnGetCurrentUser().LastName}",
                 ModifiedOn = Helper.OnGetCurrentDateTime(),

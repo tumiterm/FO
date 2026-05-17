@@ -1,7 +1,10 @@
 @model ForekOnline.Domain.ViewModels.PlacementViewModel
 @using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Domain.Entities
 @{
     ViewData["Title"] = "Learner Placement";
+    var timesheets = ViewBag.Timesheets as IReadOnlyCollection<WeeklyTimesheet> ?? new List<WeeklyTimesheet>();
+    var visits = ViewBag.VisitHistory as IReadOnlyCollection<Visit> ?? new List<Visit>();
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
@@ -313,8 +316,8 @@ body{
 
                 <div class="monitor-grid">
                     <div class="monitor-card"><div class="monitor-label">Progress</div><div class="monitor-value">@Model.ProgressPercentage%</div></div>
-                    <div class="monitor-card"><div class="monitor-label">Weekly Logs</div><div class="monitor-value">0</div></div>
-                    <div class="monitor-card"><div class="monitor-label">Visits</div><div class="monitor-value">0</div></div>
+                    <div class="monitor-card"><div class="monitor-label">Weekly Logs</div><div class="monitor-value">@timesheets.Count</div></div>
+                    <div class="monitor-card"><div class="monitor-label">Visits</div><div class="monitor-value">@visits.Count</div></div>
                     <div class="monitor-card"><div class="monitor-label">Documents</div><div class="monitor-value">@(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? 0 : 1)</div></div>
                 </div>
                 <div class="progress-track" aria-label="Placement progress"><div class="progress-fill" style="width:@Model.ProgressPercentage%"></div></div>
@@ -338,8 +341,61 @@ body{
                         <div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-body"><strong>Next action:</strong> Student submits first weekly activity log; workplace mentor approves; campus mentor acknowledges.</div></div>
                     </div>
                 </div>
-                <div class="tab-pane" id="tab-logs"><div class="empty-state"><i class="fa fa-clock"></i> Weekly timesheet workflow placeholder: mobile-first student submissions, workplace approvals and campus acknowledgements will appear here.</div></div>
-                <div class="tab-pane" id="tab-visits"><div class="empty-state"><i class="fa fa-clipboard-check"></i> Campus visit history and action items will be linked to this placement record.</div></div>
+                <div class="tab-pane" id="tab-logs">
+                    @if (!timesheets.Any())
+                    {
+                        <div class="empty-state"><i class="fa fa-clock"></i> No weekly timesheets submitted yet.</div>
+                    }
+                    else
+                    {
+                        <div class="timeline-list">
+                            @foreach (var sheet in timesheets)
+                            {
+                                <div class="timeline-item">
+                                    <span class="timeline-dot"></span>
+                                    <div class="timeline-body">
+                                        <strong>@sheet.WeekStartDate.ToString("yyyy-MM-dd") – @sheet.WeekEndDate.ToString("yyyy-MM-dd") (@sheet.TotalHours hours)</strong><br />
+                                        <span>@sheet.Status</span><br />@sheet.ActivityDescription
+                                        <form asp-controller="LearnerPlacement" asp-action="WorkplaceTimesheetDecision" method="post" style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="weeklyTimesheetId" value="@sheet.WeeklyTimesheetId" />
+                                            <input name="comments" placeholder="Workplace mentor comments" style="flex:1;min-width:220px;border:1px solid var(--pl-border);border-radius:12px;padding:.55rem .7rem;" />
+                                            <button name="approve" value="true" class="btn-accent" type="submit">Approve</button>
+                                            <button name="approve" value="false" class="btn-outline" type="submit">Reject</button>
+                                        </form>
+                                        @if (sheet.Status == "Approved - Pending Campus Acknowledgement")
+                                        {
+                                            <form asp-controller="LearnerPlacement" asp-action="AcknowledgeTimesheet" method="post" style="margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="weeklyTimesheetId" value="@sheet.WeeklyTimesheetId" />
+                                                <input name="comments" placeholder="Campus mentor acknowledgement note" style="flex:1;min-width:220px;border:1px solid var(--pl-border);border-radius:12px;padding:.55rem .7rem;" />
+                                                <button class="btn-accent" type="submit">Acknowledge</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="tab-pane" id="tab-visits">
+                    <div style="margin-bottom:1rem;">
+                        <a class="btn-accent" asp-controller="Visit" asp-action="Visitation" asp-route-CompanyId="@Model.CompanyId" asp-route-PlacementId="@Model.PlacementId"><i class="fa fa-plus"></i> Capture Campus Visit</a>
+                    </div>
+                    @if (!visits.Any())
+                    {
+                        <div class="empty-state"><i class="fa fa-clipboard-check"></i> No campus visits linked to this placement yet.</div>
+                    }
+                    else
+                    {
+                        <div class="timeline-list">
+                            @foreach (var visit in visits)
+                            {
+                                <div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-body"><strong>@visit.Date.ToString("yyyy-MM-dd HH:mm") • @visit.DurationMinutes min</strong><br />Checklist: attendance @visit.AttendanceObserved, engagement @visit.EngagementObserved, conditions @visit.WorkplaceConditionsObserved, safety @visit.SafetyObserved, skills @visit.SkillApplicationObserved<br />@visit.ObservationNotes<br /><strong>Actions:</strong> @visit.ActionItems @if (visit.ActionItemDueDate.HasValue) { <span>(due @visit.ActionItemDueDate.Value.ToString("yyyy-MM-dd"))</span> }</div></div>
+                            }
+                        </div>
+                    }
+                </div>
                 <div class="tab-pane" id="tab-documents"><div class="empty-state"><i class="fa fa-folder-open"></i> Agreement: @(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? "Not uploaded yet." : Model.PlacementAgreement) Evidence uploads and final certificates will be listed here.</div></div>
                 <div class="tab-pane" id="tab-issues"><div class="empty-state"><i class="fa fa-life-ring"></i> Support tickets, at-risk alerts and overdue actions will be managed from this section.</div></div>
             </div>

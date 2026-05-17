@@ -2,7 +2,10 @@
 @{
     var student = ViewData["student"] as Student;
     var company = (string?)ViewData["company"] ?? "—";
-    var placementId = (string?)ViewData["PlacementId"] ?? "";
+    var placementId = ViewData["PlacementId"]?.ToString() ?? "";
+    var placement = ViewData["placement"] as Placement;
+    var timesheets = ViewBag.Timesheets as IReadOnlyCollection<WeeklyTimesheet> ?? new List<WeeklyTimesheet>();
+    var monday = DateTime.Today.AddDays(-((7 + ((int)DateTime.Today.DayOfWeek - (int)DayOfWeek.Monday)) % 7));
     var primaryEnrollment = student?.EnrollmentHistory?.FirstOrDefault();
     string courseTitle = primaryEnrollment?.CourseTitle ?? "No Course";
     string courseType  = primaryEnrollment?.CourseType ?? "N/A";
@@ -69,6 +72,12 @@ body{background:var(--pd-bg-alt);color:var(--pd-text);-webkit-font-smoothing:ant
 .tl-title{font-size:.6rem;font-weight:700;letter-spacing:.16rem;text-transform:uppercase;color:var(--pd-red);}
 .tl-meta{font-size:.55rem;color:var(--pd-muted);display:flex;gap:.6rem;flex-wrap:wrap;}
 .empty-note{font-size:.58rem;font-weight:600;color:var(--pd-muted);padding:.75rem 1rem;border:1px dashed var(--pd-border);border-radius:14px;text-align:center;}
+.timesheet-form{display:grid;gap:.8rem;}
+.timesheet-form input,.timesheet-form textarea{width:100%;border:1px solid var(--pd-border);border-radius:14px;padding:.65rem .75rem;font:inherit;font-size:.72rem;background:#fff;color:var(--pd-text);}
+.timesheet-form textarea{min-height:86px;resize:vertical;}
+.day-grid{display:grid;grid-template-columns:repeat(7,minmax(74px,1fr));gap:.45rem;}
+.day-grid label,.timesheet-form label{font-size:.5rem;letter-spacing:.13rem;text-transform:uppercase;font-weight:800;color:var(--pd-muted);}
+.status-chip{font-size:.5rem;letter-spacing:.12rem;text-transform:uppercase;font-weight:800;border-radius:999px;padding:.32rem .55rem;background:var(--pd-soft);color:var(--pd-red);display:inline-flex;}
 .fade-in{animation:fade .55s ease;}@@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @@media (max-width:640px){
   .header-block{padding:1.2rem 1.15rem 1.05rem;border-radius:34px;}
@@ -197,6 +206,69 @@ body{background:var(--pd-bg-alt);color:var(--pd-text);-webkit-font-smoothing:ant
               <span><i class="fa fa-tag"></i> @e.CourseType</span>
               <span><i class="fa fa-calendar"></i> @(e.StartDate.ToString("yyyy-MM-dd") ?? "—")</span>
             </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+
+  <!-- TIMESHEETS -->
+  <div class="panel" style="grid-column:1/-1;">
+    <h2 class="panel-title"><i class="fa fa-clock"></i> Weekly Timesheet & Activity Tracking</h2>
+    <form class="timesheet-form" asp-controller="LearnerPlacement" asp-action="SubmitWeeklyTimesheet" enctype="multipart/form-data" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="PlacementId" value="@placementId" />
+      <input type="hidden" name="StudentNumber" value="@student?.StudentNumber" />
+      <div class="info-grid">
+        <div>
+          <label>Week Start</label>
+          <input type="date" name="WeekStartDate" value="@monday.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+          <label>Week End</label>
+          <input type="date" name="WeekEndDate" value="@monday.AddDays(6).ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+          <label>Total Hours</label>
+          <input type="number" name="TotalHours" step="0.25" min="0" required placeholder="40" />
+        </div>
+        <div>
+          <label>Evidence Upload</label>
+          <input type="file" name="EvidenceFile" accept="image/*,.pdf,.doc,.docx" />
+        </div>
+      </div>
+      <div class="day-grid">
+        <div><label>Mon</label><input type="number" name="MondayHours" step="0.25" min="0" /></div>
+        <div><label>Tue</label><input type="number" name="TuesdayHours" step="0.25" min="0" /></div>
+        <div><label>Wed</label><input type="number" name="WednesdayHours" step="0.25" min="0" /></div>
+        <div><label>Thu</label><input type="number" name="ThursdayHours" step="0.25" min="0" /></div>
+        <div><label>Fri</label><input type="number" name="FridayHours" step="0.25" min="0" /></div>
+        <div><label>Sat</label><input type="number" name="SaturdayHours" step="0.25" min="0" /></div>
+        <div><label>Sun</label><input type="number" name="SundayHours" step="0.25" min="0" /></div>
+      </div>
+      <div class="info-grid">
+        <div><label>Activity description / tasks performed</label><textarea name="ActivityDescription" required></textarea></div>
+        <div><label>Skills applied</label><textarea name="SkillsApplied"></textarea></div>
+        <div><label>Learning outcomes achieved</label><textarea name="LearningOutcomes"></textarea></div>
+        <div><label>Challenges faced</label><textarea name="ChallengesFaced"></textarea></div>
+      </div>
+      <button type="submit" class="btn-accent" style="justify-content:center;"><i class="fa fa-paper-plane"></i> Submit for Workplace Approval</button>
+    </form>
+    <div class="divider"></div>
+    <h2 class="panel-title"><i class="fa fa-list-check"></i> Recent Timesheet History</h2>
+    <div class="timeline">
+      @if (!timesheets.Any())
+      {
+        <div class="empty-note">No weekly timesheets submitted yet.</div>
+      }
+      else
+      {
+        foreach (var sheet in timesheets)
+        {
+          <div class="tl-item">
+            <span class="tl-title">@sheet.WeekStartDate.ToString("yyyy-MM-dd") – @sheet.WeekEndDate.ToString("yyyy-MM-dd") • @sheet.TotalHours hours</span>
+            <div class="tl-meta"><span class="status-chip">@sheet.Status</span><span>@sheet.ActivityDescription</span></div>
           </div>
         }
       }

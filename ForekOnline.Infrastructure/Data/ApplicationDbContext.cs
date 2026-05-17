@@ -226,6 +226,11 @@ namespace ForekOnline.Infrastructure.Data
         public DbSet<Visit> Visits { get; set; }
 
         /// <summary>
+        /// Gets or sets the WeeklyTimesheets table.
+        /// </summary>
+        public DbSet<WeeklyTimesheet> WeeklyTimesheets { get; set; }
+
+        /// <summary>
         /// Gets or sets the WorkplaceModules table.
         /// </summary>
         public DbSet<LearnerWorkplaceModules> WorkplaceModules { get; set; }
@@ -363,6 +368,31 @@ namespace ForekOnline.Infrastructure.Data
             modelBuilder.Entity<LessonAttendance>()
                 .HasIndex(x => new { x.LessonId, x.StudentId })
                 .IsUnique();
+
+            modelBuilder.Entity<WeeklyTimesheet>(entity =>
+            {
+                entity.HasIndex(e => new { e.PlacementId, e.WeekStartDate, e.WeekEndDate })
+                    .HasDatabaseName("IX_WeeklyTimesheets_Placement_Week");
+
+                entity.Property(e => e.TotalHours)
+                    .HasColumnType("decimal(6,2)");
+
+                entity.HasOne(e => e.Placement)
+                    .WithMany(p => p.WeeklyTimesheets)
+                    .HasForeignKey(e => e.PlacementId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Visit>(entity =>
+            {
+                entity.HasIndex(e => e.PlacementId)
+                    .HasDatabaseName("IX_Visits_PlacementId");
+
+                entity.HasOne(e => e.Placement)
+                    .WithMany(p => p.Visits)
+                    .HasForeignKey(e => e.PlacementId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<ApplicationCycle>(entity =>
             {

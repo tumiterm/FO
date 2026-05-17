@@ -111,6 +111,7 @@
     <form asp-action="Visitation" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
         @Html.AntiForgeryToken()
         <input asp-for="CompanyId" type="hidden" value="@compId"/>
+        <input asp-for="PlacementId" type="hidden"/>
 
         <div class="layout-grid">
             <!-- Form -->
@@ -161,6 +162,14 @@
                     </div>
 
                     <div class="field">
+                        <label>Duration (minutes)</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-hourglass-half"></i>
+                            <input asp-for="DurationMinutes" type="number" min="1" placeholder="60" />
+                        </div>
+                    </div>
+
+                    <div class="field">
                         <label class="required">Mentor</label>
                         <div class="input-wrap">
                             <i class="fa fa-user"></i>
@@ -187,6 +196,43 @@
                         <span asp-validation-for="LearnerFeedback" class="text-danger" style="font-size:.55rem;"></span>
                     </div>
 
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Observation Checklist</label>
+                        <div class="input-wrap" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:center;">
+                            <label><input asp-for="AttendanceObserved" type="checkbox" /> Attendance</label>
+                            <label><input asp-for="EngagementObserved" type="checkbox" /> Engagement</label>
+                            <label><input asp-for="WorkplaceConditionsObserved" type="checkbox" /> Workplace conditions</label>
+                            <label><input asp-for="SafetyObserved" type="checkbox" /> Safety</label>
+                            <label><input asp-for="SkillApplicationObserved" type="checkbox" /> Skill application</label>
+                        </div>
+                    </div>
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Observation Notes / Feedback</label>
+                        <div class="input-wrap" style="align-items:flex-start;">
+                            <i class="fa fa-note-sticky" style="margin-top:.15rem;"></i>
+                            <textarea asp-for="ObservationNotes" placeholder="Attendance, engagement, workplace conditions, safety and skills feedback..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Action Items</label>
+                        <div class="input-wrap" style="align-items:flex-start;">
+                            <i class="fa fa-list-check" style="margin-top:.15rem;"></i>
+                            <textarea asp-for="ActionItems" placeholder="Actions agreed during the visit..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Action Due Date</label>
+                        <div class="input-wrap"><i class="fa fa-calendar-check"></i><input asp-for="ActionItemDueDate" type="date" /></div>
+                    </div>
+
+                    <div class="field">
+                        <label>Assignee</label>
+                        <div class="input-wrap"><i class="fa fa-user-check"></i><input asp-for="ActionItemAssignee" placeholder="Responsible person" /></div>
+                    </div>
                     <div class="field">
                         <label>Report Available?</label>
                         <div class="toggle-line">
