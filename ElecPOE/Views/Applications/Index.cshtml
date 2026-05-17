@@ -1,0 +1,202 @@
+﻿@{
+    ViewData["Title"] = "Online Applications";
+}
+
+<style>
+:root{
+  --app-accent:#0d8e66; --app-red:#b31217; --app-orange:#ff7a18;
+  --app-bg:#ffffff; --app-border:#e5e7eb; --app-muted:#6b7280;
+}
+.module-shell{max-width:1380px;margin:0 auto;padding:1.75rem 1rem 2.5rem;}
+.module-hero{
+  background:var(--app-bg);border:1px solid var(--app-border);border-radius:22px;padding:1.25rem 1.35rem;
+  box-shadow:0 12px 42px -18px rgba(0,0,0,.12);display:flex;gap:1rem;align-items:flex-start;position:relative;overflow:hidden;
+}
+.module-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,#0d8e6612,#b3121712,#ff7a1815);pointer-events:none;}
+.module-icon{
+  width:78px;height:78px;border-radius:18px;background:linear-gradient(135deg,#0d8e66,#14a67c,#33c49a);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.9rem;box-shadow:0 16px 32px -18px rgba(13,142,102,.45);
+}
+.module-title{margin:0;font-size:1.35rem;font-weight:700;letter-spacing:.4px;background:linear-gradient(90deg,#0d8e66,#b31217,#ff7a18);-webkit-background-clip:text;color:transparent;}
+.module-sub{margin:.35rem 0 0;font-size:.9rem;color:var(--app-muted);max-width:820px;}
+.ribbon{
+  margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap;
+}
+.ribbon .pill{
+  font-size:.6rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:800;padding:.45rem .75rem;border-radius:40px;
+  border:1px solid var(--app-border);background:#fff;color:#0d8e66;
+}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:1.2rem;}
+.card{
+  background:#fff;border:1px solid var(--app-border);border-radius:18px;padding:1rem .95rem .95rem;
+  box-shadow:0 10px 30px -18px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:.55rem;transition:.25s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 36px -16px rgba(0,0,0,.14);}
+.card h3{margin:0;font-size:.85rem;letter-spacing:.22rem;text-transform:uppercase;font-weight:800;color:#0d8e66;display:flex;gap:.45rem;align-items:center;}
+.card .desc{font-size:.72rem;color:var(--app-muted);line-height:1.15rem;}
+.card .actions{margin-top:auto;display:flex;gap:.5rem;flex-wrap:wrap;}
+.btn-mini{
+  font-size:.62rem;letter-spacing:.14rem;text-transform:uppercase;font-weight:800;padding:.55rem .9rem;border-radius:14px;
+  border:1px solid var(--app-border);background:#fff;color:#0d8e66;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;
+}
+.btn-mini.primary{background:linear-gradient(95deg,#0d8e66,#14a67c 60%,#33c49a);color:#fff;border-color:#0d8e66;}
+.btn-mini.danger{color:#b31217;border-color:#e5c7cc;}
+.preview-panel{
+  background:#fff;border:1px solid var(--app-border);border-radius:18px;padding:1rem;display:flex;flex-direction:column;gap:.75rem;
+}
+.preview-panel h4{margin:0;font-size:.78rem;letter-spacing:.2rem;text-transform:uppercase;font-weight:800;color:#0d8e66;}
+.calendar-placeholder{border:1px dashed #cfd7d4;border-radius:14px;padding:.75rem;text-align:center;color:var(--app-muted);font-size:.75rem;}
+@@media (prefers-color-scheme:dark){
+  body{background:#14191f;}
+  .module-hero,.card,.preview-panel{background:#232b34;border-color:#3a4552;}
+  .module-sub,.desc,.calendar-placeholder{color:#cfd7d4;}
+  .btn-mini{background:#232b34;border-color:#3a4552;color:#9be3c9;}
+  .btn-mini.primary{color:#fff;}
+}
+</style>
+
+<section class="module-shell">
+  <!-- Module welcome -->
+  <div class="module-hero">
+    <div class="module-icon"><i class="fa fa-clipboard-list"></i></div>
+    <div style="flex:1;">
+      <h1 class="module-title">Online Applications</h1>
+      <p class="module-sub">
+        Welcome to the Applications module. Manage intakes, track real‑time submissions, configure settings,
+        and review reports. Use the module menu below to jump into key workspaces.
+      </p>
+      <div class="ribbon">
+        <span class="pill"><i class="fa fa-layer-group"></i> INTakes</span>
+        <span class="pill"><i class="fa fa-database"></i> Submissions</span>
+        <span class="pill"><i class="fa fa-shield-alt"></i> Compliance</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module menu grid -->
+  <div class="grid">
+    <!-- Academic Calendar -->
+    <div class="card">
+      <h3><i class="fa fa-calendar-alt"></i> Academic Calendar</h3>
+      <div class="desc">
+        Visualize application cycles, deadlines and intake windows. Integrated with FullCalendar.js.
+      </div>
+      <div class="actions">
+        <a class="btn-mini primary" asp-controller="Applications" asp-action="Calendar"><i class="fa fa-arrow-right"></i> Open Calendar</a>
+        <a class="btn-mini" asp-controller="Applications" asp-action="CalendarSettings"><i class="fa fa-cog"></i> Configure</a>
+      </div>
+    </div>
+
+    <!-- Real-Time Dashboard -->
+    <div class="card">
+      <h3><i class="fa fa-chart-line"></i> Real‑Time Dashboard</h3>
+      <div class="desc">
+        Live visualizations of daily submissions, gender split and top programmes. Auto-refresh enabled.
+      </div>
+      <div class="actions">
+        <a class="btn-mini primary" asp-controller="Applications" asp-action="Dashboard"><i class="fa fa-arrow-right"></i> View Dashboard</a>
+        <a class="btn-mini" asp-controller="Applications" asp-action="DashboardSettings"><i class="fa fa-sliders-h"></i> Widgets</a>
+      </div>
+    </div>
+
+    <!-- Reporting -->
+    <div class="card">
+      <h3><i class="fa fa-file-alt"></i> Reporting</h3>
+      <div class="desc">
+        Generate monthly/annual summaries and export CSV/PDF snapshots of application data.
+      </div>
+      <div class="actions">
+        <a class="btn-mini primary" asp-controller="Applications" asp-action="Reports"><i class="fa fa-arrow-right"></i> Open Reports</a>
+        <a class="btn-mini" asp-controller="Applications" asp-action="Export"><i class="fa fa-download"></i> Export</a>
+      </div>
+    </div>
+
+    <!-- Applications Settings -->
+    <div class="card">
+      <h3><i class="fa fa-cog"></i> Applications Settings</h3>
+      <div class="desc">
+        Configure cycles, intake windows, validation rules, file limits and notification templates.
+      </div>
+      <div class="actions">
+        <a class="btn-mini primary" asp-controller="Applications" asp-action="Settings"><i class="fa fa-arrow-right"></i> Open Settings</a>
+        <a class="btn-mini" asp-controller="Applications" asp-action="Notifications"><i class="fa fa-envelope"></i> Notifications</a>
+      </div>
+    </div>
+
+    <!-- Queued Applications -->
+    <div class="card">
+      <h3><i class="fa fa-inbox"></i> Queued Applications</h3>
+      <div class="desc">
+        Review pending/flagged applications, apply bulk actions and resolve validation issues.
+      </div>
+      <div class="actions">
+        <a class="btn-mini primary" asp-controller="Applications" asp-action="Queue"><i class="fa fa-arrow-right"></i> Open Queue</a>
+        <a class="btn-mini danger" asp-controller="Applications" asp-action="BulkActions"><i class="fa fa-bolt"></i> Bulk Actions</a>
+      </div>
+    </div>
+
+    <!-- Others / Extensions -->
+    <div class="card">
+      <h3><i class="fa fa-plug"></i> Integrations</h3>
+      <div class="desc">
+        Connect to external systems (CRM, Finance, SMS/Email gateways) for seamless operations.
+      </div>
+      <div class="actions">
+        <a class="btn-mini" asp-controller="Applications" asp-action="Integrations"><i class="fa fa-link"></i> Manage</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline previews: calendar & stats (optional quick glance) -->
+  <div class="grid" style="margin-top:1rem;">
+    <div class="preview-panel">
+      <h4><i class="fa fa-calendar"></i> Calendar Preview</h4>
+      <div id="calendarShell" class="calendar-placeholder">
+        FullCalendar will render here. Use the Calendar page to manage events.
+      </div>
+    </div>
+    <div class="preview-panel">
+      <h4><i class="fa fa-chart-pie"></i> Today’s Snapshot</h4>
+      <div class="calendar-placeholder" id="snapshotShell">
+        Submissions: <span id="submissionsCount">—</span> • New apps: <span id="newAppsCount">—</span> • Top programme: <span id="topProg">—</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+@section Scripts{
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script>
+    (function(){
+      const shell=document.getElementById('calendarShell');
+      if(shell){
+        try{
+              const calendar = new FullCalendar.Calendar(shell, {
+                initialView: 'dayGridMonth',
+                height: 320,
+                headerToolbar: { left:'title', center:'', right:'prev,next' },
+                eventSources: [{
+                  url: '@Url.Action("CalendarEvents", "Applications")',
+                  method: 'GET',
+                  failure: () => console.warn('Preview: failed to load events.')
+                }],
+                eventDidMount: (info) => {
+                  info.el.style.borderRadius = '6px';
+                  info.el.style.padding = '1px 2px';
+                }
+              });
+              calendar.render();
+            }catch(e){
+              shell.textContent = 'Calendar preview unavailable.';
+            }
+      }
+      const subEl=document.getElementById('submissionsCount');
+      const newEl=document.getElementById('newAppsCount');
+      const topEl=document.getElementById('topProg');
+      fetch('@Url.Action("DashboardSummary","Applications")',{ method:'GET' })
+        .then(r=> r.ok ? r.json() : Promise.reject())
+        .then(d=>{ subEl.textContent=d.total ?? '—'; newEl.textContent=d.recent ?? '—'; topEl.textContent=d.top ?? '—'; })
+        .catch(()=>{ subEl.textContent='—'; newEl.textContent='—'; topEl.textContent='—'; });
+    })();
+  </script>
+}

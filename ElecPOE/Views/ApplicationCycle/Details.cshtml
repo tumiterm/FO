@@ -1,0 +1,253 @@
+﻿@using ForekOnline.Domain.Entities
+@model ApplicationCycle
+
+@{
+    ViewData["Title"] = "Cycle Details";
+    var isWindowOpen = (ViewData["isWindowOpen"] as bool?) ?? false;
+}
+
+<style>
+:root{
+    --cd-bg: var(--fo-bg, #f3f4f8);
+    --cd-card: var(--fo-bg-card, #ffffff);
+    --cd-text: var(--fo-text, #1a1a2e);
+    --cd-text2: var(--fo-text-2, #4a4f5e);
+    --cd-muted: var(--fo-muted, #6b7280);
+    --cd-border: var(--fo-border, #e3e5eb);
+    --cd-orange: var(--fo-orange, #e65100);
+    --cd-orange-lt: var(--fo-orange-light, #ff8a50);
+    --cd-orange-dk: var(--fo-orange-dark, #ac1900);
+    --cd-radius: 16px;
+    --cd-radius-lg: 22px;
+    --cd-radius-sm: 10px;
+    --cd-shadow: 0 1px 3px rgba(0,0,0,.05), 0 10px 28px rgba(0,0,0,.04);
+    --cd-t: .22s cubic-bezier(.4,0,.2,1);
+    --cd-grad: linear-gradient(135deg, var(--cd-orange), var(--cd-orange-dk));
+    --cd-green:#22c55e;
+    --cd-red:#ef4444;
+    --cd-amber:#f59e0b;
+    --cd-indigo:#818cf8;
+    --cd-blue:#3b82f6;
+}
+
+[data-theme="dark"] .cd-shell{
+    --cd-bg:#0e1018;
+    --cd-card:#161a24;
+    --cd-text:#e2e5eb;
+    --cd-text2:#9ca3b4;
+    --cd-muted:#6b7186;
+    --cd-border:rgba(255,255,255,.08);
+    --cd-shadow: 0 1px 3px rgba(0,0,0,.2), 0 12px 30px rgba(0,0,0,.18);
+}
+
+.cd-shell{ max-width: 1200px; margin:0 auto; padding:.25rem 0 3rem; }
+
+.cd-header{ display:flex; flex-wrap:wrap; align-items:center; gap:.85rem; margin-bottom:1.1rem; }
+.cd-title{ margin:0; font-size:1.4rem; font-weight:800; letter-spacing:-.3px; color:var(--cd-text); display:flex; align-items:center; gap:.65rem; }
+.cd-title-icon{ width:48px;height:48px;border-radius:14px;background:var(--cd-grad); display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem; box-shadow:0 8px 24px rgba(230,81,0,.22); }
+.cd-sub{ font-size:.6rem; letter-spacing:.14rem; text-transform:uppercase; font-weight:700; color:var(--cd-muted); margin-top:.15rem; }
+
+.cd-actions{ margin-left:auto; display:flex; gap:.4rem; flex-wrap:wrap; }
+.cd-btn{ font-size:.62rem; letter-spacing:.1rem; font-weight:800; text-transform:uppercase; padding:.55rem .9rem; border-radius: var(--cd-radius-sm); border:1px solid var(--cd-border); background:var(--cd-card); color:var(--cd-text2); display:inline-flex; align-items:center; gap:.4rem; cursor:pointer; text-decoration:none; transition: all var(--cd-t);}
+.cd-btn:hover{ border-color:var(--cd-orange); color:var(--cd-orange); box-shadow: 0 4px 14px rgba(230,81,0,.12); transform: translateY(-1px); }
+.cd-btn-grad{ background:var(--cd-grad)!important; color:#fff!important; border:none!important; box-shadow:0 4px 16px rgba(230,81,0,.22); }
+.cd-btn-grad:hover{ filter:brightness(1.08); box-shadow:0 6px 24px rgba(230,81,0,.3); color:#fff!important; }
+
+.cd-grid{ display:grid; grid-template-columns: 1.05fr .95fr; gap: 1rem; }
+
+.cd-card{ background:var(--cd-card); border:1px solid var(--cd-border); border-radius: var(--cd-radius-lg); box-shadow: var(--cd-shadow); padding:1.1rem 1.2rem; }
+.cd-card-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.85rem; }
+.cd-card-title h2{ margin:0; font-size:.75rem; letter-spacing:.2rem; text-transform: uppercase; font-weight:900; color: var(--cd-text); display:flex; align-items:center; gap:.5rem; }
+.cd-chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .6rem; border-radius: 999px; border:1px solid var(--cd-border); background: rgba(230,81,0,.06); color: var(--cd-orange); font-size:.52rem; letter-spacing:.14rem; text-transform: uppercase; font-weight:900; }
+
+.cd-kvgrid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.75rem; }
+.cd-kv{ border: 1px dashed var(--cd-border); border-radius: 16px; padding:.85rem .9rem; background: linear-gradient(135deg, rgba(230,81,0,.03), rgba(255,255,255,0)); }
+[data-theme="dark"] .cd-kv{ background: linear-gradient(135deg, rgba(230,81,0,.06), rgba(22,26,36,0)); }
+.cd-k{ font-size:.5rem; letter-spacing:.18rem; text-transform: uppercase; font-weight:900; color: var(--cd-muted); }
+.cd-v{ margin-top:.35rem; font-weight:900; color: var(--cd-text); font-size:.9rem; }
+.cd-s{ margin-top:.25rem; font-size:.7rem; color: var(--cd-muted); line-height:1.05rem; }
+.cd-mono{ font-family:'SF Mono','Cascadia Code','Consolas',monospace; font-size:.66rem; color: var(--cd-muted); }
+
+.cd-badge{ font-size:.5rem; letter-spacing:.12rem; font-weight:900; text-transform: uppercase; padding:.3rem .6rem; border-radius: 999px; display:inline-flex; align-items:center; gap:.35rem; }
+.cd-badge-open{ background: rgba(34,197,94,.12); color: var(--cd-green); }
+.cd-badge-closed{ background: rgba(239,68,68,.12); color: var(--cd-red); }
+.cd-badge-active{ background: rgba(34,197,94,.12); color: var(--cd-green); }
+.cd-badge-inactive{ background: rgba(245,158,11,.12); color: var(--cd-amber); }
+.cd-badge-deleted{ background: rgba(239,68,68,.12); color: var(--cd-red); }
+
+/* TAT form */
+.cd-tat{
+    margin-top: .85rem;
+    border: 1px solid var(--cd-border);
+    border-radius: var(--cd-radius);
+    padding: .85rem .9rem;
+    background: var(--cd-bg);
+}
+.cd-tat .row{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:flex-end; }
+.cd-label{ font-size:.5rem; letter-spacing:.18rem; text-transform:uppercase; font-weight:900; color: var(--cd-muted); margin-bottom:.25rem; }
+.cd-input{
+    background: var(--cd-card);
+    border: 1px solid var(--cd-border);
+    color: var(--cd-text);
+    border-radius: var(--cd-radius-sm);
+    padding: .6rem .7rem;
+    font-size: .8rem;
+    transition: all var(--cd-t);
+}
+.cd-input:focus{ outline:none; border-color: var(--cd-orange); box-shadow: 0 0 0 3px rgba(230,81,0,.1); }
+
+@@media (max-width: 991.98px){ .cd-grid{ grid-template-columns:1fr; } }
+@@media (max-width: 575.98px){
+    .cd-header{ flex-direction:column; align-items:flex-start; }
+    .cd-actions{ width:100%; margin-left:0; }
+    .cd-actions .cd-btn{ flex:1; justify-content:center; }
+    .cd-kvgrid{ grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="cd-shell">
+    <div class="cd-header">
+        <div>
+            <h1 class="cd-title">
+                <span class="cd-title-icon"><i class="fa fa-circle-info"></i></span>
+                Cycle Details
+            </h1>
+            <div class="cd-sub">Operational overview &amp; quick actions</div>
+        </div>
+        <div class="cd-actions">
+            <a class="cd-btn" asp-action="Index"><i class="fa fa-arrow-left"></i> Back</a>
+            <a class="cd-btn cd-btn-grad" asp-action="Edit" asp-route-id="@Model.Id"><i class="fa fa-pen-to-square"></i> Edit</a>
+        </div>
+    </div>
+
+    <div class="cd-grid">
+        <div class="cd-card">
+            <div class="cd-card-title">
+                <h2><i class="fa fa-id-badge"></i> Summary</h2>
+                <span class="cd-chip"><i class="fa fa-shield-halved"></i> System</span>
+            </div>
+
+            <div class="cd-kvgrid">
+                <div class="cd-kv">
+                    <div class="cd-k">Name</div>
+                    <div class="cd-v">@(!string.IsNullOrWhiteSpace(Model.Name) ? Model.Name : $"{Model.AcademicYear} {Model.ApplicationPeriod}")</div>
+                    <div class="cd-s">Friendly label for admins &amp; reporting.</div>
+                </div>
+                <div class="cd-kv">
+                    <div class="cd-k">Code</div>
+                    <div class="cd-v cd-mono">@(!string.IsNullOrWhiteSpace(Model.Code) ? Model.Code : "—")</div>
+                    <div class="cd-s">Stable key for integrations (optional).</div>
+                </div>
+
+                <div class="cd-kv">
+                    <div class="cd-k">Academic Year</div>
+                    <div class="cd-v">@Model.AcademicYear</div>
+                    <div class="cd-s">Year grouping for uniqueness &amp; reports.</div>
+                </div>
+                <div class="cd-kv">
+                    <div class="cd-k">Period</div>
+                    <div class="cd-v">@(!string.IsNullOrWhiteSpace(Model.ApplicationPeriod) ? Model.ApplicationPeriod : "—")</div>
+                    <div class="cd-s">Intake / Semester / Trimester.</div>
+                </div>
+
+                <div class="cd-kv">
+                    <div class="cd-k">Window</div>
+                    <div class="cd-v cd-mono">@Model.OpensAt.ToString("yyyy-MM-dd HH:mm") → @Model.Closes.ToString("yyyy-MM-dd HH:mm")</div>
+                    <div class="cd-s">Overlap protection enforced on save.</div>
+                </div>
+                <div class="cd-kv">
+                    <div class="cd-k">Window State</div>
+                    <div class="cd-v">
+                        <span class="cd-badge @(isWindowOpen ? "cd-badge-open" : "cd-badge-closed")">
+                            <i class="fa @(isWindowOpen ? "fa-door-open" : "fa-door-closed")"></i>
+                            @(isWindowOpen ? "Open" : "Closed")
+                        </span>
+                    </div>
+                    <div class="cd-s">Computed in controller via service check.</div>
+                </div>
+
+                <div class="cd-kv">
+                    <div class="cd-k">Status</div>
+                    <div class="cd-v">
+                        @if (Model.IsDeleted)
+                        {
+                            <span class="cd-badge cd-badge-deleted"><i class="fa fa-trash"></i> Deleted</span>
+                        }
+                        else if (Model.IsActive)
+                        {
+                            <span class="cd-badge cd-badge-active"><i class="fa fa-bolt"></i> Active</span>
+                        }
+                        else
+                        {
+                            <span class="cd-badge cd-badge-inactive"><i class="fa fa-circle-pause"></i> Inactive</span>
+                        }
+                    </div>
+                    <div class="cd-s">Only one active cycle per year + period.</div>
+                </div>
+
+                <div class="cd-kv">
+                    <div class="cd-k">Turnaround</div>
+                    <div class="cd-v">@Model.TurnaroundDays day(s)</div>
+                    <div class="cd-s">Overdue threshold for processing.</div>
+                </div>
+            </div>
+
+            <div class="cd-tat">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:.75rem;font-weight:900;color:var(--cd-text);">Quick Update: Turnaround Time</div>
+                        <div class="cd-s" style="margin-top:.15rem;">Updates only <strong>TurnaroundDays</strong> without editing the full cycle.</div>
+                    </div>
+                    <span class="cd-chip"><i class="fa fa-stopwatch"></i> Fast</span>
+                </div>
+
+                <form asp-action="ConfigureTurnaroundTime" method="post" style="margin-top:.75rem;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="cycleId" value="@Model.Id" />
+                    <div class="row">
+                        <div style="flex:1 1 220px;">
+                            <div class="cd-label">Days</div>
+                            <input class="cd-input" type="number" name="days" min="0" max="365" value="@Model.TurnaroundDays" />
+                        </div>
+                        <div>
+                            <button type="submit" class="cd-btn cd-btn-grad" style="height:40px;">
+                                <i class="fa fa-save"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside class="cd-card">
+            <div class="cd-card-title">
+                <h2><i class="fa fa-clipboard-list"></i> Audit</h2>
+                <span class="cd-chip"><i class="fa fa-lock"></i> Trace</span>
+            </div>
+
+            <div class="cd-kv">
+                <div class="cd-k">Created</div>
+                <div class="cd-v cd-mono">@Model.DateCreated.ToString("yyyy-MM-dd HH:mm")</div>
+                <div class="cd-s">By: <span class="cd-mono">@(!string.IsNullOrWhiteSpace(Model.UserCreated) ? Model.UserCreated : "—")</span></div>
+            </div>
+
+            <div class="cd-kv" style="margin-top:.75rem;">
+                <div class="cd-k">Modified</div>
+                <div class="cd-v cd-mono">@Model.DateModified.ToString("yyyy-MM-dd HH:mm")</div>
+                <div class="cd-s">By: <span class="cd-mono">@(!string.IsNullOrWhiteSpace(Model.UserModified) ? Model.UserModified : "—")</span></div>
+            </div>
+
+            <div class="cd-kv" style="margin-top:.75rem;">
+                <div class="cd-k">Deleted</div>
+                <div class="cd-v">@Model.IsDeleted</div>
+                <div class="cd-s">Deleted date: <span class="cd-mono">@((Model.DateDeleted.HasValue) ? Model.DateDeleted.Value.ToString("yyyy-MM-dd HH:mm") : "—")</span></div>
+            </div>
+
+            <div class="cd-kv" style="margin-top:.75rem;">
+                <div class="cd-k">Description</div>
+                <div class="cd-v" style="font-size:.82rem;">@(!string.IsNullOrWhiteSpace(Model.Description) ? Model.Description : "—")</div>
+                <div class="cd-s">Internal notes.</div>
+            </div>
+        </aside>
+    </div>
+</div>

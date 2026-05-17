@@ -1,0 +1,739 @@
+﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+@model ForekOnline.Domain.ViewModels.ApplyViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Forek Online Application</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --accent:#0d8e66;
+            --accent-rgb:13,142,102;
+            --danger:#dc2626;
+            --radius:14px;
+            --bg-soft:#f8faf9;
+        }
+        body {
+            background: radial-gradient(circle at 20% 15%, #ffffff 0, #eef4f2 55%, #dbe7e2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+            padding:1.25rem;
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+        }
+        .app-shell { width:100%; max-width:1180px; }
+        .wizard {
+            background:#fff;
+            border:1px solid #e5e9e7;
+            border-radius:var(--radius);
+            box-shadow:0 10px 30px -8px rgba(0,0,0,.08);
+            overflow:hidden;
+            display:grid;
+            grid-template-columns:320px 1fr;
+        }
+        @@media (max-width: 992px) { .wizard { grid-template-columns:1fr; } }
+        .wizard-aside {
+            background:linear-gradient(160deg,#106e52,#0d8e66 70%,#0aa377);
+            color:#fff;
+            position:relative;
+            display:flex;
+            flex-direction:column;
+            padding:2.25rem 1.75rem 1.75rem;
+        }
+        .brand-block { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
+        .brand-block i { font-size:1.9rem; opacity:.95; }
+        .brand-block span { font-weight:600; letter-spacing:.5px; }
+        .steps { list-style:none; margin:1.25rem 0 0; padding:0; counter-reset: step; flex:1; }
+        .steps li {
+            position:relative; padding:.75rem .75rem .75rem 2.75rem; margin-bottom:.5rem; border-radius:10px;
+            background:rgba(255,255,255,.08); font-size:.9rem; backdrop-filter:blur(4px); cursor:pointer; transition:background .25s;
+        }
+        .steps li.active { background:rgba(255,255,255,.18); font-weight:600; }
+        .steps li.done { background:rgba(255,255,255,.28); }
+        .steps li:before {
+            counter-increment: step; content:counter(step); position:absolute; left:.9rem; top:50%; transform:translateY(-50%);
+            width:26px; height:26px; background:#fff; color:#083f30; font-weight:600; font-size:.8rem; border-radius:50%;
+            display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.15);
+        }
+        .progress-wrap { margin-top:.75rem; }
+        .progress { height:8px; background:#ffffff30; border-radius:5px; overflow:hidden; }
+        .progress-bar { background:linear-gradient(90deg,#fff,#fefefe); }
+        .wizard-main { padding:2rem 2.25rem 2.25rem; background:var(--bg-soft); }
+        .step-pane { display:none; animation:fadeSlide .45s ease; }
+        .step-pane.active { display:block; }
+        @@keyframes fadeSlide { from {opacity:0; transform:translateY(12px);} to {opacity:1; transform:translateY(0);} }
+        .section-title {
+            font-size:1.05rem; font-weight:600; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; color:#0b5d46;
+        }
+        .section-title i { color:var(--accent); }
+        label.form-label {
+            font-weight:500; font-size:.75rem; text-transform:uppercase; letter-spacing:.75px; color:#374741; margin-bottom:.35rem;
+        }
+        .required:after { content:" *"; color:var(--danger); font-weight:600; }
+        .form-control, .form-select {
+            border-radius:10px; border:1px solid #cfd7d4; font-size:.92rem; padding:.62rem .75rem; background:#fff;
+            transition:border-color .25s, box-shadow .25s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color:rgba(var(--accent-rgb), .9); box-shadow:0 0 0 3px rgba(var(--accent-rgb), .25);
+        }
+        .file-drop {
+            position:relative; border:2px dashed #c7d3ce; padding:1rem; text-align:center; border-radius:10px;
+            background:#fff; transition:border-color .25s, background .25s; font-size:.8rem; color:#4c5b55;
+        }
+        .file-drop.drag { background:#f2fbf7; border-color:var(--accent); }
+        .helper { font-size:.7rem; color:#6b7a74; margin-top:.25rem; }
+        .actions { display:flex; gap:.75rem; justify-content:flex-end; margin-top:.5rem; flex-wrap:wrap; }
+        .btn-accent {
+            --bs-btn-bg:var(--accent); --bs-btn-border-color:var(--accent); --bs-btn-hover-bg:#0c7552;
+            --bs-btn-hover-border-color:#0c7552; --bs-btn-color:#fff;
+        }
+        .btn-outline-accent {
+            --bs-btn-color:var(--accent); --bs-btn-border-color:var(--accent); --bs-btn-hover-bg:var(--accent);
+            --bs-btn-hover-border-color:var(--accent); --bs-btn-hover-color:#fff;
+        }
+        .alert-inline {
+            background:#fff7f7; border:1px solid #ffd3d3; color:#7a2525; font-size:.75rem; border-radius:10px;
+            padding:.65rem .75rem; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem;
+        }
+        .select2-container .select2-selection--single {
+            height:42px; padding:.4rem .75rem; border-radius:10px; border:1px solid #cfd7d4; display:flex; align-items:center;
+        }
+        .selected-course-card {
+            border:1px solid #cfd7d4; background:#fff; border-radius:12px; padding:.9rem 1rem; margin-top:1rem;
+            box-shadow:0 4px 10px -4px rgba(0,0,0,.08);
+        }
+        .selected-course-card h6 { margin:0 0 .35rem; font-weight:600; }
+        .badge-list { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+        .badge-course {
+            background:#0d8e6614; color:#0d8e66; border:1px solid #0d8e6625; padding:.35rem .6rem; font-size:.65rem;
+            border-radius:50px; font-weight:500; cursor:pointer; transition:.25s;
+        }
+        .badge-course:hover { background:#0d8e6625; }
+        .course-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:.9rem; }
+        .course-card {
+            background:#fff; border:1px solid #d9e2de; border-radius:12px; padding:.75rem .8rem .8rem; display:flex;
+            flex-direction:column; gap:.4rem; box-shadow:0 3px 10px -4px rgba(0,0,0,.08); cursor:pointer; transition:.25s;
+        }
+        .course-card:hover { border-color:#0d8e66; box-shadow:0 6px 18px -6px rgba(0,0,0,.12); }
+        .course-card small { font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; color:#486157; }
+        .course-card .title { font-size:.82rem; font-weight:600; line-height:1.15; min-height:34px; }
+        .course-card .meta { font-size:.65rem; color:#57756c; display:flex; gap:.5rem; flex-wrap:wrap; }
+        .offcanvas-header { background:#0d8e66; color:#fff; }
+        .offcanvas-title { font-weight:600; font-size:.95rem; }
+        .course-search-tools .form-control, .course-search-tools .form-select {
+            font-size:.8rem; padding:.45rem .6rem; border-radius:8px;
+        }
+        .footer-note { font-size:.65rem; color:#607068; text-align:right; margin-top:.75rem; }
+        .skeleton {
+            background:linear-gradient(90deg,#f0f3f2 25%,#e6ece9 37%,#f0f3f2 63%);
+            animation:skeleton 1.4s ease infinite; border-radius:8px;
+        }
+        @@keyframes skeleton {
+            0% { background-position:-200px 0; }
+            100% { background-position:calc(200px + 100%) 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <div class="wizard">
+        <!-- Sidebar -->
+        <aside class="wizard-aside">
+            <div class="brand-block">
+                <i class="fa fa-file-signature"></i>
+                <span>Forek Online Application<br/><small class="fw-normal">Year @DateTime.UtcNow.Year</small></span>
+            </div>
+            <ul class="steps" id="stepsNav">
+                <li data-step="0" class="active">Programme & Cycle</li>
+                <li data-step="1">Address & Contact</li>
+                <li data-step="2">Guardian & Medical</li>
+            </ul>
+            <div class="progress-wrap">
+                <div class="progress mt-2">
+                    <div class="progress-bar" id="progressBar" style="width:33%"></div>
+                </div>
+            </div>
+            <div class="mt-3 small">
+                <i class="fa fa-info-circle me-1"></i>
+                Complete required fields. Files: clear PDF/JPG (≤ 4MB each).
+            </div>
+            <div class="footer-note">
+                Secure submission • Data privacy • Intake integrity
+            </div>
+        </aside>
+
+        <!-- Main Form -->
+        <div class="wizard-main">
+            <form asp-action="Apply" method="post" enctype="multipart/form-data" id="applicationForm" novalidate>
+                @Html.AntiForgeryToken()
+
+                <!-- Step 0 -->
+                <div class="step-pane active" data-step="0">
+                    <h2 class="section-title">
+                        <i class="fa fa-layer-group"></i> Programme & Application Cycle
+                    </h2>
+
+                    <div class="alert-inline">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        Explore courses first if unsure. Use filters, then select your course.
+                    </div>
+
+                    <!-- Popular / Highlighted Courses (placeholder) -->
+                    <div class="badge-list" id="popularCourses">
+                        <!-- Dynamically populated -->
+                        <span class="badge-course skeleton" style="width:80px;height:22px;"></span>
+                        <span class="badge-course skeleton" style="width:110px;height:22px;"></span>
+                        <span class="badge-course skeleton" style="width:70px;height:22px;"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Course Selection</label>
+                            <div class="d-flex gap-2 align-items-start">
+                                <select asp-for="CourseId" class="form-select js-course" required asp-items="ViewBag.CourseId">
+                                    <option value="">Select a course</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-accent btn-sm" data-bs-toggle="offcanvas" data-bs-target="#courseExplorer">
+                                    <i class="fa fa-search"></i> Browse
+                                </button>
+                            </div>
+                            <div class="helper">
+                                Use Browse for full catalogue (thousands of courses) or type ahead to search.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Funder Type</label>
+                            <select asp-for="FunderType" class="form-select funder" required asp-items="Html.GetEnumSelectList<eFunderType>()">
+                                <option value="">Funding Type</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Citizenship (RSA)</label>
+                            <select asp-for="Selection" class="form-select citizen" required asp-items="Html.GetEnumSelectList<eChoice>()">
+                                <option value="">Is South African?</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Study Permit Category</label>
+                            <select asp-for="StudyPermitCategory" class="form-select permit" asp-items="Html.GetEnumSelectList<eCategory>()">
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">ID Number</label>
+                            <input asp-for="IDNumber" class="form-control idNum" type="text" maxlength="13" inputmode="numeric" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Passport Number</label>
+                            <input asp-for="PassportNumber" class="form-control pass" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Highest Qualification</label>
+                            <select asp-for="HighestQualification" class="form-select" required asp-items="Html.GetEnumSelectList<HighestQualification>()">
+                                <option value="">Select Option</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Attach Highest Qualification</label>
+                            <div class="file-drop" data-for="AplicantHighestQualFile">
+                                <input asp-for="AplicantHighestQualFile" type="file" class="form-control" required />
+                                <div class="helper">PDF / JPG / PNG scan</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="selectedCourseSummary" class="selected-course-card d-none">
+                                <h6><i class="fa fa-circle-info text-accent me-1"></i> Selected Course</h6>
+                                <div class="small" data-field="name"></div>
+                                <div class="small text-muted" data-field="meta"></div>
+                                <div class="small text-muted" data-field="cycles"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h2 class="section-title">
+                        <i class="fa fa-user"></i> Biographical Information
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label required">Title</label>
+                            <select asp-for="ApplicantTitle" class="form-select" required asp-items="Html.GetEnumSelectList<eTitle>()">
+                                <option value="">Select Title</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label required">First Name</label>
+                            <input asp-for="ApplicantName" class="form-control" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label required">Surname</label>
+                            <input asp-for="ApplicantSurname" class="form-control" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label required">Gender</label>
+                            <select asp-for="Gender" class="form-select" required asp-items="Html.GetEnumSelectList<eGender>()">
+                                <option value="">Select Gender</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Attach RSA ID</label>
+                            <div class="file-drop" data-for="ApplicantIDPassFile">
+                                <input asp-for="ApplicantIDPassFile" type="file" class="form-control" required />
+                                <div class="helper">Clear PDF/JPG of front/back or card</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn-accent btn-next">
+                            Next <i class="fa fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="step-pane" data-step="1">
+                    <h2 class="section-title">
+                        <i class="fa fa-map-marker-alt"></i> Address & Contact Details
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label required">Street / Complex No</label>
+                            <input asp-for="Line1" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Suburb</label>
+                            <input asp-for="StreetName" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">City</label>
+                            <input asp-for="City" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Province</label>
+                            <select asp-for="Province" class="form-select" required asp-items="Html.GetEnumSelectList<eProvince>()">
+                                <option value="">Select Province</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Postal Code</label>
+                            <input asp-for="PostalCode" class="form-control" type="text" inputmode="numeric" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Proof of Residence</label>
+                            <div class="file-drop" data-for="ApplicantResidenceFile">
+                                <input asp-for="ApplicantResidenceFile" type="file" class="form-control" required />
+                                <div class="helper">Utility bill / official letter (≤ 3 months)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h2 class="section-title">
+                        <i class="fa fa-address-book"></i> Contact Info
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Cellphone Number</label>
+                            <input asp-for="Cellphone" class="form-control" type="text" inputmode="tel" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Email Address</label>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn-outline-accent btn-back">
+                            <i class="fa fa-arrow-left me-1"></i> Back
+                        </button>
+                        <button type="button" class="btn btn-accent btn-next">
+                            Next <i class="fa fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-pane" data-step="2">
+                    <h2 class="section-title">
+                        <i class="fa fa-user-shield"></i> Guardian & Medical Information
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label required">Guardian First Name</label>
+                            <input asp-for="GuardianFirstName" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Guardian Surname</label>
+                            <input asp-for="GuardianLastName" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Relationship</label>
+                            <select asp-for="GuardianRelationship" class="form-select" required asp-items="Html.GetEnumSelectList<eRelationship>()">
+                                <option value="">Select Relationship</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Guardian Cellphone</label>
+                            <input asp-for="GuardianCellphone" class="form-control" type="text" inputmode="tel" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required">Guardian RSA ID</label>
+                            <div class="file-drop" data-for="GuardianIDFile">
+                                <input asp-for="GuardianIDFile" type="file" class="form-control" required />
+                                <div class="helper">Clear readable scan</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h2 class="section-title">
+                        <i class="fa fa-medkit"></i> Medical Aid (Optional)
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Medical Aid Name</label>
+                            <input asp-for="MedicalName" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Member Number</label>
+                            <input asp-for="MemberNumber" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Disability</label>
+                            <input asp-for="Disability" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Telephone</label>
+                            <input asp-for="Telephone" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn btn-outline-accent btn-back">
+                            <i class="fa fa-arrow-left me-1"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fa fa-save me-1"></i> Submit Application
+                        </button>
+                        <button type="reset" class="btn btn-outline-danger">
+                            <i class="fa fa-rotate-left me-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="validationSummary" class="mt-3"></div>
+</div>
+
+<!-- Offcanvas Course Explorer -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="courseExplorer">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title"><i class="fa fa-search me-1"></i> Explore Courses</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+        <div class="course-search-tools mb-3">
+            <div class="row g-2">
+                <div class="col-6">
+                    <input type="text" id="courseSearchInput" class="form-control" placeholder="Search by name..." />
+                </div>
+                <div class="col-3">
+                    <select id="courseCategoryFilter" class="form-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <select id="courseFundingFilter" class="form-select">
+                        <option value="">Funding: Any</option>
+                        <option value="funded">Funded</option>
+                        <option value="self">Self-Pay</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="courseResults" class="course-grid mb-3">
+            <!-- Dynamic course cards -->
+        </div>
+        <div class="d-grid mb-2">
+            <button type="button" class="btn btn-outline-accent btn-sm" id="loadMoreCourses">Load More</button>
+        </div>
+        <div class="small text-muted" id="courseTotals"></div>
+        <div class="mt-auto pt-3 small text-secondary">
+            Tip: Narrow results with category + search. Only partial list shown for performance.
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+(function() {
+    const steps = Array.from(document.querySelectorAll('.step-pane'));
+    const navItems = Array.from(document.querySelectorAll('#stepsNav li'));
+    const progressBar = document.getElementById('progressBar');
+    let current = 0;
+
+    function updateUI() {
+        steps.forEach(s => s.classList.remove('active'));
+        steps[current].classList.add('active');
+        navItems.forEach((li, idx) => {
+            li.classList.remove('active','done');
+            if (idx < current) li.classList.add('done');
+            if (idx === current) li.classList.add('active');
+        });
+        progressBar.style.width = (((current + 1) / steps.length) * 100) + '%';
+    }
+
+    document.querySelectorAll('.btn-next').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (current < steps.length - 1) {
+                current++;
+                updateUI();
+            }
+        });
+    });
+    document.querySelectorAll('.btn-back').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (current > 0) {
+                current--;
+                updateUI();
+            }
+        });
+    });
+    navItems.forEach(li => {
+        li.addEventListener('click', () => {
+            const target = parseInt(li.getAttribute('data-step'));
+            if (target <= current || formSectionValid(current)) {
+                current = target;
+                updateUI();
+            }
+        });
+    });
+
+    function formSectionValid(stepIndex) {
+        const pane = steps[stepIndex];
+        const requiredInputs = pane.querySelectorAll('[required]');
+        for (const input of requiredInputs) {
+            if (!input.value) {
+                input.classList.add('is-invalid');
+                input.addEventListener('input', () => input.classList.remove('is-invalid'), { once:true });
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Funding logic
+    $('.funder').on('change', function () {
+        const txt = $(this).find('option:selected').text();
+        if (txt === 'No Funding') {
+            Swal.fire({
+                icon:'error',
+                title:'Unable to proceed',
+                text:'All programmes require valid funding.',
+                footer:'Contact support for funding opportunities.'
+            });
+            $('#applicationForm :input').prop('disabled', true);
+            $('.funder').prop('disabled', false);
+        } else {
+            $('#applicationForm :input').prop('disabled', false);
+        }
+    });
+
+    // Citizenship toggle
+    $('.citizen').on('change', function () {
+        const txt = $(this).find('option:selected').text().trim();
+        if (txt === 'Yes') {
+            $('.pass,.permit').prop('readonly', true).addClass('bg-warning-subtle');
+            $('.idNum').prop('readonly', false).removeClass('bg-warning-subtle');
+        } else if (txt === 'No') {
+            $('.pass,.permit').prop('readonly', false).removeClass('bg-warning-subtle');
+            $('.idNum').prop('readonly', true).addClass('bg-warning-subtle');
+        }
+    });
+
+    // Select2 (Local or convert to remote)
+    $('.js-course').select2({
+        placeholder:'Search course',
+        allowClear:true,
+        width:'100%'
+        // Uncomment for remote (after creating endpoint):
+        // ajax: {
+        //   url: '/Course/Search',
+        //   dataType: 'json',
+        //   delay: 250,
+        //   data: params => ({ q: params.term, page: params.page || 1, pageSize: 20 }),
+        //   processResults: data => ({
+        //     results: data.items.map(c => ({ id: c.courseId, text: c.name })),
+        //     pagination: { more: (data.page * data.pageSize) < data.total }
+        //   })
+        // }
+    });
+
+    // Selected course summary (on change)
+    $('.js-course').on('change', function() {
+        const selectedText = $(this).find('option:selected').text();
+        if (!this.value) {
+            $('#selectedCourseSummary').addClass('d-none');
+            return;
+        }
+        // If remote: fetch metadata by ID
+        // For now just display name placeholder
+        $('#selectedCourseSummary').removeClass('d-none')
+            .find('[data-field="name"]').text(selectedText);
+        $('#selectedCourseSummary').find('[data-field="meta"]').text('Category / Type / Duration (populate after selection)');
+        $('#selectedCourseSummary').find('[data-field="cycles"]').text('Available cycles: (fetch if needed)');
+    });
+
+    // Course Explorer
+    let coursePage = 1;
+    let loadingCourses = false;
+    const pageSize = 20;
+    const $results = $('#courseResults');
+    const $total = $('#courseTotals');
+
+    function skeletonCards(count) {
+        let html = '';
+        for (let i=0;i<count;i++) {
+            html += `<div class="course-card">
+                <div class="skeleton" style="height:16px;width:55%;"></div>
+                <div class="skeleton" style="height:38px;width:100%;"></div>
+                <div class="skeleton" style="height:12px;width:70%;"></div>
+            </div>`;
+        }
+        return html;
+    }
+
+    function loadCourses(reset=false) {
+        if (loadingCourses) return;
+        loadingCourses = true;
+        if (reset) {
+            coursePage = 1;
+            $results.html(skeletonCards(6));
+        } else {
+            $results.append(skeletonCards(3));
+        }
+        const q = $('#courseSearchInput').val() || '';
+        const cat = $('#courseCategoryFilter').val() || '';
+        const fund = $('#courseFundingFilter').val() || '';
+        $.getJSON('/Course/Search', { q, category: cat, funding: fund, page: coursePage, pageSize })
+            .done(data => {
+                if (reset) $results.empty();
+                data.items.forEach(c => {
+                    const card = $(`
+                        <div class="course-card" data-id="${c.courseId}">
+                            <small>${c.category || 'Uncategorized'}</small>
+                            <div class="title">${c.name}</div>
+                            <div class="meta">
+                                <span><i class="fa fa-clock"></i> ${c.duration || 'TBA'}</span>
+                                ${c.isFunded ? '<span><i class="fa fa-coins"></i> Funded</span>' : '<span><i class="fa fa-wallet"></i> Self-Pay</span>'}
+                            </div>
+                        </div>
+                    `);
+                    card.on('click', () => selectCourseFromExplorer(c));
+                    $results.append(card);
+                });
+                if (data.items.length === 0 && coursePage === 1) {
+                    $results.html('<div class="text-center text-muted small">No courses match your filters.</div>');
+                }
+                $total.text(`Showing page ${data.page} • ${(data.page - 1) * data.pageSize + data.items.length} of ${data.total} potential matches`);
+                coursePage++;
+            })
+            .fail(() => {
+                if (reset) $results.html('<div class="text-danger small">Error loading courses.</div>');
+            })
+            .always(() => {
+                loadingCourses = false;
+            });
+    }
+
+    function selectCourseFromExplorer(c) {
+        // Ensure option exists or add dynamically
+        let existing = $('.js-course option[value="' + c.courseId + '"]').length;
+        if (!existing) {
+            $('.js-course').append(`<option value="${c.courseId}">${c.name}</option>`);
+        }
+        $('.js-course').val(c.courseId).trigger('change');
+        $('#courseExplorer').offcanvas && bootstrap.Offcanvas.getInstance(document.getElementById('courseExplorer'))?.hide();
+        $('#selectedCourseSummary').removeClass('d-none')
+            .find('[data-field="name"]').text(c.name);
+        $('#selectedCourseSummary').find('[data-field="meta"]').text(`${c.category || 'Category'} • ${c.type || 'Type'} • ${c.duration || 'Duration'}`);
+        $('#selectedCourseSummary').find('[data-field="cycles"]').text(`Cycles: ${(c.cycleNames || []).join(', ') || 'Not listed'}`);
+    }
+
+    $('#courseSearchInput, #courseCategoryFilter, #courseFundingFilter').on('input change', function() {
+        coursePage = 1;
+        loadCourses(true);
+    });
+    $('#loadMoreCourses').on('click', function() {
+        loadCourses(false);
+    });
+
+    // Load categories & popular (optional endpoints)
+    function loadPopular() {
+        $.getJSON('/Course/Popular')
+            .done(list => {
+                const $pop = $('#popularCourses').empty();
+                list.forEach(p => {
+                    const badge = $(`<span class="badge-course">${p.name}</span>`);
+                    badge.on('click', () => {
+                        selectCourseFromExplorer(p);
+                    });
+                    $pop.append(badge);
+                });
+            })
+            .fail(() => {
+                $('#popularCourses').html('<span class="small text-muted">Popular courses unavailable.</span>');
+            });
+    }
+    function loadCategories() {
+        $.getJSON('/Course/Categories')
+            .done(list => {
+                const sel = $('#courseCategoryFilter');
+                sel.empty().append('<option value="">All Categories</option>');
+                list.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
+            });
+    }
+
+    document.getElementById('courseExplorer')
+        .addEventListener('shown.bs.offcanvas', function() {
+            if ($results.children().length === 0) {
+                loadCourses(true);
+                loadPopular();
+                loadCategories();
+            }
+        });
+
+    // Drag highlight for file inputs
+    document.querySelectorAll('.file-drop input[type="file"]').forEach(input => {
+        const wrapper = input.closest('.file-drop');
+        input.addEventListener('dragenter', () => wrapper.classList.add('drag'));
+        input.addEventListener('dragleave', () => wrapper.classList.remove('drag'));
+        input.addEventListener('drop', () => wrapper.classList.remove('drag'));
+        input.addEventListener('change', () => {
+            if (input.files?.length) {
+                wrapper.querySelector('.helper').textContent = input.files[0].name;
+            }
+        });
+    });
+
+    updateUI();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
+

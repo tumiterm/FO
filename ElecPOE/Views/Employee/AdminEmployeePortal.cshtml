@@ -1,0 +1,178 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Employee Administration Portal";
+    bool isAdmin = User.IsInRole("Admin");
+}
+@if (!isAdmin)
+{
+    <div style="max-width:880px;margin:3rem auto;padding:2rem 1.4rem;border:1px solid #e2e5e9;border-radius:22px;background:#fff;box-shadow:0 8px 30px -12px rgba(0,0,0,.15);text-align:center;">
+        <h5 style="margin:0 0 .75rem;font-weight:600;letter-spacing:.4px;">Access Restricted</h5>
+        <p style="font-size:.8rem;color:#555;letter-spacing:.3px;">This administrative portal is only available to users with the <strong>Admin</strong> role.</p>
+    </div>
+}
+else
+{
+    <style>
+        :root{
+            --adm-dr:#320606;--adm-red:#b31217;--adm-orange:#ff7a18;
+            --adm-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            --adm-bg:#ffffff;--adm-bg-alt:#f5f7fa;--adm-border:#e3e6ea;--adm-border-alt:#d4d6db;
+            --adm-muted:#6d7480;
+        }
+        @@media (prefers-color-scheme:dark){
+            :root{--adm-bg:#1f242d;--adm-bg-alt:#161b21;--adm-border:#2f3741;--adm-border-alt:#3b4552;--adm-muted:#97a3b4;}
+            body{background:#161b21;}
+        }
+        .portal-shell{max-width:1320px;margin:1.6rem auto 3.2rem;padding:1.4rem 1.1rem;}
+        .portal-header{
+            display:flex;flex-wrap:wrap;align-items:center;gap:1.2rem;
+            background:var(--adm-bg);border:1px solid var(--adm-border);border-radius:34px;
+            padding:1.25rem 1.5rem 1.2rem;position:relative;overflow:hidden;
+            box-shadow:0 10px 30px -14px rgba(50,6,6,.25);
+        }
+        .portal-header:before{
+            content:'';position:absolute;inset:0;background:linear-gradient(130deg,#32060610,#b3121712,#ff7a1816);pointer-events:none;
+        }
+        .ph-icon{
+            width:82px;height:82px;border-radius:28px;
+            background:var(--adm-grad);display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:2rem;box-shadow:0 14px 34px -16px rgba(179,18,23,.55);
+        }
+        .portal-header h1{
+            margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:.6rem;
+        }
+        .portal-tag{
+            font-size:.58rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;
+            background:#fff5f3;color:var(--adm-red);padding:.5rem .9rem;border-radius:40px;
+            display:inline-flex;align-items:center;gap:.45rem;margin-top:.35rem;
+        }
+        .cards-grid{
+            margin-top:1.9rem;
+            display:grid;gap:1.35rem;
+            grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+        }
+        .portal-card{
+            position:relative;display:flex;flex-direction:column;gap:.9rem;
+            background:var(--adm-bg);border:1px solid var(--adm-border);border-radius:30px;
+            padding:1.25rem 1.15rem 1.15rem;overflow:hidden;
+            box-shadow:0 8px 28px -14px rgba(50,6,6,.18);
+            transition:.45s;
+        }
+        .portal-card:before{
+            content:'';position:absolute;inset:0;background:radial-gradient(circle at 78% 18%,rgba(255,122,24,.26),transparent 62%);
+            opacity:.35;pointer-events:none;
+        }
+        .portal-card:hover{
+            transform:translateY(-6px);
+            border-color:var(--adm-border-alt);
+            box-shadow:0 16px 42px -18px rgba(50,6,6,.35);
+        }
+        .pc-head{
+            display:flex;align-items:center;gap:.75rem;
+        }
+        .pc-icon{
+            width:58px;height:58px;border-radius:18px;
+            background:var(--adm-grad);display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:1.35rem;box-shadow:0 8px 22px -10px rgba(179,18,23,.55);
+        }
+        .pc-title{
+            margin:0;font-size:1rem;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:.5rem;
+        }
+        .pc-sub{
+            font-size:.62rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;
+            color:var(--adm-red);background:#fff5f3;padding:.38rem .7rem;border-radius:30px;
+            display:inline-flex;align-items:center;gap:.35rem;
+        }
+        .pc-body{
+            font-size:.7rem;line-height:1.1rem;color:var(--adm-muted);letter-spacing:.35px;flex:1;
+        }
+        .links-row{
+            display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.25rem;
+        }
+        .portal-link{
+            font-size:.55rem;letter-spacing:.14rem;font-weight:700;text-transform:uppercase;
+            padding:.55rem .9rem;border-radius:14px;
+            border:1px solid var(--adm-border);
+            background:#fff;color:var(--adm-red);display:inline-flex;align-items:center;gap:.45rem;
+            text-decoration:none;transition:.35s;
+        }
+        .portal-link.primary{background:var(--adm-grad);color:#fff;border-color:var(--adm-red)}
+        .portal-link:hover{background:var(--adm-grad);color:#fff;border-color:var(--adm-red);box-shadow:0 6px 18px -8px rgba(179,18,23,.45)}
+        .divider{height:1px;background:linear-gradient(to right,transparent,#d9dde2,transparent);margin:.65rem 0 .4rem}
+        .mini-note{
+            font-size:.52rem;letter-spacing:.14rem;font-weight:600;color:var(--adm-muted);
+            display:flex;align-items:center;gap:.4rem;margin-top:.15rem;
+        }
+        @@media (prefers-color-scheme:dark){
+            body{background:#161b21}
+            .portal-card,.portal-header,.view-toggle-bar{background:#1f242c;border-color:#2f3741}
+            .pc-body,.mini-note{color:#9aa7b5}
+            .portal-link{background:#232b34;border-color:#2f3741;color:#ffb3b3}
+            .portal-link.primary{background:var(--adm-grad);color:#fff}
+            .portal-link:hover{color:#fff}
+        }
+    </style>
+
+    <div class="portal-shell">
+        <div class="portal-header">
+            <div class="ph-icon"><i class="fa fa-user-shield"></i></div>
+            <div>
+                <h1>Employee Administration</h1>
+                <div class="portal-tag"><i class="fa fa-layer-group"></i> ADMIN CONTROL</div>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <!-- Card 1: Personal Workspace -->
+            <div class="portal-card">
+                <div class="pc-head">
+                    <div class="pc-icon"><i class="fa fa-id-card"></i></div>
+                    <div>
+                        <h3 class="pc-title">My Workspace</h3>
+                        <span class="pc-sub"><i class="fa fa-user"></i> Personal</span>
+                    </div>
+                </div>
+                <div class="pc-body">
+                    Access and manage your personal employee hub: reports, files, lesson plans, and secure resources
+                    tied directly to your profile.
+                </div>
+                <div class="links-row">
+                    <a asp-action="EmployeeInfo" asp-controller="Employee"
+                       class="portal-link primary" rel="noopener">
+                        <i class="fa fa-arrow-right"></i> Open Portal
+                    </a>
+                </div>
+                <div class="divider"></div>
+                <div class="mini-note">
+                    <i class="fa fa-circle-info"></i> Direct access to only your own data.
+                </div>
+            </div>
+
+            <div class="portal-card">
+                <div class="pc-head">
+                    <div class="pc-icon"><i class="fa fa-users-cog"></i></div>
+                    <div>
+                        <h3 class="pc-title">Staff & Oversight</h3>
+                        <span class="pc-sub"><i class="fa fa-users"></i> Directory</span>
+                    </div>
+                </div>
+                <div class="pc-body">
+                    Browse or administer other employees. View department structure, filter user records,
+                    manage assessments, and perform elevated actions provided by your admin role.
+                </div>
+                <div class="links-row">
+                    <a asp-action="Employees" asp-controller="Employee"
+                       class="portal-link primary" rel="noopener">
+                        <i class="fa fa-arrow-right"></i> Open Directory
+                    </a>
+                </div>
+                <div class="divider"></div>
+                <div class="mini-note">
+                    <i class="fa fa-shield-halved"></i> Elevated visibility across department users.
+                </div>
+            </div>
+        </div>
+    </div>
+}

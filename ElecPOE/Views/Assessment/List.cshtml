@@ -1,0 +1,355 @@
+﻿@model List<ForekOnline.Domain.ViewModels.AssessmentListItemViewModel>
+@{
+    ViewData["Title"] = "Assessments";
+    bool isFacilitator = (bool)(ViewData["isFacilitator"] ?? false);
+}
+
+<style>
+    .a-shell {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 2.5rem;
+    }
+
+    .a-hero {
+        background: linear-gradient(115deg,#320606,#b31217 55%,#ff7a18);
+        border-radius: 22px;
+        padding: 1.6rem 1.75rem;
+        color: #fff;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 14px 40px -18px rgba(50,6,6,.3);
+    }
+
+        .a-hero h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .a-hero p {
+            margin: .35rem 0 0;
+            font-size: .82rem;
+            opacity: .9;
+            max-width: 60ch;
+        }
+
+    .a-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        align-items: center;
+        margin-bottom: 1.1rem;
+    }
+
+    .pill {
+        font-size: .52rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #fff;
+        color: #b31217;
+        padding: .45rem .8rem;
+        border-radius: 40px;
+        border: 1px solid #e2e5e9;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+        .pill.green {
+            background: #e6f9f1;
+            color: #0d6e4f;
+            border-color: #b8e8d4;
+        }
+
+        .pill.amber {
+            background: #fff8e5;
+            color: #92640a;
+            border-color: #f0dca0;
+        }
+
+        .pill.red {
+            background: #fff0f0;
+            color: #b31217;
+            border-color: #f5c6c6;
+        }
+
+    .a-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    }
+
+    .a-card {
+        background: #fff;
+        border: 1px solid #e2e5e9;
+        border-radius: 20px;
+        padding: 1rem 1.1rem .9rem;
+        display: flex;
+        flex-direction: column;
+        gap: .55rem;
+        box-shadow: 0 8px 28px -14px rgba(0,0,0,.1);
+        transition: .3s;
+    }
+
+        .a-card:hover {
+            box-shadow: 0 10px 36px -12px rgba(179,18,23,.25);
+            transform: translateY(-3px);
+        }
+
+        .a-card h3 {
+            margin: 0;
+            font-size: .82rem;
+            font-weight: 800;
+            letter-spacing: .04rem;
+        }
+
+    .a-meta {
+        font-size: .6rem;
+        color: #5d6670;
+        line-height: 1.15rem;
+    }
+
+        .a-meta strong {
+            color: #333;
+        }
+
+    .a-actions {
+        margin-top: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        padding-top: .5rem;
+    }
+
+    .btn-a {
+        font-size: .55rem;
+        letter-spacing: .12rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: .5rem .85rem;
+        border-radius: 14px;
+        border: 1px solid #d4d7db;
+        background: #fff;
+        color: #b31217;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+        transition: .25s;
+    }
+
+        .btn-a:hover {
+            background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            color: #fff;
+            border-color: #b31217;
+        }
+
+        .btn-a.primary {
+            background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            color: #fff;
+            border-color: #b31217;
+        }
+
+            .btn-a.primary:hover {
+                filter: brightness(.95);
+            }
+
+        .btn-a.green {
+            background: #0d8e66;
+            color: #fff;
+            border-color: #0d8e66;
+        }
+
+            .btn-a.green:hover {
+                filter: brightness(.9);
+            }
+
+        .btn-a:disabled, .btn-a[disabled] {
+            opacity: .45;
+            pointer-events: none;
+        }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+        .status-dot.open {
+            background: #22c55e;
+        }
+
+        .status-dot.pending {
+            background: #f59e0b;
+        }
+
+        .status-dot.scheduled {
+            background: #3b82f6;
+        }
+
+        .status-dot.inactive {
+            background: #9ca3af;
+        }
+
+        .status-dot.rejected {
+            background: #dc2626;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: #5d6670;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .reject-reason {
+        font-size: .55rem;
+        color: #dc2626;
+        background: #fff0f0;
+        border: 1px solid #f5c6c6;
+        border-radius: 10px;
+        padding: .35rem .5rem;
+        margin-top: .25rem;
+    }
+</style>
+
+<section class="a-shell">
+    <div class="a-hero">
+        <h1><i class="fa fa-list-check"></i> Assessments</h1>
+        <p>
+            @if (isFacilitator)
+            {
+                @:Create, moderate, and manage assessments. Learners can only attempt approved assessments on or after the scheduled date.
+            }
+            else
+            {
+                @:View and attempt assessments that are open for you.
+            }
+        </p>
+    </div>
+
+    <div class="a-bar">
+        @if (isFacilitator)
+        {
+            <a class="btn-a primary" asp-action="CreateAssessment">
+                <i class="fa fa-plus-circle"></i> New Assessment
+            </a>
+        }
+
+        <a class="btn-a" asp-action="LearningPortal" asp-controller="Student">
+            <i class="fa fa-arrow-left"></i> Learning Portal
+        </a>
+
+        <span class="pill"><i class="fa fa-layer-group"></i> Total: @Model.Count</span>
+        <span class="pill green"><i class="fa fa-circle-check"></i> Open: @Model.Count(m => m.StatusLabel == "Open")</span>
+        <span class="pill amber"><i class="fa fa-clock"></i> Pending: @Model.Count(m => m.StatusLabel == "Pending Moderation")</span>
+        <span class="pill red"><i class="fa fa-times-circle"></i> Rejected: @Model.Count(m => m.StatusLabel == "Rejected")</span>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state">
+            <i class="fa fa-inbox" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>
+            No assessments found.
+        </div>
+    }
+    else
+    {
+        <div class="a-grid">
+            @foreach (var a in Model)
+            {
+                if (!isFacilitator && a.ModerationApproved != true)
+                {
+                    continue;
+                }
+
+                var dotClass = a.StatusLabel switch
+                {
+                    "Open" => "open",
+                    "Scheduled" => "scheduled",
+                    "Pending Moderation" => "pending",
+                    "Rejected" => "rejected",
+                    _ => "inactive"
+                };
+
+                <div class="a-card">
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span class="status-dot @dotClass" title="@a.StatusLabel"></span>
+                        <h3>@a.Title</h3>
+                    </div>
+
+                    <div class="a-meta">
+                        <strong>@a.TotalQuestions</strong> questions
+                        &nbsp;•&nbsp; <strong>@a.TimerMinutes</strong> min
+                        &nbsp;•&nbsp; Status: <strong>@a.StatusLabel</strong>
+                        @if (a.ScheduledDateUtc.HasValue)
+                        {
+                            <br />
+                            @:Scheduled: <strong>@a.ScheduledDateUtc.Value.ToString("yyyy-MM-dd HH:mm") UTC</strong>
+                        }
+                        <br />
+                        Created by: <strong>@a.CreatedBy</strong>
+                        &nbsp;•&nbsp; @a.CreatedOnUtc.ToString("yyyy-MM-dd")
+                    </div>
+
+                    @if (a.StatusLabel == "Rejected" && !string.IsNullOrWhiteSpace(a.ModerationRejectionReason))
+                    {
+                        <div class="reject-reason">
+                            <i class="fa fa-exclamation-triangle"></i> <strong>Rejection:</strong> @a.ModerationRejectionReason
+                        </div>
+                    }
+
+                    <div class="a-meta">
+                        Attempts: <strong>@a.CompletedAttempts</strong>
+                        @if (a.RemainingAttempts >= 0)
+                        {
+                            <span> &nbsp;•&nbsp; Remaining: <strong>@a.RemainingAttempts</strong></span>
+                        }
+                    </div>
+
+                    <div class="a-actions">
+                        @if (isFacilitator && !a.IsModerated)
+                        {
+                            <a class="btn-a green" asp-action="Moderate" asp-route-assessmentId="@a.AssessmentId">
+                                <i class="fa fa-shield-check"></i> Review & Moderate
+                            </a>
+                        }
+
+                        @if (isFacilitator && a.IsModerated)
+                        {
+                            if (a.ModerationApproved == true)
+                            {
+                                <span class="pill green" style="font-size:.48rem;"><i class="fa fa-check-circle"></i> Approved</span>
+                            }
+                            else if (a.ModerationApproved == false)
+                            {
+                                <span class="pill red" style="font-size:.48rem;"><i class="fa fa-times-circle"></i> Rejected</span>
+                            }
+                        }
+
+                        @if (isFacilitator)
+                        {
+                            <a class="btn-a" asp-action="Results" asp-route-assessmentId="@a.AssessmentId">
+                                <i class="fa fa-chart-line"></i> Results
+                            </a>
+                        }
+
+                        @if (a.ModerationApproved == true)
+                        {
+                            <a class="btn-a primary"
+                               asp-action="Start"
+                               asp-route-assessmentId="@a.AssessmentId"
+                               disabled="@(a.CanStart ? null : "disabled")">
+                                <i class="fa fa-play"></i> @(isFacilitator ? "Preview" : "Start")
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

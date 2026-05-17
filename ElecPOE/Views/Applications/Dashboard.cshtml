@@ -1,0 +1,483 @@
+﻿@model ForekOnline.Domain.ViewModels.ApplicationsDashboardViewModel
+@{
+    int totalApplications = Model.TotalFemales + Model.TotalMales;
+    double malePct = totalApplications > 0 ? (double)Model.TotalMales / totalApplications * 100 : 0;
+    double femalePct = totalApplications > 0 ? (double)Model.TotalFemales / totalApplications * 100 : 0;
+
+    var trend = Model.MonthlyApplicationsTrend?.ToList() ?? new List<KeyValuePair<string,int>>();
+    int lastVal = trend.Count > 0 ? trend[^1].Value : 0;
+    int prevVal = trend.Count > 1 ? trend[^2].Value : 0;
+    int growth = lastVal - prevVal;
+    double growthPct = prevVal > 0 ? (double)growth / prevVal * 100 : 0;
+
+    string GrowthBadgeClass() => growthPct switch {
+        > 10 => "delta pos",
+        < -5 => "delta neg",
+        _ => "delta mid"
+    };
+
+    var topPrograms = Model.Top5ProgramsAppliedFor ?? Enumerable.Empty<string>();
+}
+
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="utf-8" />
+<title>Applications Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<style>
+:root{
+    --clr-red:#b31217;
+    --clr-orange:#ff7a18;
+    --clr-orange-soft:#ff9d55;
+    --grad-accent:linear-gradient(95deg,#b31217 0%,#ff7a18 55%,#ff9d55 100%);
+    --grad-soft:linear-gradient(120deg,#b3121715,#ff7a1830);
+    --bg-app:#f5f7fb;
+    --bg-panel:#ffffff;
+    --bg-panel-alt:#fcfcfd;
+    --bg-chip:#eef2f6;
+    --border:#e2e6eb;
+    --border-strong:#d2d7dd;
+    --text:#20262d;
+    --text-soft:#5d636b;
+    --radius-xl:34px;
+    --radius:20px;
+    --shadow:0 10px 28px -14px rgba(179,18,23,.18),0 4px 14px -6px rgba(50,6,6,.08);
+    --shadow-hover:0 16px 40px -18px rgba(179,18,23,.28),0 6px 22px -10px rgba(50,6,6,.12);
+    font-family:'Inter','Segoe UI',system-ui,sans-serif;
+}
+
+/* OPTIONAL light / soft mode only (removed dark radial) */
+body{
+    background:
+        radial-gradient(circle at 65% 18%,#ffe9e1 0%,#fff 26%) ,
+        linear-gradient(160deg,#fff,#f2f5f9 60%) ;
+    min-height:100vh;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+}
+
+/* HEADER */
+.app-header h1{
+    background:var(--grad-accent);
+    -webkit-background-clip:text;
+    color:transparent;
+}
+.subtitle{
+    font-size:.63rem;
+    letter-spacing:.22rem;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--clr-red);
+    display:flex;
+    gap:.4rem;
+    align-items:center;
+}
+
+/* CARDS */
+.metric-card, .chart-card{
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:1.05rem 1.05rem 1rem;
+    position:relative;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    display:flex;
+    gap:.9rem;
+    transition:.45s cubic-bezier(.25,.9,.25,1);
+}
+.chart-card{flex-direction:column;}
+.metric-card:before,.chart-card:before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at 85% 15%,rgba(255,122,24,.18),transparent 65%);
+    pointer-events:none;
+    opacity:.65;
+}
+.metric-card:hover,.chart-card:hover{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-hover);
+    border-color:var(--border-strong);
+}
+.metric-icon{
+    width:52px;height:52px;
+    background:var(--grad-accent);
+    border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;
+    font-size:1.25rem;
+    flex-shrink:0;
+    box-shadow:0 6px 16px -8px rgba(179,18,23,.35);
+}
+.value{
+    font-size:1.65rem;
+    line-height:1;
+    font-weight:600;
+    background:var(--grad-accent);
+    -webkit-background-clip:text;
+    color:transparent;
+    letter-spacing:.8px;
+}
+.sub-label{
+    font-size:.58rem;
+    letter-spacing:.15rem;
+    font-weight:600;
+    text-transform:uppercase;
+    color:var(--text-soft);
+}
+.delta{
+    font-size:.55rem;
+    letter-spacing:.09rem;
+    text-transform:uppercase;
+    font-weight:700;
+    padding:.32rem .6rem;
+    border-radius:30px;
+    display:inline-flex;
+    align-items:center;
+    gap:.35rem;
+    border:1px solid;
+}
+.delta.pos{background:#e7f9ed;color:#12753c;border-color:#bfe6cd;}
+.delta.mid{background:#fff5e4;color:#b77200;border-color:#f2d199;}
+.delta.neg{background:#ffe9ec;color:#b31217;border-color:#f3b5bb;}
+
+.badge-soft{
+    font-size:.55rem;
+    letter-spacing:.15rem;
+    font-weight:700;
+    text-transform:uppercase;
+    padding:.4rem .75rem;
+    border-radius:40px;
+    background:linear-gradient(#fff,#f5f5f7) padding-box,var(--grad-accent) border-box;
+    border:1px solid transparent;
+    color:#5a2a00;
+    display:inline-flex;
+    gap:.35rem;
+    align-items:center;
+}
+
+.program-pill{
+    font-size:.6rem;
+    background:var(--bg-chip);
+    border:1px solid var(--border);
+    color:var(--clr-red);
+    padding:.45rem .75rem;
+    border-radius:12px;
+    font-weight:600;
+    letter-spacing:.4px;
+    transition:.3s;
+}
+.program-pill:hover{
+    background:var(--grad-accent);
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 4px 14px -6px rgba(179,18,23,.35);
+}
+
+.section-title{
+    font-size:.68rem;
+    letter-spacing:.23rem;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--clr-red);
+    display:flex;
+    gap:.5rem;
+    align-items:center;
+}
+
+.chip{
+    font-size:.55rem;
+    letter-spacing:.11rem;
+    padding:.42rem .7rem;
+    background:var(--bg-chip);
+    border:1px solid var(--border);
+    border-radius:26px;
+    font-weight:600;
+    text-transform:uppercase;
+    color:var(--text-soft);
+    display:inline-flex;
+    gap:.4rem;
+    align-items:center;
+}
+
+.divider{
+    height:1px;
+    background:linear-gradient(to right,transparent,var(--border-strong),transparent);
+    margin:1.8rem 0 1.2rem;
+}
+
+/* BUTTONS */
+.gradient-btn{
+    background:var(--grad-accent);
+    color:#fff;
+    border:none;
+    border-radius:16px;
+    padding:.65rem 1.25rem;
+    font-size:.66rem;
+    font-weight:600;
+    letter-spacing:.15rem;
+    text-transform:uppercase;
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    box-shadow:0 8px 24px -10px rgba(179,18,23,.35);
+    transition:.35s;
+}
+.gradient-btn:hover{filter:brightness(.95);box-shadow:0 10px 30px -12px rgba(179,18,23,.4);}
+
+.count-animate{opacity:0;transform:translateY(6px);transition:.6s cubic-bezier(.25,.9,.25,1);}
+.count-animate.visible{opacity:1;transform:translateY(0);}
+
+.focus-ring:focus-visible{outline:2px solid var(--clr-orange);outline-offset:3px;}
+
+canvas{image-rendering:-webkit-optimize-contrast;}
+</style>
+</head>
+<body>
+<main class="max-w-7xl mx-auto px-5 py-8 space-y-8">
+
+    <!-- Header -->
+    <header class="app-header flex flex-wrap gap-4 items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold tracking-tight flex items-center gap-3">
+                <i class="fa fa-chart-line text-orange-500 text-2xl"></i>
+                Applications Insight
+            </h1>
+            <p class="subtitle mt-2">
+                <i class="fa fa-circle text-[7px]"></i> Real-Time Overview
+            </p>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+            <button type="button" class="gradient-btn focus-ring" onclick="location.reload()">
+                <i class="fa fa-rotate"></i> Refresh
+            </button>
+            <a class="gradient-btn focus-ring" asp-action="Applications" asp-controller="Applications">
+                <i class="fa fa-database"></i> Load Data
+            </a>
+        </div>
+    </header>
+
+    <!-- Metrics -->
+    <section>
+        <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa fa-layer-group"></i></div>
+                <div class="flex-1">
+                    <div class="sub-label">Total Applications</div>
+                    <div class="value count-animate" data-count="@totalApplications">0</div>
+                    <div class="mt-2">
+                        <span class="@GrowthBadgeClass()">
+                            <i class="fa fa-arrow-trend-@(growth>=0?"up":"down")"></i>
+                            @((growth>=0?"+":"") + growth) (@growthPct.ToString("0.#")%)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa fa-mars"></i></div>
+                <div class="flex-1">
+                    <div class="sub-label">Total Males</div>
+                    <div class="value count-animate" data-count="@Model.TotalMales">0</div>
+                    <div class="mt-2 text-[0.6rem] tracking-wider text-gray-500">
+                        @malePct.ToString("0.#")% of total
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa fa-venus"></i></div>
+                <div class="flex-1">
+                    <div class="sub-label">Total Females</div>
+                    <div class="value count-animate" data-count="@Model.TotalFemales">0</div>
+                    <div class="mt-2 text-[0.6rem] tracking-wider text-gray-500">
+                        @femalePct.ToString("0.#")% of total
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon"><i class="fa fa-trophy"></i></div>
+                <div class="flex-1">
+                    <div class="sub-label">Top Program</div>
+                    <div class="value text-base sm:text-xl leading-tight mt-1"
+                         style="color:var(--text);">
+                        @Model.MostAppliedProgram
+                    </div>
+                    <div class="mt-2">
+                        <span class="badge-soft"><i class="fa fa-star"></i> Leading</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="grid gap-7 grid-cols-1 xl:grid-cols-3">
+        <div class="chart-card col-span-1">
+            <div class="flex items-center justify-between mb-4">
+                <div class="section-title"><i class="fa fa-venus-mars"></i> Gender Distribution</div>
+                <span class="chip"><i class="fa fa-chart-pie"></i> Pie</span>
+            </div>
+            <div class="relative h-60">
+                <canvas id="genderDistributionChart" aria-label="Gender Distribution" role="img"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card col-span-1 xl:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <div class="section-title"><i class="fa fa-line-chart"></i> Monthly Trend</div>
+                <span class="chip"><i class="fa fa-calendar-alt"></i> Last Period</span>
+            </div>
+            <div class="relative h-60">
+                <canvas id="monthlyApplicationsTrendChart" aria-label="Monthly Applications Trend" role="img"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Top Programs -->
+    <section class="chart-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="section-title"><i class="fa fa-ranking-star"></i> Top 5 Programs</div>
+            <span class="chip"><i class="fa fa-list-ol"></i> Ranked</span>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            @if (topPrograms.Any())
+            {
+                int rank=1;
+                foreach(var program in topPrograms)
+                {
+                    <div class="program-pill">
+                        <span class="text-orange-500 font-semibold mr-1">#@rank</span>@program
+                    </div>
+                    rank++;
+                }
+            }
+            else
+            {
+                <p class="text-xs text-gray-500 italic">No program data available.</p>
+            }
+        </div>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const genderData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GenderDistribution ?? new Dictionary<string,int>()));
+const trendData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyApplicationsTrend ?? new Dictionary<string,int>()));
+
+// Count animation
+const counters=[...document.querySelectorAll('.count-animate')];
+const animateCount=el=>{
+  const target=+el.dataset.count;
+  if(isNaN(target)) return;
+  let cur=0;
+  const step=Math.max(1,Math.ceil(target/55));
+  const tick=()=>{
+    cur+=step;
+    if(cur>=target){el.textContent=target;}
+    else{el.textContent=cur;requestAnimationFrame(tick);}
+  };
+  requestAnimationFrame(tick);
+  el.classList.add('visible');
+};
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){animateCount(e.target);io.unobserve(e.target);}}),{threshold:.3});
+counters.forEach(c=>io.observe(c));
+
+// Palette (light, soft)
+const palette={
+  red:'#b31217',
+  orange:'#ff7a18',
+  gray:'#8b9096',
+  axis:'#5d636b',
+  grid:'#e6eaee'
+};
+
+// Gender Chart
+const gctx=document.getElementById('genderDistributionChart')?.getContext('2d');
+if(gctx){
+  new Chart(gctx,{
+    type:'doughnut',
+    data:{
+      labels:Object.keys(genderData),
+      datasets:[{
+        data:Object.values(genderData),
+        backgroundColor:[palette.red,palette.orange,'#c7ccd1'],
+        borderColor:'#ffffff',
+        borderWidth:2,
+        hoverOffset:8
+      }]
+    },
+    options:{
+      plugins:{legend:{labels:{color:palette.axis,font:{size:11}}}},
+      cutout:'55%'
+    }
+  });
+}
+
+// Trend Chart
+const tctx=document.getElementById('monthlyApplicationsTrendChart')?.getContext('2d');
+if(tctx){
+  const gradient=tctx.createLinearGradient(0,0,0,260);
+  gradient.addColorStop(0,'rgba(179,18,23,.35)');
+  gradient.addColorStop(.55,'rgba(179,18,23,.08)');
+  gradient.addColorStop(1,'rgba(179,18,23,0)');
+  new Chart(tctx,{
+    type:'line',
+    data:{
+      labels:Object.keys(trendData),
+      datasets:[{
+        label:'Applications',
+        data:Object.values(trendData),
+        borderColor:palette.orange,
+        backgroundColor:gradient,
+        fill:true,
+        tension:.38,
+        pointRadius:4,
+        pointHoverRadius:6,
+        pointBackgroundColor:palette.red,
+        pointBorderColor:'#fff',
+        pointBorderWidth:2
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{labels:{color:palette.axis,font:{size:11}}},
+        tooltip:{
+          backgroundColor:'#ffffff',
+          titleColor:'#222',
+          bodyColor:'#222',
+          borderColor:'#d8dde2',
+          borderWidth:1,
+          titleFont:{size:12},
+          bodyFont:{size:11}
+        }
+      },
+      scales:{
+        x:{
+          ticks:{color:palette.axis,font:{size:10}},
+          grid:{color:palette.grid}
+        },
+        y:{
+          ticks:{color:palette.axis,font:{size:10}},
+          grid:{color:palette.grid}
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
+
+
+
+

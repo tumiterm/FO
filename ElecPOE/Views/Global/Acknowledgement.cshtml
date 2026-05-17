@@ -1,0 +1,150 @@
+﻿@{
+    Layout = null; // Keep standalone. Remove this line if you want to use the shared layout.
+    string applicant = (ViewData["ApplicantName"] as string) ?? (TempData["ApplicantName"] as string) ?? "Applicant";
+    string reference = (ViewData["Reference"] as string) ?? (TempData["Reference"] as string) ?? "";
+    bool autoRedirect = false; // set true if you want timed redirect
+    int redirectSeconds = 8;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Application Submitted</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --ack-dr:#320606;--ack-red:#b31217;--ack-orange:#ff7a18;--ack-soft:#fff5f3;
+  --ack-bg:#f5f7fa;--ack-card:#ffffff;--ack-border:#e5e7ea;--ack-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;background:radial-gradient(circle at 68% 22%,#ff7a1822,#32060611),var(--ack-bg);}
+body{display:flex;align-items:center;justify-content:center;padding:1.8rem;}
+.fade-in{animation:fade .7s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.card{
+  width:100%;max-width:560px;background:var(--ack-card);border:1px solid var(--ack-border);
+  border-radius:32px;padding:2.1rem 2rem 1.9rem;position:relative;overflow:hidden;
+  box-shadow:0 14px 38px -18px rgba(50,6,6,.35),0 6px 20px -10px rgba(50,6,6,.18);
+}
+.card:before{
+  content:"";position:absolute;inset:0;background:linear-gradient(120deg,#3206060d,#b312170d,#ff7a1814);
+  pointer-events:none;
+}
+.badge-top{
+  position:absolute;top:14px;right:16px;font-size:.55rem;letter-spacing:.22rem;font-weight:700;
+  background:var(--ack-soft);color:var(--ack-red);padding:.45rem .8rem;border-radius:40px;
+}
+.icon-wrap{
+  width:94px;height:94px;border-radius:30px;background:var(--ack-grad);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-size:2.3rem;margin:0 auto 1.2rem;position:relative;
+  box-shadow:0 12px 32px -16px rgba(179,18,23,.65);
+  animation:pop .65s cubic-bezier(.25,1.4,.45,1);
+}
+@@keyframes pop{0%{transform:scale(.4);opacity:0;}60%{transform:scale(1.08);}85%{transform:scale(.95);}100%{transform:scale(1);opacity:1;}}
+.icon-wrap:after{
+  content:"";position:absolute;inset:-4px;border-radius:inherit;
+  background:conic-gradient(from 140deg at 50% 50%,#ff7a18,#b31217,#320606,#ff7a18);
+  filter:blur(14px);opacity:.18;z-index:-1;
+}
+h1{
+  margin:.2rem 0 .6rem;font-size:1.55rem;line-height:1.2;font-weight:600;text-align:center;
+  background:var(--ack-grad);-webkit-background-clip:text;color:transparent;letter-spacing:.5px;
+}
+p.lead{
+  margin:.2rem 0 1.2rem;font-size:.82rem;line-height:1.35rem;color:#444;text-align:center;
+}
+.ref-box{
+  background:#fafbfc;border:1px dashed #d8dadd;padding:.9rem .95rem;border-radius:18px;
+  font-size:.7rem;letter-spacing:.08rem;display:flex;flex-direction:column;gap:.4rem;margin:0 0 1.15rem;
+}
+.ref-box code{
+  background:#fff;padding:.4rem .55rem;border-radius:10px;font-family:ui-monospace,monospace;font-size:.68rem;
+  border:1px solid #eceef0;word-break:break-all;
+}
+.actions{
+  display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-top:.2rem;
+}
+.btn{
+  --btn-bg:#fff;--btn-fg:var(--ack-red);--btn-bd:#dcdfe2;
+  font-size:.62rem;letter-spacing:.14rem;font-weight:600;text-transform:uppercase;
+  padding:.7rem 1.15rem;border-radius:14px;border:1px solid var(--btn-bd);
+  background:var(--btn-bg);color:var(--btn-fg);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;
+  transition:.35s;text-decoration:none;position:relative;overflow:hidden;
+}
+.btn:hover{
+  background:var(--ack-grad);color:#fff;border-color:var(--ack-red);box-shadow:0 8px 20px -10px rgba(179,18,23,.6);
+}
+.btn-accent{--btn-bg:var(--ack-grad);--btn-fg:#fff;--btn-bd:var(--ack-red);}
+.btn-accent:hover{filter:brightness(.95);}
+.sub-note{
+  margin:1.3rem 0 0;font-size:.55rem;letter-spacing:.18rem;font-weight:600;text-transform:uppercase;
+  text-align:center;color:#666;
+}
+.timer{
+  display:none;font-weight:700;color:var(--ack-red);
+}
+.show{display:inline;}
+@@media (max-width:620px){
+  .card{padding:1.85rem 1.4rem 1.6rem;border-radius:28px;}
+  h1{font-size:1.35rem;}
+  .icon-wrap{width:80px;height:80px;font-size:2rem;}
+}
+</style>
+</head>
+<body>
+  <main class="card fade-in" role="status" aria-live="polite">
+    <span class="badge-top">CONFIRMED</span>
+    <div class="icon-wrap" aria-hidden="true"><i class="fa fa-check"></i></div>
+    <h1>Application Submitted</h1>
+    <p class="lead">
+        Thank you @applicant, your application was received successfully            
+    </br>
+
+    @if(!string.IsNullOrWhiteSpace(reference))
+    {
+        <div class="ref-box">
+            <strong>Reference</strong>
+            <code>@reference</code>
+            <span style="font-size:.6rem;color:#777;">Use this when following up with support.</span>
+        </div>
+    }
+
+    <div class="actions">
+        <a class="btn btn-accent" href="@Url.Action("Index","Home")"><i class="fa fa-house"></i> Home</a>
+        <a class="btn" href="javascript:window.print()"><i class="fa fa-print"></i> Print</a>
+        <a class="btn" href="@Url.Action("SignIn","Auth")"><i class="fa fa-right-to-bracket"></i> Sign In</a>
+        <a class="btn" href="mailto:support@forek.online?subject=App%20Follow-up%20@reference"><i class="fa fa-envelope"></i> Support</a>
+    </div>
+
+    <p class="sub-note">
+        All data encrypted in transit • <span id="redirectTimer" class="timer"></span>
+    </p>
+  </main>
+
+<script>
+(function(){
+  const auto = @autoRedirect.ToString().ToLower();
+  const seconds = @redirectSeconds;
+  if(!auto) return;
+  const span = document.getElementById('redirectTimer');
+  span.classList.add('show');
+  let left = seconds;
+  span.textContent = 'Redirecting in ' + left + 's';
+  const iv = setInterval(()=>{
+     left--;
+     if(left <= 0){
+        clearInterval(iv);
+        span.textContent = 'Redirecting...';
+        window.location = '@Url.Action("Index","Home")';
+     } else {
+        span.textContent = 'Redirecting in ' + left + 's';
+     }
+  },1000);
+})();
+</script>
+</body>
+</html>

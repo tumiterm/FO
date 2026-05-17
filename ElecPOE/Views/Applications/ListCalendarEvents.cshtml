@@ -1,0 +1,713 @@
+﻿@{
+    ViewData["Title"] = "All Calendar Events";
+}
+
+<style>
+    :root {
+        --ce-bg: var(--fo-bg-card, #fff);
+        --ce-bg2: var(--fo-bg, #f3f4f8);
+        --ce-text: var(--fo-text, #1a1a2e);
+        --ce-text2: var(--fo-text-2, #4a4f5e);
+        --ce-muted: var(--fo-muted, #6b7280);
+        --ce-border: var(--fo-border, #e3e5eb);
+        --ce-orange: var(--fo-orange, #e65100);
+        --ce-orange-lt: var(--fo-orange-light, #ff8a50);
+        --ce-orange-dk: var(--fo-orange-dark, #ac1900);
+        --ce-radius: 16px;
+        --ce-radius-sm: 10px;
+        --ce-radius-lg: 22px;
+        --ce-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.03);
+        --ce-t: .22s cubic-bezier(.4,0,.2,1);
+        --ce-grad: linear-gradient(135deg, var(--ce-orange), var(--ce-orange-dk));
+        --ce-green: #22c55e;
+        --ce-blue: #3b82f6;
+        --ce-indigo: #818cf8;
+        --ce-amber: #f59e0b;
+        --ce-red: #ef4444;
+    }
+
+    [data-theme="dark"] .ce-shell {
+        --ce-bg: #161a24;
+        --ce-bg2: #0e1018;
+        --ce-text: #e2e5eb;
+        --ce-text2: #9ca3b4;
+        --ce-muted: #6b7186;
+        --ce-border: rgba(255,255,255,.08);
+        --ce-shadow: 0 1px 3px rgba(0,0,0,.2), 0 6px 20px rgba(0,0,0,.12);
+    }
+
+    .ce-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: .25rem 0 3rem;
+    }
+
+    .ce-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .85rem;
+        margin-bottom: 1.35rem;
+    }
+
+        .ce-header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            color: var(--ce-text);
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+
+    .ce-header-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--ce-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.15rem;
+        box-shadow: 0 8px 24px rgba(230,81,0,.22);
+        flex-shrink: 0;
+    }
+
+    .ce-header-meta {
+        font-size: .55rem;
+        letter-spacing: .18rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--ce-muted);
+        margin-top: .15rem;
+    }
+
+    .ce-header-actions {
+        display: flex;
+        gap: .4rem;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    .ce-btn {
+        font-size: .62rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .55rem .9rem;
+        border-radius: var(--ce-radius-sm);
+        border: 1px solid var(--ce-border);
+        background: var(--ce-bg);
+        color: var(--ce-text2);
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+        transition: all var(--ce-t);
+        text-decoration: none;
+    }
+
+        .ce-btn:hover {
+            border-color: var(--ce-orange);
+            color: var(--ce-orange);
+            box-shadow: 0 4px 12px rgba(230,81,0,.12);
+            transform: translateY(-1px);
+        }
+
+    .ce-btn-grad {
+        background: var(--ce-grad) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(230,81,0,.22);
+    }
+
+        .ce-btn-grad:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 6px 24px rgba(230,81,0,.32);
+            color: #fff !important;
+        }
+
+    .ce-filters {
+        background: var(--ce-bg);
+        border: 1px solid var(--ce-border);
+        border-radius: var(--ce-radius-lg);
+        padding: .75rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        align-items: center;
+        margin-bottom: 1rem;
+        box-shadow: var(--ce-shadow);
+        transition: background .35s, border-color .35s;
+    }
+
+    .ce-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+        .ce-filter-group label {
+            font-size: .48rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--ce-muted);
+        }
+
+    .ce-input {
+        background: var(--ce-bg2) !important;
+        border: 1px solid var(--ce-border) !important;
+        color: var(--ce-text) !important;
+        padding: .5rem .65rem !important;
+        font-size: .72rem !important;
+        border-radius: var(--ce-radius-sm) !important;
+        transition: all var(--ce-t) !important;
+        min-width: 140px;
+    }
+
+        .ce-input:focus {
+            outline: none !important;
+            border-color: var(--ce-orange) !important;
+            box-shadow: 0 0 0 3px rgba(230,81,0,.1) !important;
+        }
+
+    .ce-search {
+        flex: 1;
+        min-width: 240px;
+        position: relative;
+    }
+
+        .ce-search i {
+            position: absolute;
+            left: .75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ce-muted);
+            font-size: .8rem;
+        }
+
+        .ce-search input {
+            padding-left: 2.2rem !important;
+            width: 100% !important;
+        }
+
+    .ce-table-panel {
+        background: var(--ce-bg);
+        border: 1px solid var(--ce-border);
+        border-radius: var(--ce-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--ce-shadow);
+        position: relative;
+        transition: background .35s, border-color .35s;
+    }
+
+        .ce-table-panel table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .74rem;
+        }
+
+        .ce-table-panel thead th {
+            background: var(--ce-bg2);
+            font-size: .5rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--ce-muted);
+            padding: .7rem .75rem;
+            border-bottom: 1px solid var(--ce-border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            white-space: nowrap;
+            transition: background .35s;
+        }
+
+        .ce-table-panel tbody tr {
+            transition: background var(--ce-t);
+            border-bottom: 1px solid var(--ce-border);
+        }
+
+            .ce-table-panel tbody tr:hover {
+                background: rgba(230,81,0,.03);
+            }
+
+    [data-theme="dark"] .ce-table-panel tbody tr:hover {
+        background: rgba(255,255,255,.03);
+    }
+
+    .ce-table-panel td {
+        padding: .6rem .75rem;
+        vertical-align: middle;
+        color: var(--ce-text2);
+    }
+
+    .ce-title-cell {
+        font-weight: 700;
+        color: var(--ce-text);
+    }
+
+    .ce-date {
+        font-family: 'SF Mono','Cascadia Code','Consolas',monospace;
+        font-size: .66rem;
+        color: var(--ce-muted);
+    }
+
+    .ce-cat {
+        font-size: .5rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        padding: .28rem .55rem;
+        border-radius: 30px;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+        text-transform: uppercase;
+    }
+
+    .ce-cat-app {
+        background: rgba(230,81,0,.1);
+        color: var(--ce-orange);
+    }
+
+    .ce-cat-holiday {
+        background: rgba(34,197,94,.1);
+        color: var(--ce-green);
+    }
+
+    .ce-cat-exam {
+        background: rgba(239,68,68,.1);
+        color: var(--ce-red);
+    }
+
+    .ce-cat-deadline {
+        background: rgba(245,158,11,.1);
+        color: var(--ce-amber);
+    }
+
+    .ce-cat-meeting {
+        background: rgba(59,130,246,.1);
+        color: var(--ce-blue);
+    }
+
+    .ce-cat-orient {
+        background: rgba(129,140,248,.1);
+        color: var(--ce-indigo);
+    }
+
+    .ce-cat-none {
+        background: rgba(0,0,0,.04);
+        color: var(--ce-muted);
+    }
+
+    [data-theme="dark"] .ce-cat-none {
+        background: rgba(255,255,255,.04);
+    }
+
+    .ce-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        display: inline-block;
+        vertical-align: middle;
+        border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .ce-act {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        font-size: .85rem;
+        transition: all var(--ce-t);
+        text-decoration: none !important;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+    }
+
+    .ce-act-edit {
+        color: var(--ce-blue);
+        background: rgba(59,130,246,.08);
+    }
+
+        .ce-act-edit:hover {
+            background: var(--ce-blue);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59,130,246,.25);
+        }
+
+    .ce-act-del {
+        color: var(--ce-red);
+        background: rgba(239,68,68,.08);
+    }
+
+        .ce-act-del:hover {
+            background: var(--ce-red);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(239,68,68,.25);
+        }
+
+    .ce-allday {
+        font-size: .48rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        padding: .22rem .45rem;
+        border-radius: 20px;
+        background: rgba(129,140,248,.1);
+        color: var(--ce-indigo);
+        text-transform: uppercase;
+    }
+
+    .ce-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .7rem 1rem;
+        border-top: 1px solid var(--ce-border);
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .ce-footer-info {
+        font-size: .58rem;
+        letter-spacing: .12rem;
+        font-weight: 700;
+        color: var(--ce-muted);
+    }
+
+    .ce-loader {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.82);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        font-size: .6rem;
+        font-weight: 700;
+        letter-spacing: .12rem;
+        color: var(--ce-orange);
+        border-radius: inherit;
+        z-index: 9;
+    }
+
+    [data-theme="dark"] .ce-loader {
+        background: rgba(14,16,24,.82);
+    }
+
+    .ce-loader.hidden {
+        display: none;
+    }
+
+    .ce-spinner {
+        width: 38px;
+        height: 38px;
+        position: relative;
+    }
+
+        .ce-spinner::before, .ce-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            animation: ce-spin 1s linear infinite;
+        }
+
+        .ce-spinner::before {
+            border-color: var(--ce-orange) transparent var(--ce-orange) transparent;
+        }
+
+        .ce-spinner::after {
+            border-color: var(--ce-orange-lt) transparent var(--ce-orange-lt) transparent;
+            animation-duration: 1.4s;
+            animation-direction: reverse;
+        }
+
+    @@keyframes ce-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .ce-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--ce-muted);
+    }
+
+        .ce-empty i {
+            font-size: 2.5rem;
+            margin-bottom: .75rem;
+            opacity: .3;
+            display: block;
+        }
+
+    .ce-empty-text {
+        font-size: .85rem;
+        font-weight: 600;
+    }
+
+    .ce-empty-hint {
+        font-size: .7rem;
+        margin-top: .3rem;
+    }
+
+    @@media (max-width: 575.98px) {
+        .ce-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .ce-header-actions {
+            width: 100%;
+        }
+
+            .ce-header-actions .ce-btn {
+                flex: 1;
+                justify-content: center;
+            }
+    }
+</style>
+
+<div class="ce-shell">
+    <div class="ce-header">
+        <div>
+            <h1>
+                <span class="ce-header-icon"><i class="fa fa-list-check"></i></span>
+                All Calendar Events
+            </h1>
+            <div class="ce-header-meta">Browse, search &amp; manage every event</div>
+        </div>
+        <div class="ce-header-actions">
+            <a class="ce-btn" asp-action="Calendar" asp-controller="Applications">
+                <i class="fa fa-calendar-days"></i> Calendar View
+            </a>
+            <button class="ce-btn" id="ceRefresh"><i class="fa fa-rotate"></i> Refresh</button>
+            <button class="ce-btn ce-btn-grad" id="ceExportCsv"><i class="fa fa-file-export"></i> CSV</button>
+        </div>
+    </div>
+
+    <div class="ce-filters">
+        <div class="ce-search">
+            <i class="fa fa-search"></i>
+            <input type="text" id="ceSearch" class="ce-input" placeholder="Search title, description…" autocomplete="off" />
+        </div>
+        <div class="ce-filter-group">
+            <label><i class="fa fa-tag"></i> Category</label>
+            <select id="ceCatFilter" class="ce-input" style="min-width:145px;">
+                <option value="">All</option>
+                <option value="Application Window">Application Window</option>
+                <option value="Holiday">Holiday</option>
+                <option value="Exam">Exam</option>
+                <option value="Deadline">Deadline</option>
+                <option value="Meeting">Meeting</option>
+                <option value="Orientation">Orientation</option>
+            </select>
+        </div>
+        <div class="ce-filter-group">
+            <label><i class="fa fa-clock"></i> When</label>
+            <select id="ceTimeFilter" class="ce-input" style="min-width:120px;">
+                <option value="">Any</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+                <option value="today">Today</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="ce-table-panel">
+        <div id="ceLoader" class="ce-loader hidden">
+            <div class="ce-spinner"></div>
+            <span>Loading events…</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:80px;">Actions</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>All Day</th>
+                        <th>Color</th>
+                    </tr>
+                </thead>
+                <tbody id="ceTbody"></tbody>
+            </table>
+        </div>
+        <div id="ceEmpty" class="ce-empty" style="display:none;">
+            <i class="fa fa-calendar-xmark"></i>
+            <div class="ce-empty-text">No events found</div>
+            <div class="ce-empty-hint">Try adjusting your filters or create a new event from the Calendar view.</div>
+        </div>
+        <div class="ce-footer">
+            <span class="ce-footer-info" id="ceInfo">–</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict';
+
+            var tbody = document.getElementById('ceTbody');
+            var loader = document.getElementById('ceLoader');
+            var emptyEl = document.getElementById('ceEmpty');
+            var infoEl = document.getElementById('ceInfo');
+            var searchBox = document.getElementById('ceSearch');
+            var catFilter = document.getElementById('ceCatFilter');
+            var timeFilter = document.getElementById('ceTimeFilter');
+            var refreshBtn = document.getElementById('ceRefresh');
+            var exportBtn = document.getElementById('ceExportCsv');
+
+            var allEvents = [];
+
+            var catClasses = {
+                'Application Window': 'ce-cat-app',
+                'Holiday': 'ce-cat-holiday',
+                'Exam': 'ce-cat-exam',
+                'Deadline': 'ce-cat-deadline',
+                'Meeting': 'ce-cat-meeting',
+                'Orientation': 'ce-cat-orient'
+            };
+
+            function showLoader() { loader.classList.remove('hidden'); }
+            function hideLoader() { loader.classList.add('hidden'); }
+
+            function fetchEvents() {
+                showLoader();
+                fetch('@Url.Action("CalendarEvents", "Applications")', { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                    .then(function (data) {
+                        allEvents = data;
+                        applyFilters();
+                    })
+                    .catch(function (e) { alert('Failed to load events: ' + e.message); })
+                    .finally(hideLoader);
+            }
+
+            function applyFilters() {
+                var q = searchBox.value.trim().toLowerCase();
+                var cat = catFilter.value;
+                var time = timeFilter.value;
+                var now = new Date();
+                var todayStr = now.toISOString().slice(0, 10);
+                var thisMonth = now.getMonth();
+                var thisYear = now.getFullYear();
+
+                var filtered = allEvents.filter(function (e) {
+                    var title = (e.title || '').toLowerCase();
+                    var desc = ((e.extendedProps && e.extendedProps.description) || '').toLowerCase();
+                    var eCat = (e.extendedProps && e.extendedProps.category) || '';
+                    var startDate = new Date(e.start);
+
+                    if (q && title.indexOf(q) === -1 && desc.indexOf(q) === -1) return false;
+                    if (cat && eCat !== cat) return false;
+                    if (time === 'upcoming' && startDate < now) return false;
+                    if (time === 'past' && startDate >= now) return false;
+                    if (time === 'today' && e.start.slice(0, 10) !== todayStr) return false;
+                    if (time === 'month' && (startDate.getMonth() !== thisMonth || startDate.getFullYear() !== thisYear)) return false;
+                    return true;
+                });
+
+                renderRows(filtered);
+            }
+
+            function fmtDate(iso) {
+                if (!iso) return '—';
+                var d = new Date(iso);
+                return d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' +
+                       d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            function renderRows(events) {
+                tbody.innerHTML = '';
+                if (events.length === 0) {
+                    emptyEl.style.display = 'block';
+                    infoEl.textContent = '0 events';
+                    return;
+                }
+                emptyEl.style.display = 'none';
+
+                events.forEach(function (e) {
+                    var cat = (e.extendedProps && e.extendedProps.category) || '';
+                    var catCls = catClasses[cat] || 'ce-cat-none';
+                    var color = e.backgroundColor || '#6b7280';
+                    var allDay = e.allDay;
+                    var tr = document.createElement('tr');
+                    tr.innerHTML =
+                        '<td><div style="display:flex;gap:.25rem;">' +
+                            '<a class="ce-act ce-act-edit" href="' + '@Url.Action("Calendar", "Applications")' + '" title="Edit in Calendar"><i class="fa fa-pen-to-square"></i></a>' +
+                            '<button class="ce-act ce-act-del" data-id="' + e.id + '" title="Delete"><i class="fa fa-trash"></i></button>' +
+                        '</div></td>' +
+                        '<td class="ce-title-cell">' + escHtml(e.title) + '</td>' +
+                        '<td><span class="ce-cat ' + catCls + '">' + (cat || 'None') + '</span></td>' +
+                        '<td class="ce-date">' + fmtDate(e.start) + '</td>' +
+                        '<td class="ce-date">' + (e.end ? fmtDate(e.end) : '—') + '</td>' +
+                        '<td>' + (allDay ? '<span class="ce-allday">All Day</span>' : '—') + '</td>' +
+                        '<td><span class="ce-swatch" style="background:' + color + ';"></span></td>';
+                    tbody.appendChild(tr);
+                });
+
+                tbody.querySelectorAll('.ce-act-del').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = this.getAttribute('data-id');
+                        if (!id || !confirm('Delete this event?')) return;
+                        var fd = new URLSearchParams();
+                        fd.append('id', id);
+                        fetch('@Url.Action("DeleteEvent", "Applications")', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: fd.toString() })
+                            .then(function () { fetchEvents(); })
+                            .catch(function () { alert('Delete failed.'); });
+                    });
+                });
+
+                infoEl.textContent = events.length + ' event' + (events.length === 1 ? '' : 's');
+            }
+
+            function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+            exportBtn.addEventListener('click', function () {
+                var rows = Array.from(tbody.querySelectorAll('tr'));
+                if (!rows.length) { alert('No events to export.'); return; }
+                var lines = ['Title,Category,Start,End,All Day,Color'];
+                rows.forEach(function (r) {
+                    var cells = r.querySelectorAll('td');
+                    lines.push([
+                        csv(cells[1] ? cells[1].textContent.trim() : ''),
+                        csv(cells[2] ? cells[2].textContent.trim() : ''),
+                        csv(cells[3] ? cells[3].textContent.trim() : ''),
+                        csv(cells[4] ? cells[4].textContent.trim() : ''),
+                        csv(cells[5] ? cells[5].textContent.trim() : ''),
+                        csv(cells[6] ? cells[6].textContent.trim() : '')
+                    ].join(','));
+                });
+                var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'calendar-events-' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+                function csv(v) { return '"' + (v || '').replace(/"/g, '""') + '"'; }
+            });
+
+            var debounce;
+            searchBox.addEventListener('input', function () { clearTimeout(debounce); debounce = setTimeout(applyFilters, 250); });
+            catFilter.addEventListener('change', applyFilters);
+            timeFilter.addEventListener('change', applyFilters);
+            refreshBtn.addEventListener('click', fetchEvents);
+
+            fetchEvents();
+        })();
+    </script>
+}

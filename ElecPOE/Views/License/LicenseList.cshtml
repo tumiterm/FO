@@ -1,0 +1,54 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.LicenseViewModel>
+@using ForekOnline.Application.Common.Utility
+
+<link rel="stylesheet" href="~/css/tblStyles.css" />
+
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fa fa-file me-1 text-white"></i>
+            <span class="text-white">License Collection<span class="text-bold"></span></span>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-striped" id="datatablesSimple">
+                <thead style="color:darkred">
+                    <tr>
+                        <th>
+                            Action
+                        </th>
+                        <th class="text-white">Message</th>
+                        <th class="text-white">User</th>
+                        <th class="text-white">ID Number</th>
+                        <th class="text-white">License</th>
+                        <th class="text-white">IssuedOn</th>
+                        <th class="text-white">ExpiresOn</th>
+                        <th class="text-white">Application Count</th>
+                        <th class="text-white">Company</th>
+                        <th class="text-white">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a class="text-primary" asp-action="OnApply" asp-controller="License" asp-route-ApplicationId="@item.LicenseId"><i class="fa fa-folder-open"></i> Message</a>
+                            </td>
+
+                            <td>@item.Title @item.Name @item.LastName/td>
+                            <td>@item.IDNumber</td>
+                            <td>@item.CourseKey</td>
+                            <td>@item.DateOfIssue</td>
+                            <td>@item.DateOfExpiry</td>
+                            <td>@item.Frequency</td>
+                            <td>@item.Company</td>
+                            <td>@item.FileUpload</td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

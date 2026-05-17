@@ -1,0 +1,691 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Book Assessment on Venue";
+    var approvedReservations = ViewBag.ApprovedReservations as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var courses = ViewBag.Courses as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var modules = ViewBag.Modules as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    bool hasApproved = approvedReservations.Any();
+    string displayName = User?.Identity?.Name ?? "Facilitator";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --ba-red: #b31217;
+            --ba-orange: #ff7a18;
+            --ba-bg: #f7f8fb;
+            --ba-panel: #fff;
+            --ba-border: #e6e9f0;
+            --ba-muted: #64748b;
+            --ba-text: #0f172a;
+            --ba-grad: linear-gradient(135deg,#320606,#b31217 55%,#ff7a18);
+            --ba-shadow: 0 14px 42px -18px rgba(50,6,6,.28);
+            --ba-r-lg: 26px;
+            --ba-r-md: 18px;
+            --ba-t: 250ms cubic-bezier(.2,.75,.2,1);
+            --ba-focus: 0 0 0 4px rgba(179,18,23,.14);
+        }
+
+        .ba-shell {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 1.25rem 1rem 3.5rem;
+        }
+
+        .ba-hero {
+            position: relative;
+            border-radius: var(--ba-r-lg);
+            background: var(--ba-grad);
+            color: #fff;
+            padding: 1.5rem 1.5rem 1.25rem;
+            overflow: hidden;
+            box-shadow: var(--ba-shadow);
+        }
+
+            .ba-hero::before {
+                content: "";
+                position: absolute;
+                inset: -140px -140px auto auto;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle,rgba(255,255,255,.18),transparent 60%);
+                transform: rotate(20deg);
+                pointer-events: none;
+            }
+
+        .ba-hero-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .ba-hero-left {
+            display: flex;
+            align-items: center;
+            gap: .95rem;
+        }
+
+        .ba-hero-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.22);
+            backdrop-filter: blur(10px);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,.18);
+            font-size: 1.25rem;
+        }
+
+        .ba-hero h1 {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .ba-hero p {
+            margin: .25rem 0 0;
+            opacity: .92;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        .ba-lock-banner {
+            margin-top: .85rem;
+            padding: .6rem .85rem;
+            border-radius: 50px;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.18);
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            font-size: .62rem;
+            font-weight: 800;
+            letter-spacing: .12rem;
+            text-transform: uppercase;
+        }
+
+        .ba-card {
+            background: rgba(255,255,255,.88);
+            border: 1px solid var(--ba-border);
+            border-radius: var(--ba-r-lg);
+            box-shadow: 0 10px 30px rgba(15,23,42,.06);
+            overflow: hidden;
+            margin-top: 1.15rem;
+        }
+
+        .ba-card-head {
+            padding: 1.1rem 1.25rem .95rem;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            background: linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));
+        }
+
+            .ba-card-head h2 {
+                margin: 0;
+                font-size: .82rem;
+                font-weight: 900;
+                letter-spacing: .16rem;
+                text-transform: uppercase;
+                color: var(--ba-red);
+                display: flex;
+                gap: .5rem;
+                align-items: center;
+            }
+
+            .ba-card-head p {
+                margin: .2rem 0 0;
+                color: var(--ba-muted);
+                font-size: .78rem;
+                font-weight: 600;
+            }
+
+        .ba-card-body {
+            padding: 1.15rem 1.25rem 1.35rem;
+        }
+
+        .ba-field-grid {
+            display: grid;
+            gap: .9rem;
+            grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+        }
+
+        .ba-field {
+            display: grid;
+            gap: .3rem;
+        }
+
+            .ba-field label {
+                font-size: .6rem;
+                font-weight: 800;
+                letter-spacing: .14rem;
+                text-transform: uppercase;
+                color: var(--ba-muted);
+                display: inline-flex;
+                gap: .4rem;
+                align-items: center;
+            }
+
+                .ba-field label.required::after {
+                    content: '*';
+                    color: var(--ba-red);
+                    font-weight: 900;
+                }
+
+        .ba-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            background: #fff;
+            border: 1px solid var(--ba-border);
+            padding: .65rem .8rem;
+            border-radius: 14px;
+            transition: var(--ba-t);
+        }
+
+            .ba-input-wrap:focus-within {
+                border-color: var(--ba-red);
+                box-shadow: var(--ba-focus);
+            }
+
+            .ba-input-wrap i {
+                font-size: .72rem;
+                color: #94a3b8;
+                flex: 0 0 auto;
+            }
+
+            .ba-input-wrap input, .ba-input-wrap select, .ba-input-wrap textarea {
+                border: none;
+                outline: none;
+                background: transparent;
+                font-size: .78rem;
+                font-weight: 650;
+                color: var(--ba-text);
+                width: 100%;
+            }
+
+            .ba-input-wrap textarea {
+                resize: vertical;
+                min-height: 70px;
+            }
+
+        .ba-btn {
+            font-size: .58rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .6rem 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--ba-border);
+            background: #fff;
+            color: var(--ba-red);
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            transition: var(--ba-t);
+            text-decoration: none;
+        }
+
+            .ba-btn:hover {
+                background: var(--ba-grad);
+                color: #fff;
+                border-color: var(--ba-red);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(15,23,42,.1);
+            }
+
+            .ba-btn:disabled {
+                opacity: .45;
+                pointer-events: none;
+            }
+
+            .ba-btn.primary {
+                background: var(--ba-grad);
+                color: #fff;
+                border-color: var(--ba-red);
+            }
+
+                .ba-btn.primary:hover {
+                    filter: brightness(.96);
+                }
+
+        .ba-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-top: .85rem;
+            align-items: center;
+        }
+
+        .ba-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .32rem .6rem;
+            border-radius: 50px;
+            font-size: .58rem;
+            font-weight: 800;
+            border: 1px solid var(--ba-border);
+            background: #fff;
+            color: var(--ba-muted);
+        }
+
+        /* Student search */
+        .ba-student-list {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            margin-top: .5rem;
+        }
+
+        .ba-student-item {
+            background: #fff;
+            border: 1px solid var(--ba-border);
+            border-radius: 14px;
+            padding: .55rem .75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .6rem;
+            font-size: .68rem;
+            font-weight: 700;
+        }
+
+            .ba-student-item .meta strong {
+                display: block;
+                font-size: .72rem;
+                margin-bottom: .1rem;
+            }
+
+            .ba-student-item .meta span {
+                color: var(--ba-muted);
+                font-size: .58rem;
+                font-weight: 600;
+            }
+
+        .ba-empty {
+            border: 2px dashed rgba(100,116,139,.3);
+            border-radius: var(--ba-r-md);
+            padding: 1.25rem;
+            text-align: center;
+            color: var(--ba-muted);
+            font-weight: 700;
+            font-size: .72rem;
+        }
+
+        .ba-loader {
+            display: none;
+            align-items: center;
+            gap: .5rem;
+            color: var(--ba-red);
+            font-weight: 900;
+            font-size: .65rem;
+            letter-spacing: .1rem;
+            text-transform: uppercase;
+        }
+
+            .ba-loader.show {
+                display: inline-flex;
+            }
+
+        .ba-spin {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid rgba(179,18,23,.25);
+            border-top-color: var(--ba-red);
+            animation: ba-rot .75s linear infinite;
+        }
+
+        @@keyframes ba-rot {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ba-success {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .ba-success-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(16,185,129,.12);
+            display: grid;
+            place-items: center;
+            margin: 0 auto .85rem;
+            font-size: 1.6rem;
+            color: #059669;
+        }
+    </style>
+}
+
+<section class="ba-shell">
+
+    <header class="ba-hero">
+        <div class="ba-hero-row">
+            <div class="ba-hero-left">
+                <div class="ba-hero-icon"><i class="fa fa-calendar-check"></i></div>
+                <div>
+                    <h1>Book Assessment</h1>
+                    <p>Stage 2 — Create and send your assessment on an HOD-approved venue.</p>
+                </div>
+            </div>
+            <a class="ba-btn" href="@Url.Action("ReserveVenue", "VenueBooking")" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.22);color:#fff;">
+                <i class="fa fa-arrow-left"></i> Back to Stage 1
+            </a>
+        </div>
+        <div class="ba-lock-banner">
+            <i class="fa fa-lock"></i>
+            Assessments can only be created on HOD-approved reservations. Date &amp; time are locked to the reservation slot.
+        </div>
+    </header>
+
+    @if (!hasApproved)
+    {
+        <div class="ba-card">
+            <div class="ba-card-body">
+                <div class="ba-empty" style="padding:2rem;">
+                    <i class="fa fa-hourglass-half" style="font-size:1.6rem;display:block;margin-bottom:.5rem;color:var(--ba-red);"></i>
+                    <strong>No approved reservations available.</strong><br />
+                    Reserve a venue first, then wait for HOD approval before proceeding.
+                    <div style="margin-top:.85rem;">
+                        <a class="ba-btn primary" href="@Url.Action("ReserveVenue", "VenueBooking")"><i class="fa fa-map-pin"></i> Reserve a Venue</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="ba-card" id="bookingCard">
+            <div class="ba-card-head">
+                <div>
+                    <h2><i class="fa fa-file-signature"></i> Assessment Details</h2>
+                    <p>Select an approved venue, course, module, students, then send the assessment.</p>
+                </div>
+            </div>
+            <div class="ba-card-body">
+                <form id="bookingForm" autocomplete="off">
+                    @Html.AntiForgeryToken()
+                    <div class="ba-field-grid">
+
+                        <div class="ba-field" style="grid-column:1/-1;">
+                            <label class="required"><i class="fa fa-map-pin"></i> Approved Venue Reservation</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-building"></i>
+                                <select name="reservationId" required>
+                                    <option value="">— Select Approved Reservation —</option>
+                                    @foreach (var item in approvedReservations)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ba-field">
+                            <label class="required"><i class="fa fa-book"></i> Course</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-graduation-cap"></i>
+                                <select name="courseId" required>
+                                    <option value="">— Select Course —</option>
+                                    @foreach (var c in courses)
+                                    {
+                                        <option value="@c.Value">@c.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ba-field">
+                            <label class="required"><i class="fa fa-puzzle-piece"></i> Module</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-cubes"></i>
+                                <select name="moduleId" required>
+                                    <option value="">— Select Module —</option>
+                                    @foreach (var m in modules)
+                                    {
+                                        <option value="@m.Value">@m.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ba-field">
+                            <label class="required"><i class="fa fa-tag"></i> Assessment Name</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-pen"></i>
+                                <input type="text" name="assessmentName" maxlength="200" placeholder="e.g. Module 3 Summative" required />
+                            </div>
+                        </div>
+
+                        <div class="ba-field">
+                            <label><i class="fa fa-clipboard-check"></i> Assessment Type</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-list"></i>
+                                <select name="assessmentType">
+                                    <option value="">— Optional —</option>
+                                    <option value="1">Informal</option>
+                                    <option value="2">Formal</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ba-field">
+                            <label><i class="fa fa-stopwatch"></i> Duration (minutes)</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-hourglass"></i>
+                                <input type="number" name="durationMinutes" min="1" max="600" placeholder="e.g. 120" />
+                            </div>
+                        </div>
+
+                        <div class="ba-field" style="grid-column:1/-1;">
+                            <label><i class="fa fa-align-left"></i> Instructions</label>
+                            <div class="ba-input-wrap" style="align-items:flex-start;">
+                                <i class="fa fa-info-circle" style="margin-top:.3rem;"></i>
+                                <textarea name="instructions" maxlength="2000" rows="3" placeholder="Instructions shown to students..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="ba-field" style="grid-column:1/-1;">
+                            <label class="required"><i class="fa fa-users"></i> Select Students</label>
+                            <div class="ba-input-wrap">
+                                <i class="fa fa-magnifying-glass"></i>
+                                <input type="text" id="studentSearch" placeholder="Search by name, email or student number..." />
+                            </div>
+                            <div id="studentSearchResults" class="ba-student-list"></div>
+                            <div style="margin-top:.55rem;">
+                                <div style="font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:900;color:var(--ba-red);display:flex;gap:.4rem;align-items:center;">
+                                    <i class="fa fa-user-check"></i> Selected Students
+                                    <span class="ba-pill" id="selectedCount">0</span>
+                                </div>
+                                <div id="studentSelected" class="ba-student-list">
+                                    <div class="ba-empty"><i class="fa fa-users-slash"></i> No students selected.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ba-actions">
+                        <button type="submit" class="ba-btn primary" id="btnSendAssessment" disabled>
+                            <i class="fa fa-paper-plane"></i> Send Assessment
+                        </button>
+                        <button type="reset" class="ba-btn"><i class="fa fa-undo"></i> Reset</button>
+                        <span class="ba-loader" id="bookLoader"><span class="ba-spin"></span> Sending</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="ba-card" id="successCard" style="display:none;">
+            <div class="ba-card-body ba-success">
+                <div class="ba-success-icon"><i class="fa fa-circle-check"></i></div>
+                <h2 style="margin:0 0 .4rem;font-size:1.1rem;font-weight:900;color:var(--ba-text);">Assessment  Sent!</h2>
+                <p style="color:var(--ba-muted);font-size:.82rem;font-weight:600;max-width:520px;margin:0 auto;">
+                    The assessment has been permanently booked on the venue and student notification emails are being sent.
+                </p>
+                <div class="ba-actions" style="justify-content:center;margin-top:1.2rem;">
+                    <a class="ba-btn primary" href="@Url.Action("ReserveVenue", "VenueBooking")"><i class="fa fa-plus"></i> New Reservation</a>
+                    <a class="ba-btn" href="@Url.Action("BookAssessment", "VenueBooking")"><i class="fa fa-calendar-check"></i> Book Another</a>
+                </div>
+            </div>
+        </div>
+    }
+
+</section>
+
+@section Scripts {
+    <script>
+        (function() {
+            const esc = s => (s??'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            const form        = document.getElementById('bookingForm');
+            const sendBtn     = document.getElementById('btnSendAssessment');
+            const bookLoader  = document.getElementById('bookLoader');
+            const bookingCard = document.getElementById('bookingCard');
+            const successCard = document.getElementById('successCard');
+
+            const searchInput = document.getElementById('studentSearch');
+            const searchHost  = document.getElementById('studentSearchResults');
+            const selectedHost= document.getElementById('studentSelected');
+            const countBadge  = document.getElementById('selectedCount');
+
+            if (!form) return;
+
+            let selected = new Map();
+            let searchTimer = null;
+            let lastSearchData = null;
+
+            function updateSendBtn() {
+                const res = form.querySelector('select[name="reservationId"]');
+                sendBtn.disabled = !res?.value || selected.size === 0;
+            }
+
+            form.querySelector('select[name="reservationId"]')?.addEventListener('change', updateSendBtn);
+
+            function renderSelected() {
+                countBadge.textContent = selected.size;
+                if (!selected.size) {
+                    selectedHost.innerHTML = "<div class='ba-empty'><i class='fa fa-users-slash'></i> No students selected.</div>";
+                    updateSendBtn();
+                    return;
+                }
+                selectedHost.innerHTML = '';
+                for (const s of selected.values()) {
+                    const el = document.createElement('div');
+                    el.className = 'ba-student-item';
+                    el.innerHTML = `
+                        <div class="meta">
+                            <strong>${esc(s.fullName)}</strong>
+                            <span>${esc(s.studentNumber)} • ${esc(s.email)}</span>
+                        </div>
+                        <button type="button" class="ba-btn" style="font-size:.48rem;padding:.4rem .6rem;"><i class="fa fa-times"></i></button>`;
+                    el.querySelector('button').addEventListener('click', () => {
+                        selected.delete(s.key);
+                        renderSelected();
+                        if (lastSearchData) renderSearchResults(lastSearchData);
+                    });
+                    selectedHost.appendChild(el);
+                }
+                updateSendBtn();
+            }
+
+            async function searchStudents(q) {
+                const url = new URL('@Url.Action("LessonAttendees", "Student")', location.origin);
+                if (q?.trim()) url.searchParams.set('q', q.trim());
+                url.searchParams.set('page','1'); url.searchParams.set('pageSize','20');
+                const res = await fetch(url, { headers:{'Accept':'application/json'} });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return await res.json();
+            }
+
+            function renderSearchResults(data) {
+                lastSearchData = data;
+                const items = data.items || [];
+                if (!items.length) { searchHost.innerHTML = "<div class='ba-empty'><i class='fa fa-user-slash'></i> No matches.</div>"; return; }
+                searchHost.innerHTML = '';
+                items.forEach(s => {
+                    const key = (s.email||'').toLowerCase();
+                    const added = selected.has(key);
+                    const el = document.createElement('div');
+                    el.className = 'ba-student-item';
+                    el.innerHTML = `
+                        <div class="meta">
+                            <strong>${esc(s.fullName)}</strong>
+                            <span>${esc(s.studentNumber)} • ${esc(s.email)}</span>
+                        </div>
+                        <button type="button" class="ba-btn ${added?'primary':''}" style="font-size:.48rem;padding:.4rem .6rem;">
+                            <i class="fa ${added?'fa-check':'fa-plus'}"></i> ${added?'Added':'Add'}
+                        </button>`;
+                    el.querySelector('button').addEventListener('click', () => {
+                        if (!key) return;
+                        if (selected.has(key)) selected.delete(key);
+                        else selected.set(key, { key, fullName:s.fullName, email:s.email, studentNumber:s.studentNumber });
+                        renderSelected(); renderSearchResults(data);
+                    });
+                    searchHost.appendChild(el);
+                });
+            }
+
+            searchInput?.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(async () => {
+                    try { renderSearchResults(await searchStudents(searchInput.value)); }
+                    catch(e) { searchHost.innerHTML = `<div class='ba-empty'><i class='fa fa-triangle-exclamation'></i> ${esc(e.message)}</div>`; }
+                }, 280);
+            });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if (sendBtn.disabled) return;
+
+                bookLoader.classList.add('show');
+                sendBtn.disabled = true;
+
+                const fd = new FormData(form);
+                const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                const payload = {
+                    reservationId: fd.get('reservationId'),
+                    courseId: fd.get('courseId'),
+                    moduleId: fd.get('moduleId'),
+                    assessmentName: fd.get('assessmentName'),
+                    assessmentType: fd.get('assessmentType') ? parseInt(fd.get('assessmentType')) : null,
+                    instructions: fd.get('instructions') || null,
+                    durationMinutes: fd.get('durationMinutes') ? parseInt(fd.get('durationMinutes')) : null,
+                    studentIdentifiers: Array.from(selected.values()).map(s => s.email || s.studentNumber)
+                };
+
+                try {
+                    const res = await fetch('@Url.Action("BookAssessment", "VenueBooking")', {
+                        method:'POST',
+                        headers:{ 'Content-Type':'application/json','Accept':'application/json', ...(token?{'RequestVerificationToken':token}:{}) },
+                        body:JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Booking failed');
+
+                    bookingCard.style.display = 'none';
+                    successCard.style.display = '';
+                    successCard.scrollIntoView({ behavior:'smooth', block:'center' });
+                } catch(ex) {
+                    alert(ex.message);
+                    sendBtn.disabled = false;
+                } finally {
+                    bookLoader.classList.remove('show');
+                }
+            });
+
+            renderSelected();
+        })();
+    </script>
+}

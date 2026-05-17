@@ -1,0 +1,189 @@
+﻿@model ForekOnline.Domain.ViewModels.AssessmentGradeViewModel
+@{
+    ViewData["Title"] = "Grade Attempt";
+}
+
+<style>
+    .grade-shell {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 2.5rem;
+    }
+
+    .grade-card {
+        background: #fff;
+        border: 1px solid #e2e5e9;
+        border-radius: 18px;
+        padding: 1rem 1rem .9rem;
+        box-shadow: 0 6px 22px -10px rgba(0,0,0,.08);
+    }
+
+    .grade-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: .75rem;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .grade-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .grade-sub {
+        font-size: .7rem;
+        color: #5d6670;
+    }
+
+    .q {
+        border: 1px solid #eef1f4;
+        border-radius: 16px;
+        padding: .85rem .9rem;
+        margin-bottom: .75rem;
+        background: #fff;
+    }
+
+        .q strong {
+            display: block;
+            margin-bottom: .4rem;
+        }
+
+    .ans {
+        background: #fafbfc;
+        border: 1px dashed #d9dce0;
+        border-radius: 14px;
+        padding: .7rem .8rem;
+        font-size: .75rem;
+        white-space: pre-wrap;
+    }
+
+    .row2 {
+        display: grid;
+        grid-template-columns: 1fr 160px;
+        gap: .75rem;
+        margin-top: .65rem;
+        align-items: center;
+    }
+
+    .marks input {
+        width: 100%;
+        border: 1px solid #d4d7db;
+        border-radius: 12px;
+        padding: .55rem .6rem;
+    }
+
+    .btn-sm {
+        font-size: .62rem;
+        letter-spacing: .12rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: .55rem .85rem;
+        border-radius: 14px;
+        border: 1px solid #d4d7db;
+        background: #fff;
+        color: #b31217;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+    }
+
+        .btn-sm.primary {
+            background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            color: #fff;
+            border-color: #b31217;
+        }
+</style>
+
+<section class="grade-shell">
+    <div class="grade-card">
+        <div class="grade-head">
+            <div>
+                <h1 class="grade-title"><i class="fa fa-pen-to-square text-danger"></i> Grade • @Model.AssessmentTitle</h1>
+                <div class="grade-sub">
+                    Student: <strong>@Model.StudentDisplayName</strong>
+                    <span style="margin-left:.5rem;">(@Model.LearnerIdPass)</span>
+                    <br />
+                    MCQ correct: <strong>@Model.McqCorrectCount</strong> • Total questions: <strong>@Model.TotalQuestions</strong>
+                    <br />
+                    Current score: <strong>@Model.CurrentFinalScore</strong> • Current %: <strong>@Model.CurrentPercentage.ToString("0.##")</strong>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn-sm" asp-action="Results" asp-route-assessmentId="@Model.AssessmentId">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <form method="post" asp-action="Grade">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AssessmentId" />
+            <input type="hidden" asp-for="AttemptId" />
+
+            @if (Model.ShortAnswers == null || Model.ShortAnswers.Count == 0)
+            {
+                <div class="alert alert-info">No short-answer questions to grade for this attempt.</div>
+            }
+            else
+            {
+                for (var i = 0; i < Model.ShortAnswers.Count; i++)
+                {
+                    <input type="hidden" asp-for="ShortAnswers[i].QuestionId" />
+                    <input type="hidden" asp-for="ShortAnswers[i].Prompt" />
+                    <input type="hidden" asp-for="ShortAnswers[i].MaxMarks" />
+
+                    <div class="q">
+                        <strong>Q@(i + 1): @Model.ShortAnswers[i].Prompt</strong>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ShortAnswers[i].ImagePath))
+                        {
+                            <img src="@Url.Action("QuestionImage", "Assessment", new { fileId = Model.ShortAnswers[i].ImagePath })"
+                                 alt="Question image"
+                                 class="img-fluid rounded mb-2"
+                                 style="max-height:260px;" />
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ShortAnswers[i].DiagramAnnotationSnapshotFileId))
+                        {
+                            <img src="@Url.Action("AnnotationSnapshot", "Assessment", new { fileId = Model.ShortAnswers[i].DiagramAnnotationSnapshotFileId })"
+                                 alt="Learner annotation"
+                                 class="img-fluid rounded mb-2"
+                                 style="max-height:260px;" />
+                        }
+
+                <div class="ans">
+                    @(string.IsNullOrWhiteSpace(Model.ShortAnswers[i].StudentAnswer)
+                                        ? "(No answer provided)"
+                                        : Model.ShortAnswers[i].StudentAnswer)
+                </div>
+
+                        <div class="row2">
+                            <div class="grade-sub">
+                                Max marks: <strong>@Model.ShortAnswers[i].MaxMarks</strong>
+                            </div>
+                            <div class="marks">
+                                <input asp-for="ShortAnswers[i].MarksAwarded"
+                                       type="number"
+                                       min="0"
+                                       max="@Model.ShortAnswers[i].MaxMarks"
+                                       placeholder="0" />
+                            </div>
+                        </div>
+                    </div>
+                        }
+            }
+
+            <div class="d-flex gap-2 flex-wrap" style="justify-content:flex-end;margin-top:.85rem;">
+                <button type="submit" class="btn-sm primary">
+                    <i class="fa fa-save"></i> Save Grade
+                </button>
+            </div>
+        </form>
+    </div>
+</section>

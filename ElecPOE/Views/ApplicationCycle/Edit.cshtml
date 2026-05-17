@@ -1,0 +1,334 @@
+﻿@using ForekOnline.Domain.Entities
+@model ApplicationCycle
+
+@{
+    ViewData["Title"] = "Edit Application Cycle";
+}
+
+<style>
+/* Reuse Create styles (kept inline for copy/paste reliability) */
+:root{
+    --ce-bg: var(--fo-bg, #f3f4f8);
+    --ce-card: var(--fo-bg-card, #ffffff);
+    --ce-text: var(--fo-text, #1a1a2e);
+    --ce-text2: var(--fo-text-2, #4a4f5e);
+    --ce-muted: var(--fo-muted, #6b7280);
+    --ce-border: var(--fo-border, #e3e5eb);
+    --ce-orange: var(--fo-orange, #e65100);
+    --ce-orange-lt: var(--fo-orange-light, #ff8a50);
+    --ce-orange-dk: var(--fo-orange-dark, #ac1900);
+    --ce-radius: 16px;
+    --ce-radius-lg: 22px;
+    --ce-radius-sm: 10px;
+    --ce-shadow: 0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+    --ce-t: .22s cubic-bezier(.4,0,.2,1);
+    --ce-grad: linear-gradient(135deg, var(--ce-orange), var(--ce-orange-dk));
+}
+
+[data-theme="dark"] .ce-shell{
+    --ce-bg:#0e1018;
+    --ce-card:#161a24;
+    --ce-text:#e2e5eb;
+    --ce-text2:#9ca3b4;
+    --ce-muted:#6b7186;
+    --ce-border:rgba(255,255,255,.08);
+    --ce-shadow: 0 1px 3px rgba(0,0,0,.2), 0 12px 30px rgba(0,0,0,.18);
+}
+
+.ce-shell{ max-width: 1100px; margin: 0 auto; padding: .25rem 0 3rem; }
+
+.ce-header{ display:flex; flex-wrap:wrap; align-items:center; gap: .85rem; margin-bottom: 1.1rem; }
+.ce-title{
+    margin:0; font-size:1.4rem; font-weight:800; letter-spacing:-.3px; color:var(--ce-text);
+    display:flex; align-items:center; gap:.65rem;
+}
+.ce-title-icon{ width:48px;height:48px;border-radius:14px;background:var(--ce-grad); display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem; box-shadow:0 8px 24px rgba(230,81,0,.22); }
+.ce-sub{ font-size:.6rem; letter-spacing:.14rem; text-transform:uppercase; font-weight:700; color:var(--ce-muted); margin-top:.15rem; }
+.ce-actions{ margin-left:auto; display:flex; gap:.4rem; flex-wrap:wrap; }
+.ce-btn{
+    font-size:.62rem; letter-spacing:.1rem; font-weight:800; text-transform:uppercase;
+    padding:.55rem .9rem; border-radius: var(--ce-radius-sm);
+    border:1px solid var(--ce-border); background:var(--ce-card); color:var(--ce-text2);
+    display:inline-flex; align-items:center; gap:.4rem; cursor:pointer; text-decoration:none;
+    transition: all var(--ce-t);
+}
+.ce-btn:hover{ border-color:var(--ce-orange); color:var(--ce-orange); box-shadow: 0 4px 14px rgba(230,81,0,.12); transform: translateY(-1px); }
+.ce-btn-grad{ background:var(--ce-grad)!important; color:#fff!important; border:none!important; box-shadow:0 4px 16px rgba(230,81,0,.22); }
+.ce-btn-grad:hover{ filter:brightness(1.08); box-shadow:0 6px 24px rgba(230,81,0,.3); color:#fff!important; }
+
+.ce-grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap: 1rem; }
+.ce-card{ background: var(--ce-card); border: 1px solid var(--ce-border); border-radius: var(--ce-radius-lg); box-shadow: var(--ce-shadow); padding: 1.1rem 1.2rem; }
+.ce-card-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom: .85rem; }
+.ce-card-title h2{ margin:0; font-size:.75rem; letter-spacing:.2rem; text-transform:uppercase; font-weight:900; color: var(--ce-text); display:flex; align-items:center; gap:.5rem; }
+.ce-chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .6rem; border-radius: 999px; border: 1px solid var(--ce-border); background: rgba(230,81,0,.06); color: var(--ce-orange); font-size:.52rem; letter-spacing:.14rem; text-transform:uppercase; font-weight:900; }
+
+.ce-form{ display:flex; flex-direction:column; gap: .9rem; }
+.ce-row{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.ce-label{ font-size: .5rem; letter-spacing: .18rem; text-transform: uppercase; font-weight: 900; color: var(--ce-muted); margin-bottom: .25rem; }
+.ce-input{ background: var(--ce-bg); border: 1px solid var(--ce-border); color: var(--ce-text); border-radius: var(--ce-radius-sm); padding: .6rem .7rem; width: 100%; font-size: .8rem; transition: all var(--ce-t); }
+.ce-input:focus{ outline:none; border-color: var(--ce-orange); box-shadow: 0 0 0 3px rgba(230,81,0,.1); }
+.ce-help{ font-size:.68rem; color: var(--ce-muted); margin-top:.25rem; line-height:1.05rem; }
+
+.ce-toggle{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.ce-pill{ flex: 1 1 140px; display:flex; align-items:flex-start; gap:.6rem; padding:.75rem .8rem; border-radius: 16px; border:1px solid var(--ce-border); background: var(--ce-bg); cursor:pointer; transition: all var(--ce-t); user-select:none; }
+.ce-pill:hover{ transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.06); }
+.ce-pill.selected{ border-color: rgba(230,81,0,.55); box-shadow: 0 18px 38px rgba(230,81,0,.10); }
+.ce-pill .ic{ width: 38px; height: 38px; border-radius: 12px; display:flex; align-items:center; justify-content:center; background: rgba(230,81,0,.10); color: var(--ce-orange); font-size:.95rem; }
+.ce-pill strong{ display:block; font-size:.8rem; font-weight:900; color: var(--ce-text); }
+.ce-pill span{ display:block; font-size:.68rem; font-weight:600; color: var(--ce-muted); margin-top:.15rem; }
+.ce-pill .check{ margin-left:auto; width: 22px; height: 22px; border-radius: 999px; border:1px solid var(--ce-border); display:flex; align-items:center; justify-content:center; color: transparent; background: var(--ce-card); }
+.ce-pill.selected .check{ background: var(--ce-orange); border-color: var(--ce-orange); color:#fff; }
+
+.ce-kv{ border: 1px dashed var(--ce-border); border-radius: 16px; padding: .8rem .85rem; background: linear-gradient(135deg, rgba(230,81,0,.03), rgba(255,255,255,.0)); }
+[data-theme="dark"] .ce-kv{ background: linear-gradient(135deg, rgba(230,81,0,.06), rgba(22,26,36,0)); }
+.ce-k{ font-size:.5rem; letter-spacing:.18rem; text-transform:uppercase; font-weight:900; color: var(--ce-muted); }
+.ce-v{ margin-top:.35rem; font-weight:900; color: var(--ce-text); font-size:.9rem; }
+.ce-s{ margin-top:.25rem; font-size:.7rem; color: var(--ce-muted); line-height:1.05rem; }
+
+@@media (max-width: 991.98px){ .ce-grid{ grid-template-columns: 1fr; } }
+@@media (max-width: 575.98px){
+    .ce-row{ grid-template-columns: 1fr; }
+    .ce-header{ flex-direction: column; align-items:flex-start; }
+    .ce-actions{ width:100%; margin-left:0; }
+    .ce-actions .ce-btn{ flex:1; }
+}
+</style>
+
+<div class="ce-shell">
+    <div class="ce-header">
+        <div>
+            <h1 class="ce-title">
+                <span class="ce-title-icon"><i class="fa fa-pen-to-square"></i></span>
+                Edit Application Cycle
+            </h1>
+            <div class="ce-sub">Update cycle safely. Overlap and active uniqueness are enforced.</div>
+        </div>
+        <div class="ce-actions">
+            <a class="ce-btn" asp-action="Details" asp-route-id="@Model.Id"><i class="fa fa-circle-info"></i> Details</a>
+            <a class="ce-btn" asp-action="Index"><i class="fa fa-arrow-left"></i> Back</a>
+            <button form="ceForm" type="submit" class="ce-btn ce-btn-grad"><i class="fa fa-save"></i> Save</button>
+        </div>
+    </div>
+
+    <div class="ce-grid">
+        <div class="ce-card">
+            <div class="ce-card-title">
+                <h2><i class="fa fa-sliders"></i> Cycle Setup</h2>
+                <span class="ce-chip"><i class="fa fa-shield-halved"></i> Validated</span>
+            </div>
+
+            <form id="ceForm" class="ce-form" asp-action="Edit" method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <input asp-for="Id" type="hidden" />
+
+                <div class="ce-row">
+                    <div>
+                        <div class="ce-label">Name</div>
+                        <input asp-for="Name" class="ce-input" placeholder="Optional e.g. 2026 Intake" />
+                    </div>
+                    <div>
+                        <div class="ce-label">Code</div>
+                        <input asp-for="Code" class="ce-input" placeholder="Optional e.g. 2026-INTAKE" />
+                    </div>
+                </div>
+
+                <div class="ce-row">
+                    <div>
+                        <div class="ce-label">Academic Year</div>
+                        <input asp-for="AcademicYear" class="ce-input" type="number" min="2000" max="2100" required />
+                    </div>
+                    <div>
+                        <div class="ce-label">Turnaround Days (TAT)</div>
+                        <input asp-for="TurnaroundDays" class="ce-input" type="number" min="0" max="365" />
+                        <div class="ce-help">Quick edit is available in Details too.</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="ce-label">Application Period</div>
+                    <div class="ce-toggle" id="periodGrid">
+                        <div class="ce-pill" data-target="ApplicationPeriod" data-value="Intake" tabindex="0" role="button">
+                            <div class="ic"><i class="fa fa-layer-group"></i></div>
+                            <div><strong>Intake</strong><span>Short intake window</span></div>
+                            <div class="check"><i class="fa fa-check"></i></div>
+                        </div>
+                        <div class="ce-pill" data-target="ApplicationPeriod" data-value="Semester" tabindex="0" role="button">
+                            <div class="ic"><i class="fa fa-calendar-alt"></i></div>
+                            <div><strong>Semester</strong><span>Half-year period</span></div>
+                            <div class="check"><i class="fa fa-check"></i></div>
+                        </div>
+                        <div class="ce-pill" data-target="ApplicationPeriod" data-value="Trimester" tabindex="0" role="button">
+                            <div class="ic"><i class="fa fa-calendar-week"></i></div>
+                            <div><strong>Trimester</strong><span>Three terms / year</span></div>
+                            <div class="check"><i class="fa fa-check"></i></div>
+                        </div>
+                    </div>
+                    <input asp-for="ApplicationPeriod" type="hidden" />
+                </div>
+
+                <div class="ce-row">
+                    <div>
+                        <div class="ce-label">Opens At</div>
+                        <input asp-for="OpensAt" class="ce-input" type="datetime-local" required />
+                    </div>
+                    <div>
+                        <div class="ce-label">Closes</div>
+                        <input asp-for="Closes" class="ce-input" type="datetime-local" required />
+                    </div>
+                </div>
+
+                <div>
+                    <div class="ce-label">Is Active</div>
+                    <div class="ce-toggle" id="activeGrid">
+                        <div class="ce-pill" data-target="IsActive" data-value="true" tabindex="0" role="button">
+                            <div class="ic"><i class="fa fa-bolt"></i></div>
+                            <div><strong>Active</strong><span>Accept applications</span></div>
+                            <div class="check"><i class="fa fa-check"></i></div>
+                        </div>
+                        <div class="ce-pill" data-target="IsActive" data-value="false" tabindex="0" role="button">
+                            <div class="ic"><i class="fa fa-circle-pause"></i></div>
+                            <div><strong>Inactive</strong><span>Draft / planned</span></div>
+                            <div class="check"><i class="fa fa-check"></i></div>
+                        </div>
+                    </div>
+                    <input asp-for="IsActive" type="hidden" />
+                </div>
+
+                <div>
+                    <div class="ce-label">Description</div>
+                    <textarea asp-for="Description" class="ce-input" rows="3" placeholder="Optional notes for admins…"></textarea>
+                </div>
+
+                <div class="ce-row">
+                    <div>
+                        <div class="ce-label">Deleted</div>
+                        <select asp-for="IsDeleted" class="ce-input">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                        <div class="ce-help">Marking deleted hides the cycle by default (unless included).</div>
+                    </div>
+                   @*  <div>
+                        <div class="ce-label">Row Version</div>
+                        <input class="ce-input" value="@(Model.RowVersion != null ? Convert.ToBase64String(Model.RowVersion) : "—")" readonly />
+                        <div class="ce-help">For concurrency control (if enabled in persistence).</div>
+                    </div> *@
+                </div>
+
+                <div class="ce-actions" style="margin-left:0;">
+                    <button type="submit" class="ce-btn ce-btn-grad"><i class="fa fa-save"></i> Save Changes</button>
+                    <a class="ce-btn" asp-action="Details" asp-route-id="@Model.Id"><i class="fa fa-xmark"></i> Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <aside class="ce-card">
+            <div class="ce-card-title">
+                <h2><i class="fa fa-eye"></i> Preview</h2>
+                <span class="ce-chip"><i class="fa fa-wand-magic-sparkles"></i> Live</span>
+            </div>
+
+            <div class="ce-kv">
+                <div class="ce-k">Cycle</div>
+                <div class="ce-v" id="pvName">—</div>
+                <div class="ce-s">Auto-generated if left blank.</div>
+            </div>
+            <div class="ce-kv" style="margin-top:.75rem;">
+                <div class="ce-k">Window</div>
+                <div class="ce-v" id="pvWindow">—</div>
+                <div class="ce-s">Overlap protection is enforced by the service.</div>
+            </div>
+            <div class="ce-kv" style="margin-top:.75rem;">
+                <div class="ce-k">Status</div>
+                <div class="ce-v" id="pvStatus">—</div>
+                <div class="ce-s">Only one active cycle per year + period.</div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+(function(){
+    'use strict';
+
+    var form = document.getElementById('ceForm');
+    if(!form) return;
+
+    var nameEl = form.querySelector('[name="Name"]');
+    var yearEl = form.querySelector('[name="AcademicYear"]');
+    var periodEl = form.querySelector('input[name="ApplicationPeriod"]');
+    var opensEl = form.querySelector('[name="OpensAt"]');
+    var closesEl = form.querySelector('[name="Closes"]');
+    var activeEl = form.querySelector('input[name="IsActive"]');
+    var deletedEl = form.querySelector('[name="IsDeleted"]');
+
+    var pvName = document.getElementById('pvName');
+    var pvWindow = document.getElementById('pvWindow');
+    var pvStatus = document.getElementById('pvStatus');
+
+    function fmt(dt){
+        if(!dt) return '—';
+        var d = new Date(dt);
+        if(Number.isNaN(d.getTime())) return '—';
+        return d.toLocaleString(undefined, { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function updatePreview(){
+        var yr = (yearEl && yearEl.value) ? yearEl.value.trim() : '';
+        var per = (periodEl && periodEl.value) ? periodEl.value.trim() : '';
+        var nm = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+        pvName.textContent = nm || ((yr && per) ? (yr + ' ' + per) : '—');
+
+        pvWindow.textContent = fmt(opensEl && opensEl.value) + ' → ' + fmt(closesEl && closesEl.value);
+
+        var act = (activeEl && activeEl.value || '').toLowerCase();
+        var del = (deletedEl && deletedEl.value || '').toLowerCase();
+        if(del === 'true') pvStatus.textContent = 'Deleted (hidden by default)';
+        else pvStatus.textContent = (act === 'true' ? 'Active' : 'Inactive');
+    }
+
+    function setSelected(target, value){
+        var hidden = form.querySelector('input[name="' + target + '"]');
+        if(hidden) hidden.value = value;
+
+        document.querySelectorAll('.ce-pill[data-target="' + target + '"]').forEach(function(p){
+            p.classList.toggle('selected', p.getAttribute('data-value') === value);
+        });
+
+        updatePreview();
+    }
+
+    function wirePills(containerId){
+        var wrap = document.getElementById(containerId);
+        if(!wrap) return;
+
+        wrap.querySelectorAll('.ce-pill').forEach(function(p){
+            function choose(){
+                var t = p.getAttribute('data-target');
+                var v = p.getAttribute('data-value');
+                if(!t || v == null) return;
+                setSelected(t, v);
+            }
+            p.addEventListener('click', choose);
+            p.addEventListener('keydown', function(e){
+                if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); choose(); }
+            });
+        });
+    }
+
+    wirePills('periodGrid');
+    wirePills('activeGrid');
+
+    if(periodEl && periodEl.value) setSelected('ApplicationPeriod', periodEl.value);
+    if(activeEl && activeEl.value) setSelected('IsActive', activeEl.value.toLowerCase());
+
+    [nameEl, yearEl, opensEl, closesEl].forEach(function(el){
+        if(!el) return;
+        el.addEventListener('input', updatePreview);
+        el.addEventListener('change', updatePreview);
+    });
+    if(deletedEl){ deletedEl.addEventListener('change', updatePreview); }
+
+    updatePreview();
+})();
+</script>

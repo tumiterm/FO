@@ -1,0 +1,201 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.User>
+
+ <style>
+    .form-control, .accordion-item {
+        border-color: black;
+    }
+
+    .acchead {
+        background-color: #2774F1
+    }
+
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-color: black;
+    }
+
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .card-border, .table {
+        border-color: black;
+    }
+    thead{
+        background-color: darkred;
+    }
+    th{
+        color: white;
+    }
+
+    .ref {
+        background-color: darkblue;
+    }
+
+    .vs {
+        margin-left: 240px;
+    }
+    .table-striped>tbody>tr:nth-child(odd)>td, 
+    .table-striped>tbody>tr:nth-child(odd)>th {
+    background-color: #FCCFCF; 
+ }
+</style>
+<div class="col-xl-12"> 
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user me-1 text-white"></i>
+            <span class="text-white">Forek Institute of Technology - Facilitators<span class="text-bold"></span></span>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-striped" id="datatablesSimple" >
+                <thead style="background-color:darkred">
+                    <tr>
+                        <th class="text-white">
+                            Action
+                        </th>
+                        <th class="text-white">Name</th>
+                        <th class="text-white">Surname</th>
+                        <th class="text-white">Employee Number</th>
+                        <th class="text-white">Last Login Date</th>
+                        <th class="text-white">Lesson Plans</th>
+                        <th class="text-white">Stats</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a class="text-primary" asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@item.IDPass"><i class="fa bi-file-check"></i> Reports</a>
+
+                                }else{
+                                    <a class="text-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa bi-file-check"></i> Reports</a>
+                                }
+
+                            </td>
+
+                            <td>@item.Name</td>
+                            <td>@item.LastName</td>
+                            <td>@item.StudentNumber</td>
+                            <td>@item.LastLoginDate</td>
+                            <td>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a class="text-danger" asp-action="OnCreatePlan" asp-controller="LessonPlanConfig" asp-route-IdPass="@item.IDPass"><i class="fa bi-person-workspace"></i> Lesson Plan</a>
+                                }else{
+                                    <a class="text-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop2"><i class="fa bi-person-workspace"></i> Lesson Plan</a>
+
+                                }
+
+                            </td>
+                            <td>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a class="text-danger" asp-action="StatisticalAnalysis" asp-controller="LessonPlanConfig" asp-route-IdPass="@item.IDPass"><i class="fa bi-bar-chart"></i> Statistics</a>
+                                    
+                                }else{
+
+                                    <a class="text-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop3"><i class="fa bi-bar-chart"></i> Statistics</a>
+
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<br />
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:darkred">
+                <h5 class="modal-title text-white" id="staticBackdropLabel">ID/Passport Number Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="UserReports" asp-controller="Report" method="get">
+                    <div class="form-group col-md-12">
+                        <label class="control-label">ID/Passport Number</label>
+                        <input name="IdPass" type="password" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="modal-footer mt-1">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="staticBackdrop2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:saddlebrown">
+                <h5 class="modal-title text-white" id="staticBackdropLabel">ID Number/Passport Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="OnCreatePlan" asp-controller="LessonPlanConfig" method="get">
+                    <div class="form-group col-md-12">
+                        <label class="control-label">ID Number/Passport</label>
+                        <input name="IdPass" type="password" autocomplete="off" class="form-control" />
+                    </div>
+                    <div class="modal-footer mt-1">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staticBackdrop3" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: darkblue">
+                <h5 class="modal-title text-white" id="staticBackdropLabel">ID Number/Passport Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="StatisticalAnalysis" asp-controller="LessonPlanConfig" method="get">
+                    <div class="form-group col-md-12">
+                        <label class="control-label">ID / Passport Number</label>
+                        <input name="IdPass" type="password" autocomplete="off" class="form-control" />
+                    </div>
+                    <div class="modal-footer mt-1">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+

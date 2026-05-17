@@ -1,0 +1,59 @@
+﻿<script>
+    (function(){
+        const host = document.getElementById('blocks-host');
+        const addBtn = document.getElementById('add-block-btn');
+        if(!host || !addBtn) return;
+
+        addBtn.addEventListener('click', () => {
+            const idx = host.querySelectorAll('.block-editor').length;
+            const html = `
+    <div class="block-editor mb-2" data-index="${idx}">
+     <input type="hidden" name="Blocks[${idx}].Id" value="" />
+     <div class="block-head">
+       <h6>Block ${idx}</h6>
+       <span style="font-size:.5rem;font-weight:600;color:#666;">New</span>
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">Type</label>
+       <select name="Blocks[${idx}].Type" class="form-select form-select-sm">
+         <option value="Paragraph">Paragraph</option>
+         <option value="Html">Html</option>
+         <option value="UnorderedList">UnorderedList</option>
+         <option value="OrderedList">OrderedList</option>
+         <option value="Table">Table</option>
+         <option value="Image">Image</option>
+       </select>
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">Text / HTML</label>
+       <textarea name="Blocks[${idx}].Text" class="form-control form-control-sm" rows="2"></textarea>
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">List Items (comma separated)</label>
+       <input name="Blocks[${idx}].ListItems" class="form-control form-control-sm" />
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">Table JSON</label>
+       <textarea name="Blocks[${idx}].TableJson" class="form-control form-control-sm" rows="2"></textarea>
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">Image URL</label>
+       <input name="Blocks[${idx}].ImageUrl" class="form-control form-control-sm" />
+     </div>
+     <div class="mb-2">
+       <label class="form-label small fw-semibold">Alt Text</label>
+       <input name="Blocks[${idx}].AltText" class="form-control form-control-sm" />
+     </div>
+     <button type="button" class="btn btn-sm btn-outline-danger remove-block-btn">Remove</button>
+    </div>`;
+            host.insertAdjacentHTML('beforeend', html);
+        });
+
+        host.addEventListener('click', e => {
+            if(e.target.classList.contains('remove-block-btn')){
+                const wrapper = e.target.closest('.block-editor');
+                wrapper.remove();
+            }
+        });
+    })();
+</script>

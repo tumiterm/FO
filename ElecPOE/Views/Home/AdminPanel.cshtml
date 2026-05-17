@@ -1,0 +1,576 @@
+﻿@{
+    int formative = (int?)ViewData["Formative"] ?? 0;
+    int summative = (int?)ViewData["Summative"] ?? 0;
+    int practical = (int?)ViewData["Practical"] ?? 0;
+    int iisa = (int?)ViewData["IISA"] ?? 0;
+
+    int idDocs = (int?)ViewData["ID"] ?? 0;
+    int cvDocs = (int?)ViewData["CV"] ?? 0;
+    int matric = (int?)ViewData["Matric"] ?? 0;
+    int guardian = (int?)ViewData["Guardian"] ?? 0;
+
+    int enrollForms = (int?)ViewData["EnrollmentForm"] ?? 0;
+    int induction = (int?)ViewData["InductionForm"] ?? 0;
+    int declaration = (int?)ViewData["Declaration"] ?? 0;
+    int conduct = (int?)ViewData["Conduct"] ?? 0;
+
+    int nated = (int?)ViewData["NATED"] ?? 0;
+    int electrician = (int?)ViewData["Electrician"] ?? 0;
+    int welder = (int?)ViewData["Welder"] ?? 0;
+    int plumber = (int?)ViewData["Plumber"] ?? 0;
+
+    int totalAssess = formative + summative + practical + iisa;
+    int totalLearnerDocs = idDocs + cvDocs + matric + guardian;
+    int totalTraining = enrollForms + induction + declaration + conduct;
+    int totalReports = nated + electrician + welder + plumber;
+
+    int grandTotal = totalAssess + totalLearnerDocs + totalTraining + totalReports;
+    double pct(int part, int whole) => whole == 0 ? 0 : (double)part / whole * 100;
+}
+<style>
+
+    :root {
+        --ap-grad: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+        --ap-red-strong: #b31217;
+    }
+
+    #dynamicNotificationsModal .modal-header {
+        background: var(--ap-grad);
+        color: #fff;
+        padding: .9rem 1.05rem;
+        border-bottom: none;
+    }
+
+        #dynamicNotificationsModal .modal-header .modal-title {
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: .5px;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+        }
+
+        #dynamicNotificationsModal .modal-header i {
+            font-size: .95rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+        }
+
+    /* Base button style reinstated (was removed when dashboard refactored) */
+    #dynamicNotificationsModal .btn-act {
+        font-size: .6rem;
+        letter-spacing: .14rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: .55rem .9rem;
+        border-radius: 14px;
+        border: 1px solid #e2e5e9;
+        background: #fff;
+        color: var(--ap-red-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        text-decoration: none;
+        transition: .28s;
+        box-shadow: 0 2px 6px -2px rgba(0,0,0,.15);
+    }
+
+        #dynamicNotificationsModal .btn-act:hover {
+            background: var(--ap-grad);
+            color: #fff;
+            border-color: var(--ap-red-strong);
+            box-shadow: 0 6px 16px -8px rgba(179,18,23,.45);
+        }
+
+        /* Primary action override (inline style from JS may have undefined vars; enforce palette) */
+        #dynamicNotificationsModal .btn-act.btn-primary {
+            background: var(--ap-grad) !important;
+            color: #fff !important;
+            border-color: var(--ap-red-strong) !important;
+        }
+
+            #dynamicNotificationsModal .btn-act.btn-primary:hover {
+                filter: brightness(.92);
+            }
+
+    /* Optional carousel indicators tweak (keeps theme consistent) */
+    #dynamicNotificationsModal .carousel-indicators [data-bs-target] {
+        background: #b31217;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    #dynamicNotificationsModal .carousel-indicators .active {
+        background: #ff7a18;
+    }
+
+
+
+
+.admin-dash {
+    --clr-red:#b31217;
+    --clr-orange:#ff7a18;
+    --clr-blue:#156fd6;
+    --clr-green:#2ba66e;
+    --clr-purple:#6e42c4;
+    --clr-teal:#1aa9a2;
+    --clr-yellow:#e9b312;
+    --clr-gray:#6b7280;
+    --grad-main:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+    --grad-blue:linear-gradient(95deg,#0f3e82,#156fd6 55%,#4ba5ff);
+    --grad-green:linear-gradient(95deg,#135b3a,#2ba66e 55%,#58d49b);
+    --grad-purple:linear-gradient(95deg,#402269,#6e42c4 55%,#9c6df2);
+    --grad-teal:linear-gradient(95deg,#0a4c55,#1aa9a2 55%,#33d4cd);
+    --grad-yellow:linear-gradient(95deg,#7a5200,#e9b312 55%,#ffdd5c);
+    --panel:#ffffff;
+    --panel-alt:#f5f7fa;
+    --border:#e2e5e9;
+    --border-alt:#d1d5db;
+    --shadow:0 10px 30px -14px rgba(50,6,6,.28),0 4px 14px -6px rgba(50,6,6,.16);
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:#f5f7fa;
+    padding:2rem 1.25rem 3.2rem;
+    max-width:1480px;
+    margin:0 auto;
+}
+
+/* Hero */
+.admin-dash .hero-band {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:40px;
+    padding:1.9rem 2rem 1.65rem;
+    display:flex;
+    flex-wrap:wrap;
+    gap:1.8rem;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}
+.admin-dash .hero-band:before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(circle at 78% 22%,rgba(255,122,24,.18),transparent 70%),
+        radial-gradient(circle at 18% 78%,rgba(50,6,6,.18),transparent 65%);
+    pointer-events:none;
+}
+.admin-dash .hero-icon {
+    width:100px;height:100px;
+    border-radius:32px;
+    background:var(--grad-main);
+    display:flex;align-items:center;justify-content:center;
+    font-size:2.6rem;color:#fff;
+    box-shadow:0 24px 52px -22px rgba(179,18,23,.55);
+}
+.admin-dash h1.hero-title {
+    margin:0;
+    font-size:2rem;
+    font-weight:600;
+    letter-spacing:.75px;
+    background:linear-gradient(90deg,#320606,#b31217 55%,#ff7a18);
+    -webkit-background-clip:text;
+    color:transparent;
+}
+.admin-dash .hero-sub {
+    margin:.55rem 0 0;
+    font-size:.85rem;
+    letter-spacing:.4px;
+    color:var(--clr-gray);
+    max-width:640px;
+    font-weight:500;
+}
+
+.meta-pills {
+    display:flex;
+    flex-wrap:wrap;
+    gap:.55rem;
+    margin-top:.85rem;
+}
+.meta-pill {
+    font-size:.55rem;
+    letter-spacing:.22rem;
+    font-weight:700;
+    text-transform:uppercase;
+    background:var(--panel-alt);
+    color:var(--clr-red);
+    padding:.55rem 1rem;
+    border-radius:46px;
+    border:1px solid var(--border);
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+}
+
+.toolbar {
+    margin-left:auto;
+    display:flex;
+    gap:.65rem;
+    flex-wrap:wrap;
+}
+.tb-btn {
+    font-size:.6rem;
+    letter-spacing:.16rem;
+    font-weight:700;
+    text-transform:uppercase;
+    padding:.7rem 1.1rem;
+    border-radius:18px;
+    border:1px solid var(--border);
+    background:var(--panel-alt);
+    color:var(--clr-red);
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    cursor:pointer;
+    transition:.3s;
+    text-decoration:none;
+}
+.tb-btn:hover {
+    background:var(--grad-main);
+    color:#fff;
+    border-color:var(--clr-red);
+    box-shadow:0 8px 22px -10px rgba(179,18,23,.5);
+}
+
+/* Summary cards */
+.summary-grid {
+    margin-top:2.1rem;
+    display:grid;
+    gap:1.35rem;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+}
+.stat-card {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:30px;
+    padding:1.05rem 1.1rem .95rem;
+    display:flex;
+    flex-direction:column;
+    gap:.55rem;
+    position:relative;
+    overflow:hidden;
+    transition:.4s;
+}
+.stat-card:before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 84% 18%,rgba(255,122,24,.23),transparent 70%);
+    opacity:.55;
+}
+.stat-card:hover {
+    transform:translateY(-6px);
+    border-color:var(--border-alt);
+    box-shadow:0 10px 30px -14px rgba(0,0,0,.28);
+}
+.sc-label {
+    font-size:.56rem;
+    letter-spacing:.18rem;
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--clr-gray);
+}
+.sc-value {
+    font-size:1.55rem;
+    font-weight:600;
+    background:var(--grad-main);
+    -webkit-background-clip:text;
+    color:transparent;
+    display:flex;
+    align-items:center;
+    gap:.55rem;
+}
+.small-chip {
+    font-size:.48rem;
+    letter-spacing:.14rem;
+    font-weight:700;
+    text-transform:uppercase;
+    padding:.38rem .65rem;
+    border-radius:30px;
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    color:var(--clr-red);
+}
+.sc-foot {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:auto;
+}
+
+.donut {
+    width:60px;height:60px;
+    border-radius:50%;
+    background:conic-gradient(var(--donut-color,#ff7a18) calc(var(--pct,0)*1%),#e3e7eb 0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.58rem;
+    font-weight:700;
+    color:#222;
+    box-shadow:0 4px 12px -6px rgba(0,0,0,.25);
+}
+
+/* Sections */
+.sections-wrap {
+    margin-top:2.75rem;
+    display:grid;
+    gap:1.6rem;
+}
+@@media (min-width:1100px) {
+    .sections-wrap { grid-template-columns:1fr 1fr; }
+}
+.block-area {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:42px;
+    padding:1.25rem 1.25rem 1.15rem;
+    display:flex;
+    flex-direction:column;
+    gap:1.05rem;
+    position:relative;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}
+.block-area:before {
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--grad-main);
+    opacity:.06;
+    pointer-events:none;
+}
+.ba-head {
+    display:flex;
+    align-items:center;
+    gap:.7rem;
+}
+.ba-head h2 {
+    margin:0;
+    font-size:.72rem;
+    letter-spacing:.24rem;
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--clr-red);
+    display:flex;
+    align-items:center;
+    gap:.55rem;
+}
+.kpi-grid {
+    display:grid;
+    gap:1rem;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+}
+.kpi-box {
+    position:relative;
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    border-radius:24px;
+    padding:.8rem .85rem .75rem;
+    display:flex;
+    flex-direction:column;
+    gap:.4rem;
+    overflow:hidden;
+    transition:.3s;
+}
+.kpi-box:hover {
+    border-color:var(--border-alt);
+    box-shadow:0 6px 18px -10px rgba(0,0,0,.18);
+}
+.kpi-box small {
+    font-size:.5rem;
+    letter-spacing:.18rem;
+    font-weight:700;
+    opacity:.85;
+    color:var(--clr-gray);
+}
+.kpi-box span {
+    font-size:1.25rem;
+    font-weight:600;
+    line-height:1;
+    color:#222;
+}
+.spark {
+    width:100%;
+    height:46px;
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    overflow:hidden;
+    margin:.25rem 0 0;
+}
+.spark span {
+    flex:1;
+    display:block;
+    background:linear-gradient(180deg,var(--clr-top,#ff7a18),var(--clr-bottom,#b31217));
+    border-radius:5px 5px 0 0;
+    animation:grow .9s ease forwards;
+    transform:scaleY(0);
+    transform-origin:bottom;
+}
+@@keyframes grow { to { transform:scaleY(1); } }
+
+.kpi-note {
+    font-size:.5rem;
+    letter-spacing:.1rem;
+    color:var(--clr-gray);
+}
+
+/* Color variants for KPI boxes */
+.kpi-red    { --clr-top:#ff7a18; --clr-bottom:#b31217; }
+.kpi-blue   { --clr-top:#4ba5ff; --clr-bottom:#156fd6; }
+.kpi-green  { --clr-top:#58d49b; --clr-bottom:#2ba66e; }
+.kpi-purple { --clr-top:#9c6df2; --clr-bottom:#6e42c4; }
+.kpi-teal   { --clr-top:#33d4cd; --clr-bottom:#1aa9a2; }
+.kpi-yellow { --clr-top:#ffe176; --clr-bottom:#e9b312; }
+
+/* Responsive tweaks */
+@@media (max-width:740px) {
+    .toolbar { width:100%; }
+    .hero-icon { width:80px; height:80px; font-size:2.1rem; }
+}
+</style>
+
+<div class="admin-dash">
+    <!-- HERO -->
+    <div class="hero-band">
+        <div class="hero-icon"><i class="fa fa-gauge-high"></i></div>
+        <div class="header-text">
+            <h1 class="hero-title">Administrative Intelligence</h1>
+            <p class="hero-sub">
+                Graphical snapshot of document flow, assessment workload and departmental reporting output.
+            </p>
+            <div class="meta-pills">
+                <span class="meta-pill"><i class="fa fa-layer-group"></i> PLATFORM v2</span>
+                <span class="meta-pill"><i class="fa fa-database"></i> TOTAL @grandTotal</span>
+            </div>
+        </div>
+        <div class="toolbar">
+            <button class="tb-btn" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            <button class="tb-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop2"><i class="fa fa-circle-info"></i> What's New</button>
+        </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+        <div class="stat-card" style="--donut-color:var(--clr-red);--pct:@(Math.Round(pct(totalAssess, grandTotal)))">
+            <div class="sc-label">Assessments</div>
+            <div class="sc-value">
+                @totalAssess
+                <div class="donut" aria-label="Assessments share">@Math.Round(pct(totalAssess, grandTotal))%</div>
+            </div>
+            <div class="sc-foot">
+                <span class="small-chip">FORM / SUM / PRAC / IISA</span>
+                <span style="font-size:.5rem;color:var(--clr-gray);">@formative / @summative / @practical / @iisa</span>
+            </div>
+        </div>
+        <div class="stat-card" style="--donut-color:var(--clr-blue);--pct:@(Math.Round(pct(totalLearnerDocs, grandTotal)))">
+            <div class="sc-label">Learner Docs</div>
+            <div class="sc-value">
+                @totalLearnerDocs
+                <div class="donut" aria-label="Learner docs share">@Math.Round(pct(totalLearnerDocs, grandTotal))%</div>
+            </div>
+            <div class="sc-foot">
+                <span class="small-chip">ID • CV • MAT • GUARD</span>
+                <span style="font-size:.5rem;color:var(--clr-gray);">@idDocs / @cvDocs / @matric / @guardian</span>
+            </div>
+        </div>
+        <div class="stat-card" style="--donut-color:var(--clr-teal);--pct:@(Math.Round(pct(totalTraining, grandTotal)))">
+            <div class="sc-label">Training Docs</div>
+            <div class="sc-value">
+                @totalTraining
+                <div class="donut" aria-label="Training docs share">@Math.Round(pct(totalTraining, grandTotal))%</div>
+            </div>
+            <div class="sc-foot">
+                <span class="small-chip">ENR • IND • DEC • CON</span>
+                <span style="font-size:.5rem;color:var(--clr-gray);">@enrollForms / @induction / @declaration / @conduct</span>
+            </div>
+        </div>
+        <div class="stat-card" style="--donut-color:var(--clr-purple);--pct:@(Math.Round(pct(totalReports, grandTotal)))">
+            <div class="sc-label">Reports</div>
+            <div class="sc-value">
+                @totalReports
+                <div class="donut" aria-label="Reports share">@Math.Round(pct(totalReports, grandTotal))%</div>
+            </div>
+            <div class="sc-foot">
+                <span class="small-chip">NAT • ELEC • WELD • PLMB</span>
+                <span style="font-size:.5rem;color:var(--clr-gray);">@nated / @electrician / @welder / @plumber</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="sections-wrap">
+        <div class="block-area">
+            <div class="ba-head"><i class="fa fa-file-pen text-danger"></i><h2>Assessment Uploads</h2></div>
+            <div class="kpi-grid">
+                <div class="kpi-box kpi-red">
+                    <small>FORMATIVES</small><span>@formative</span>
+                    <div class="spark">
+                        <span style="height:40%;"></span><span style="height:70%;"></span><span style="height:55%;"></span><span style="height:85%;"></span>
+                    </div>
+                </div>
+                <div class="kpi-box kpi-purple">
+                    <small>SUMMATIVES</small><span>@summative</span>
+                    <div class="spark">
+                        <span style="height:30%;"></span><span style="height:90%;"></span><span style="height:60%;"></span><span style="height:40%;"></span>
+                    </div>
+                </div>
+                <div class="kpi-box kpi-teal">
+                    <small>PRACTICALS</small><span>@practical</span>
+                    <div class="spark">
+                        <span style="height:25%;"></span><span style="height:55%;"></span><span style="height:75%;"></span><span style="height:35%;"></span>
+                    </div>
+                </div>
+                <div class="kpi-box kpi-yellow">
+                    <small>IISA</small><span>@iisa</span>
+                    <div class="spark">
+                        <span style="height:60%;"></span><span style="height:40%;"></span><span style="height:80%;"></span><span style="height:50%;"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="kpi-note">Forek Spark Bars</div>
+        </div>
+
+        <div class="block-area">
+            <div class="ba-head"><i class="fa fa-id-card text-danger"></i><h2>Learner Documents</h2></div>
+            <div class="kpi-grid">
+                <div class="kpi-box kpi-blue"><small>ID DOCS</small><span>@idDocs</span></div>
+                <div class="kpi-box kpi-green"><small>CVS</small><span>@cvDocs</span></div>
+                <div class="kpi-box kpi-purple"><small>MATRICS</small><span>@matric</span></div>
+                <div class="kpi-box kpi-teal"><small>GUARDIANS</small><span>@guardian</span></div>
+            </div>
+            <div class="kpi-note">Identity & academic baseline artifacts.</div>
+        </div>
+
+        <div class="block-area">
+            <div class="ba-head"><i class="fa fa-school text-danger"></i><h2>Training Documents</h2></div>
+            <div class="kpi-grid">
+                <div class="kpi-box kpi-green"><small>ENROLLMENT</small><span>@enrollForms</span></div>
+                <div class="kpi-box kpi-yellow"><small>INDUCTION</small><span>@induction</span></div>
+                <div class="kpi-box kpi-blue"><small>DECLARATIONS</small><span>@declaration</span></div>
+                <div class="kpi-box kpi-purple"><small>CONDUCTS</small><span>@conduct</span></div>
+            </div>
+            <div class="kpi-note">Onboarding compliance confirmations.</div>
+        </div>
+
+        <div class="block-area">
+            <div class="ba-head"><i class="fa fa-chart-line text-danger"></i><h2>Progress Reports</h2></div>
+            <div class="kpi-grid">
+                <div class="kpi-box kpi-orange"><small>NATED</small><span>@nated</span></div>
+                <div class="kpi-box kpi-purple"><small>ELECTRICAL</small><span>@electrician</span></div>
+                <div class="kpi-box kpi-green"><small>WELDING</small><span>@welder</span></div>
+                <div class="kpi-box kpi-teal"><small>PLUMBING</small><span>@plumber</span></div>
+            </div>
+            <div class="kpi-note">Departmental / trade progression snapshots.</div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_DynamicNotifications")
+<script>window.__notificationsEndpoint='/Notification/Index';</script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="~/js/notifications.js"></script>

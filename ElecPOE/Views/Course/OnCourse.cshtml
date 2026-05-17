@@ -1,0 +1,222 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.Module>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    var modules = Model?.ToList() ?? new List<ForekOnline.Domain.Entities.Module>();
+    string courseName = ViewData["CourseName"]?.ToString() ?? "Unnamed Course";
+    string courseType = ViewData["Type"]?.ToString() ?? "Unspecified";
+    string credit = ViewData["Credit"]?.ToString() ?? "0";
+    string courseId = ViewData["CourseIdFK"]?.ToString() ?? "Unknown";
+    int activeCount = modules.Count(m => m?.IsActive == true);
+    var totalCredits = modules.Sum(m => m?.Credit ?? 0);
+    string nqfLevel = ViewData.ContainsKey("NQFLevel")? ViewData["NQFLevel"]?.ToString() ?? "Unspecified": "Unspecified";
+
+}
+<style>
+:root { --cm-dr:#320606;--cm-red:#9d1117;--cm-red-strong:#b31217;--cm-orange:#ff7a18;--cm-orange-soft:#ff9c55;--cm-bg:#ffffff;--cm-bg-alt:#f5f7fa;--cm-soft:#fff5f3;--cm-border:#e4e6ea;--cm-border-alt:#d4d6da;--cm-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);--cm-grad-soft:linear-gradient(120deg,#32060611,#b3121716,#ff7a1820);--cm-radius-xl:30px;--cm-radius-lg:22px;--cm-radius-md:14px;--cm-shadow:0 12px 28px -12px rgba(50,6,6,.35),0 4px 14px -6px rgba(50,6,6,.2);font-family:'Segoe UI',system-ui,sans-serif; }
+body{background:var(--cm-bg-alt);} .course-shell{max-width:1400px;margin:0 auto;padding:1.8rem 1.25rem 3.3rem;}
+.header-band{background:var(--cm-bg);border:1px solid var(--cm-border);border-radius:var(--cm-radius-xl);padding:1.25rem 1.5rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:"";position:absolute;inset:0;background:var(--cm-grad-soft);pointer-events:none;}
+.icon-pill{width:74px;height:74px;border-radius:24px;background:var(--cm-grad);display:flex;align-items:center;justify-content:center;font-size:1.85rem;color:#fff;box-shadow:0 12px 26px -12px rgba(179,18,23,.55);} 
+.header-band h1{margin:0;font-size:1.45rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.65rem;} 
+.tagline{font-size:.6rem;letter-spacing:.24rem;font-weight:700;background:var(--cm-soft);color:var(--cm-red-strong);padding:.55rem .95rem;border-radius:40px;text-transform:uppercase;margin-top:.45rem;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-act,.btn-accent,.btn-outline,.btn-mini{font-size:.6rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.6rem 1rem;border-radius:14px;border:1px solid var(--cm-border);background:#fff;color:var(--cm-red-strong);display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;cursor:pointer;transition:.3s;}
+.btn-act:hover,.btn-outline:hover{background:var(--cm-grad);color:#fff;border-color:var(--cm-red-strong);box-shadow:0 6px 16px -6px rgba(179,18,23,.45);} .btn-accent{background:var(--cm-grad);color:#fff;border:1px solid var(--cm-red-strong);} .btn-accent:hover{filter:brightness(.94);} .btn-mini{padding:.45rem .75rem;font-size:.52rem;}
+/* Summary */
+.summary-grid{margin-top:1.4rem;display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+.sum-card{position:relative;background:var(--cm-bg);border:1px solid var(--cm-border);border-radius:20px;padding:.9rem .9rem .85rem;display:flex;flex-direction:column;gap:.3rem;overflow:hidden;transition:.4s;}
+.sum-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 16%,rgba(255,122,24,.25),transparent 65%);opacity:.55;} .sum-card:hover{transform:translateY(-4px);border-color:var(--cm-border-alt);box-shadow:0 8px 20px -12px rgba(50,6,6,.25);} 
+.sum-label{font-size:.5rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;color:#666;} .sum-value{font-size:1.15rem;font-weight:600;background:var(--cm-grad);-webkit-background-clip:text;color:transparent;line-height:1;letter-spacing:.5px;} .sum-chip{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--cm-soft);color:var(--cm-red-strong);padding:.3rem .55rem;border-radius:30px;align-self:flex-start;}
+/* Manage bar */
+.manage-bar{margin-top:1.6rem;background:var(--cm-bg);border:1px solid var(--cm-border);border-radius:24px;padding:1rem 1rem .85rem;display:flex;flex-wrap:wrap;gap:.85rem;align-items:flex-end;}
+.manage-group{display:flex;flex-direction:column;gap:.35rem;} .manage-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;} 
+.manage-bar input[type="text"],.manage-bar input[type="number"],.manage-bar select{background:#fff;border:1px solid var(--cm-border);font-size:.7rem;padding:.5rem .65rem;border-radius:10px;min-width:170px;transition:.25s;}
+.manage-bar input:focus,.manage-bar select:focus{outline:none;border-color:var(--cm-red-strong);box-shadow:0 0 0 .15rem #b3121716;}
+.search-wrap{position:relative;flex:1 1 280px;} .search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;} .search-wrap input{width:100%;padding-left:2.1rem;}
+.limit-note{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--cm-soft);color:var(--cm-red-strong);padding:.3rem .55rem;border-radius:30px;display:inline-flex;gap:.35rem;align-items:center;}
+/* Table */
+.table-shell{margin-top:1.25rem;background:var(--cm-bg);border:1px solid var(--cm-border);border-radius:26px;padding:1.2rem 1.1rem 1rem;overflow:auto;}
+.table-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;font-size:.55rem;letter-spacing:.14rem;font-weight:600;color:#666;}
+.table-meta span.badge{background:var(--cm-soft);color:var(--cm-red-strong);padding:.35rem .6rem;border-radius:30px;font-size:.5rem;font-weight:700;letter-spacing:.12rem;}
+.modules-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.68rem;} .modules-table thead th{background:var(--cm-grad);color:#fff;font-size:.55rem;letter-spacing:.18rem;text-transform:uppercase;font-weight:700;padding:.55rem .6rem;position:sticky;top:0;z-index:3;} .modules-table tbody tr{transition:.18s;} .modules-table tbody tr:nth-child(even){background:#fff;} .modules-table tbody tr:nth-child(odd){background:#fffdfd;} .modules-table tbody tr:hover{background:#fff4ef;} .modules-table td{padding:.5rem .6rem;border-bottom:1px solid var(--cm-border);vertical-align:middle;color:#333;}
+.action-link{font-weight:600;font-size:.55rem;letter-spacing:.08rem;text-transform:uppercase;background:#fff;padding:.42rem .6rem;border:1px solid var(--cm-border);border-radius:10px;text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;color:var(--cm-red-strong);transition:.3s;}
+.action-link:hover{background:var(--cm-grad);color:#fff;border-color:var(--cm-red-strong);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);} .pill{font-size:.48rem;padding:.3rem .5rem;border-radius:30px;font-weight:700;letter-spacing:.1rem;background:#f0f1f3;color:#555;display:inline-flex;gap:.3rem;align-items:center;} .pill-active{background:#e8f9ef;color:#167846;border:1px solid #b7e6c8;} .pill-inactive{background:#ffe6ea;color:#b31217;border:1px solid #f3b4ba;}
+.footer-bar{margin-top:.65rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;font-size:.55rem;letter-spacing:.1rem;color:#666;}
+.hidden-row{display:none !important;}
+@@media (max-width:880px){ .modules-table thead th:nth-child(5),.modules-table td:nth-child(5){display:none;} }
+@@media (max-width:680px){ .modules-table thead th:nth-child(6),.modules-table td:nth-child(6){display:none;} }
+/* Modal */
+.modal-content{border-radius:26px;border:1px solid var(--cm-border);} .modal-header{background:var(--cm-grad);border:none;} .modal-header .modal-title{font-size:.75rem;letter-spacing:.2rem;font-weight:700;text-transform:uppercase;}
+.modal-body label{font-size:.55rem;letter-spacing:.14rem;font-weight:700;text-transform:uppercase;color:#555;} .modal-body input,.modal-body select{font-size:.7rem;border:1px solid var(--cm-border);border-radius:10px;padding:.55rem .6rem;} .modal-body input:focus,.modal-body select:focus{outline:none;border-color:var(--cm-red-strong);box-shadow:0 0 0 .15rem #b3121716;}
+.btn-submit{background:var(--cm-grad);color:#fff;border:none;font-size:.62rem;letter-spacing:.12rem;font-weight:700;padding:.6rem 1rem;border-radius:14px;display:inline-flex;gap:.45rem;align-items:center;} .btn-submit:hover{filter:brightness(.94);} .btn-cancel{background:#fff;border:1px solid var(--cm-border);color:var(--cm-red-strong);font-size:.62rem;letter-spacing:.12rem;font-weight:700;padding:.6rem 1rem;border-radius:14px;display:inline-flex;gap:.45rem;} .btn-cancel:hover{background:var(--cm-grad);color:#fff;border-color:var(--cm-red-strong);}
+</style>
+
+<div class="course-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-chalkboard"></i></div>
+        <div>
+            <h1>@courseName Modules</h1>
+            <div class="tagline"><i class="fa fa-layer-group"></i> MANAGEMENT</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-act" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" class="btn-accent" data-bs-toggle="modal" data-bs-target="#modalAddModule"><i class="fa fa-plus"></i> Add Module</button>
+            <button type="button" id="btnExportCsv" class="btn-act"><i class="fa fa-file-export"></i> CSV</button>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="sum-card"><div class="sum-label">TYPE</div><div class="sum-value">@courseType</div><div class="sum-chip">COURSE TYPE</div></div>
+        <div class="sum-card"><div class="sum-label">NQF LEVEL</div><div class="sum-value">@nqfLevel</div><div class="sum-chip">NQF</div></div>
+        <div class="sum-card"><div class="sum-label">CREDIT</div><div class="sum-value">@credit</div><div class="sum-chip">TOTAL</div></div>
+        <div class="sum-card"><div class="sum-label">MODULES</div><div class="sum-value">@modules.Count</div><div class="sum-chip">COUNT</div></div>
+        <div class="sum-card"><div class="sum-label">ACTIVE</div><div class="sum-value">@activeCount</div><div class="sum-chip">ACTIVE SET</div></div>
+         <div class="sum-card"><div class="sum-label">MOD CREDITS</div><div class="sum-value">@totalCredits</div><div class="sum-chip">SUM</div></div>
+     </div>
+
+    <div class="manage-bar">
+        <div class="search-wrap"><i class="fa fa-search"></i><input id="searchBox" type="text" placeholder="Search module name..." autocomplete="off" /></div>
+        <div class="manage-group"><label>Active</label><select id="activeFilter"><option value="">Any</option><option value="true">Active</option><option value="false">Inactive</option></select></div>
+        <div class="manage-group"><label>Min Credit</label><input id="minCredit" type="number" min="0" placeholder="0" /></div>
+        <div class="manage-group"><label>NQF</label><input id="nqfFilter" type="text" placeholder="e.g. 4" /></div>
+        <div class="manage-group" style="margin-left:auto;align-items:flex-end;"><span id="limitNote" class="limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED</span></div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta"><span id="rowsInfo" class="badge">Showing @modules.Count record(s)</span><span id="filterInfo"></span></div>
+        <table class="modules-table" id="modulesTable">
+            <thead><tr><th>Action</th><th>Module Name</th><th>NQF</th><th>Credit</th><th>Status</th><th>Remove</th></tr></thead>
+            <tbody id="modulesBody">
+            @foreach(var m in modules){<tr data-name="@m.ModuleName" data-active="@m.IsActive" data-credit="@m.Credit" data-nqf="@m.NQFLevel">
+                <td><a class="action-link" asp-action="OnModifyCourse" asp-controller="Course" asp-route-StudentNumber="@m.ModuleId"><i class="fa fa-folder-open"></i> Open</a></td>
+                <td>@m.ModuleName</td>
+                <td>@m.NQFLevel</td>
+                <td><span class="pill">@m.Credit</span></td>
+                <td><span class="pill @(m.IsActive?"pill-active":"pill-inactive")">@(m.IsActive?"Active":"Inactive")</span></td>
+                <td><a class="action-link" asp-action="RemoveModule" asp-route-ModuleId="@m.ModuleId"><i class="fa fa-trash"></i> Remove</a></td>
+            </tr>}
+            </tbody>
+        </table>
+        <div class="footer-bar"><div><button id="btnShowAll" class="btn-mini btn-act" type="button" style="display:none;"><i class="fa fa-list"></i> Show All</button><button id="btnLimit" class="btn-mini btn-act" type="button" style="display:none;"><i class="fa fa-compress"></i> Limit</button></div><div id="perfInfo"></div></div>
+    </div>
+</div>
+
+<!-- Add Module Modal -->
+<div class="modal fade" id="modalAddModule" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-white"><i class="fa fa-plus-circle"></i> Add Course Module</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form asp-action="AddCourseModule" asp-controller="Course" method="post">
+            <input type="hidden" name="CourseIdFK" value="@courseId" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Module Name</label>
+                    <input name="ModuleName" required />
+                </div>
+                <div class="col-md-3">
+                    <label>Credit</label>
+                    <input name="Credit" type="number" min="0" required />
+                </div>
+                <div class="col-md-3">
+                    <label>NQF Level</label>
+                    <select name="NQFLevel" required asp-items="Html.GetEnumSelectList<eNQF>()">
+                        <option value="" disabled selected>Select Level</option>
+                    </select>
+                </div>
+                <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn-submit"><i class="fa fa-paper-plane"></i> Submit</button>
+                </div>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+    const DEFAULT_LIMIT = 200;
+    const body = document.getElementById('modulesBody');
+    const searchBox = document.getElementById('searchBox');
+    const activeFilter = document.getElementById('activeFilter');
+    const minCredit = document.getElementById('minCredit');
+    const nqfFilter = document.getElementById('nqfFilter');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const filterInfo = document.getElementById('filterInfo');
+    const limitNote = document.getElementById('limitNote');
+    const btnExport = document.getElementById('btnExportCsv');
+    const btnShowAll = document.getElementById('btnShowAll');
+    const btnLimit = document.getElementById('btnLimit');
+    const perfInfo = document.getElementById('perfInfo');
+    let limitedMode = true;
+
+    function norm(v){return (v||'').toString().toLowerCase().trim();}
+
+    function applyFilters(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const act = activeFilter.value;
+        const minC = parseFloat(minCredit.value)||0;
+        const nqf = norm(nqfFilter.value);
+        const filtering = !!(q||act||minC>0||nqf);
+        const rows = Array.from(body.querySelectorAll('tr'));
+        let shown=0, matched=0;
+        rows.forEach(r=>{
+            const name = norm(r.getAttribute('data-name'));
+            const active = r.getAttribute('data-active');
+            const credit = parseFloat(r.getAttribute('data-credit'))||0;
+            const nqfVal = norm(r.getAttribute('data-nqf'));
+            let show = true;
+            if(q && !name.includes(q)) show=false;
+            if(act && active !== act) show=false;
+            if(minC>0 && credit < minC) show=false;
+            if(nqf && !nqfVal.includes(nqf)) show=false;
+            if(show){
+                matched++;
+                if(limitedMode && !filtering && shown >= DEFAULT_LIMIT) show=false;
+            }
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+        rowsInfo.textContent = 'Showing ' + shown + ' record(s)' + (filtering ? ' (matched)' : '');
+        filterInfo.textContent = filtering ? 'FILTERED' : (limitedMode ? 'LIMITED' : '');
+        limitNote.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+        btnShowAll.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+        btnLimit.style.display = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+        perfInfo.textContent = 'Render: ' + (performance.now()-t0).toFixed(1) + 'ms';
+    }
+
+    function enteredFilter(){limitedMode = !!(searchBox.value||activeFilter.value|| (parseFloat(minCredit.value)||0) > 0 || nqfFilter.value) ? false : limitedMode; applyFilters();}
+
+    searchBox.addEventListener('input', enteredFilter);
+    activeFilter.addEventListener('change', ()=>{limitedMode=false;applyFilters();});
+    minCredit.addEventListener('input', ()=>{limitedMode=false;applyFilters();});
+    nqfFilter.addEventListener('input', ()=>{limitedMode=false;applyFilters();});
+    btnShowAll.addEventListener('click', ()=>{limitedMode=false;applyFilters();});
+    btnLimit.addEventListener('click', ()=>{limitedMode=true;applyFilters();});
+
+    btnExport.addEventListener('click', ()=>{
+        const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
+        if(!visible.length){alert('No rows to export.');return;}
+        const lines=['ModuleName,NQF,Credit,Status'];
+        visible.forEach(r=>{
+            const cells=r.querySelectorAll('td');
+            const moduleName=cells[1]?.innerText.trim()||'';
+            const nqf=cells[2]?.innerText.trim()||'';
+            const credit=cells[3]?.innerText.trim()||'';
+            const status=cells[4]?.innerText.trim()||'';
+            const row=[moduleName,nqf,credit,status].map(v=>'"'+v.replace(/"/g,'""')+'"').join(',');
+            lines.push(row);
+        });
+        const blob=new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='modules-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+    });
+
+    applyFilters();
+})();
+</script>

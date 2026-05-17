@@ -1,0 +1,1174 @@
+﻿@model ForekOnline.Domain.ViewModels.CompanyAddressContactViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Create Host Company";
+}
+
+<style>
+    :root {
+        --cmp-bg: #ffffff;
+        --cmp-bg-alt: #f6f8fa;
+        --cmp-border: #e2e5ea;
+        --cmp-border-strong: #c5c9d1;
+        --cmp-accent: #7d0e11;
+        --cmp-accent-grad: linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+        --cmp-soft: #fff4f2;
+        --cmp-text: #20262d;
+        --cmp-radius-xl: 30px;
+        --cmp-radius-lg: 24px;
+        --cmp-radius: 14px;
+        --cmp-shadow: 0 14px 38px -16px rgba(125,14,17,.32),0 6px 20px -10px rgba(125,14,17,.18);
+        --cmp-focus-ring: 0 0 0 .16rem #b3121726;
+        font-family: 'Segoe UI',system-ui,sans-serif;
+    }
+
+    .page-shell {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 1.8rem 1.15rem 3rem;
+    }
+
+    .header-band {
+        background: var(--cmp-bg);
+        border: 1px solid var(--cmp-border);
+        border-radius: var(--cmp-radius-xl);
+        padding: 1.2rem 1.5rem 1.15rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .header-band:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg,#7d0e1116,#b3121716,#ff7a1818);
+            pointer-events: none;
+        }
+
+    .icon-pill {
+        width: 74px;
+        height: 74px;
+        border-radius: 26px;
+        background: var(--cmp-accent-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.05rem;
+        color: #fff;
+        box-shadow: 0 12px 28px -10px rgba(179,18,23,.52);
+    }
+
+    .header-band h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 600;
+        letter-spacing: .55px;
+        color: var(--cmp-text);
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .tagline {
+        font-size: .6rem;
+        letter-spacing: .2rem;
+        font-weight: 700;
+        background: var(--cmp-soft);
+        color: var(--cmp-accent);
+        padding: .5rem .9rem;
+        border-radius: 40px;
+        text-transform: uppercase;
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+    }
+
+    .toolbar {
+        margin-left: auto;
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-c, .btn-accent, .btn-outline {
+        font-size: .6rem;
+        letter-spacing: .12rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: .65rem 1.05rem;
+        border-radius: 16px;
+        border: 1px solid var(--cmp-border);
+        background: #fff;
+        color: var(--cmp-accent);
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        cursor: pointer;
+        transition: .3s;
+        text-decoration: none;
+    }
+
+        .btn-c:hover, .btn-outline:hover {
+            background: var(--cmp-accent-grad);
+            color: #fff;
+            border-color: var(--cmp-accent);
+            box-shadow: var(--cmp-shadow);
+        }
+
+    .btn-accent {
+        background: var(--cmp-accent-grad);
+        color: #fff;
+        border: 1px solid var(--cmp-accent);
+    }
+
+        .btn-accent:hover {
+            filter: brightness(.94);
+        }
+
+    .form-grid {
+        margin-top: 1.6rem;
+        display: grid;
+        gap: 1.3rem;
+    }
+
+    .section-card {
+        position: relative;
+        background: var(--cmp-bg);
+        border: 1px solid var(--cmp-border);
+        border-radius: 28px;
+        padding: 1.25rem 1.25rem 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.15rem;
+        overflow: hidden;
+    }
+
+        .section-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(145deg,#7d0e110f,#b3121710,#ff7a1812);
+            pointer-events: none;
+        }
+
+    .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .65rem;
+        position: relative;
+        z-index: 2;
+    }
+
+        .section-head h2 {
+            margin: .1rem 0;
+            font-size: .85rem;
+            letter-spacing: .22rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--cmp-accent);
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+        }
+
+        .section-head .edit-mini {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            border: 1px solid var(--cmp-border);
+            background: #fff;
+            color: var(--cmp-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+            .section-head .edit-mini:hover {
+                background: var(--cmp-accent-grad);
+                color: #fff;
+                border-color: var(--cmp-accent);
+            }
+
+    .field-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+        position: relative;
+        z-index: 2;
+    }
+
+        .field label {
+            font-size: .52rem;
+            letter-spacing: .16rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: #4d555d;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+    .input-wrap {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        background: #fff;
+        border: 1px solid var(--cmp-border);
+        padding: .55rem .65rem;
+        border-radius: 14px;
+        transition: .25s;
+    }
+
+        .input-wrap:focus-within {
+            border-color: var(--cmp-accent);
+            box-shadow: var(--cmp-focus-ring);
+        }
+
+        .input-wrap i {
+            font-size: .75rem;
+            color: #888;
+        }
+
+    .field input[type='text'], .field input[type='email'], .field input[type='number'], .field select {
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        font-size: .72rem;
+        color: #222;
+    }
+
+    .field select {
+        padding-right: 1.4rem;
+    }
+
+    small.hint {
+        font-size: .55rem;
+        color: #777;
+        margin-top: -.2rem;
+    }
+
+    .validation-summary {
+        text-align: left;
+        font-size: .62rem;
+        border: 1px solid #f1d0d4;
+        background: #fff5f7;
+        color: #7d0e11;
+        padding: .7rem .9rem;
+        border-radius: 14px;
+    }
+
+    .actions-bar {
+        margin-top: .4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .7rem;
+        justify-content: flex-start;
+    }
+
+    .btn-danger-soft {
+        background: #ffe8ea;
+        color: #7d0e11;
+        border: 1px solid #f3c2c7;
+    }
+
+        .btn-danger-soft:hover {
+            background: var(--cmp-accent-grad);
+            color: #fff;
+            border-color: var(--cmp-accent);
+        }
+
+    .status-bar {
+        font-size: .55rem;
+        letter-spacing: .16rem;
+        font-weight: 600;
+        color: #666;
+        margin-top: .4rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .required:after {
+        content: "*";
+        color: #b31217;
+        margin-left: .25rem;
+        font-weight: 900;
+    }
+
+    hr.divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg,transparent,#e1e4e9,transparent);
+        margin: .4rem 0;
+    }
+
+    @@media (max-width:640px) {
+        .header-band {
+            padding: 1.1rem 1.1rem .95rem;
+        }
+
+        .icon-pill {
+            width: 62px;
+            height: 62px;
+            font-size: 1.55rem;
+        }
+
+        .header-band h1 {
+            font-size: 1.3rem;
+        }
+    }
+
+    .fade-in {
+        animation: fade .5s ease;
+    }
+
+    @@keyframes fade {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* === NEW: selection-driven UI === */
+    .selection-grid {
+        display: grid;
+        gap: .75rem;
+        grid-template-columns: repeat(auto-fit,minmax(190px,1fr));
+        position: relative;
+        z-index: 2;
+    }
+
+    .select-card {
+        border: 1px solid var(--cmp-border);
+        background: #fff;
+        border-radius: 22px;
+        padding: .9rem .9rem .8rem;
+        display: flex;
+        gap: .8rem;
+        align-items: flex-start;
+        cursor: pointer;
+        transition: .28s;
+        user-select: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .select-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg,#7d0e110d,#b3121710,#ff7a1815);
+            opacity: 0;
+            transition: .28s;
+            pointer-events: none;
+        }
+
+        .select-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 26px -18px rgba(125,14,17,.26);
+            border-color: var(--cmp-border-strong);
+        }
+
+            .select-card:hover:before {
+                opacity: 1;
+            }
+
+        .select-card .ico {
+            width: 48px;
+            height: 48px;
+            border-radius: 18px;
+            background: var(--cmp-accent-grad);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            box-shadow: 0 10px 22px -16px rgba(179,18,23,.55);
+        }
+
+        .select-card .txt {
+            display: flex;
+            flex-direction: column;
+            gap: .25rem;
+            min-width: 0;
+        }
+
+            .select-card .txt strong {
+                font-size: .72rem;
+                letter-spacing: .08rem;
+            }
+
+            .select-card .txt span {
+                font-size: .58rem;
+                color: #6b7280;
+                font-weight: 700;
+                line-height: 1rem;
+            }
+
+        .select-card .tick {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 26px;
+            height: 26px;
+            border-radius: 10px;
+            border: 1px solid var(--cmp-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #6b7280;
+            transition: .2s;
+        }
+
+        .select-card.active {
+            border-color: #b31217;
+            box-shadow: 0 14px 30px -20px rgba(179,18,23,.35);
+        }
+
+            .select-card.active:before {
+                opacity: 1;
+            }
+
+            .select-card.active .tick {
+                background: var(--cmp-accent-grad);
+                border-color: #b31217;
+                color: #fff;
+            }
+
+    .profile-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1.3fr .7fr;
+    }
+
+    @@media (max-width:980px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .profile-card {
+        border: 1px solid var(--cmp-border);
+        background: #fff;
+        border-radius: 28px;
+        padding: 1.1rem 1.1rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .profile-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(145deg,#7d0e110d,#b312170d,#ff7a1812);
+            opacity: .65;
+            pointer-events: none;
+        }
+
+        .profile-card .inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+    .profile-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .avatar {
+        width: 62px;
+        height: 62px;
+        border-radius: 22px;
+        background: var(--cmp-accent-grad);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        letter-spacing: .12rem;
+        box-shadow: 0 14px 34px -22px rgba(179,18,23,.55);
+    }
+
+    .profile-title {
+        display: flex;
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+        .profile-title h3 {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: .3px;
+        }
+
+        .profile-title p {
+            margin: 0;
+            font-size: .62rem;
+            color: #6b7280;
+            font-weight: 700;
+        }
+
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+    }
+
+    .chip {
+        font-size: .54rem;
+        letter-spacing: .12rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        padding: .42rem .65rem;
+        border-radius: 999px;
+        border: 1px solid var(--cmp-border);
+        background: #fff;
+        color: #6b7280;
+    }
+
+        .chip.good {
+            border-color: #b7e4c7;
+            background: #f2fbf5;
+            color: #2d6a4f;
+        }
+
+        .chip.warn {
+            border-color: #ffe2a8;
+            background: #fff9ec;
+            color: #7a4a00;
+        }
+
+        .chip.bad {
+            border-color: #f1b0b7;
+            background: #fff0f2;
+            color: #8a1c2a;
+        }
+
+    .profile-kv {
+        display: grid;
+        gap: .65rem;
+        grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+    }
+
+    .kv {
+        display: flex;
+        gap: .55rem;
+        align-items: flex-start;
+        padding: .55rem .65rem;
+        border: 1px solid var(--cmp-border);
+        border-radius: 18px;
+        background: #fff;
+    }
+
+        .kv i {
+            color: #7d0e11;
+            margin-top: .15rem;
+        }
+
+        .kv strong {
+            display: block;
+            font-size: .55rem;
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+            color: #6b7280;
+        }
+
+        .kv span {
+            display: block;
+            font-size: .7rem;
+            font-weight: 700;
+            color: #111827;
+            margin-top: .15rem;
+            word-break: break-word;
+        }
+
+    .section-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem; /* fixes “no spacing between backgrounds” */
+    }
+
+    .section-card {
+        padding: 1rem 1.1rem .95rem; /* tighter default */
+    }
+
+        /* extra tight for sections with few fields */
+        .section-card.compact {
+            padding: .95rem 1.1rem .85rem;
+        }
+
+    .section-body {
+        display: none;
+        animation: fade .35s ease;
+    }
+
+    .section-card.active .section-body {
+        display: block;
+    }
+
+    .section-meta {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .section-progress {
+        font-size: .52rem;
+        letter-spacing: .18rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #6b7280;
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+        padding: .35rem .6rem;
+        border: 1px solid var(--cmp-border);
+        border-radius: 999px;
+        background: #fff;
+    }
+
+    .nav-row {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        gap: .6rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-top: .9rem;
+    }
+
+    .btn-next {
+        background: var(--cmp-accent-grad);
+        color: #fff;
+        border: 1px solid var(--cmp-accent);
+    }
+
+        .btn-next:hover {
+            filter: brightness(.94);
+        }
+
+    .profile-grid {
+        align-items: start;
+    }
+
+    @@media (min-width: 981px) {
+        .profile-card.sticky
+
+    {
+        position: sticky;
+        top: 1rem;
+    }
+
+    }
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-building"></i></div>
+        <div>
+            <h1>Create Host Company</h1>
+            <div class="tagline"><i class="fa fa-layer-group"></i> Placement Setup</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="HostCompanies" asp-controller="Company" class="btn-c"><i class="fa fa-eye"></i> Company List</a>
+            <a asp-action="Settings" asp-controller="Auth" class="btn-outline"><i class="fa fa-window-close"></i> Exit</a>
+        </div>
+    </div>
+
+    <div class="form-grid">
+        <form asp-action="Companies" method="post" autocomplete="off" novalidate id="companyProfileForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <div class="profile-grid">
+                <div class="profile-card sticky">
+                    <div class="inner">
+                        <div class="profile-head">
+                            <div style="display:flex;gap:.85rem;align-items:center;flex-wrap:wrap;">
+                                <div class="avatar" id="previewAvatar">HC</div>
+                                <div class="profile-title">
+                                    <h3 id="previewCompanyName">Host Company</h3>
+                                    <p id="previewSubtitle">Build a profile using selections and a few essentials.</p>
+                                </div>
+                            </div>
+                            <div class="chips">
+                                <span class="chip" id="previewProvinceChip"><i class="fa fa-map"></i> Province: —</span>
+                                <span class="chip" id="previewSpecialityChip"><i class="fa fa-bullseye"></i> Speciality: —</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-kv">
+                            <div class="kv">
+                                <i class="fa fa-phone"></i>
+                                <div>
+                                    <strong>Company Phone</strong>
+                                    <span id="previewCompanyPhone">—</span>
+                                </div>
+                            </div>
+                            <div class="kv">
+                                <i class="fa fa-location-dot"></i>
+                                <div>
+                                    <strong>Address</strong>
+                                    <span id="previewAddress">—</span>
+                                </div>
+                            </div>
+                            <div class="kv">
+                                <i class="fa fa-user-tie"></i>
+                                <div>
+                                    <strong>Primary Contact</strong>
+                                    <span id="previewContact">—</span>
+                                </div>
+                            </div>
+                            <div class="kv">
+                                <i class="fa fa-envelope"></i>
+                                <div>
+                                    <strong>Contact Email</strong>
+                                    <span id="previewEmail">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-card">
+                    <div class="inner">
+                        <div class="section-head" style="margin-bottom:.25rem;">
+                            <h2 style="margin:0;"><i class="fa fa-sparkles"></i> Selection Builder</h2>
+                            <span class="chip warn"><i class="fa fa-circle-info"></i> Minimal typing</span>
+                        </div>
+                        <div class="hint">
+                            Choose a <strong>Province</strong> via cards. Keep <strong>Speciality</strong> as dropdown. Everything else stays lightweight.
+                        </div>
+                        <hr class="divider" />
+                        <div class="chips">
+                            <span class="chip good"><i class="fa fa-check"></i> Cards + chips</span>
+                            <span class="chip"><i class="fa fa-pen"></i> Editable sections</span>
+                            <span class="chip"><i class="fa fa-shield-halved"></i> Validation kept</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-stack" id="sectionStack">
+                <div class="section-card compact active" id="secCompany" data-step="0">
+                    <div class="section-head">
+                        <h2><i class="fa fa-building"></i> Company Details</h2>
+                        <div class="section-meta">
+                            <span class="section-progress"><i class="fa fa-layer-group"></i> Step 1 of 3</span>
+                            <button type="button" class="edit-mini" data-focus="#CompanyName" title="Edit company details">
+                                <i class="fa fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="field-grid">
+                            <div class="field">
+                                <label class="required">Company Name</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-hospital-alt"></i>
+                                    <input asp-for="CompanyName" id="CompanyName" placeholder="e.g. Forek Institute Holdings" required />
+                                </div>
+                                <span asp-validation-for="CompanyName" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Speciality</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-bullseye"></i>
+                                    <select asp-for="Speciality" id="Speciality" asp-items="Html.GetEnumSelectList<eSpeciality>()">
+                                        <option value="">Select speciality...</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Speciality" class="text-danger" style="font-size:.55rem;"></span>
+                                <small class="hint">Kept as dropdown due to size.</small>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Phone</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-phone"></i>
+                                    <input asp-for="Phone" id="Phone" placeholder="+27..." required />
+                                </div>
+                                <span asp-validation-for="Phone" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+                        </div>
+
+                        <div class="nav-row">
+                            <button type="button" class="btn-c btn-next" data-next>
+                                Next <i class="fa fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card" id="secAddress" data-step="1">
+                    <div class="section-head">
+                        <h2><i class="fa fa-map-location-dot"></i> Address</h2>
+                        <div class="section-meta">
+                            <span class="section-progress"><i class="fa fa-layer-group"></i> Step 2 of 3</span>
+                            <button type="button" class="edit-mini" data-focus="#StreetName" title="Edit address">
+                                <i class="fa fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="field">
+                            <label class="required">Province (Select)</label>
+                            <div class="selection-grid" id="provinceCards">
+                                @foreach (var item in Html.GetEnumSelectList<eProvince>())
+                                {
+                                    <div class="select-card"
+                                         role="button"
+                                         tabindex="0"
+                                         data-province-value="@item.Value"
+                                         data-province-text="@item.Text">
+                                        <div class="ico"><i class="fa fa-map"></i></div>
+                                        <div class="txt">
+                                            <strong>@item.Text</strong>
+                                            <span>Click to select province</span>
+                                        </div>
+                                        <div class="tick"><i class="fa fa-check"></i></div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div style="display:none;">
+                                <select asp-for="Province" id="Province" asp-items="Html.GetEnumSelectList<eProvince>()">
+                                    <option value="">Select province...</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="Province" class="text-danger" style="font-size:.55rem;"></span>
+                        </div>
+
+                        <div class="field-grid" style="margin-top:.9rem;">
+                            <div class="field">
+                                <label class="required">Street / Complex</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-road"></i>
+                                    <input asp-for="StreetName" id="StreetName" placeholder="Street / complex name" required />
+                                </div>
+                                <span asp-validation-for="StreetName" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label>Address Line 2</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-location-dot"></i>
+                                    <input asp-for="Line1" id="Line1" placeholder="Suite / Unit / Area" />
+                                </div>
+                                <span asp-validation-for="Line1" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">City</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-city"></i>
+                                    <input asp-for="City" id="City" placeholder="City / Town" required />
+                                </div>
+                                <span asp-validation-for="City" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Postal Code</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-keyboard"></i>
+                                    <input asp-for="PostalCode" id="PostalCode" placeholder="Code" required />
+                                </div>
+                                <span asp-validation-for="PostalCode" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+                        </div>
+
+                        <div class="nav-row">
+                            <button type="button" class="btn-c" data-prev><i class="fa fa-arrow-left"></i> Back</button>
+                            <button type="button" class="btn-c btn-next" data-next>Next <i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card" id="secContact" data-step="2">
+                    <div class="section-head">
+                        <h2><i class="fa fa-user-tie"></i> Contact Person</h2>
+                        <div class="section-meta">
+                            <span class="section-progress"><i class="fa fa-layer-group"></i> Step 3 of 3</span>
+                            <button type="button" class="edit-mini" data-focus="#Name" title="Edit contact">
+                                <i class="fa fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-body">
+                        <div class="field-grid">
+                            <div class="field">
+                                <label class="required">First Name</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-id-badge"></i>
+                                    <input asp-for="Name" id="Name" placeholder="Contact first name" required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Last Name</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-user"></i>
+                                    <input asp-for="LastName" id="LastName" placeholder="Contact last name" required />
+                                </div>
+                                <span asp-validation-for="LastName" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Cellphone</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-mobile-screen"></i>
+                                    <input asp-for="Cellphone" id="Cellphone" type="number" placeholder="e.g. 082..." required />
+                                </div>
+                                <span asp-validation-for="Cellphone" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Email</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-envelope"></i>
+                                    <input asp-for="Email" id="Email" type="email" placeholder="contact@company.com" required />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger" style="font-size:.55rem;"></span>
+                            </div>
+                        </div>
+
+                        <div class="nav-row">
+                            <button type="button" class="btn-c" data-prev><i class="fa fa-arrow-left"></i> Back</button>
+                            <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="padding:1rem 1.15rem .95rem;">
+                <div class="actions-bar">
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                    <button type="reset" class="btn-outline"><i class="fa fa-undo"></i> Reset</button>
+                    <a asp-action="Settings" asp-controller="Auth" class="btn-c btn-danger-soft"><i class="fa fa-window-close"></i> Exit</a>
+                    <a asp-action="HostCompanies" asp-controller="Company" class="btn-c"><i class="fa fa-list"></i> View Companies</a>
+                </div>
+                <div class="status-bar">
+                    <span><strong>Note:</strong> Fields marked with * are required.</span>
+                    <span><strong>Tip:</strong> Province selection uses cards; speciality stays dropdown.</span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const form = document.getElementById('companyProfileForm');
+            if (!form) return;
+
+            // Section edit buttons -> focus an input (subtle “edit” mechanic)
+            document.querySelectorAll('[data-focus]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const sel = btn.getAttribute('data-focus');
+                    const el = sel ? document.querySelector(sel) : null;
+                    el?.focus();
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+
+            // Province cards <-> hidden select (keeps model binding)
+            const provinceSelect = document.getElementById('Province');
+            const provinceCards = document.getElementById('provinceCards');
+
+            function setProvince(value, text) {
+                if (!provinceSelect) return;
+
+                provinceSelect.value = value;
+
+                provinceCards?.querySelectorAll('.select-card').forEach(c => c.classList.remove('active'));
+                const active = provinceCards?.querySelector(`.select-card[data-province-value="${CSS.escape(value)}"]`);
+                active?.classList.add('active');
+
+                document.getElementById('previewProvinceChip').innerHTML = `<i class="fa fa-map"></i> Province: ${escapeHtml(text || '—')}`;
+                updatePreview();
+            }
+
+            provinceCards?.querySelectorAll('.select-card').forEach(card => {
+                card.addEventListener('click', function () {
+                    const value = card.getAttribute('data-province-value') || '';
+                    const text = card.getAttribute('data-province-text') || '';
+                    if (!value) return;
+                    setProvince(value, text);
+                });
+
+                card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+            });
+
+            // Initialize province card from existing bound value (edit scenario)
+            if (provinceSelect && provinceSelect.value) {
+                const opt = provinceSelect.querySelector(`option[value="${CSS.escape(provinceSelect.value)}"]`);
+                setProvince(provinceSelect.value, opt?.textContent || '');
+            }
+
+            // Live preview
+            const companyName = document.getElementById('CompanyName');
+            const phone = document.getElementById('Phone');
+            const speciality = document.getElementById('Speciality');
+
+            const street = document.getElementById('StreetName');
+            const line1 = document.getElementById('Line1');
+            const city = document.getElementById('City');
+            const postal = document.getElementById('PostalCode');
+
+            const firstName = document.getElementById('Name');
+            const lastName = document.getElementById('LastName');
+            const contactCell = document.getElementById('Cellphone');
+            const email = document.getElementById('Email');
+
+            const previewAvatar = document.getElementById('previewAvatar');
+            const previewCompanyName = document.getElementById('previewCompanyName');
+            const previewCompanyPhone = document.getElementById('previewCompanyPhone');
+            const previewAddress = document.getElementById('previewAddress');
+            const previewContact = document.getElementById('previewContact');
+            const previewEmail = document.getElementById('previewEmail');
+            const previewSpecialityChip = document.getElementById('previewSpecialityChip');
+
+            function escapeHtml(v) {
+                return (v || '').toString()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function initials(name) {
+                const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+                const a = parts[0]?.[0] || 'H';
+                const b = parts[1]?.[0] || (parts[0]?.[1] || 'C');
+                return (a + b).toUpperCase();
+            }
+
+            function joinAddress() {
+                const bits = [];
+                const s = street?.value?.trim();
+                const l = line1?.value?.trim();
+                const c = city?.value?.trim();
+                const p = postal?.value?.trim();
+                if (s) bits.push(s);
+                if (l) bits.push(l);
+                if (c) bits.push(c);
+                if (p) bits.push(p);
+                return bits.join(', ');
+            }
+
+            function updatePreview() {
+                const cn = companyName?.value?.trim() || 'Host Company';
+                previewCompanyName.textContent = cn;
+                previewAvatar.textContent = initials(cn);
+
+                previewCompanyPhone.textContent = phone?.value?.trim() || '—';
+                previewAddress.textContent = joinAddress() || '—';
+
+                const contactName = `${firstName?.value?.trim() || ''} ${lastName?.value?.trim() || ''}`.trim();
+                const contactMeta = contactCell?.value?.trim();
+                previewContact.textContent = contactName ? (contactMeta ? `${contactName} • ${contactMeta}` : contactName) : '—';
+
+                previewEmail.textContent = email?.value?.trim() || '—';
+
+                const specText = speciality?.selectedOptions?.[0]?.textContent?.trim() || '—';
+                previewSpecialityChip.innerHTML = `<i class="fa fa-bullseye"></i> Speciality: ${escapeHtml(specText)}`;
+            }
+
+            // Wire typing -> preview (minimal inputs only)
+            [
+                companyName, phone, speciality,
+                street, line1, city, postal,
+                firstName, lastName, contactCell, email
+            ].filter(Boolean).forEach(el => {
+                el.addEventListener('input', updatePreview);
+                el.addEventListener('change', updatePreview);
+                el.addEventListener('blur', () => { el.value = (el.value || '').toString().trim(); updatePreview(); });
+            });
+
+            updatePreview();
+        })();
+        (function () {
+        const stack = document.getElementById('sectionStack');
+        if (!stack) return;
+
+        const sections = Array.from(stack.querySelectorAll('.section-card[data-step]'));
+
+        function setStep(step) {
+            sections.forEach(s => s.classList.remove('active'));
+            const active = sections.find(s => Number(s.getAttribute('data-step')) === step);
+            active?.classList.add('active');
+            active?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        stack.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-next],[data-prev]');
+            if (!btn) return;
+
+            const current = e.target.closest('.section-card[data-step]');
+            if (!current) return;
+
+            const step = Number(current.getAttribute('data-step'));
+
+            if (btn.hasAttribute('data-next')) setStep(Math.min(step + 1, sections.length - 1));
+            if (btn.hasAttribute('data-prev')) setStep(Math.max(step - 1, 0));
+        });
+
+        // Allow clicking the section header to open it (optional, but feels good)
+        sections.forEach(s => {
+            const head = s.querySelector('.section-head');
+            head?.addEventListener('click', function (e) {
+                // Don't trigger when clicking edit button
+                if (e.target.closest('.edit-mini')) return;
+                const step = Number(s.getAttribute('data-step'));
+                    setStep(step);
+                });
+            });
+
+            // Init: show step 0 only
+            setStep(0);
+        })();
+
+    </script>
+}

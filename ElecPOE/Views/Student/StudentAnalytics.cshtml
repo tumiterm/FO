@@ -1,0 +1,1095 @@
+﻿@{
+    int electrical = ViewData["ElectricalCount"] is int e ? e : -1;
+    int welding = ViewData["WeldingCount"] is int w ? w : -1;
+    int plumbing = ViewData["PlumbingCount"] is int p ? p : -1;
+    int all = ViewData["AllStudents"] is int a ? a : -1;
+
+    Guid electricalId = Guid.Parse("ff755817-a3fe-423f-b382-17ace8f33f60");
+    Guid weldingId = Guid.Parse("0d4666e3-f6c8-49ae-a8ae-cd20fd905eca");
+    Guid plumbingId = Guid.Parse("9abcbb4c-a77a-48ad-90ee-6e732868e09a");
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Student Analytics</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f7f8fb;
+            --panel: #ffffff;
+            --panel-2: #fbfcff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --muted-2: #94a3b8;
+            --border: #e6e9f0;
+            --brand-1: #ff6b35;
+            --brand-2: #d62828;
+            --brand-3: #004e89;
+            --ring: 0 0 0 4px rgba(255,107,53,.18);
+            --shadow-1: 0 14px 40px rgba(15, 23, 42, .08);
+            --shadow-2: 0 8px 24px rgba(15, 23, 42, .08);
+            --r-lg: 22px;
+            --r-md: 16px;
+            --r-sm: 12px;
+            --t: 220ms cubic-bezier(.2,.75,.2,1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(1100px 700px at 15% 10%, rgba(255,107,53,.08), transparent 60%), radial-gradient(900px 600px at 80% 0%, rgba(0,78,137,.09), transparent 55%), var(--bg);
+            color: var(--text);
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+        }
+
+        .wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.25rem 1rem 3rem;
+        }
+
+        .hero {
+            border-radius: 26px;
+            background: linear-gradient(135deg, rgba(255,107,53,1), rgba(214,40,40,1), rgba(0,78,137,1));
+            color: #fff;
+            padding: 1.25rem 1.25rem;
+            box-shadow: var(--shadow-1);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .hero::before {
+                content: "";
+                position: absolute;
+                inset: -120px -120px auto auto;
+                width: 380px;
+                height: 380px;
+                background: radial-gradient(circle, rgba(255,255,255,.22), transparent 60%);
+                transform: rotate(18deg);
+            }
+
+        .hero-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-left {
+            display: flex;
+            align-items: center;
+            gap: .95rem;
+            min-width: 280px;
+        }
+
+        .hero-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.22);
+            backdrop-filter: blur(10px);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,.18);
+            flex: 0 0 auto;
+        }
+
+        .hero-title h1 {
+            font-size: 1.3rem;
+            line-height: 1.2;
+            margin: 0;
+            font-weight: 900;
+            letter-spacing: .2px;
+        }
+
+        .hero-title p {
+            margin: .25rem 0 0 0;
+            opacity: .92;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        .hero-actions {
+            display: inline-flex;
+            gap: .55rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 12px;
+            padding: .62rem .95rem;
+            font-size: .82rem;
+            font-weight: 700;
+            letter-spacing: .2px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            transition: transform var(--t), box-shadow var(--t), background var(--t), border-color var(--t);
+            text-decoration: none;
+            user-select: none;
+        }
+
+            .btn:hover {
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-2);
+            }
+
+            .btn:active {
+                transform: translateY(0);
+            }
+
+            .btn:focus-visible {
+                outline: none;
+                box-shadow: var(--ring), var(--shadow-2);
+            }
+
+        .btn-ghost {
+            background: rgba(255,255,255,.16);
+            border-color: rgba(255,255,255,.25);
+            color: #fff;
+        }
+
+            .btn-ghost:hover {
+                background: rgba(255,255,255,.22);
+            }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(255,107,53,1), rgba(214,40,40,1));
+            border-color: rgba(255,255,255,.0);
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                filter: brightness(.98);
+            }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .card {
+            background: rgba(255,255,255,.82);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: 0 10px 30px rgba(15,23,42,.06);
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 1.05rem 1.1rem .9rem;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.72));
+        }
+
+        .card-title {
+            display: grid;
+            gap: .25rem;
+        }
+
+            .card-title h2 {
+                margin: 0;
+                font-size: .95rem;
+                font-weight: 900;
+                letter-spacing: .12rem;
+                text-transform: uppercase;
+            }
+
+            .card-title p {
+                margin: 0;
+                color: var(--muted);
+                font-size: .82rem;
+                font-weight: 600;
+            }
+
+        .card-body {
+            padding: 1.1rem;
+            background: var(--panel);
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1rem;
+        }
+
+        .metric {
+            grid-column: span 12;
+            background: linear-gradient(135deg, rgba(255,107,53,.08), rgba(0,78,137,.06));
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 1rem 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            cursor: pointer;
+            transition: transform var(--t), box-shadow var(--t);
+        }
+
+            .metric:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-2);
+            }
+
+            .metric:focus-visible {
+                outline: none;
+                box-shadow: var(--ring), var(--shadow-2);
+            }
+
+        .metric-left {
+            display: inline-flex;
+            align-items: center;
+            gap: .85rem;
+        }
+
+        .metric-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(255,107,53,1), rgba(214,40,40,1));
+            color: #fff;
+            box-shadow: 0 10px 18px rgba(214,40,40,.22);
+        }
+
+        .metric-left strong {
+            display: block;
+            font-size: .95rem;
+            font-weight: 900;
+        }
+
+        .metric-left span {
+            display: block;
+            margin-top: .18rem;
+            color: var(--muted);
+            font-weight: 650;
+            font-size: .8rem;
+        }
+
+        .metric-cta {
+            color: var(--brand-2);
+            font-weight: 900;
+            font-size: .82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: .9rem;
+        }
+
+        .field {
+            grid-column: span 4;
+            display: grid;
+            gap: .35rem;
+        }
+
+            .field label {
+                font-size: .72rem;
+                font-weight: 900;
+                letter-spacing: .12rem;
+                text-transform: uppercase;
+                color: var(--muted);
+                display: inline-flex;
+                gap: .5rem;
+                align-items: center;
+            }
+
+        .input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--panel-2);
+            padding: .72rem .85rem;
+            font-size: .9rem;
+            font-weight: 650;
+            color: var(--text);
+            transition: box-shadow var(--t), border-color var(--t), background var(--t);
+        }
+
+            .input:focus {
+                outline: none;
+                border-color: rgba(255,107,53,.55);
+                box-shadow: var(--ring);
+                background: #fff;
+            }
+
+        .actions-bar {
+            grid-column: span 12;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .8rem;
+            flex-wrap: wrap;
+            margin-top: .2rem;
+            padding-top: .85rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .actions-left, .actions-right {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .45rem .7rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 800;
+        }
+
+        .chip-strong {
+            color: var(--text);
+        }
+
+        .inline-loader {
+            display: none;
+            align-items: center;
+            gap: .55rem;
+            color: var(--brand-2);
+            font-weight: 900;
+            font-size: .78rem;
+            letter-spacing: .08rem;
+            text-transform: uppercase;
+        }
+
+            .inline-loader.show {
+                display: inline-flex;
+            }
+
+        .spin {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 3px solid rgba(214,40,40,.35);
+            border-top-color: rgba(214,40,40,1);
+            animation: rot .8s linear infinite;
+        }
+
+        @@keyframes rot {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .menu {
+            position: relative;
+        }
+
+        .menu-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(15,23,42,.14);
+            padding: .4rem;
+            display: none;
+            z-index: 20;
+        }
+
+            .menu-panel.show {
+                display: block;
+            }
+
+        .menu-item {
+            display: flex;
+            gap: .65rem;
+            align-items: center;
+            width: 100%;
+            padding: .7rem .75rem;
+            border-radius: 12px;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--text);
+            font-size: .85rem;
+        }
+
+            .menu-item:hover {
+                background: rgba(2,6,23,.04);
+            }
+
+            .menu-item small {
+                display: block;
+                color: var(--muted);
+                font-size: .73rem;
+                font-weight: 750;
+            }
+
+        .table-wrap {
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead th {
+            text-align: left;
+            padding: .85rem .95rem;
+            font-size: .72rem;
+            letter-spacing: .13rem;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: linear-gradient(180deg, #fbfcff, #f6f8fd);
+            border-bottom: 1px solid var(--border);
+            font-weight: 900;
+        }
+
+        tbody td {
+            padding: .85rem .95rem;
+            border-bottom: 1px solid rgba(230,233,240,.9);
+            font-size: .9rem;
+            font-weight: 650;
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        tbody tr:hover td {
+            background: rgba(255,107,53,.04);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 900;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+        }
+
+        .pill-ok {
+            background: rgba(16,185,129,.13);
+            border-color: rgba(16,185,129,.28);
+            color: #065f46;
+        }
+
+        .pill-no {
+            background: rgba(239,68,68,.12);
+            border-color: rgba(239,68,68,.28);
+            color: #7f1d1d;
+        }
+
+        .row-actions {
+            display: inline-flex;
+            gap: .5rem;
+            align-items: center;
+        }
+
+        .btn-mini {
+            border-radius: 12px;
+            padding: .52rem .68rem;
+            font-size: .78rem;
+            font-weight: 900;
+        }
+
+        .btn-soft {
+            background: rgba(0,78,137,.08);
+            border-color: rgba(0,78,137,.18);
+            color: #0b3a63;
+        }
+
+        .state {
+            padding: 1rem;
+            border: 1px dashed rgba(100,116,139,.35);
+            border-radius: 18px;
+            background: rgba(255,255,255,.6);
+            color: var(--muted);
+            font-weight: 750;
+        }
+
+        @@media (max-width: 980px) {
+            .field {
+                grid-column: span 6;
+            }
+        }
+
+        @@media (max-width: 720px) {
+            .field {
+                grid-column: span 12;
+            }
+
+            .hero-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header class="hero">
+            <div class="hero-row">
+                <div class="hero-left">
+                    <div class="hero-icon" aria-hidden="true">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="hero-title">
+                        <h1>Student Analytics</h1>
+                        <p class="text-white">Advanced lookup, exports, and online enrollment insights</p>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <button type="button" class="btn btn-ghost" onclick="location.reload()">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
+                    <button type="button" class="btn btn-ghost" id="btnReloadMetrics">
+                        <i class="fa-solid fa-arrows-rotate"></i> Reload Data
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <section class="grid">
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-title">
+                        <h2>Overview</h2>
+                        <p>Quick entry points</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <div class="metric"
+                             tabindex="0"
+                             role="link"
+                             aria-label="Open all students"
+                             data-href="@Url.Action("StudentList", "Student")">
+                            <div class="metric-left">
+                                <div class="metric-badge"><i class="fa-solid fa-users"></i></div>
+                                <div>
+                                    <strong>All Students</strong>
+                                    <span>Total visible in system</span>
+                                </div>
+                            </div>
+                            <div class="metric-cta">
+                                View <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="advancedSearchSection">
+                <div class="card-head">
+                    <div class="card-title">
+                        <h2>Advanced Search</h2>
+                        <p>Search by enrollment (course title/type, and year)</p>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="advSearchForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="advCourseTitle"><i class="fa-solid fa-book"></i> Course title</label>
+                                <input class="input" id="advCourseTitle" name="courseTitle" placeholder="e.g., Electrical" />
+                            </div>
+
+                            <div class="field">
+                                <label for="advCourseType"><i class="fa-solid fa-tags"></i> Course type</label>
+                                <input class="input" id="advCourseType" name="courseType" placeholder="e.g., Occupational" />
+                            </div>
+
+                            <div class="field">
+                                <label for="advYear"><i class="fa-solid fa-calendar"></i> Year</label>
+                                <input class="input" id="advYear" name="year" inputmode="numeric" placeholder="e.g., 2025" />
+                            </div>
+
+                            <div class="actions-bar">
+                                <div class="actions-left">
+                                    <button type="submit" class="btn btn-primary" id="advSearchBtn">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Search
+                                    </button>
+
+                                    <button type="button" class="btn" id="advClearBtn">
+                                        <i class="fa-solid fa-broom"></i> Clear
+                                    </button>
+
+                                    <span class="inline-loader" id="advLoader"><span class="spin"></span> Searching</span>
+                                    <span class="chip chip-strong" id="advResultBadge" style="display:none;"></span>
+                                </div>
+
+                                <div class="actions-right">
+                                    <div class="menu" id="exportDropdown" style="display:none;">
+                                        <button type="button" class="btn" id="exportBtn">
+                                            <i class="fa-solid fa-download"></i> Export
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+
+                                        <div class="menu-panel" id="exportMenu" role="menu" aria-label="Export menu">
+                                            <button type="button" class="menu-item" data-format="csv" role="menuitem">
+                                                <i class="fa-solid fa-file-csv"></i>
+                                                <div>
+                                                    CSV
+                                                    <small>Open in Excel / Sheets</small>
+                                                </div>
+                                            </button>
+
+                                            <button type="button" class="menu-item" data-format="json" role="menuitem">
+                                                <i class="fa-solid fa-code"></i>
+                                                <div>
+                                                    JSON
+                                                    <small>For integrations</small>
+                                                </div>
+                                            </button>
+
+                                            <button type="button" class="menu-item" data-format="excel" role="menuitem">
+                                                <i class="fa-solid fa-file-excel"></i>
+                                                <div>
+                                                    Excel (soon)
+                                                    <small>Requires server/library</small>
+                                                </div>
+                                            </button>
+
+                                            <button type="button" class="menu-item" data-format="pdf" role="menuitem">
+                                                <i class="fa-solid fa-file-pdf"></i>
+                                                <div>
+                                                    PDF (soon)
+                                                    <small>Via SelectPdf / PeachPDF</small>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="advResults" style="margin-top:1rem;"></div>
+                </div>
+            </div>
+
+            <div class="card" id="forekOnlineStudentsSection">
+                <div class="card-head">
+                    <div class="card-title">
+                        <h2>Forek Online Students</h2>
+                        <p>Students originating from Forek Online</p>
+                    </div>
+
+                    <div class="hero-actions" style="gap:.55rem;">
+                        <button type="button" class="btn" id="fosLoadBtn">
+                            <i class="fa-solid fa-download"></i> Load
+                        </button>
+                        <button type="button" class="btn" id="fosUnloadBtn" style="display:none;">
+                            <i class="fa-solid fa-xmark"></i> Clear
+                        </button>
+                        <span class="chip chip-strong" id="fosCount" style="display:none;"></span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div id="fosPagingBar" style="display:none; gap:.55rem; flex-wrap:wrap; align-items:center;">
+                        <button type="button" class="btn" id="fosPrev" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                        <button type="button" class="btn" id="fosNext">Next <i class="fa-solid fa-chevron-right"></i></button>
+                        <span class="chip" id="fosPageInfo"></span>
+                    </div>
+
+                    <div class="inline-loader" id="fosLoaderInline" style="display:none; margin:.6rem 0;">
+                        <span class="spin"></span> Loading
+                    </div>
+
+                    <div id="fosContent" aria-live="polite" class="state">
+                        Click <strong>Load</strong> to fetch students from Forek Online.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+                (function () {
+                    document.querySelectorAll('[data-href]').forEach(el => {
+                        el.addEventListener('click', () => {
+                            const url = el.getAttribute('data-href');
+                            if (url) window.location.href = url;
+                        });
+                        el.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                el.click();
+                            }
+                        });
+                    });
+
+                    const btnReload = document.getElementById('btnReloadMetrics');
+                    btnReload?.addEventListener('click', async () => {
+                        try {
+                            await fetch('/Student/CourseCounts');
+                        } catch {
+                        }
+                    });
+                })();
+
+                function esc(s) {
+                    return (s ?? '').toString()
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#39;');
+                }
+
+                (function advancedSearch() {
+                    const form = document.getElementById('advSearchForm');
+                    const btnClear = document.getElementById('advClearBtn');
+                    const resultsHost = document.getElementById('advResults');
+                    const loader = document.getElementById('advLoader');
+                    const badge = document.getElementById('advResultBadge');
+
+                    const exportDropdown = document.getElementById('exportDropdown');
+                    const exportBtn = document.getElementById('exportBtn');
+                    const exportMenu = document.getElementById('exportMenu');
+
+                    let currentResults = [];
+
+                    function setLoading(on) {
+                        loader.classList.toggle('show', on);
+                    }
+
+                    function setBadge(textOrNull) {
+                        if (!textOrNull) {
+                            badge.style.display = 'none';
+                            badge.textContent = '';
+                            return;
+                        }
+                        badge.style.display = 'inline-flex';
+                        badge.textContent = textOrNull;
+                    }
+
+                    function setExportVisible(on) {
+                        exportDropdown.style.display = on ? 'inline-flex' : 'none';
+                        exportMenu.classList.remove('show');
+                    }
+
+                    function render(items) {
+                        currentResults = items ?? [];
+                        if (!items || items.length === 0) {
+                            setBadge('0 RESULTS');
+                            setExportVisible(false);
+                            resultsHost.innerHTML = `<div class="state">No results found. Adjust filters and try again.</div>`;
+                            return;
+                        }
+
+                        setBadge(`${items.length} RESULTS`);
+                        setExportVisible(true);
+
+                        const rows = items.map(x => `
+        <tr>
+          <td><strong>${esc(x.studentNumber)}</strong></td>
+          <td>${esc(x.fullName)}</td>
+          <td>${esc(x.startDate ?? '-')}</td>
+          <td>
+            <span class="pill ${x.isActive ? 'pill-ok' : 'pill-no'}">
+              <i class="fa-solid ${x.isActive ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+              ${x.isActive ? 'Active' : 'Inactive'}
+            </span>
+          </td>
+          <td>
+            <span class="row-actions">
+        <a class="btn btn-mini btn-soft"
+           href="/Student/PrintStudentDetailsPdf?studentNumber=${encodeURIComponent(x.studentNumber)}"
+           target="_blank"
+           rel="noopener">
+          <i class="fa-solid fa-file-pdf"></i> Export
+        </a>
+            </span>
+          </td>
+        </tr>`).join('');
+
+                        resultsHost.innerHTML = `
+        <div class="table-wrap">
+          <table role="table" aria-label="Advanced search results">
+            <thead>
+              <tr>
+                <th>Student #</th>
+                <th>Student</th>
+                <th>Start</th>
+                <th>Status</th>
+                <th>Export</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>`;
+                    }
+
+                    async function search() {
+                        const courseTitle = (document.getElementById('advCourseTitle').value || '').trim();
+                        const courseType = (document.getElementById('advCourseType').value || '').trim();
+                        const yearRaw = (document.getElementById('advYear').value || '').trim();
+
+                        const year = yearRaw.length ? Number(yearRaw) : null;
+
+                        const qs = new URLSearchParams();
+                        if (courseTitle.length) qs.set('courseTitle', courseTitle);
+                        if (courseType.length) qs.set('courseType', courseType);
+                        if (year !== null && Number.isFinite(year)) qs.set('year', String(year));
+                        qs.set('page', '1');
+                        qs.set('pageSize', '100');
+
+                        setLoading(true);
+                        try {
+                            const resp = await fetch(`/Student/AdvancedStudentSearch?${qs.toString()}`);
+                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                            const data = await resp.json();
+                            render(data.items || []);
+                        } catch (e) {
+                            console.warn(e);
+                            setExportVisible(false);
+                            setBadge('ERROR');
+                            resultsHost.innerHTML = `<div class="state">Search failed. Please try again.</div>`;
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+
+                    function download(name, content, mime) {
+                        const blob = new Blob([content], { type: mime });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }
+
+                    function exportCSV(items) {
+                        const headers = ['Student Number', 'Full Name', 'Course Title', 'Course Type', 'Start Date', 'Status'];
+                        const rows = items.map(x => [
+                            x.studentNumber,
+                            x.fullName,
+                            x.courseTitle,
+                            x.courseType,
+                            x.startDate || '-',
+                            x.isActive ? 'Active' : 'Inactive'
+                        ]);
+
+                        const csv = [
+                            headers.join(','),
+                            ...rows.map(r => r.map(v => `"${(v ?? '').toString().replaceAll('"', '""')}"`).join(','))
+                        ].join('\n');
+
+                        download('student-search-results.csv', csv, 'text/csv');
+                    }
+
+                    function exportJSON(items) {
+                        download('student-search-results.json', JSON.stringify(items, null, 2), 'application/json');
+                    }
+
+                    exportBtn?.addEventListener('click', () => exportMenu.classList.toggle('show'));
+                    document.addEventListener('click', (e) => {
+                        if (!exportDropdown.contains(e.target)) exportMenu.classList.remove('show');
+                    });
+
+                    exportMenu?.querySelectorAll('[data-format]').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const fmt = btn.getAttribute('data-format');
+                            exportMenu.classList.remove('show');
+
+                            if (!currentResults.length) return;
+
+                            if (fmt === 'csv') exportCSV(currentResults);
+                            else if (fmt === 'json') exportJSON(currentResults);
+                            else alert('This export format is coming soon.');
+                        });
+                    });
+
+                    form.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        search();
+                    });
+
+                    btnClear.addEventListener('click', () => {
+                        document.getElementById('advCourseTitle').value = '';
+                        document.getElementById('advCourseType').value = '';
+                        document.getElementById('advYear').value = '';
+                        resultsHost.innerHTML = '';
+                        setBadge(null);
+                        setExportVisible(false);
+                    });
+
+                    setExportVisible(false);
+                })();
+
+                function exportStudentPDF(studentNumber) {
+                    alert(`Export student PDF: ${studentNumber}\n\nWire this to SelectPdf/PeachPDF endpoint when ready.`);
+                }
+
+                (function forekOnlineStudents() {
+                    const loadBtn = document.getElementById('fosLoadBtn');
+                    const unloadBtn = document.getElementById('fosUnloadBtn');
+                    const content = document.getElementById('fosContent');
+                    const countBadge = document.getElementById('fosCount');
+                    const loader = document.getElementById('fosLoaderInline');
+
+                    const pagingBar = document.getElementById('fosPagingBar');
+                    const prevBtn = document.getElementById('fosPrev');
+                    const nextBtn = document.getElementById('fosNext');
+                    const pageInfo = document.getElementById('fosPageInfo');
+
+                    let page = 1;
+                    let pageSize = 50;
+                    let total = 0;
+
+                    function showLoader(on) {
+                        loader.style.display = on ? 'inline-flex' : 'none';
+                        loader.classList.toggle('show', on);
+                    }
+
+                    function reset() {
+                        content.classList.add('state');
+                        content.innerHTML = 'Click <strong>Load</strong> to fetch students from Forek Online.';
+                        countBadge.style.display = 'none';
+                        pagingBar.style.display = 'none';
+                        page = 1;
+                        total = 0;
+                    }
+
+                    async function loadPage(requestedPage) {
+                        page = requestedPage;
+                        showLoader(true);
+                        content.classList.remove('state');
+
+                        try {
+                            const resp = await fetch(`/Student/ForekOnlineStudentsSection?page=${page}&pageSize=${pageSize}`);
+                            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                            const html = await resp.text();
+                            content.innerHTML = html;
+
+                            const marker = content.querySelector('[data-fos-count]');
+                            const headerTotal = resp.headers.get('X-Total-Count');
+                            total = headerTotal ? Number(headerTotal) : (marker ? Number(marker.dataset.fosCount) : 0);
+
+                            if (Number.isFinite(total) && total > 0) {
+                                countBadge.textContent = `${total} FOUND`;
+                                countBadge.style.display = 'inline-flex';
+                            }
+
+                            const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
+                            pagingBar.style.display = totalPages > 1 ? 'inline-flex' : 'none';
+                            prevBtn.disabled = page <= 1;
+                            nextBtn.disabled = page >= totalPages;
+                            pageInfo.textContent = `Page ${page}/${totalPages}`;
+                        } catch (e) {
+                            console.warn(e);
+                            content.classList.add('state');
+                            content.innerHTML = 'Load failed. Please try again.';
+                        } finally {
+                            showLoader(false);
+                        }
+                    }
+
+                    content.addEventListener('click', async (e) => {
+                        const btn = e.target.closest('.fos-toggle');
+                        if (!btn) return;
+
+                        const card = btn.closest('.fos-card');
+                        const identity = card?.getAttribute('data-student-identity');
+                        if (!identity) return;
+
+                        const details = card.querySelector('.fos-details');
+                        const expanded = btn.getAttribute('aria-expanded') === 'true';
+
+                        if (expanded) {
+                            btn.setAttribute('aria-expanded', 'false');
+                            details.hidden = true;
+                            btn.innerHTML = 'Details <i class="fa fa-chevron-down"></i>';
+                            return;
+                        }
+
+                        btn.setAttribute('aria-expanded', 'true');
+                        details.hidden = false;
+                        btn.innerHTML = 'Hide <i class="fa fa-chevron-up"></i>';
+
+                        if (details.getAttribute('data-loaded') === 'true') return;
+
+                        btn.disabled = true;
+                        try {
+                            const r = await fetch(`/Student/ForekOnlineStudentEnrollments?identity=${encodeURIComponent(identity)}`);
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            const html = await r.text();
+                            details.innerHTML = html;
+                            details.setAttribute('data-loaded', 'true');
+                        } catch (err) {
+                            console.warn(err);
+                            details.innerHTML = '<div class="state" style="margin-top:.6rem;">Failed to load enrollments.</div>';
+                        } finally {
+                            btn.disabled = false;
+                        }
+                    });
+
+                    loadBtn.addEventListener('click', () => {
+                        loadBtn.style.display = 'none';
+                        unloadBtn.style.display = 'inline-flex';
+                        loadPage(1);
+                    });
+
+                    unloadBtn.addEventListener('click', () => {
+                        unloadBtn.style.display = 'none';
+                        loadBtn.style.display = 'inline-flex';
+                        reset();
+                    });
+
+                    prevBtn.addEventListener('click', () => { if (!prevBtn.disabled) loadPage(page - 1); });
+                    nextBtn.addEventListener('click', () => { if (!nextBtn.disabled) loadPage(page + 1); });
+
+                    reset();
+                })();
+    </script>
+</body>
+</html>

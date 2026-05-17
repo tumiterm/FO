@@ -1,0 +1,293 @@
+﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+@model ForekOnline.Domain.ViewModels.WorkplaceModulesViewModel
+
+@{
+    ViewData["Title"] = "Manage Workplace Module";
+}
+
+<style>
+:root{
+  --wm-dr:#320606;--wm-red:#b31217;--wm-orange:#ff7a18;
+  --wm-bg:#ffffff;--wm-bg-alt:#f5f7fa;--wm-soft:#fff5f3;
+  --wm-border:#e4e6ea;--wm-border-alt:#d4d6da;
+  --wm-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  --wm-focus:0 0 0 .16rem #b3121720;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+@@media (prefers-color-scheme:dark){
+  :root{--wm-bg:#1f242d;--wm-bg-alt:#161b21;--wm-soft:#2a3139;--wm-border:#2f3741;--wm-border-alt:#3b4552;color-scheme:dark;}
+  body{background:radial-gradient(at 72% 18%,#ff7a1818,#161b21 70%)!important;}
+}
+body{background:var(--wm-bg-alt);margin:0;color:#222;}
+.page-shell{max-width:1180px;margin:0 auto;padding:1.9rem 1.2rem 3rem;display:flex;flex-direction:column;gap:1.6rem;}
+.header-band{background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:40px;padding:1.3rem 1.4rem 1.2rem;display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,#32060610,#b3121710,#ff7a1812);}
+.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--wm-grad);display:flex;align-items:center;justify-content:center;font-size:2.05rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;display:flex;align-items:center;gap:.6rem;}
+.meta-chip{font-size:.58rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;background:var(--wm-soft);color:var(--wm-red);padding:.5rem .9rem;border-radius:40px;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-inline{font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.6rem 1rem;border-radius:16px;border:1px solid var(--wm-border);background:#fff;color:var(--wm-red);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;text-decoration:none;transition:.35s;}
+.btn-inline:hover{background:var(--wm-grad);color:#fff;border-color:var(--wm-red);box-shadow:0 6px 16px -6px rgba(179,18,23,.45);}
+.btn-accent{background:var(--wm-grad);color:#fff;border:1px solid var(--wm-red);} .btn-accent:hover{filter:brightness(.94);}
+
+.form-panel{background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:34px;padding:1.4rem 1.4rem 1.2rem;display:flex;flex-direction:column;gap:1.25rem;position:relative;overflow:hidden;}
+.form-panel:before{content:'';position:absolute;inset:0;background:linear-gradient(140deg,#32060608,#b312170a,#ff7a180d);pointer-events:none;}
+.form-header{display:flex;flex-direction:column;gap:.55rem;}
+.form-header h2{margin:0;font-size:.75rem;letter-spacing:.22rem;font-weight:700;color:var(--wm-red);text-transform:uppercase;display:flex;align-items:center;gap:.55rem;}
+.form-header small{font-size:.6rem;letter-spacing:.12rem;color:#666;}
+
+.grid{display:grid;gap:1.1rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
+.field{display:flex;flex-direction:column;gap:.45rem;position:relative;}
+.field label{font-size:.52rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;color:#4d5660;display:flex;align-items:center;gap:.45rem;}
+.required:after{content:'*';color:#b31217;margin-left:.25rem;font-weight:800;}
+.input-wrap{display:flex;align-items:center;gap:.55rem;background:#fff;border:1px solid var(--wm-border);border-radius:16px;padding:.65rem .75rem;transition:.25s;}
+.input-wrap:focus-within{border-color:var(--wm-red);box-shadow:var(--wm-focus);}
+.input-wrap i{font-size:.75rem;color:#888;}
+.field select,.field input[type=text],.field input[type=number],.field input[type=date]{border:none;background:transparent;font-size:.72rem;width:100%;outline:none;color:#222;}
+@@media (prefers-color-scheme:dark){.input-wrap{background:#222b35;border-color:#2f3741;} .field select,.field input{color:#e7ebf0;}}
+
+.inline-toggle{display:flex;align-items:center;gap:.55rem;font-size:.58rem;font-weight:600;margin-top:.15rem;}
+.inline-toggle input{transform:scale(1.15);cursor:pointer;}
+.status-pill{font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.32rem .6rem;border-radius:30px;background:#f0f1f3;color:#555;}
+@@media (prefers-color-scheme:dark){.status-pill{background:#2d3642;color:#cfd6dd;}}
+
+.progress-hint{font-size:.5rem;letter-spacing:.12rem;font-weight:600;color:#777;display:flex;gap:.4rem;align-items:center;margin-top:.2rem;}
+.calc-row{display:flex;flex-wrap:wrap;gap:.65rem;font-size:.52rem;letter-spacing:.12rem;color:#555;margin-top:.3rem;}
+.calc-pill{background:var(--wm-soft);color:var(--wm-red);padding:.4rem .7rem;border-radius:28px;font-weight:700;font-size:.48rem;letter-spacing:.12rem;display:inline-flex;align-items:center;gap:.35rem;}
+
+.actions-row{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.4rem;}
+.note{font-size:.5rem;letter-spacing:.14rem;color:#666;font-weight:600;margin-top:.1rem;}
+.divider{height:1px;background:linear-gradient(to right,transparent,#d9dde0,transparent);margin:.3rem 0 .2rem;}
+
+.footer-actions{display:flex;justify-content:space-between;align-items:center;padding:1rem .7rem .7rem;margin-top:.2rem;border-top:1px solid var(--wm-border);flex-wrap:wrap;gap:.6rem;}
+.badge-inline{font-size:.48rem;letter-spacing:.14rem;font-weight:700;padding:.34rem .6rem;border-radius:30px;background:var(--wm-soft);color:var(--wm-red);}
+@@media (prefers-color-scheme:dark){.badge-inline{background:#2b343f;color:#ffb4b4;}}
+
+.fade-in{animation:fade .55s ease;}@@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+
+@@media (max-width:640px){
+  .header-band{padding:1.15rem 1.1rem 1rem;border-radius:34px;}
+  .icon-pill{width:64px;height:64px;font-size:1.7rem;}
+  .form-panel{padding:1.1rem 1.05rem .95rem;border-radius:30px;}
+}
+</style>
+
+<div class="page-shell fade-in">
+
+  <!-- HEADER -->
+  <div class="header-band">
+    <div class="icon-pill"><i class="fa fa-diagram-project"></i></div>
+    <div>
+      <h1>Workplace Module</h1>
+      <div class="meta-chip">
+        <i class="fa fa-layer-group"></i> Manage Assignment
+      </div>
+      <small style="display:block;margin-top:.4rem;font-size:.55rem;letter-spacing:.12rem;color:#666;">
+        Configure learner workplace module details & track progress.
+      </small>
+    </div>
+    <div class="toolbar">
+      <a asp-action="WorkplaceModules"
+         asp-controller="WorplaceModules"
+         asp-route-PlacementId="@Model.PlacementId"
+         class="btn-inline">
+         <i class="fa fa-arrow-left"></i> Back
+      </a>
+      <button type="button" onclick="window.print()" class="btn-inline">
+        <i class="fa fa-print"></i> Print
+      </button>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-header">
+      <h2><i class="fa fa-pen-to-square"></i> Module Details</h2>
+      <small>Fields marked with * are required.</small>
+    </div>
+
+    <form asp-action="OnViewModule" method="post" autocomplete="off" novalidate>
+      @Html.AntiForgeryToken()
+      <input asp-for="LearnerWorkplaceModulesId" type="hidden" />
+      <input asp-for="PlacementId" type="hidden" />
+
+      <div class="grid">
+
+        <!-- Student -->
+        <div class="field" style="grid-column:1/-1;">
+          <label class="required"><i class="fa fa-user"></i> Student</label>
+          <div class="input-wrap" style="background:#fff9ed;">
+            <i class="fa fa-graduation-cap"></i>
+            <input asp-for="Student" readonly />
+          </div>
+        </div>
+
+        <!-- Course -->
+        <div class="field">
+          <label class="required"><i class="fa fa-book"></i> Course</label>
+            <div class="input-wrap">
+              <i class="fa fa-layer-group"></i>
+              <select asp-for="Course" asp-items="ViewBag.CourseId" required>
+                <option value="">Select course…</option>
+              </select>
+            </div>
+            <span asp-validation-for="Course" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- Module -->
+        <div class="field">
+          <label class="required"><i class="fa fa-cubes"></i> Module</label>
+          <div class="input-wrap">
+            <i class="fa fa-puzzle-piece"></i>
+            <select asp-for="Module" class="module" asp-items="ViewBag.ModuleId" required>
+              <option value="">Select module…</option>
+            </select>
+          </div>
+          <span asp-validation-for="Module" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- Duration (Days) -->
+        <div class="field">
+          <label class="required"><i class="fa fa-clock"></i> Duration (Days)</label>
+          <div class="input-wrap">
+            <i class="fa fa-hourglass-half"></i>
+            <input asp-for="Days" type="number" min="1" id="daysInput" required />
+          </div>
+          <span asp-validation-for="Days" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- Progress -->
+        <div class="field">
+          <label class="required"><i class="fa fa-spinner"></i> Progress Status</label>
+          <div class="input-wrap">
+            <i class="fa fa-gauge"></i>
+            <select asp-for="Progress" asp-items="Html.GetEnumSelectList<eStatus>()" required>
+              <option value="">Select status…</option>
+            </select>
+          </div>
+          <span asp-validation-for="Progress" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- Start Date -->
+        <div class="field">
+          <label class="required"><i class="fa fa-calendar-plus"></i> Start Date</label>
+          <div class="input-wrap">
+            <i class="fa fa-calendar"></i>
+            <input asp-for="StartDate" type="date" id="startDate" required />
+          </div>
+          <span asp-validation-for="StartDate" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- End Date -->
+        <div class="field">
+          <label class="required"><i class="fa fa-calendar-minus"></i> End Date</label>
+          <div class="input-wrap">
+            <i class="fa fa-calendar"></i>
+            <input asp-for="EndDate" type="date" id="endDate" required />
+          </div>
+          <span asp-validation-for="EndDate" class="text-danger" style="font-size:.55rem;"></span>
+        </div>
+
+        <!-- Active -->
+        <div class="field">
+          <label><i class="fa fa-toggle-on"></i> Active</label>
+          <div class="inline-toggle">
+            <input asp-for="IsActive" type="checkbox" id="isActiveCb" />
+            <span class="status-pill" id="activeLabel">INACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Computed Info -->
+        <div class="field" style="grid-column:1/-1;">
+          <label><i class="fa fa-info-circle"></i> Computation</label>
+          <div class="calc-row">
+            <span class="calc-pill" id="durationCalc"><i class="fa fa-hourglass-start"></i> Duration: —</span>
+            <span class="calc-pill" id="rangeCalc"><i class="fa fa-arrows-alt-h"></i> Range: —</span>
+          </div>
+          <div class="progress-hint">
+            <i class="fa fa-lightbulb"></i> Setting start + days auto-populates end date. Editing end date recalculates days.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="footer-actions">
+        <div class="badge-inline">
+          <i class="fa fa-layer-group"></i> Module Editor
+        </div>
+        <div class="actions-row">
+          <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+          <a class="btn-inline"
+             asp-action="WorkplaceModules"
+             asp-controller="WorplaceModules"
+             asp-route-PlacementId="@Model.PlacementId">
+             <i class="fa fa-rectangle-xmark"></i> Exit
+          </a>
+        </div>
+      </div>
+      <p class="note"><strong>Note:</strong> Ensure dates reflect realistic learning duration; progress can be updated later.</p>
+    </form>
+  </div>
+</div>
+
+@section Scripts {
+  <partial name="_ValidationScriptsPartial" />
+  <script>
+  (function(){
+    const start = document.getElementById('startDate');
+    const end = document.getElementById('endDate');
+    const days = document.getElementById('daysInput');
+    const activeCb = document.getElementById('isActiveCb');
+    const activeLabel = document.getElementById('activeLabel');
+    const durationCalc = document.getElementById('durationCalc');
+    const rangeCalc = document.getElementById('rangeCalc');
+
+    function parseDate(v){ return v ? new Date(v+'T00:00:00') : null; }
+    function diffDays(a,b){ return Math.round((b-a)/86400000)+1; } // inclusive
+
+    function updateFromDates(){
+      const s = parseDate(start.value), e = parseDate(end.value);
+      if(s && e && e >= s){
+        const d = diffDays(s,e);
+        if(!days.value || days.value === '' || parseInt(days.value,10) !== d){
+          days.value = d;
+        }
+        durationCalc.innerHTML = '<i class="fa fa-hourglass-start"></i> Duration: '+d+' day(s)';
+        rangeCalc.innerHTML = '<i class="fa fa-arrows-alt-h"></i> Range: '+start.value+' → '+end.value;
+      } else {
+        durationCalc.innerHTML = '<i class="fa fa-hourglass-start"></i> Duration: —';
+        rangeCalc.innerHTML = '<i class="fa fa-arrows-alt-h"></i> Range: —';
+      }
+    }
+
+    function updateFromDays(){
+      const s = parseDate(start.value);
+      const d = parseInt(days.value,10);
+      if(s && d > 0){
+        const e = new Date(s);
+        e.setDate(e.getDate()+d-1);
+        end.value = e.toISOString().slice(0,10);
+        updateFromDates();
+      }
+    }
+
+    function syncActive(){
+      activeLabel.textContent = activeCb.checked ? 'ACTIVE' : 'INACTIVE';
+      activeLabel.style.background = activeCb.checked ? '#e8f9ef' : '#ffe6ea';
+      activeLabel.style.color = activeCb.checked ? '#167846' : '#b31217';
+    }
+
+    start?.addEventListener('change', updateFromDates);
+    end?.addEventListener('change', updateFromDates);
+    days?.addEventListener('input', updateFromDays);
+    activeCb?.addEventListener('change', syncActive);
+
+    // Initialize
+    syncActive();
+    updateFromDates();
+  })();
+  </script>
+}
+

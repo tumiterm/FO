@@ -1,0 +1,81 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.AdvancedStudentSearchResultViewModel>  
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Advanced Student Search Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #111;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 12px;
+        }
+
+        .meta {
+            font-size: 11px;
+            color: #444;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f4f4f4;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Advanced Student Search Report</h1>
+    <div class="meta">
+        Generated: @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") UTC
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Student #</th>
+                <th>Full Name</th>
+                <th>Course Title</th>
+                <th>Course Type</th>
+                <th>Start Date</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.StudentNumber</td>
+                    <td>@s.FullName</td>
+                    <td>@s.CourseTitle</td>
+                    <td>@s.CourseType</td>
+                    <td>@(s.StartDate.ToString("yyyy-MM-dd") ?? "-")</td>
+                    <td>@(s.IsActive ? "Yes" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,289 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.PlacementViewModel>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Application.Common.Utility
+@{
+    var placements = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.PlacementViewModel>();
+    var statusGroups = placements.GroupBy(p => p.Status).ToDictionary(g => g.Key, g => g.Count());
+    int total = placements.Count;
+}
+
+<style>
+:root {
+    --pl-dr:#320606; --pl-red:#9d1117; --pl-red-strong:#b31217; --pl-orange:#ff7a18; --pl-orange-soft:#ff9c55;
+    --pl-bg:#ffffff; --pl-bg-alt:#f5f7fa; --pl-soft:#fff5f3; --pl-border:#e4e6ea; --pl-border-alt:#d3d6da;
+    --pl-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18); --pl-grad-soft:linear-gradient(120deg,#32060611,#b3121716,#ff7a1820);
+    --pl-radius-xl:30px; --pl-radius-lg:22px; --pl-radius-md:16px; --pl-shadow:0 10px 26px -12px rgba(50,6,6,.35),0 4px 14px -6px rgba(50,6,6,.18);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+body { background:var(--pl-bg-alt); }
+.placement-shell { max-width:1400px; margin:0 auto; padding:1.9rem 1.3rem 3.3rem; }
+
+/* Header */
+.header-band { background:var(--pl-bg); border:1px solid var(--pl-border); border-radius:var(--pl-radius-xl); padding:1.25rem 1.45rem 1.15rem; display:flex; flex-wrap:wrap; gap:1.25rem; align-items:center; position:relative; overflow:hidden; }
+.header-band:before { content:""; position:absolute; inset:0; background:var(--pl-grad-soft); pointer-events:none; }
+.icon-pill { width:78px;height:78px;border-radius:26px;background:var(--pl-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:2rem;box-shadow:0 12px 28px -12px rgba(179,18,23,.55); }
+.header-band h1 { margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.65rem; }
+.tagline { font-size:.6rem; letter-spacing:.24rem; font-weight:700; background:var(--pl-soft); color:var(--pl-red-strong); padding:.55rem .95rem; border-radius:40px; text-transform:uppercase; display:inline-flex; gap:.45rem; align-items:center; margin-top:.45rem; }
+.toolbar { margin-left:auto; display:flex; gap:.55rem; flex-wrap:wrap; }
+.btn-act { font-size:.6rem; letter-spacing:.12rem; font-weight:600; text-transform:uppercase; padding:.6rem 1rem; border-radius:14px; border:1px solid var(--pl-border); background:#fff; color:var(--pl-red-strong); display:inline-flex; align-items:center; gap:.5rem; cursor:pointer; text-decoration:none; transition:.3s; }
+.btn-act:hover { background:var(--pl-grad); color:#fff; border-color:var(--pl-red-strong); box-shadow:0 6px 16px -6px rgba(179,18,23,.45); }
+.btn-accent { background:var(--pl-grad); color:#fff; border:1px solid var(--pl-red-strong); }
+.btn-accent:hover { filter:brightness(.94); }
+.btn-disabled { opacity:.5; pointer-events:none; }
+
+/* Status summary cards */
+.status-grid { margin-top:1.5rem; display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+.stat-card { position:relative; background:var(--pl-bg); border:1px solid var(--pl-border); border-radius:20px; padding:.9rem .9rem .85rem; display:flex; flex-direction:column; gap:.35rem; overflow:hidden; transition:.4s; }
+.stat-card:before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 82% 16%,rgba(255,122,24,.25),transparent 65%); opacity:.55; }
+.stat-card:hover { transform:translateY(-4px); border-color:var(--pl-border-alt); box-shadow:0 8px 20px -12px rgba(50,6,6,.25); }
+.stat-label { font-size:.5rem; letter-spacing:.16rem; text-transform:uppercase; font-weight:700; color:#666; }
+.stat-value { font-size:1.25rem; font-weight:600; background:var(--pl-grad); -webkit-background-clip:text; color:transparent; line-height:1; letter-spacing:.5px; }
+.stat-chip { font-size:.48rem; letter-spacing:.14rem; font-weight:700; background:var(--pl-soft); color:var(--pl-red-strong); padding:.3rem .55rem; border-radius:30px; align-self:flex-start; }
+
+/* Filters */
+.filter-bar { margin-top:1.6rem; background:var(--pl-bg); border:1px solid var(--pl-border); border-radius:24px; padding:1rem 1rem .9rem; display:flex; gap:.85rem; flex-wrap:wrap; align-items:flex-end; }
+.filter-group { display:flex; flex-direction:column; gap:.35rem; }
+.filter-group label { font-size:.5rem; letter-spacing:.15rem; text-transform:uppercase; font-weight:700; color:#555; }
+.filter-bar input[type="text"], .filter-bar select, .filter-bar input[type="date"] { background:#fff; border:1px solid var(--pl-border); font-size:.7rem; padding:.5rem .65rem; border-radius:10px; min-width:180px; transition:.25s; }
+.filter-bar input:focus, .filter-bar select:focus { outline:none; border-color:var(--pl-red-strong); box-shadow:0 0 0 .15rem #b3121716; }
+.search-wrap { position:relative; flex:1 1 280px; }
+.search-wrap i { position:absolute; top:50%; left:.7rem; transform:translateY(-50%); font-size:.7rem; color:#999; }
+.search-wrap input { width:100%; padding-left:2.1rem; }
+
+/* Table */
+.table-shell { margin-top:1.3rem; background:var(--pl-bg); border:1px solid var(--pl-border); border-radius:26px; padding:1.2rem 1.15rem 1rem; overflow:auto; }
+.table-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.6rem; margin-bottom:.6rem; font-size:.55rem; letter-spacing:.14rem; font-weight:600; color:#666; }
+.table-meta span.badge { background:var(--pl-soft); color:var(--pl-red-strong); padding:.35rem .6rem; border-radius:30px; font-size:.5rem; font-weight:700; letter-spacing:.12rem; }
+
+.placement-table { width:100%; border-collapse:separate; border-spacing:0; font-size:.7rem; }
+.placement-table thead th { background:var(--pl-grad); color:#fff; font-size:.55rem; letter-spacing:.18rem; text-transform:uppercase; font-weight:700; padding:.6rem .65rem; position:sticky; top:0; z-index:3; }
+.placement-table tbody tr { transition:.18s; }
+.placement-table tbody tr:nth-child(even) { background:#fff; }
+.placement-table tbody tr:nth-child(odd) { background:#fffdfd; }
+.placement-table tbody tr:hover { background:#fff4ef; }
+.placement-table td { padding:.55rem .65rem; border-bottom:1px solid var(--pl-border); vertical-align:middle; color:#333; }
+
+.action-link { font-weight:600; font-size:.58rem; letter-spacing:.08rem; text-transform:uppercase; background:#fff; padding:.42rem .6rem; border:1px solid var(--pl-border); border-radius:10px; text-decoration:none; display:inline-flex; gap:.35rem; align-items:center; color:var(--pl-red-strong); transition:.3s; }
+.action-link:hover { background:var(--pl-grad); color:#fff; border-color:var(--pl-red-strong); box-shadow:0 4px 12px -6px rgba(179,18,23,.45); }
+
+.badge-status { font-size:.55rem; padding:.38rem .6rem; border-radius:30px; font-weight:600; letter-spacing:.08rem; display:inline-flex; gap:.35rem; align-items:center; }
+.st-startingsoon { background:#fff3e0; color:#bc6b00; border:1px solid #f0c48b; }
+.st-started { background:#e8f9ef; color:#167846; border:1px solid #b7e6c8; }
+.st-droppedout { background:#ffe6ea; color:#b31217; border:1px solid #f3b4ba; }
+.st-transferred { background:#e9f3ff; color:#1c5e9d; border:1px solid #b3d2ef; }
+.st-completed { background:#e2f5ff; color:#0f6c92; border:1px solid #a8d9ed; }
+.st-default { background:#f0f1f3; color:#555; border:1px solid #dadde0; }
+
+.footer-bar { margin-top:.75rem; display:flex; gap:.75rem; flex-wrap:wrap; justify-content:space-between; align-items:center; font-size:.55rem; letter-spacing:.1rem; color:#555; }
+.footer-bar .mini { display:flex; gap:.4rem; align-items:center; }
+
+.hidden-row { display:none !important; }
+
+@@media (max-width:950px){ .placement-table thead th:nth-child(5), .placement-table td:nth-child(5) { display:none; } }
+@@media (max-width:720px){ .placement-table thead th:nth-child(3), .placement-table td:nth-child(3) { display:none; } }
+</style>
+
+<div class="placement-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-people-carry-box"></i></div>
+        <div>
+            <h1>Learner Placements</h1>
+            <div class="tagline"><i class="fa fa-layer-group"></i> OVERSIGHT</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-act" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" class="btn-accent" id="btnExportCsv"><i class="fa fa-file-export"></i> CSV</button>
+        </div>
+    </div>
+
+    <div class="status-grid">
+        <div class="stat-card">
+            <div class="stat-label">TOTAL</div>
+            <div class="stat-value">@total</div>
+            <div class="stat-chip"><i class="fa fa-database"></i> RECORDS</div>
+        </div>
+        @foreach (eStatus s in Enum.GetValues(typeof(eStatus)))
+        {
+            <div class="stat-card">
+                <div class="stat-label">@s</div>
+                <div class="stat-value">@(statusGroups.ContainsKey(s)? statusGroups[s] : 0)</div>
+                <div class="stat-chip">@s.ToString().ToUpperInvariant()</div>
+            </div>
+        }
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search student / company / placed by..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter">
+                <option value="">All</option>
+                @foreach (eStatus s in Enum.GetValues(typeof(eStatus)))
+                {
+                    <option value="@s">@s</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>From Date</label>
+            <input type="date" id="fromDate" />
+        </div>
+        <div class="filter-group">
+            <label>To Date</label>
+            <input type="date" id="toDate" />
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="limitNote" class="stat-chip" style="display:none;">LIMITED</span>
+        </div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge">Showing @placements.Count record(s)</span>
+            <span id="filterInfo"></span>
+        </div>
+        <table class="placement-table" id="placementsTable">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Student</th>
+                    <th>Host Company</th>
+                    <th>Placement Date</th>
+                    <th>Placed By</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="placementsBody">
+            @foreach (var p in placements)
+            {
+                var dateVal = p.StartDate;
+                <tr data-status="@p.Status" data-date="@dateVal.ToString()">
+                    <td>
+                        <a class="action-link" asp-action="OnPlaceLearner" asp-controller="LearnerPlacement" asp-route-PlacementId="@p.PlacementId"><i class="fa fa-folder-open"></i> Open</a>
+                    </td>
+                    <td>@p.Student</td>
+                    <td>@p.CompanyId</td>
+                    <td>@dateVal.ToString()</td>
+                    <td>@p.PlacedBy</td>
+                    <td>
+                        @{ string stClass = p.Status switch {
+                                eStatus.StartingSoon => "st-startingsoon",
+                                eStatus.Started => "st-started",
+                                eStatus.DroppedOut => "st-droppedout",
+                                eStatus.Transferred => "st-transferred",
+                                eStatus.Completed => "st-completed",
+                                _ => "st-default"
+                            }; }
+                        <span class="badge-status @stClass"><i class="fa fa-circle"></i> @p.Status</span>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div class="footer-bar">
+            <div class="mini" id="performanceInfo"></div>
+            <div class="mini">Use search / filters to refine results • <strong>Export</strong> exports current view.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const DEFAULT_LIMIT = 200; // safety for huge datasets
+    const bodyEl = document.getElementById('placementsBody');
+    const searchBox = document.getElementById('searchBox');
+    const statusFilter = document.getElementById('statusFilter');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const filterInfo = document.getElementById('filterInfo');
+    const performanceInfo = document.getElementById('performanceInfo');
+    const btnExport = document.getElementById('btnExportCsv');
+    const limitNote = document.getElementById('limitNote');
+
+    let limitedMode = true;
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+    function parseDate(d){ return d? new Date(d): null; }
+
+    function applyFilters(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const st = statusFilter.value;
+        const f = fromDate.value ? parseDate(fromDate.value) : null;
+        const t = toDate.value ? parseDate(toDate.value) : null;
+        const filtering = !!(q||st||f||t);
+        const rows = Array.from(bodyEl.querySelectorAll('tr'));
+        let shown=0, matched=0;
+        rows.forEach((r,i)=>{
+            const text = norm(r.innerText);
+            const rs = r.getAttribute('data-status');
+            const dAttr = r.getAttribute('data-date');
+            const rd = dAttr? parseDate(dAttr): null;
+            let show = true;
+            if(q && !text.includes(q)) show=false;
+            if(st && rs !== st) show=false;
+            if(f && (!rd || rd < f)) show=false;
+            if(t && (!rd || rd > t)) show=false;
+            if(show){
+                matched++;
+                if(limitedMode && !filtering && shown >= DEFAULT_LIMIT) show=false;
+            }
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+        rowsInfo.textContent = 'Showing ' + shown + ' record(s)' + (filtering? ' (matched)':'' );
+        filterInfo.textContent = filtering? 'FILTERED' : (limitedMode? 'LIMITED':'');
+        limitNote.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT)? '' : 'none';
+        const t1 = performance.now();
+        performanceInfo.textContent = 'Render: ' + (t1 - t0).toFixed(1) + 'ms';
+    }
+
+    // Auto disable limit when user searches or filters
+    function onFilterChange(){
+        if(searchBox.value || statusFilter.value || fromDate.value || toDate.value) limitedMode=false; else limitedMode=true; applyFilters();
+    }
+
+    searchBox.addEventListener('input', onFilterChange);
+    statusFilter.addEventListener('change', onFilterChange);
+    fromDate.addEventListener('change', onFilterChange);
+    toDate.addEventListener('change', onFilterChange);
+
+    // CSV Export (current view)
+    btnExport.addEventListener('click', ()=>{
+        const visible = Array.from(bodyEl.querySelectorAll('tr:not(.hidden-row)'));
+        if(!visible.length){ alert('No rows to export.'); return; }
+        const lines = [];
+        lines.push('Student,HostCompany,PlacementDate,PlacedBy,Status');
+        visible.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const student = cells[1]?.innerText.trim() || '';
+            const host = cells[2]?.innerText.trim() || '';
+            const date = cells[3]?.innerText.trim() || '';
+            const placedBy = cells[4]?.innerText.trim() || '';
+            const status = cells[5]?.innerText.trim() || '';
+            const row = [student,host,date,placedBy,status].map(v => '"'+v.replace(/"/g,'""')+'"').join(',');
+            lines.push(row);
+        });
+        const blob = new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'placements-' + new Date().toISOString().slice(0,10) + '.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+
+    applyFilters();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+

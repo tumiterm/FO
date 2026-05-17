@@ -1,0 +1,146 @@
+﻿@using System.Diagnostics
+@{
+    Layout = null;
+
+    var errorMsg = (TempData["error"] as string)
+                   ?? (ViewData["ErrorMessage"] as string)
+                   ?? "An unexpected error occurred.";
+
+    int? statusCode = ViewData["StatusCode"] as int?
+                      ?? ViewContext?.HttpContext?.Response?.StatusCode;
+
+    var traceId = System.Diagnostics.Activity.Current?.Id ?? ViewContext.HttpContext.TraceIdentifier;
+
+    var showSupport  = true;
+    var supportEmail = "ifoliphant@forekinstitute.co.za";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Error • Forek Online</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root{
+  --err-dr:#320606;--err-red:#b31217;--err-orange:#ff7a18;--err-soft:#fff5f3;
+  --err-bg:#f5f7fa;--err-card:#ffffff;--err-border:#e4e6ea;
+  --err-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;background:var(--err-bg);}
+body{display:flex;align-items:center;justify-content:center;padding:1.6rem;}
+.card{
+  width:100%;max-width:680px;background:var(--err-card);border:1px solid var(--err-border);
+  border-radius:34px;padding:2.1rem 2rem 1.9rem;position:relative;overflow:hidden;
+  box-shadow:0 14px 40px -18px rgba(50,6,6,.35),0 6px 22px -10px rgba(50,6,6,.18);
+  animation:rise .55s ease;
+}
+@@keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.card:before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(120deg,#3206060d,#b312170f,#ff7a1812);pointer-events:none;
+}
+.badge{
+  position:absolute;top:16px;right:18px;font-size:.55rem;letter-spacing:.22rem;font-weight:700;
+  background:var(--err-soft);color:var(--err-red);padding:.5rem .85rem;border-radius:40px;
+}
+.icon{
+  width:90px;height:90px;border-radius:28px;background:var(--err-grad);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:2.2rem;
+  margin:0 auto 1.1rem;box-shadow:0 12px 32px -16px rgba(179,18,23,.55);
+  position:relative;
+}
+.icon:after{
+  content:"";position:absolute;inset:-4px;border-radius:inherit;
+  background:conic-gradient(from 120deg,#ff7a18,#b31217,#320606,#ff7a18);filter:blur(12px);opacity:.18;z-index:-1;
+}
+h1{
+  margin:.25rem 0 .7rem;font-size:1.7rem;font-weight:600;line-height:1.15;
+  background:var(--err-grad);-webkit-background-clip:text;color:transparent;text-align:center;letter-spacing:.5px;
+}
+p.lead{
+  margin:.2rem 0 1.15rem;font-size:.85rem;line-height:1.35rem;color:#333;text-align:center;
+}
+.code-box{
+  background:#fafbfc;border:1px dashed #d9dce0;padding:.85rem .95rem;border-radius:18px;
+  font-size:.66rem;letter-spacing:.08rem;margin:0 0 1.15rem;display:grid;gap:.35rem;
+  word-break:break-all;
+}
+.code-box strong{color:#444;}
+.actions{display:flex;flex-wrap:wrap;gap:.65rem;justify-content:center;margin-top:.3rem;}
+.btn{
+  --btn-bg:#fff;--btn-fg:var(--err-red);--btn-bd:#dadde0;
+  font-size:.62rem;letter-spacing:.14rem;font-weight:600;text-transform:uppercase;
+  padding:.72rem 1.15rem;border-radius:14px;border:1px solid var(--btn-bd);
+  background:var(--btn-bg);color:var(--btn-fg);cursor:pointer;
+  display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;transition:.35s;
+}
+.btn:hover{background:var(--err-grad);color:#fff;border-color:var(--err-red);box-shadow:0 8px 20px -10px rgba(179,18,23,.55);}
+.btn-accent{background:var(--err-grad);color:#fff;border:1px solid var(--err-red);}
+.btn-accent:hover{filter:brightness(.95);}
+.note{
+  margin:1.3rem 0 0;font-size:.55rem;letter-spacing:.18rem;font-weight:600;text-transform:uppercase;
+  text-align:center;color:#666;
+}
+details.stack{
+  margin-top:1.2rem;
+  background:#fff;border:1px solid #eceff1;border-radius:16px;padding:.8rem .95rem;
+}
+details.stack summary{
+  cursor:pointer;font-size:.58rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;
+  color:#b31217;outline:none;
+}
+details.stack pre{
+  margin:.6rem 0 0;max-height:240px;overflow:auto;font-size:.62rem;line-height:1.05rem;
+  background:#320606; color:#ffe; padding:.8rem .9rem; border-radius:12px;
+}
+@@media (max-width:640px){
+  .card{padding:1.85rem 1.4rem 1.55rem;border-radius:30px;}
+  h1{font-size:1.45rem;}
+  .icon{width:78px;height:78px;font-size:2rem;}
+}
+</style>
+</head>
+<body>
+  <main class="card" role="alert" aria-live="assertive">
+    <span class="badge">ERROR</span>
+    <div class="icon" aria-hidden="true"><i class="fa fa-triangle-exclamation"></i></div>
+    <h1>Something Went Wrong</h1>
+    <p class="lead">
+        @errorMsg
+        @if(statusCode is int sc){ <br/><span style="font-size:.7rem;color:#555;">HTTP Status: <strong>@sc</strong></span> }
+    </p>
+
+    <div class="code-box">
+        <strong>Trace Id:</strong> <span>@traceId</span>
+   @*      @if(!string.IsNullOrWhiteSpace(Request?.Path)){
+            <strong>Path:</strong> <span>@Request.Path</span>
+        } *@
+        <strong>Timestamp (UTC):</strong> <span>@DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")</span>
+    </div>
+
+    <div class="actions">
+        <a class="btn-accent btn" href="@Url.Action("Index","Home")"><i class="fa fa-house"></i> Home</a>
+        <button class="btn" type="button" onclick="location.reload()"><i class="fa fa-rotate"></i> Retry</button>
+        <a class="btn" href="javascript:history.back()"><i class="fa fa-arrow-left"></i> Back</a>
+        @if(showSupport){
+            <a class="btn" href="mailto:@supportEmail?subject=Support%20Trace%20@traceId"><i class="fa fa-envelope"></i> Support</a>
+        }
+    </div>
+
+    <p class="note">If the issue persists please contact support with the trace id above.</p>
+
+    <environment names="Development">
+        @if(ViewData["Exception"] is Exception ex)
+        {
+            <details class="stack">
+                <summary>Stack Trace (Development)</summary>
+                <pre>@ex.ToString()</pre>
+            </details>
+        }
+    </environment>
+  </main>
+</body>
+</html>

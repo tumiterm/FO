@@ -1,0 +1,396 @@
+﻿@model ForekOnline.Domain.ViewModels.AssessmentModerationViewModel
+@{
+    ViewData["Title"] = "Moderate Assessment";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+<style>
+    .mod-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 2.5rem;
+    }
+
+    .mod-hero {
+        background: linear-gradient(115deg,#320606,#b31217 55%,#ff7a18);
+        border-radius: 22px;
+        padding: 1.4rem 1.6rem;
+        color: #fff;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 14px 40px -18px rgba(50,6,6,.3);
+    }
+
+        .mod-hero h1 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .mod-hero p {
+            margin: .3rem 0 0;
+            font-size: .78rem;
+            opacity: .9;
+        }
+
+    .mod-card {
+        background: #fff;
+        border: 1px solid #e2e5e9;
+        border-radius: 18px;
+        padding: 1rem 1.1rem .9rem;
+        margin-bottom: .85rem;
+        box-shadow: 0 6px 22px -10px rgba(0,0,0,.08);
+    }
+
+    .mod-meta {
+        font-size: .62rem;
+        color: #5d6670;
+        line-height: 1.2rem;
+    }
+
+        .mod-meta strong {
+            color: #333;
+        }
+
+    .mod-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .4rem .8rem;
+    }
+
+    .q-review {
+        background: #fafbfc;
+        border: 1px solid #eef1f4;
+        border-radius: 16px;
+        padding: .8rem .9rem;
+        margin-bottom: .7rem;
+    }
+
+        .q-review h4 {
+            margin: 0 0 .4rem;
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+            color: #b31217;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .q-review .prompt {
+            font-size: .75rem;
+            font-weight: 600;
+            margin-bottom: .35rem;
+        }
+
+        .q-review .explanation {
+            font-size: .65rem;
+            color: #5d6670;
+            font-style: italic;
+            margin-bottom: .3rem;
+        }
+
+        .q-review .opt {
+            font-size: .65rem;
+            padding: .3rem .5rem;
+            border: 1px solid #e2e5e9;
+            border-radius: 10px;
+            margin-bottom: .25rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+            .q-review .opt.correct {
+                background: #e6f9f1;
+                border-color: #b8e8d4;
+            }
+
+        .q-review .type-badge {
+            font-size: .48rem;
+            letter-spacing: .12rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: .3rem .55rem;
+            border-radius: 10px;
+            border: 1px solid #e2e5e9;
+            background: #fff;
+            color: #b31217;
+        }
+
+        .q-review .marks-badge {
+            font-size: .48rem;
+            font-weight: 700;
+            color: #5d6670;
+        }
+
+    .mod-decision {
+        background: #fff;
+        border: 1px solid #e2e5e9;
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 6px 22px -10px rgba(0,0,0,.08);
+    }
+
+        .mod-decision h3 {
+            margin: 0 0 .6rem;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            color: #b31217;
+        }
+
+    .btn-mod {
+        font-size: .58rem;
+        letter-spacing: .12rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: .55rem 1rem;
+        border-radius: 14px;
+        border: 1px solid #d4d7db;
+        background: #fff;
+        color: #b31217;
+        cursor: pointer;
+        transition: .25s;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        text-decoration: none;
+    }
+
+        .btn-mod:hover {
+            background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            color: #fff;
+            border-color: #b31217;
+        }
+
+        .btn-mod.green {
+            background: #0d8e66;
+            color: #fff;
+            border-color: #0d8e66;
+        }
+
+            .btn-mod.green:hover {
+                filter: brightness(.9);
+            }
+
+        .btn-mod.red {
+            background: #dc2626;
+            color: #fff;
+            border-color: #dc2626;
+        }
+
+            .btn-mod.red:hover {
+                filter: brightness(.9);
+            }
+
+    .reject-box {
+        display: none;
+        margin-top: .7rem;
+    }
+
+        .reject-box.active {
+            display: block;
+        }
+
+        .reject-box textarea {
+            width: 100%;
+            border: 1px solid #d4d7db;
+            border-radius: 12px;
+            padding: .55rem .6rem;
+            font-size: .7rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+    .img-preview {
+        max-height: 220px;
+        border-radius: 12px;
+        border: 1px solid #e2e5e9;
+        margin: .4rem 0;
+    }
+</style>
+
+<section class="mod-shell">
+    <div class="mod-hero">
+        <h1><i class="fa fa-shield-check"></i> Moderate Assessment</h1>
+        <p>Review every question, verify correctness, then approve or reject with a reason.</p>
+    </div>
+
+    <div class="mod-card">
+        <h3 style="margin:0 0 .5rem;font-size:.85rem;font-weight:800;">@Model.Title</h3>
+        <div class="mod-meta mod-grid">
+            <div>Type: <strong>@Model.AssessmentType</strong></div>
+            <div>Questions: <strong>@Model.TotalQuestions</strong></div>
+            <div>Timer: <strong>@Model.TimerMinutes min</strong></div>
+            <div>Max Score: <strong>@Model.MaxScore</strong></div>
+            <div>Shuffle Q: <strong>@Model.ShuffleQuestions</strong></div>
+            <div>Shuffle A: <strong>@Model.ShuffleAnswers</strong></div>
+            <div>Password: <strong>@(Model.IsPasswordProtected ? "Yes" : "No")</strong></div>
+            <div>Retries: <strong>@(Model.AllowRetries ? (Model.MaxRetryAttempts?.ToString() ?? "Unlimited") : "No")</strong></div>
+            <div>Fullscreen: <strong>@Model.EnforceFullscreen</strong></div>
+            <div>Show Review: <strong>@Model.ShowReviewAfter</strong></div>
+            <div>Created by: <strong>@Model.CreatedBy</strong></div>
+            <div>Created: <strong>@Model.CreatedOnUtc.ToString("yyyy-MM-dd HH:mm")</strong></div>
+            @if (Model.ScheduledDateUtc.HasValue)
+            {
+                <div style="grid-column:1/-1;">Scheduled: <strong>@Model.ScheduledDateUtc.Value.ToString("yyyy-MM-dd HH:mm") UTC</strong></div>
+            }
+        </div>
+    </div>
+
+    <h3 style="font-size:.68rem;letter-spacing:.22rem;text-transform:uppercase;font-weight:800;color:#b31217;margin:1rem 0 .6rem;display:flex;align-items:center;gap:.4rem;">
+        <i class="fa fa-list-check"></i> Questions (@Model.Questions.Count)
+    </h3>
+
+    @foreach (var q in Model.Questions)
+    {
+        <div class="q-review">
+            <h4>
+                <span>Q@(q.DisplayOrder)</span>
+                <span class="type-badge">@q.QuestionTypeLabel</span>
+                <span class="marks-badge">@q.Marks mark(s)</span>
+            </h4>
+
+            <div class="prompt math-render">@q.Prompt</div>
+
+            @if (!string.IsNullOrWhiteSpace(q.Explanation))
+            {
+                <div class="explanation math-render">Explanation: @q.Explanation</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(q.ImagePath))
+            {
+                <img src="@Url.Action("QuestionImage", "Assessment", new { fileId = q.ImagePath })"
+                     alt="Question image" class="img-preview" />
+                @if (q.EnableAnnotation)
+                {
+                    <div style="font-size:.55rem;color:#0d8e66;font-weight:700;">
+                        <i class="fa fa-pencil"></i> Annotation enabled (learners can draw on this image)
+                    </div>
+                }
+            }
+
+            @if (q.QuestionType == ForekOnline.Domain.Enums.EnumRegistry.eAssessmentQuestionType.MultipleChoice)
+            {
+                @foreach (var opt in q.Options)
+                {
+                    <div class="opt @(opt.IsCorrect ? "correct" : "")">
+                        @if (opt.IsCorrect)
+                        {
+                            <i class="fa fa-check-circle" style="color:#0d8e66;font-size:.6rem;"></i>
+                        }
+                        else
+                        {
+                            <i class="fa fa-circle" style="color:#d4d7db;font-size:.6rem;"></i>
+                        }
+                        <span class="math-render">@opt.Text</span>
+                    </div>
+                }
+            }
+            else if (q.QuestionType == ForekOnline.Domain.Enums.EnumRegistry.eAssessmentQuestionType.ShortAnswer)
+            {
+                <div style="font-size:.6rem;color:#5d6670;font-weight:600;padding:.3rem 0;">
+                    <i class="fa fa-i-cursor"></i> Learner provides a typed answer. Graded manually by facilitator.
+                </div>
+            }
+            else if (q.QuestionType == ForekOnline.Domain.Enums.EnumRegistry.eAssessmentQuestionType.MathInput)
+            {
+                <div style="font-size:.6rem;color:#5d6670;font-weight:600;padding:.3rem 0;">
+                    <i class="fa fa-square-root-variable"></i> Learner provides a LaTeX math answer via equation editor. Graded manually.
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mod-decision">
+        <h3><i class="fa fa-gavel"></i> Moderation Decision</h3>
+
+        <form method="post" asp-action="Moderate" id="moderateForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AssessmentId" />
+            <input type="hidden" name="Approved" id="approvedField" value="true" />
+
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                <button type="submit" class="btn-mod green" id="btnApprove"
+                        onclick="document.getElementById('approvedField').value='true'; return confirm('Approve this assessment for learners?');">
+                    <i class="fa fa-check-circle"></i> Approve
+                </button>
+
+                <button type="button" class="btn-mod red" id="btnShowReject">
+                    <i class="fa fa-times-circle"></i> Reject
+                </button>
+
+                <a class="btn-mod" asp-action="List">
+                    <i class="fa fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="reject-box" id="rejectBox">
+                <label style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.14rem;color:#5d6670;display:block;margin-bottom:.3rem;">
+                    Rejection Reason <span style="color:#dc2626;">*</span>
+                </label>
+                <textarea name="RejectionReason" id="rejectionReason"
+                          placeholder="Explain why this assessment is being rejected..."
+                          maxlength="1000"></textarea>
+                <div style="margin-top:.5rem;">
+                    <button type="submit" class="btn-mod red" id="btnConfirmReject"
+                            onclick="document.getElementById('approvedField').value='false';">
+                        <i class="fa fa-times-circle"></i> Confirm Rejection
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+    document.getElementById('btnShowReject')?.addEventListener('click', function () {
+        document.getElementById('rejectBox')?.classList.toggle('active');
+    });
+
+    document.getElementById('moderateForm')?.addEventListener('submit', function (e) {
+        var approved = document.getElementById('approvedField').value;
+        if (approved === 'false') {
+            var reason = document.getElementById('rejectionReason')?.value?.trim();
+            if (!reason) {
+                e.preventDefault();
+                alert('Please provide a rejection reason.');
+                return false;
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        function renderMath() {
+            if (!window.katex) { setTimeout(renderMath, 200); return; }
+            document.querySelectorAll('.math-render').forEach(function (el) {
+                var text = el.textContent;
+                if (!text) return;
+                var regex = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;
+                if (!regex.test(text)) return;
+                regex.lastIndex = 0;
+                var frag = document.createDocumentFragment();
+                var last = 0, match;
+                while ((match = regex.exec(text)) !== null) {
+                    if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+                    var raw = match[0];
+                    var isBlock = raw.startsWith('$$');
+                    var latex = isBlock ? raw.slice(2, -2) : raw.slice(1, -1);
+                    var span = document.createElement(isBlock ? 'div' : 'span');
+                    try { katex.render(latex, span, { displayMode: isBlock, throwOnError: false }); }
+                    catch (_) { span.textContent = raw; }
+                    frag.appendChild(span);
+                    last = regex.lastIndex;
+                }
+                if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+                el.innerHTML = '';
+                el.appendChild(frag);
+            });
+        }
+        renderMath();
+    });
+</script>

@@ -1,0 +1,1173 @@
+﻿@model ForekOnline.Domain.ViewModels.LessonPlanViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Application.Common.Utility
+@using ForekOnline.Domain.Entities
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Lesson Plan Management";
+
+    var plans = Model.ExistingPlans?.ToList() ?? new List<LessonPlan>();
+    var courseItems = Model.Courses ?? new SelectList(Array.Empty<SelectListItem>(), "Value", "Text");
+    var moduleItems = Model.Modules ?? new SelectList(Array.Empty<SelectListItem>(), "Value", "Text");
+
+    int total = plans.Count;
+    int approved = plans.Count(p => p.Approval == eSelection.Yes);
+    int pending = plans.Count(p => p.Approval == eSelection.Pending);
+    int rejected = plans.Count(p => p.Approval == eSelection.No);
+
+    var approvedPct = total == 0 ? 0 : Math.Round((approved / (double)total) * 100);
+    var pendingPct = total == 0 ? 0 : Math.Round((pending / (double)total) * 100);
+    var rejectedPct = total == 0 ? 0 : Math.Round((rejected / (double)total) * 100);
+
+    var successMessage = TempData["success"] as string;
+    var errorMessage = TempData["error"] as string;
+    var selectedModule = Model.Module == Guid.Empty ? string.Empty : Model.Module.ToString("D");
+    var selectedCourse = Model.Course == Guid.Empty ? string.Empty : Model.Course.ToString("D");
+    var colSpan = User.IsInRole("Admin") ? 8 : 7;
+
+    string ToIso(string? raw) =>
+        DateTimeOffset.TryParse(raw, out var p) ? p.ToString("yyyy-MM-dd") : string.Empty;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --c-bg: #f3f2ef;
+        --c-surface: #ffffff;
+        --c-surface-alt: #faf9f7;
+        --c-text: #1a1a1a;
+        --c-muted: #71706e;
+        --c-border: #e4e0db;
+        --c-border-s: #d4cfc9;
+        --c-accent: #b5301a;
+        --c-accent-d: #8f2614;
+        --c-accent-l: #fef0ec;
+        --c-accent-g: linear-gradient(135deg, #c0392b, #e67e22);
+        --c-ok: #1a7a48;
+        --c-warn: #91660a;
+        --c-err: #b42318;
+        --r: 10px;
+        --r-sm: 8px;
+        --shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.03);
+        --focus: 0 0 0 3px rgba(181,48,26,.12);
+        --ease: 160ms ease;
+        --font: "Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    }
+
+    body {
+        background: var(--c-bg);
+        font-family: var(--font);
+        color: var(--c-text);
+    }
+
+    .lp {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 2.5rem;
+    }
+
+    .card {
+        background: var(--c-surface);
+        border: 1px solid var(--c-border);
+        border-radius: var(--r);
+        box-shadow: var(--shadow);
+    }
+
+    .toast {
+        padding: .65rem .85rem;
+        margin-bottom: .85rem;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-size: .85rem;
+        border-radius: var(--r-sm);
+    }
+
+        .toast.ok {
+            background: #f0faf4;
+            border: 1px solid #c6e6d3;
+            color: var(--c-ok);
+        }
+
+        .toast.err {
+            background: #fef5f4;
+            border: 1px solid #f1c9c5;
+            color: var(--c-err);
+        }
+
+        .toast i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            animation: pop .4s ease-out;
+        }
+
+    @@keyframes pop {
+        0% {
+            transform: scale(.7);
+            opacity: 0
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1
+        }
+    }
+
+    .hdr {
+        display: flex;
+        align-items: center;
+        gap: .85rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.1rem;
+    }
+
+    .hdr-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--c-accent-l);
+        color: var(--c-accent);
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+    }
+
+    .hdr h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1;
+    }
+
+    .hdr-sub {
+        margin: .2rem 0 0;
+        font-size: .82rem;
+        color: var(--c-muted);
+    }
+
+    .hdr-user {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        background: var(--c-surface-alt);
+        border: 1px solid var(--c-border);
+        font-size: .75rem;
+        font-weight: 600;
+        color: var(--c-muted);
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(145px,1fr));
+        gap: .65rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .stat {
+        position: relative;
+        padding: .7rem .75rem;
+        overflow: hidden;
+    }
+
+        .stat::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            background: var(--c-accent);
+        }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .35rem;
+    }
+
+    .stat-ic {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: var(--c-accent-l);
+        color: var(--c-accent);
+        display: grid;
+        place-items: center;
+        font-size: .85rem;
+    }
+
+    .stat-trend {
+        font-size: .7rem;
+        font-weight: 700;
+        color: var(--c-muted);
+    }
+
+    .stat-lbl {
+        font-size: 11px;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--c-muted);
+    }
+
+    .stat-val {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1;
+        margin-top: .15rem;
+    }
+
+    .stat-note {
+        font-size: .72rem;
+        color: var(--c-muted);
+        margin-top: .2rem;
+    }
+
+    .tabs {
+        display: flex;
+        gap: .35rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--c-border);
+    }
+
+    .tab {
+        padding: .55rem .9rem;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: var(--c-muted);
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: color var(--ease), border-color var(--ease);
+    }
+
+        .tab:hover {
+            color: var(--c-text);
+        }
+
+        .tab.active {
+            color: var(--c-accent);
+            border-bottom-color: var(--c-accent);
+        }
+
+    .tab-pane {
+        display: none;
+    }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeUp .25s ease-out;
+        }
+
+    @@keyframes fadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(6px)
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0)
+        }
+    }
+
+    .create-grid {
+        display: grid;
+        grid-template-columns: 1.3fr .7fr;
+        gap: .85rem;
+    }
+
+    .fg {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: .75rem;
+    }
+
+    .ff {
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+    }
+
+    .ff-lbl {
+        font-size: 11px;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--c-muted);
+        transition: color var(--ease), transform var(--ease);
+    }
+
+    .ff:focus-within .ff-lbl {
+        color: var(--c-accent);
+        transform: translateY(-1px);
+    }
+
+    .ff-wrap {
+        position: relative;
+    }
+
+    .ff-ico {
+        position: absolute;
+        left: .7rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: .9rem;
+        color: #999;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .ff-sel {
+        width: 100%;
+        min-height: 40px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface-alt);
+        padding: .5rem .7rem .5rem 2.3rem;
+        font-size: .85rem;
+        color: var(--c-text);
+        transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
+    }
+
+        .ff-sel:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--c-accent);
+            box-shadow: var(--focus);
+        }
+
+    .ff-hint {
+        font-size: .72rem;
+        color: var(--c-muted);
+        min-height: 14px;
+    }
+
+    .dz-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+    }
+
+    .dz {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        border: 1.5px dashed #d0c3c3;
+        border-radius: var(--r-sm);
+        background: linear-gradient(180deg,#fff,#fdfaf9);
+        padding: 1.2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--ease), background var(--ease), box-shadow var(--ease), transform var(--ease);
+    }
+
+        .dz:hover, .dz.drag {
+            border-color: var(--c-accent);
+            background: #fff;
+            box-shadow: var(--focus);
+            transform: translateY(-1px);
+        }
+
+        .dz input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+    .dz-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--c-accent-l);
+        color: var(--c-accent);
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+    }
+
+    .dz-title {
+        font-size: .88rem;
+        font-weight: 700;
+    }
+
+    .dz-text {
+        font-size: .78rem;
+        color: var(--c-muted);
+    }
+
+    .dz-file {
+        padding: .3rem .55rem;
+        border-radius: 999px;
+        background: var(--c-accent-l);
+        color: var(--c-accent);
+        font-size: .72rem;
+        font-weight: 700;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+        margin-top: .2rem;
+    }
+
+    .actions {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        margin-top: .75rem;
+    }
+
+    .btn {
+        min-height: 38px;
+        padding: 0 .85rem;
+        border-radius: var(--r-sm);
+        font-size: .78rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface);
+        color: var(--c-text);
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform var(--ease), box-shadow var(--ease), background var(--ease), color var(--ease), border-color var(--ease);
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .btn-p {
+        background: var(--c-accent-g);
+        color: #fff;
+        border-color: var(--c-accent);
+        box-shadow: 0 6px 18px rgba(181,48,26,.16);
+    }
+
+        .btn-p:hover {
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(181,48,26,.22);
+        }
+
+    .btn-g {
+        background: transparent;
+        color: var(--c-accent);
+        border-color: #dab8b0;
+    }
+
+        .btn-g:hover {
+            background: var(--c-accent-l);
+        }
+
+    .filters {
+        padding: .75rem .85rem;
+        margin-bottom: .75rem;
+    }
+
+    .f-grid {
+        display: grid;
+        grid-template-columns: minmax(200px,1.5fr) repeat(5,minmax(110px,1fr));
+        gap: .6rem;
+        align-items: end;
+    }
+
+    .f-lbl {
+        font-size: 11px;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--c-muted);
+        margin-bottom: .25rem;
+        display: block;
+    }
+
+    .f-in, .f-sel, .f-dt {
+        width: 100%;
+        min-height: 36px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface-alt);
+        padding: .4rem .6rem;
+        font-size: .82rem;
+        color: var(--c-text);
+        transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+        .f-in:focus, .f-sel:focus, .f-dt:focus {
+            outline: none;
+            border-color: var(--c-accent);
+            box-shadow: var(--focus);
+        }
+
+    .f-search {
+        position: relative;
+    }
+
+        .f-search i {
+            position: absolute;
+            left: .6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: .8rem;
+            color: #999;
+            pointer-events: none;
+        }
+
+        .f-search input {
+            padding-left: 2rem;
+        }
+
+    .tbl-panel {
+        padding: .85rem;
+    }
+
+    .tbl-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        margin-bottom: .65rem;
+        flex-wrap: wrap;
+    }
+
+    .tbl-title {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -.01em;
+        margin: 0;
+    }
+
+    .tbl-badge {
+        padding: .3rem .55rem;
+        border-radius: 999px;
+        border: 1px solid var(--c-border);
+        background: var(--c-surface-alt);
+        color: var(--c-muted);
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    .tbl-wrap {
+        overflow: auto;
+        border: 1px solid var(--c-border);
+        border-radius: var(--r-sm);
+    }
+
+    .tbl {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .82rem;
+        background: #fff;
+    }
+
+        .tbl thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--c-surface-alt);
+            color: var(--c-muted);
+            font-size: 11px;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-align: left;
+            padding: .6rem .7rem;
+            border-bottom: 1px solid var(--c-border);
+            white-space: nowrap;
+        }
+
+        .tbl tbody td {
+            padding: .6rem .7rem;
+            border-bottom: 1px solid #f0ece8;
+            vertical-align: middle;
+            color: #252525;
+        }
+
+        .tbl tbody tr {
+            transition: background var(--ease);
+        }
+
+            .tbl tbody tr:hover {
+                background: #fdf8f6;
+            }
+
+    .a-stack {
+        display: flex;
+        gap: .35rem;
+        flex-wrap: wrap;
+    }
+
+    .a-link {
+        min-height: 30px;
+        padding: 0 .6rem;
+        background: #fff;
+        color: var(--c-accent);
+        font-size: .72rem;
+        font-weight: 700;
+        border-radius: 7px;
+        border: 1px solid var(--c-border-s);
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform var(--ease), background var(--ease), color var(--ease);
+    }
+
+        .a-link:hover {
+            transform: translateY(-1px);
+            background: var(--c-accent-l);
+            color: var(--c-accent-d);
+        }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        border-radius: 999px;
+        padding: .25rem .5rem;
+        font-size: .7rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .pill-ok {
+        background: #eef8f2;
+        color: #1d6f46;
+        border-color: #c6e6d3;
+    }
+
+    .pill-w {
+        background: #fff7e8;
+        color: #8e5a00;
+        border-color: #f0d7aa;
+    }
+
+    .pill-no {
+        background: #fff0f0;
+        color: #b42318;
+        border-color: #f0c1c1;
+    }
+
+    .empty {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        color: var(--c-muted);
+        font-size: .85rem;
+    }
+
+    .foot {
+        margin-top: .6rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+        font-size: .75rem;
+        color: var(--c-muted);
+    }
+
+    .hidden-row {
+        display: none !important;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .ff-wrap .select2-container--default .select2-selection--single {
+        min-height: 40px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface-alt);
+        padding-left: 2.3rem;
+        transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+    .ff-wrap:focus-within .select2-container--default .select2-selection--single,
+    .ff-wrap .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--c-accent);
+        box-shadow: var(--focus);
+        background: #fff;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+        padding-left: 0;
+        font-size: .85rem;
+        color: var(--c-text);
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 38px;
+        right: .4rem;
+    }
+
+    @@media (max-width:1050px) {
+        .create-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width:900px) {
+        .f-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+    }
+
+    @@media (max-width:680px) {
+        .hdr h1 {
+            font-size: 1.25rem;
+        }
+
+        .fg, .f-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .lp {
+            padding-inline: .7rem;
+        }
+
+        .tbl thead th:nth-child(7), .tbl td:nth-child(7) {
+            display: none;
+        }
+    }
+</style>
+
+<div class="lp">
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="toast ok" role="alert"><i class="fa fa-circle-check"></i> @successMessage</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="toast err" role="alert"><i class="fa fa-circle-exclamation"></i> @errorMessage</div>
+    }
+
+    <header class="hdr">
+        <span class="hdr-icon"><i class="fa fa-book-open"></i></span>
+        <div>
+            <h1>Lesson Plans</h1>
+            <p class="hdr-sub">Create, upload and track lesson plans in one place.</p>
+        </div>
+        <span class="hdr-user"><i class="fa fa-user-circle"></i> @Model.UserDetail</span>
+    </header>
+
+    <section class="stats">
+        <article class="card stat">
+            <div class="stat-row"><span class="stat-ic"><i class="fa fa-layer-group"></i></span><span class="stat-trend">All</span></div>
+            <div class="stat-lbl">Total</div>
+            <div class="stat-val">@total</div>
+            <div class="stat-note">Plans on record</div>
+        </article>
+        <article class="card stat">
+            <div class="stat-row"><span class="stat-ic"><i class="fa fa-circle-check"></i></span><span class="stat-trend">↑ @approvedPct%</span></div>
+            <div class="stat-lbl">Approved</div>
+            <div class="stat-val">@approved</div>
+            <div class="stat-note">@approvedPct% of total</div>
+        </article>
+        <article class="card stat">
+            <div class="stat-row"><span class="stat-ic"><i class="fa fa-clock"></i></span><span class="stat-trend">→ @pendingPct%</span></div>
+            <div class="stat-lbl">Pending</div>
+            <div class="stat-val">@pending</div>
+            <div class="stat-note">Awaiting review</div>
+        </article>
+        <article class="card stat">
+            <div class="stat-row"><span class="stat-ic"><i class="fa fa-circle-xmark"></i></span><span class="stat-trend">↓ @rejectedPct%</span></div>
+            <div class="stat-lbl">Rejected</div>
+            <div class="stat-val">@rejected</div>
+            <div class="stat-note">Needs attention</div>
+        </article>
+    </section>
+
+    <nav class="tabs">
+        <button class="tab active" data-tab="create"><i class="fa fa-plus" style="margin-right:.3rem;"></i> Create Lesson Plan</button>
+        <button class="tab" data-tab="plans"><i class="fa fa-list" style="margin-right:.3rem;"></i> My Lesson Plans <span class="tbl-badge" style="margin-left:.3rem;">@total</span></button>
+    </nav>
+
+    <div class="tab-pane active" id="pane-create">
+        <div class="create-grid">
+            <div class="card" style="padding:.85rem;">
+                <div style="margin-bottom:.65rem;">
+                    <div class="ff-lbl" style="color:var(--c-accent);margin-bottom:.2rem;">Step 1 — Lesson Details</div>
+                    <p style="margin:0;font-size:.82rem;color:var(--c-muted);">Select course first to load the relevant modules.</p>
+                </div>
+
+                <form asp-action="OnCreatePlan" enctype="multipart/form-data" id="planForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.8rem;margin-bottom:.5rem;"></div>
+
+                    <div class="fg">
+                        <div class="ff">
+                            <label asp-for="Course" class="ff-lbl">Course</label>
+                            <div class="ff-wrap">
+                                <span class="ff-ico">📘</span>
+                                <select asp-for="Course" asp-items="courseItems" class="ff-sel js-s2"><option value="">Select course</option></select>
+                            </div>
+                            <span class="ff-hint">Start here — modules cascade from this.</span>
+                            <span asp-validation-for="Course" class="text-danger" style="font-size:.75rem;"></span>
+                        </div>
+
+                        <div class="ff">
+                            <label asp-for="Module" class="ff-lbl">Module</label>
+                            <div class="ff-wrap">
+                                <span class="ff-ico">🧩</span>
+                                <select asp-for="Module" asp-items="moduleItems" class="ff-sel js-s2"><option value="">Select module</option></select>
+                            </div>
+                            <span class="ff-hint" id="modStatus">Select a course first.</span>
+                            <span asp-validation-for="Module" class="text-danger" style="font-size:.75rem;"></span>
+                        </div>
+
+                        <div class="ff">
+                            <label asp-for="Phase" class="ff-lbl">Phase</label>
+                            <div class="ff-wrap">
+                                <span class="ff-ico">🪜</span>
+                                <select asp-for="Phase" asp-items="@Html.GetEnumSelectList<ePhase>()" class="ff-sel js-s2"><option value="">Select phase</option></select>
+                            </div>
+                            <span class="ff-hint">Applicable learning phase.</span>
+                            <span asp-validation-for="Phase" class="text-danger" style="font-size:.75rem;"></span>
+                        </div>
+
+                        <div class="ff">
+                            <label asp-for="Funder" class="ff-lbl">Funder</label>
+                            <div class="ff-wrap">
+                                <span class="ff-ico">🏢</span>
+                                <select asp-for="Funder" asp-items="@Html.GetEnumSelectList<eFunder>()" class="ff-sel js-s2"><option value="">Select funder</option></select>
+                            </div>
+                            <span class="ff-hint">Funding organisation.</span>
+                            <span asp-validation-for="Funder" class="text-danger" style="font-size:.75rem;"></span>
+                        </div>
+                    </div>
+                    <input asp-for="IdPass" type="hidden" />
+                </form>
+            </div>
+
+            <div class="card dz-card" style="padding:.85rem;">
+                <div style="margin-bottom:.55rem;">
+                    <div class="ff-lbl" style="color:var(--c-accent);margin-bottom:.2rem;">Step 2 — Upload PDF</div>
+                    <p style="margin:0;font-size:.82rem;color:var(--c-muted);">Drag & drop or click. PDF only, max 1 MB.</p>
+                </div>
+
+                <label class="dz" id="dropzone" for="docFile">
+                    <input asp-for="DocumentFile" form="planForm" type="file" accept="application/pdf" id="docFile" />
+                    <span class="dz-ico"><i class="fa fa-cloud-arrow-up"></i></span>
+                    <span class="dz-title">Drop your PDF here</span>
+                    <span class="dz-text">or click to browse files</span>
+                    <span class="dz-file" id="fileInfo"><i class="fa fa-file-pdf"></i> No file selected</span>
+                </label>
+
+                <div class="actions">
+                    <button type="submit" form="planForm" class="btn btn-p"><i class="fa fa-paper-plane"></i> Submit Plan</button>
+                    <button type="reset" form="planForm" id="btnReset" class="btn btn-g"><i class="fa fa-rotate-left"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="pane-plans">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem;">
+            <button type="button" class="btn btn-g" onclick="location.reload()"><i class="fa fa-rotate-right"></i> Refresh</button>
+            <button type="button" id="btnCsv" class="btn btn-p"><i class="fa fa-file-csv"></i> Export CSV</button>
+        </div>
+
+        <div class="card filters">
+            <div class="f-grid">
+                <div>
+                    <label class="f-lbl" for="q">Search</label>
+                    <div class="f-search"><i class="fa fa-search"></i><input id="q" class="f-in" type="text" placeholder="Reference, phase, funder, approver…" autocomplete="off" /></div>
+                </div>
+                <div>
+                    <label class="f-lbl" for="fPh">Phase</label>
+                    <select id="fPh" class="f-sel"><option value="">Any</option>@foreach(var v in Enum.GetValues(typeof(ePhase))){
+                    <option value="@v">@Helper.GetDisplayName((ePhase)v)</option>
+                                        }
+</select>
+                </div>
+                <div>
+                    <label class="f-lbl" for="fFd">Funder</label>
+                    <select id="fFd" class="f-sel"><option value="">Any</option>@foreach(var v in Enum.GetValues(typeof(eFunder))){
+                    <option value="@v">@Helper.GetDisplayName((eFunder)v)</option>
+                                        }
+</select>
+                </div>
+                <div>
+                    <label class="f-lbl" for="fAp">Approval</label>
+                    <select id="fAp" class="f-sel"><option value="">Any</option>@foreach(var v in Enum.GetValues(typeof(eSelection))){
+                    <option value="@v">@v</option>
+                                        }
+</select>
+                </div>
+                <div>
+                    <label class="f-lbl" for="fFrom">From</label>
+                    <input type="date" id="fFrom" class="f-dt" />
+                </div>
+                <div>
+                    <label class="f-lbl" for="fTo">To</label>
+                    <input type="date" id="fTo" class="f-dt" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card tbl-panel">
+            <div class="tbl-head">
+                <h3 class="tbl-title">Lesson Plans</h3>
+                <div style="display:flex;gap:.4rem;align-items:center;">
+                    <span id="rowsInfo" class="tbl-badge">@plans.Count record(s)</span>
+                    <span id="filterTag" class="tbl-badge" style="display:none;"></span>
+                </div>
+            </div>
+
+            <div class="tbl-wrap">
+                <table class="tbl" id="tbl">
+                    <thead>
+                        <tr>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <th>Actions</th>
+                            }
+                            <th>Reference</th>
+                            <th>Phase</th>
+                            <th>Funder</th>
+                            <th>Status</th>
+                            <th>Approved By</th>
+                            <th>Date</th>
+                            <th>File</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody">
+                        @if (plans.Count == 0)
+                        {
+                            <tr><td colspan="@colSpan" class="empty"><i class="fa fa-folder-open"></i> No lesson plans found.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var p in plans)
+                            {
+                                var cls = p.Approval switch { eSelection.Yes => "pill-ok", eSelection.No => "pill-no", _ => "pill-w" };
+                                var ico = p.Approval switch { eSelection.Yes => "fa-circle-check", eSelection.No => "fa-circle-xmark", _ => "fa-clock" };
+                                <tr data-phase="@p.Phase" data-funder="@p.Funder" data-appr="@p.Approval" data-date="@ToIso(p.CreatedOn)">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <td>
+                                            <div class="a-stack">
+                                                <a asp-route-LessonPlanId="@p.LessonPlanId" asp-action="OnModifyPlanConfig" asp-controller="LessonPlanConfig" class="a-link"><i class="fa fa-thumbs-up"></i> Moderate</a>
+                                                <a asp-route-LessonPlanId="@p.LessonPlanId" asp-action="RemoveDocument" class="a-link"><i class="fa fa-trash"></i> Remove</a>
+                                            </div>
+                                        </td>
+                                    }
+                                    <td>@p.Reference</td>
+                                    <td>@Helper.GetDisplayName(p.Phase)</td>
+                                    <td>@Helper.GetDisplayName(p.Funder)</td>
+                                    <td><span class="pill @cls"><i class="fa @ico"></i> @p.Approval</span></td>
+                                    <td>@p.IsApprovedBy</td>
+                                    <td>@p.CreatedOn</td>
+                                    <td><a asp-action="AttachmentDownload" asp-controller="LessonPlanConfig" asp-route-fileId="@p.UploadUrl" class="a-link"><i class="fa fa-download"></i> PDF</a></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="foot">
+                <div>
+                    <button id="btnAll" class="btn btn-g" type="button" style="display:none;"><i class="fa fa-list"></i> Show All</button>
+                    <button id="btnLim" class="btn btn-g" type="button" style="display:none;"><i class="fa fa-compress"></i> Limit</button>
+                </div>
+                <span id="perf"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    (function () {
+        document.querySelectorAll('.tab').forEach(function (t) {
+            t.addEventListener('click', function () {
+                document.querySelectorAll('.tab').forEach(function (b) { b.classList.remove('active'); });
+                document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
+                t.classList.add('active');
+                document.getElementById('pane-' + t.dataset.tab).classList.add('active');
+            });
+        });
+
+        var $course = $('#Course');
+        var $module = $('#Module');
+        var initMod = '@selectedModule';
+        var modUrl = '@Url.Action("GetCourseModuleId", "LessonPlanConfig")';
+        var modStatus = document.getElementById('modStatus');
+
+        $('.js-s2').select2({ width: '100%', minimumResultsForSearch: 8 });
+
+        function setHint(msg) { if (modStatus) modStatus.textContent = msg; }
+
+        function resetMod(msg) {
+            $module.empty().append(new Option(msg || 'Select module', ''));
+            $module.prop('disabled', true).trigger('change.select2');
+            setHint(msg || 'Select a course first.');
+        }
+
+        function bindMod(items, sel) {
+            $module.empty().append(new Option('Select module', ''));
+            (items || []).forEach(function (i) {
+                var id = i.moduleId || i.ModuleId || '';
+                var nm = i.moduleName || i.ModuleName || '';
+                if (id && nm) $module.append(new Option(nm, id, false, id === sel));
+            });
+            $module.prop('disabled', false);
+            if (sel) $module.val(sel);
+            $module.trigger('change.select2');
+            setHint(items.length ? 'Modules loaded.' : 'No modules for this course.');
+        }
+
+        function loadMod(sel) {
+            var cid = $course.val();
+            if (!cid) { resetMod('Select course first.'); return; }
+            resetMod('Loading…');
+            $.getJSON(modUrl, { CourseId: cid })
+                .done(function (d) { bindMod(Array.isArray(d) ? d : [], sel || ''); })
+                .fail(function () { resetMod('Failed to load modules.'); });
+        }
+
+        $course.on('change', function () { loadMod(''); });
+        if ($course.val()) loadMod(initMod); else resetMod();
+
+        var fi = document.getElementById('docFile');
+        var info = document.getElementById('fileInfo');
+        var dz = document.getElementById('dropzone');
+        var MAX = 1048576;
+
+        function showFile(f) {
+            if (!info) return;
+            info.innerHTML = f
+                ? '<i class="fa fa-file-pdf"></i> ' + f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)'
+                : '<i class="fa fa-file-pdf"></i> No file selected';
+        }
+
+        function ok(f) {
+            if (!f) return true;
+            if (f.type !== 'application/pdf') { alert('Only PDF files are allowed.'); return false; }
+            if (f.size > MAX) { alert('File exceeds 1 MB.'); return false; }
+            return true;
+        }
+
+        fi && fi.addEventListener('change', function () {
+            var f = this.files && this.files[0];
+            if (!ok(f)) { this.value = ''; showFile(null); return; }
+            showFile(f);
+        });
+
+        ['dragenter', 'dragover'].forEach(function (e) { dz && dz.addEventListener(e, function (ev) { ev.preventDefault(); dz.classList.add('drag'); }); });
+        ['dragleave', 'drop'].forEach(function (e) { dz && dz.addEventListener(e, function (ev) { ev.preventDefault(); dz.classList.remove('drag'); }); });
+        dz && dz.addEventListener('drop', function (ev) {
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            if (!f || !ok(f)) return;
+            fi.files = ev.dataTransfer.files;
+            showFile(f);
+        });
+
+        document.getElementById('btnReset') && document.getElementById('btnReset').addEventListener('click', function () {
+            setTimeout(function () { showFile(null); if ($course.val()) loadMod(''); else resetMod(); }, 0);
+        });
+
+        var LIMIT = 200, limited = true;
+        var tbody = document.getElementById('tbody');
+        var q = document.getElementById('q');
+        var fPh = document.getElementById('fPh');
+        var fFd = document.getElementById('fFd');
+        var fAp = document.getElementById('fAp');
+        var fFrom = document.getElementById('fFrom');
+        var fTo = document.getElementById('fTo');
+        var rowsInfo = document.getElementById('rowsInfo');
+        var filterTag = document.getElementById('filterTag');
+        var btnAll = document.getElementById('btnAll');
+        var btnLim = document.getElementById('btnLim');
+        var perf = document.getElementById('perf');
+
+        function n(v) { return (v || '').toString().toLowerCase().trim(); }
+        function pd(v) { return v ? new Date(v) : null; }
+
+        function filter() {
+            if (!tbody) return;
+            var t0 = performance.now();
+            var qv = n(q && q.value), ph = fPh && fPh.value || '', fd = fFd && fFd.value || '', ap = fAp && fAp.value || '';
+            var df = fFrom && fFrom.value ? pd(fFrom.value) : null;
+            var dt = fTo && fTo.value ? pd(fTo.value) : null;
+            var active = !!(qv || ph || fd || ap || df || dt);
+            var rows = tbody.querySelectorAll('tr'), shown = 0, matched = 0;
+
+            rows.forEach(function (r) {
+                if (r.querySelector('.empty')) { r.classList.remove('hidden-row'); return; }
+                var show = true;
+                if (qv && !n(r.innerText).includes(qv)) show = false;
+                if (ph && r.dataset.phase !== ph) show = false;
+                if (fd && r.dataset.funder !== fd) show = false;
+                if (ap && r.dataset.appr !== ap) show = false;
+                var rd = pd(r.dataset.date);
+                if (df && (!rd || rd < df)) show = false;
+                if (dt && (!rd || rd > dt)) show = false;
+                if (show) { matched++; if (limited && !active && shown >= LIMIT) show = false; }
+                r.classList.toggle('hidden-row', !show);
+                if (show) shown++;
+            });
+
+            if (rowsInfo) rowsInfo.textContent = shown + ' record(s)' + (active ? ' matched' : '');
+            if (filterTag) { filterTag.style.display = active ? '' : 'none'; filterTag.textContent = active ? 'Filtered' : ''; }
+            if (btnAll) btnAll.style.display = (!active && limited && matched > LIMIT) ? '' : 'none';
+            if (btnLim) btnLim.style.display = (!active && !limited && matched > LIMIT) ? '' : 'none';
+            if (perf) perf.textContent = (performance.now() - t0).toFixed(1) + ' ms';
+        }
+
+        function onChange() {
+            if (q && q.value || fPh && fPh.value || fFd && fFd.value || fAp && fAp.value || fFrom && fFrom.value || fTo && fTo.value) limited = false;
+            filter();
+        }
+
+        [q, fPh, fFd, fAp, fFrom, fTo].forEach(function (el) { el && el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', onChange); });
+        btnAll && btnAll.addEventListener('click', function () { limited = false; filter(); });
+        btnLim && btnLim.addEventListener('click', function () { limited = true; filter(); });
+
+        var btnCsv = document.getElementById('btnCsv');
+        btnCsv && btnCsv.addEventListener('click', function () {
+            if (!tbody) return;
+            var vis = Array.from(tbody.querySelectorAll('tr:not(.hidden-row)')).filter(function (r) { return !r.querySelector('.empty'); });
+            if (!vis.length) { alert('No rows to export.'); return; }
+            var lines = ['Reference,Phase,Funder,Approval,ApprovedBy,Date'];
+            var off = @((User.IsInRole("Admin")) ? 1 : 0);
+            vis.forEach(function (r) {
+                var c = r.querySelectorAll('td');
+                var v = [c[0+off],c[1+off],c[2+off],c[3+off],c[4+off],c[5+off]].map(function(t){return t?t.innerText.trim():''});
+                lines.push(v.map(function(s){return '"'+s.replace(/"/g,'""')+'"'}).join(','));
+            });
+            var b = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = 'lesson-plans-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        });
+
+        showFile(fi && fi.files && fi.files.length ? fi.files[0] : null);
+        filter();
+    })();
+</script>

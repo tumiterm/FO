@@ -1,0 +1,144 @@
+﻿
+.image-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.image-wrapper:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.user-image {
+    width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: contain;
+    border: 3px solid #ffffff;
+    transition: filter 0.3s ease;
+}
+
+    .user-image:hover {
+        filter: brightness(1.1) saturate(1.2);
+    }
+
+.image-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-wrapper:hover::after {
+    opacity: 0.6;
+}
+
+.card-header, .head {
+    background-color: darkred;
+}
+
+.report-circle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 30%;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-right: 10px;
+}
+
+.circle-wr {
+    background-color: #007bff;
+}
+
+.circle-mr {
+    background-color: #28a745;
+}
+
+.circle-ar {
+    background-color: #dc3545;
+}
+
+.circle-container {
+    display: flex;
+    align-items: center;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: left;
+    }
+
+    .table th {
+        color: #fff;
+        background-color: #8B0000;
+    }
+
+    .table tbody tr {
+        background: #f9f9f9;
+        border-radius: 10px;
+    }
+
+        .table tbody tr:hover {
+            background: #ffe4e1;
+            transform: scale(1.01);
+            transition: 0.2s;
+        }
+
+.btn-group a {
+    margin: 0 5px;
+    transition: background-color 0.2s ease;
+}
+
+    .btn-group a:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+.card-header {
+    background: linear-gradient(to right, #8B0000, #FF6347);
+    color: white;
+    font-weight: bold;
+}
+
+
+.form-control {
+    border-color: black;
+}
+
+thead {
+    background-color: darkred;
+}
+
+th {
+    color: white;
+}
+
+.modal-dialog {
+    height: 90%;
+}
+
+.modal-content {
+    height: 90%;
+}
+

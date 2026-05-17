@@ -1,0 +1,767 @@
+﻿@model ForekOnline.Domain.Entities.Student
+@{
+    var enroll = Model.EnrollmentHistory?.FirstOrDefault();
+    string courseTitle = enroll?.CourseTitle ?? "N/A";
+    string courseType = enroll?.CourseType ?? "N/A";
+    DateTime? admission = Model.AdmissionDate == DateTime.MinValue ? null : Model.AdmissionDate;
+}
+
+<style>
+    :root {
+        --sd-dr: #320606;
+        --sd-red: #9d1117;
+        --sd-red-strong: #b31217;
+        --sd-orange: #ff7a18;
+        --sd-orange-glow: #ff9547;
+        --sd-soft: #fff7f6;
+        --sd-border: #e8eaed;
+        --sd-border-alt: #d8dade;
+        --sd-bg: #ffffff;
+        --sd-shadow-sm: 0 2px 8px rgba(50, 6, 6, .06);
+        --sd-shadow-md: 0 8px 24px rgba(50, 6, 6, .10);
+        --sd-shadow-lg: 0 16px 48px rgba(50, 6, 6, .14);
+        --sd-shadow-glow: 0 0 40px rgba(255, 122, 24, .15);
+        --grad-accent: linear-gradient(135deg, #320606 0%, #b31217 45%, #ff7a18 100%);
+        --grad-accent-hover: linear-gradient(135deg, #b31217 0%, #ff7a18 55%, #ff9547 100%);
+        --grad-soft: linear-gradient(135deg, rgba(50, 6, 6, .04) 0%, rgba(179, 18, 23, .08) 50%, rgba(255, 122, 24, .12) 100%);
+        --grad-glass: linear-gradient(135deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .88));
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        --transition-smooth: cubic-bezier(.4, 0, .2, 1);
+    }
+
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    body {
+        background: linear-gradient(135deg, #f8f9fc 0%, #f0f2f5 100%);
+        min-height: 100vh;
+    }
+
+    .page-shell {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 1.6rem 1.2rem 3.5rem;
+    }
+
+    .header-band {
+        background: var(--grad-glass);
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 32px;
+        padding: 1.4rem 1.6rem 1.3rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--sd-shadow-md), inset 0 1px 0 rgba(255, 255, 255, .8);
+        animation: slideInDown .5s var(--transition-smooth) both;
+    }
+
+    @@keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .header-band::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--grad-soft);
+        opacity: .6;
+        pointer-events: none;
+    }
+
+    .header-band::after {
+        content: "";
+        position: absolute;
+        inset: -50%;
+        background: radial-gradient(circle at 30% 50%, rgba(255, 122, 24, .18), transparent 65%);
+        animation: floatGlow 8s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @@keyframes floatGlow {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+            opacity: .5;
+        }
+
+        50% {
+            transform: translate(20px, -15px) scale(1.1);
+            opacity: .7;
+        }
+    }
+
+    .icon-pill {
+        width: 72px;
+        height: 72px;
+        border-radius: 24px;
+        background: var(--grad-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.75rem;
+        box-shadow: 0 12px 28px -12px rgba(179, 18, 23, .55), 0 0 24px rgba(255, 122, 24, .25), inset 0 1px 0 rgba(255, 255, 255, .2);
+        position: relative;
+        z-index: 1;
+        transition: transform .4s var(--transition-smooth), box-shadow .4s;
+    }
+
+        .icon-pill::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 26px;
+            background: var(--grad-accent-hover);
+            opacity: 0;
+            transition: opacity .4s;
+            z-index: -1;
+        }
+
+        .icon-pill:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 16px 36px -12px rgba(179, 18, 23, .65), 0 0 32px rgba(255, 122, 24, .35);
+        }
+
+            .icon-pill:hover::before {
+                opacity: 1;
+            }
+
+    .header-band h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 800;
+        letter-spacing: -.3px;
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        color: #1a1a2e;
+        position: relative;
+        z-index: 1;
+    }
+
+    .chip {
+        margin-top: .5rem;
+        font-size: .52rem;
+        letter-spacing: .2rem;
+        font-weight: 800;
+        background: var(--sd-soft);
+        color: var(--sd-red-strong);
+        padding: .5rem .9rem;
+        border-radius: 50px;
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+        text-transform: uppercase;
+        box-shadow: 0 2px 6px rgba(179, 18, 23, .1);
+        border: 1px solid rgba(179, 18, 23, .08);
+    }
+
+    .toolbar {
+        margin-left: auto;
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-act {
+        font-size: .62rem;
+        letter-spacing: .15rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .6rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--sd-border);
+        background: #fff;
+        color: var(--sd-red-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        text-decoration: none;
+        transition: all .3s var(--transition-smooth);
+        box-shadow: var(--sd-shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .btn-act::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--grad-accent);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .btn-act:hover {
+            color: #fff;
+            border-color: var(--sd-red-strong);
+            box-shadow: 0 8px 20px -8px rgba(179, 18, 23, .45);
+            transform: translateY(-2px);
+        }
+
+            .btn-act:hover::before {
+                opacity: 1;
+            }
+
+        .btn-act i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-act span {
+            position: relative;
+            z-index: 1;
+        }
+
+    .btn-accent {
+        background: var(--grad-accent);
+        color: #fff;
+        border: 1px solid var(--sd-red-strong);
+        box-shadow: 0 6px 16px -8px rgba(179, 18, 23, .45);
+    }
+
+        .btn-accent::before {
+            background: var(--grad-accent-hover);
+        }
+
+        .btn-accent:hover {
+            box-shadow: 0 10px 24px -10px rgba(179, 18, 23, .55);
+        }
+
+    .actions-bar {
+        margin-top: 1.2rem;
+        background: var(--grad-glass);
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 28px;
+        padding: 1rem 1.1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        box-shadow: var(--sd-shadow-md);
+        animation: slideInUp .6s var(--transition-smooth) .1s both;
+    }
+
+    @@keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .actions-bar a {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 140px;
+    }
+
+        .actions-bar a i {
+            font-size: .85rem;
+        }
+
+    .summary-grid {
+        margin-top: 1.5rem;
+        display: grid;
+        gap: 1.1rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .summary-card {
+        background: #fff;
+        border: 1px solid var(--sd-border);
+        border-radius: 24px;
+        padding: 1.1rem 1.2rem 1rem;
+        display: flex;
+        gap: .85rem;
+        align-items: flex-start;
+        position: relative;
+        overflow: hidden;
+        transition: all .4s var(--transition-smooth);
+        box-shadow: var(--sd-shadow-sm);
+        animation: fadeInScale .5s var(--transition-smooth) both;
+        animation-delay: calc(var(--card-index, 0) * .08s);
+    }
+
+    @@keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .summary-card:nth-child(1) {
+        --card-index: 1;
+    }
+
+    .summary-card:nth-child(2) {
+        --card-index: 2;
+    }
+
+    .summary-card:nth-child(3) {
+        --card-index: 3;
+    }
+
+    .summary-card:nth-child(4) {
+        --card-index: 4;
+    }
+
+    .summary-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 85% 15%, rgba(255, 122, 24, .12), transparent 68%);
+        opacity: .7;
+    }
+
+    .summary-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--grad-accent);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform .4s var(--transition-smooth);
+    }
+
+    .summary-card:hover {
+        transform: translateY(-6px);
+        border-color: var(--sd-border-alt);
+        box-shadow: var(--sd-shadow-lg), var(--sd-shadow-glow);
+    }
+
+        .summary-card:hover::after {
+            transform: scaleX(1);
+        }
+
+    .sc-ico {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background: var(--grad-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        box-shadow: 0 8px 18px -10px rgba(179, 18, 23, .55), inset 0 1px 0 rgba(255, 255, 255, .2);
+        transition: transform .3s var(--transition-smooth);
+    }
+
+    .summary-card:hover .sc-ico {
+        transform: scale(1.08) rotate(3deg);
+    }
+
+    .sc-label {
+        font-size: .54rem;
+        letter-spacing: .18rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #888;
+    }
+
+    .sc-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        background: var(--grad-accent);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1.2;
+        margin-top: .35rem;
+    }
+
+    .sc-sub {
+        font-size: .52rem;
+        margin-top: .45rem;
+        background: var(--sd-soft);
+        color: var(--sd-red-strong);
+        padding: .32rem .6rem;
+        border-radius: 40px;
+        font-weight: 700;
+        letter-spacing: .1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        border: 1px solid rgba(179, 18, 23, .08);
+    }
+
+    .detail-layout {
+        margin-top: 1.5rem;
+        display: grid;
+        gap: 1.3rem;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid var(--sd-border);
+        border-radius: 26px;
+        padding: 1.3rem 1.2rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: .9rem;
+        position: relative;
+        overflow: hidden;
+        transition: all .4s var(--transition-smooth);
+        box-shadow: var(--sd-shadow-sm);
+        animation: fadeInScale .6s var(--transition-smooth) .15s both;
+    }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 122, 24, .06), transparent 60%);
+            opacity: 0;
+            transition: opacity .4s;
+        }
+
+        .panel:hover {
+            border-color: var(--sd-border-alt);
+            box-shadow: var(--sd-shadow-md);
+            transform: translateY(-4px);
+        }
+
+            .panel:hover::before {
+                opacity: 1;
+            }
+
+        .panel h3 {
+            margin: 0;
+            font-size: .62rem;
+            letter-spacing: .2rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--sd-red-strong);
+            display: flex;
+            gap: .55rem;
+            align-items: center;
+            padding-bottom: .6rem;
+            border-bottom: 2px solid var(--sd-soft);
+            position: relative;
+        }
+
+            .panel h3::after {
+                content: "";
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 48px;
+                height: 2px;
+                background: var(--grad-accent);
+            }
+
+    .meta-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: .7rem;
+        font-size: .68rem;
+        line-height: 1.5;
+        color: #555;
+    }
+
+        .meta-list li {
+            display: flex;
+            gap: .5rem;
+        }
+
+            .meta-list li strong {
+                color: #222;
+                font-weight: 700;
+                min-width: 110px;
+            }
+
+    .avatar-wrap {
+        width: 140px;
+        height: 140px;
+        border-radius: 32px;
+        overflow: hidden;
+        margin: .4rem auto .7rem;
+        position: relative;
+        box-shadow: 0 12px 28px -10px rgba(179, 18, 23, .35), 0 0 20px rgba(255, 122, 24, .15), inset 0 0 0 2px rgba(255, 255, 255, .4);
+        border: 3px solid #fff;
+        transition: transform .4s var(--transition-smooth), box-shadow .4s;
+    }
+
+        .avatar-wrap:hover {
+            transform: scale(1.05);
+            box-shadow: 0 16px 36px -10px rgba(179, 18, 23, .45), 0 0 28px rgba(255, 122, 24, .25);
+        }
+
+        .avatar-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #fff;
+        }
+
+    .attach-bar {
+        margin-top: 1.6rem;
+        background: var(--grad-glass);
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 28px;
+        padding: 1.1rem 1.2rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        align-items: center;
+        box-shadow: var(--sd-shadow-md);
+        animation: slideInUp .7s var(--transition-smooth) .2s both;
+    }
+
+        .attach-bar h4 {
+            margin: 0;
+            font-size: .62rem;
+            letter-spacing: .2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--sd-red-strong);
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+        }
+
+    .attach-chip {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: var(--grad-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.15rem;
+        position: relative;
+        text-decoration: none;
+        transition: all .4s var(--transition-smooth);
+        box-shadow: 0 8px 18px -10px rgba(179, 18, 23, .55), inset 0 1px 0 rgba(255, 255, 255, .2);
+    }
+
+        .attach-chip::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 22px;
+            background: var(--grad-accent-hover);
+            opacity: 0;
+            transition: opacity .4s;
+            z-index: -1;
+        }
+
+        .attach-chip span {
+            position: absolute;
+            bottom: 6px;
+            font-size: .5rem;
+            letter-spacing: .12rem;
+            font-weight: 800;
+        }
+
+        .attach-chip:hover {
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 0 12px 28px -10px rgba(179, 18, 23, .65), 0 0 24px rgba(255, 122, 24, .25);
+        }
+
+            .attach-chip:hover::before {
+                opacity: 1;
+            }
+
+    @@media (max-width: 840px) {
+        .actions-bar a {
+            flex: 1 1 45%;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .header-band {
+            padding: 1.2rem 1rem;
+        }
+
+        .icon-pill {
+            width: 60px;
+            height: 60px;
+            font-size: 1.45rem;
+        }
+
+        .header-band h1 {
+            font-size: 1.3rem;
+        }
+
+        .actions-bar a {
+            flex: 1 1 100%;
+        }
+    }
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-id-card"></i></div>
+        <div>
+            <h1>Student Profile</h1>
+            <div class="chip"><i class="fa fa-layer-group"></i> RECORD</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber" class="btn-act btn-accent">
+                <i class="fa fa-folder-open"></i> <span>Docs</span>
+            </a>
+            <a asp-action="StudentList" asp-controller="Student" class="btn-act">
+                <i class="fa fa-list"></i> <span>List</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <a class="btn-act" asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-pencil"></i> Learner Documents</a>
+        <a class="btn-act" asp-action="AttachAssessment" asp-controller="Assessment" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-book"></i> Assessments</a>
+        <a class="btn-act" asp-action="TrainingMaterial" asp-controller="TrainingAssessment" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-school"></i> Training</a>
+        <a class="btn-act" asp-action="UploadEvidence" asp-controller="Evidence" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-camera"></i> Evidence</a>
+        <a class="btn-act" asp-action="StudentResults" asp-controller="Results" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-list-alt"></i> Results</a>
+        <a class="btn-act" asp-action="UploadStudentStatement" asp-controller="StudentFinance" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-money-bill"></i> Finance</a>
+        <a class="btn-act" asp-action="PlacementDetails" asp-controller="LearnerPlacement" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-helmet-safety"></i> Workplace</a>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="sc-ico"><i class="fa fa-user"></i></div>
+            <div>
+                <div class="sc-label">Student</div>
+                <div class="sc-value" style="font-size:1.05rem;">@Model.FirstName @Model.LastName</div>
+                <div class="sc-sub"><i class="fa fa-hashtag"></i>@Model.StudentNumber</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="sc-ico"><i class="fa fa-book"></i></div>
+            <div>
+                <div class="sc-label">Course</div>
+                <div class="sc-value">@courseTitle</div>
+                <div class="sc-sub"><i class="fa fa-layer-group"></i>@courseType</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="sc-ico"><i class="fa fa-calendar"></i></div>
+            <div>
+                <div class="sc-label">Admission</div>
+                <div class="sc-value">@(admission?.ToString("yyyy-MM-dd") ?? "N/A")</div>
+                <div class="sc-sub"><i class="fa fa-graduation-cap"></i>@Model.AdmissionCategory</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="sc-ico"><i class="fa fa-venus-mars"></i></div>
+            <div>
+                <div class="sc-label">Gender</div>
+                <div class="sc-value">@Model.Gender</div>
+                <div class="sc-sub"><i class="fa fa-school"></i>@Model.HighestGrade</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-layout">
+        <div class="panel">
+            <h3><i class="fa fa-id-card"></i> Profile</h3>
+            <div class="avatar-wrap">
+                <img src="~/Theme/images/logob-removebg-preview.png" alt="Profile" />
+            </div>
+            <ul class="meta-list">
+                <li><strong>Full Name:</strong> <span>@Model.FirstName @Model.LastName</span></li>
+                <li><strong>Student #:</strong> <span>@Model.StudentNumber</span></li>
+                <li><strong>National ID:</strong> <span>@Model.IDNumber</span></li>
+                <li><strong>Cellphone:</strong> <span>@Model.Cellphone</span></li>
+                <li><strong>Course:</strong> <span>@courseTitle</span></li>
+            </ul>
+        </div>
+        <div class="panel">
+            <h3><i class="fa fa-circle-info"></i> Academic</h3>
+            <ul class="meta-list">
+                <li><strong>Course Type:</strong> <span>@courseType</span></li>
+                <li><strong>Admission Category:</strong> <span>@Model.AdmissionCategory</span></li>
+                <li><strong>Admission Year:</strong> <span>@(admission?.Year.ToString() ?? "N/A")</span></li>
+                <li><strong>Highest Grade:</strong> <span>@Model.HighestGrade</span></li>
+                <li><strong>School:</strong> <span>@Model.NameofSchool</span></li>
+            </ul>
+        </div>
+        <div class="panel">
+            <h3><i class="fa fa-location-dot"></i> Contact & Address</h3>
+            <ul class="meta-list">
+                <li><strong>Cell:</strong> <span>@Model.Cellphone</span></li>
+                <li><strong>Address:</strong> <span>@Model.StreetAddressLine1 @Model.StreetAddressLine2</span></li>
+                <li><strong>Gender:</strong> <span>@Model.Gender</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="attach-bar">
+        <h4><i class="fa fa-paperclip"></i> Quick Links</h4>
+        <a class="attach-chip" asp-action="StudentDocuments" asp-route-StudentNumber="@Model.StudentNumber">
+            <i class="fa fa-folder-open"></i><span>DOCS</span>
+        </a>
+        <a class="attach-chip" asp-action="StudentResults" asp-route-StudentNumber="@Model.StudentNumber">
+            <i class="fa fa-list-alt"></i><span>RES</span>
+        </a>
+        <a class="attach-chip" asp-action="UploadEvidence" asp-controller="Evidence" asp-route-StudentNumber="@Model.StudentNumber">
+            <i class="fa fa-camera"></i><span>EVD</span>
+        </a>
+        <a class="attach-chip" asp-action="PlacementDetails" asp-controller="LearnerPlacement" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId">
+            <i class="fa fa-helmet-safety"></i><span>WRK</span>
+        </a>
+        <a class="attach-chip" asp-action="UploadStudentStatement" asp-controller="StudentFinance" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId">
+            <i class="fa fa-money-bill"></i><span>FIN</span>
+        </a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function(){
+       const role='@ViewData["role"]';
+       if(role==='Student'){
+           Swal.fire({
+               position:'center',
+               icon:'success',
+               title:'Welcome @ViewData["CurrentUser"]',
+               showConfirmButton:false,
+               timer:3000,
+               footer:'Forek Online V2',
+               backdrop: `
+                   rgba(50, 6, 6, 0.4)
+                   left top
+                   no-repeat
+               `
+           });
+       }
+    })();
+</script>

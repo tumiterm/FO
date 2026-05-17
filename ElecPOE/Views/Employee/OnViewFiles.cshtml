@@ -1,0 +1,282 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.File>
+@using ForekOnline.Application.Common.Utility
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+@{
+    var files = Model?.ToList() ?? new List<ForekOnline.Domain.Entities.File>();
+    int total = files.Count;
+    var byType = files.GroupBy(f => Helper.GetDisplayName(f.Type)).OrderByDescending(g=>g.Count()).ToList();
+    var byPhase = files.GroupBy(f => Helper.GetDisplayName(f.Phase)).OrderByDescending(g=>g.Count()).ToList();
+    int last30 = files.Count(f => DateTime.TryParse(f.CreatedOn,out var dt) && dt >= DateTime.UtcNow.AddDays(-30));
+    int activeRange = files.Count(f => f.StartDate.HasValue && f.EndDate.HasValue && DateTime.UtcNow >= f.StartDate.Value && DateTime.UtcNow <= f.EndDate.Value);
+    DateTime? newest = files.Select(f => DateTime.TryParse(f.CreatedOn,out var d)?d:(DateTime?)null).Where(d=>d!=null).OrderByDescending(d=>d).FirstOrDefault();
+}
+
+<style>
+:root { --vf-dr:#320606;--vf-red:#b31217;--vf-orange:#ff7a18;--vf-soft:#fff5f3;--vf-bg:#ffffff;--vf-bg-alt:#f5f7fa;
+        --vf-border:#e4e6ea;--vf-border-alt:#d4d6da;--vf-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+        --vf-grad-soft:linear-gradient(120deg,#32060611,#b3121714,#ff7a1814);font-family:'Segoe UI',system-ui,sans-serif; }
+body{background:var(--vf-bg-alt);}
+.page-shell{max-width:1400px;margin:0 auto;padding:1.9rem 1.25rem 3.2rem;}
+.header-band{background:var(--vf-bg);border:1px solid var(--vf-border);border-radius:32px;padding:1.2rem 1.4rem 1.15rem;display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:'';position:absolute;inset:0;background:var(--vf-grad-soft);pointer-events:none;}
+.icon-pill{width:72px;height:72px;border-radius:24px;background:var(--vf-grad);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:#fff;box-shadow:0 12px 26px -12px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;gap:.6rem;align-items:center;}
+.tagline{font-size:.58rem;letter-spacing:.24rem;font-weight:700;text-transform:uppercase;background:var(--vf-soft);color:var(--vf-red);padding:.5rem .9rem;border-radius:40px;margin-top:.4rem;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-act,.btn-accent,.btn-mini{font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.55rem .95rem;border-radius:14px;border:1px solid var(--vf-border);background:#fff;color:var(--vf-red);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;text-decoration:none;transition:.3s;}
+.btn-act:hover{background:var(--vf-grad);color:#fff;border-color:var(--vf-red);box-shadow:0 6px 16px -6px rgba(179,18,23,.45);}
+.btn-accent{background:var(--vf-grad);color:#fff;border:1px solid var(--vf-red);} .btn-accent:hover{filter:brightness(.94);}
+.btn-mini{padding:.42rem .7rem;font-size:.5rem;}
+.summary-grid{margin-top:1.35rem;display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+.sum-card{position:relative;background:var(--vf-bg);border:1px solid var(--vf-border);border-radius:22px;padding:.9rem .9rem .85rem;display:flex;flex-direction:column;gap:.32rem;overflow:hidden;transition:.45s;}
+.sum-card:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 82% 16%,rgba(255,122,24,.27),transparent 62%);}
+.sum-card:hover{transform:translateY(-4px);border-color:var(--vf-border-alt);box-shadow:0 8px 22px -12px rgba(50,6,6,.25);}
+.sum-label{font-size:.5rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;color:#666;}
+.sum-value{font-size:1.2rem;font-weight:600;background:var(--vf-grad);-webkit-background-clip:text;color:transparent;line-height:1.05;}
+.sum-chip{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--vf-soft);color:var(--vf-red);padding:.3rem .55rem;border-radius:30px;align-self:flex-start;}
+.filter-bar{margin-top:1.7rem;background:var(--vf-bg);border:1px solid var(--vf-border);border-radius:26px;padding:1rem 1rem .9rem;display:flex;gap:.85rem;flex-wrap:wrap;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;} .filter-group label{font-size:.5rem;letter-spacing:.15rem;font-weight:700;text-transform:uppercase;color:#555;}
+.filter-bar input[type=text],.filter-bar select,.filter-bar input[type=date]{background:#fff;border:1px solid var(--vf-border);border-radius:12px;font-size:.7rem;padding:.5rem .65rem;min-width:160px;transition:.25s;}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--vf-red);box-shadow:0 0 0 .15rem #b3121716;}
+.search-wrap{position:relative;flex:1 1 300px;} .search-wrap i{position:absolute;top:50%;left:.75rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding-left:2.1rem;}
+.table-shell{margin-top:1.25rem;background:var(--vf-bg);border:1px solid var(--vf-border);border-radius:30px;padding:1.2rem 1.1rem 1rem;overflow:auto;}
+.table-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.65rem;font-size:.55rem;letter-spacing:.14rem;font-weight:600;color:#666;}
+.table-meta span.badge{background:var(--vf-soft);color:var(--vf-red);padding:.35rem .6rem;border-radius:30px;font-size:.5rem;font-weight:700;letter-spacing:.12rem;}
+.file-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.68rem;}
+.file-table thead th{background:var(--vf-grad);color:#fff;font-size:.55rem;letter-spacing:.18rem;text-transform:uppercase;font-weight:700;padding:.58rem .6rem;position:sticky;top:0;z-index:4;}
+.file-table tbody tr{transition:.18s;} .file-table tbody tr:nth-child(even){background:#fff;} .file-table tbody tr:nth-child(odd){background:#fffdfd;} .file-table tbody tr:hover{background:#fff4ef;}
+.file-table td{padding:.52rem .6rem;border-bottom:1px solid var(--vf-border);vertical-align:middle;color:#333;}
+.action-link{font-weight:600;font-size:.55rem;letter-spacing:.08rem;text-transform:uppercase;background:#fff;padding:.42rem .6rem;border:1px solid var(--vf-border);border-radius:10px;text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;color:var(--vf-red);transition:.3s;}
+.action-link:hover{background:var(--vf-grad);color:#fff;border-color:var(--vf-red);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+.badge-type{font-size:.48rem;letter-spacing:.12rem;font-weight:700;padding:.3rem .55rem;border-radius:30px;display:inline-flex;gap:.3rem;align-items:center;background:#f0f1f3;color:#444;}
+.badge-phase{font-size:.48rem;letter-spacing:.12rem;font-weight:700;padding:.3rem .55rem;border-radius:30px;background:#ffe6ea;color:#b31217;}
+.badge-phase.alt{background:#fff3e0;color:#9d4e00;}
+.date-pill{font-size:.48rem;letter-spacing:.1rem;font-weight:600;background:#eef3f7;color:#173b53;padding:.32rem .55rem;border-radius:24px;display:inline-block;}
+.footer-bar{margin-top:.65rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;font-size:.55rem;letter-spacing:.1rem;color:#666;}
+.hidden-row{display:none !important;}
+.limit-note{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--vf-soft);color:var(--vf-red);padding:.3rem .55rem;border-radius:30px;display:inline-flex;gap:.35rem;align-items:center;}
+@@media (max-width:980px){ .file-table thead th:nth-child(6),.file-table td:nth-child(6){display:none;} }
+@@media (max-width:760px){ .file-table thead th:nth-child(5),.file-table td:nth-child(5){display:none;} }
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-folder-open"></i></div>
+        <div>
+            <h1>Facilitator Files</h1>
+            <div class="tagline"><i class="fa fa-layer-group"></i> REPOSITORY</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-act" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" class="btn-act" id="btnExportCsv"><i class="fa fa-file-export"></i> CSV</button>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="sum-card"><div class="sum-label">TOTAL</div><div class="sum-value">@total</div><div class="sum-chip">FILES</div></div>
+        <div class="sum-card"><div class="sum-label">TOP TYPE</div><div class="sum-value">@((byType.FirstOrDefault()?.Key)??"-")</div><div class="sum-chip">FREQ</div></div>
+        <div class="sum-card"><div class="sum-label">TOP PHASE</div><div class="sum-value">@((byPhase.FirstOrDefault()?.Key)??"-")</div><div class="sum-chip">FREQ</div></div>
+        <div class="sum-card"><div class="sum-label">ACTIVE RANGE</div><div class="sum-value">@activeRange</div><div class="sum-chip">LIVE</div></div>
+        <div class="sum-card"><div class="sum-label">LAST 30d</div><div class="sum-value">@last30</div><div class="sum-chip">NEW</div></div>
+        <div class="sum-card"><div class="sum-label">NEWEST</div><div class="sum-value" style="font-size:.9rem;">@(newest?.ToString("yyyy-MM-dd") ?? "-")</div><div class="sum-chip">DATE</div></div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search type / phase / created by..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+            <label>Type</label>
+            <select id="typeFilter">
+                <option value="">All</option>
+                @foreach (var t in byType) { <option value="@t.Key">@t.Key (@t.Count())</option> }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Phase</label>
+            <select id="phaseFilter">
+                <option value="">All</option>
+                @foreach (var p in byPhase) { <option value="@p.Key">@p.Key (@p.Count())</option> }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Date From</label>
+            <input type="date" id="fromDate"/>
+        </div>
+        <div class="filter-group">
+            <label>Date To</label>
+            <input type="date" id="toDate"/>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="limitNote" class="limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED</span>
+        </div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta">
+            <span class="badge" id="rowsInfo">Showing @total record(s)</span>
+            <span id="filterInfo"></span>
+        </div>
+        <table class="file-table" id="filesTable">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Phase</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Created On</th>
+                    <th>Created By</th>
+                </tr>
+            </thead>
+            <tbody id="filesBody">
+            @foreach(var f in files){
+                string typeName = Helper.GetDisplayName(f.Type);
+                string phaseName = Helper.GetDisplayName(f.Phase);
+                string createdOn = f.CreatedOn;
+                DateTime? start = f.StartDate;
+                DateTime? end = f.EndDate;
+                <tr data-type="@typeName" data-phase="@phaseName" data-created="@createdOn" data-start="@(start?.ToString("yyyy-MM-dd"))" data-end="@(end?.ToString("yyyy-MM-dd"))">
+                        <td><a class="action-link" asp-action="AttachmentDownload" asp-route-fileId="@f.BlobFileURL"><i class="fa fa-download"></i> Get</a></td>
+                    <td><span class="badge-type">@typeName</span></td>
+                    <td><span class="badge-phase">@phaseName</span></td>
+                    <td><span class="date-pill">@((start?.ToString("yyyy-MM-dd"))??"-")</span></td>
+                    <td><span class="date-pill">@((end?.ToString("yyyy-MM-dd"))??"-")</span></td>
+                    <td>@createdOn</td>
+                    <td>@f.CreatedBy</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div class="footer-bar">
+            <div>
+                <button id="btnShowAll" type="button" class="btn-mini btn-act" style="display:none;"><i class="fa fa-list"></i> Show All</button>
+                <button id="btnLimit" type="button" class="btn-mini btn-act" style="display:none;"><i class="fa fa-compress"></i> Limit</button>
+            </div>
+            <div id="perfInfo"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const DEFAULT_LIMIT = 400;
+    const body = document.getElementById('filesBody');
+    const searchBox = document.getElementById('searchBox');
+    const typeFilter = document.getElementById('typeFilter');
+    const phaseFilter = document.getElementById('phaseFilter');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const filterInfo = document.getElementById('filterInfo');
+    const limitNote = document.getElementById('limitNote');
+    const btnShowAll = document.getElementById('btnShowAll');
+    const btnLimit = document.getElementById('btnLimit');
+    const perfInfo = document.getElementById('perfInfo');
+    const btnExport = document.getElementById('btnExportCsv');
+    let limitedMode = true;
+
+    function norm(v){return (v||'').toString().toLowerCase().trim();}
+    function parseDate(v){ return v? new Date(v): null; }
+
+    function applyFilters(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const type = typeFilter.value;
+        const phase = phaseFilter.value;
+        const df = fromDate.value? parseDate(fromDate.value): null;
+        const dt = toDate.value? parseDate(toDate.value): null;
+        const rows = Array.from(body.querySelectorAll('tr'));
+        let shown=0, matched=0;
+        const filtering = !!(q||type||phase||df||dt);
+
+        rows.forEach(r=>{
+            let show = true;
+            const t = r.getAttribute('data-type');
+            const ph = r.getAttribute('data-phase');
+            const created = r.getAttribute('data-created')||'';
+            const start = parseDate(r.getAttribute('data-start'));
+            const end = parseDate(r.getAttribute('data-end'));
+            const text = norm(r.innerText);
+
+            if(q && !text.includes(q)) show=false;
+            if(type && t !== type) show=false;
+            if(phase && ph !== phase) show=false;
+            if(df){
+                // If we have a start date use that else createdOn attempt
+                const cTry = created? new Date(created): null;
+                const compDate = start || cTry;
+                if(!compDate || compDate < df) show=false;
+            }
+            if(dt){
+                const cTry = created? new Date(created): null;
+                const compDate = end || cTry;
+                if(!compDate || compDate > dt) show=false;
+            }
+
+            if(show){
+                matched++;
+                if(limitedMode && !filtering && shown >= DEFAULT_LIMIT) show=false;
+            }
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+
+        rowsInfo.textContent = 'Showing '+shown+' record(s)'+(filtering?' (matched)':'');
+        filterInfo.textContent = filtering ? 'FILTERED' : (limitedMode? 'LIMITED':'');
+        const exceed = (!filtering && limitedMode && matched > DEFAULT_LIMIT);
+        limitNote.style.display = exceed? '' : 'none';
+        btnShowAll.style.display = exceed? '' : 'none';
+        btnLimit.style.display = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+        perfInfo.textContent = 'Render: '+(performance.now()-t0).toFixed(1)+'ms';
+    }
+
+    function onInputChange(){
+        limitedMode = !!(searchBox.value||typeFilter.value||phaseFilter.value||fromDate.value||toDate.value) ? false : limitedMode;
+        applyFilters();
+    }
+
+    searchBox.addEventListener('input', onInputChange);
+    typeFilter.addEventListener('change', ()=>{limitedMode=false;applyFilters();});
+    phaseFilter.addEventListener('change', ()=>{limitedMode=false;applyFilters();});
+    fromDate.addEventListener('change', ()=>{limitedMode=false;applyFilters();});
+    toDate.addEventListener('change', ()=>{limitedMode=false;applyFilters();});
+    btnShowAll.addEventListener('click', ()=>{limitedMode=false;applyFilters();});
+    btnLimit.addEventListener('click', ()=>{limitedMode=true;applyFilters();});
+
+    // CSV export (visible rows)
+    btnExport.addEventListener('click',()=>{
+        const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
+        if(!visible.length){alert('No rows to export.');return;}
+        const lines = ['Type,Phase,Start,End,CreatedOn,CreatedBy'];
+        visible.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const type = cells[1]?.innerText.trim()||'';
+            const phase = cells[2]?.innerText.trim()||'';
+            const start = cells[3]?.innerText.trim()||'';
+            const end = cells[4]?.innerText.trim()||'';
+            const created = cells[5]?.innerText.trim()||'';
+            const by = cells[6]?.innerText.trim()||'';
+            lines.push([type,phase,start,end,created,by].map(v=>'"'+v.replace(/"/g,'""')+'"').join(','));
+        });
+        const blob = new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='facilitator-files-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    });
+
+    applyFilters();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+

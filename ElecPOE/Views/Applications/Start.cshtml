@@ -1,0 +1,325 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Apply • Forek Online";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            --accent: #0d8e66;
+            --accent2: #0aa377;
+            --danger: #dc2626;
+            --bg: #f6f8f7;
+            --card: #ffffff;
+            --ink: #14211b;
+            --muted: #5a6b63;
+            --radius: 16px;
+            --shadow: 0 14px 40px -20px rgba(0,0,0,.25);
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 15%, #ffffff 0, #eef4f2 55%, #dbe7e2 100%);
+            min-height: 100vh;
+            font-family: "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+            color: var(--ink);
+        }
+
+        .shell {
+            max-width: 1100px;
+            margin-inline: auto;
+            padding: 1.25rem;
+        }
+
+        .hero {
+            border-radius: 24px;
+            background: linear-gradient(135deg, #0b5d46, var(--accent) 60%, var(--accent2));
+            color: #fff;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+            .hero:before {
+                content: "";
+                position: absolute;
+                inset: -40% -20%;
+                background: radial-gradient(circle at 30% 35%, rgba(255,255,255,.25) 0, rgba(255,255,255,0) 60%);
+                pointer-events: none;
+            }
+
+        .hero-inner {
+            position: relative;
+            padding: 2rem 1.75rem;
+        }
+
+        .hero h1 {
+            font-size: 1.6rem;
+            margin: 0 0 .35rem;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: rgba(255,255,255,.9);
+            max-width: 60ch;
+            font-size: .95rem;
+        }
+
+        .grid {
+            margin-top: 1.25rem;
+            display: grid;
+            grid-template-columns: 1.25fr .75fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        @@media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-inner {
+                padding: 1.6rem 1.25rem;
+            }
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid #e2e8e4;
+            border-radius: var(--radius);
+            box-shadow: 0 12px 26px -22px rgba(0,0,0,.35);
+            overflow: hidden;
+        }
+
+            .cardx .hdr {
+                padding: 1rem 1.1rem;
+                border-bottom: 1px solid #eef2ef;
+                display: flex;
+                align-items: center;
+                gap: .6rem;
+                background: linear-gradient(180deg,#ffffff,#fbfcfb);
+            }
+
+                .cardx .hdr i {
+                    color: var(--accent);
+                }
+
+                .cardx .hdr h2 {
+                    margin: 0;
+                    font-size: .85rem;
+                    letter-spacing: .18rem;
+                    text-transform: uppercase;
+                    font-weight: 800;
+                    color: #365447;
+                }
+
+            .cardx .body {
+                padding: 1.05rem 1.1rem;
+            }
+
+        .list-tight {
+            margin: 0;
+            padding-left: 1.1rem;
+            color: var(--muted);
+            font-size: .92rem;
+        }
+
+            .list-tight li {
+                margin: .35rem 0;
+            }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            background: #0d8e6612;
+            border: 1px solid #0d8e6628;
+            color: #0b5d46;
+            font-size: .74rem;
+            font-weight: 700;
+            letter-spacing: .25px;
+        }
+
+        .cta {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+            .cta .big {
+                border-radius: 14px;
+                padding: .85rem 1rem;
+                font-weight: 700;
+                letter-spacing: .3px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: .55rem;
+            }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #0b5d46, var(--accent) 60%, var(--accent2));
+            border: 0;
+            color: #fff;
+        }
+
+            .btn-accent:hover {
+                filter: brightness(.96);
+            }
+
+        .btn-outline-accent {
+            border: 1px solid #0d8e6650;
+            color: #0b5d46;
+            background: #fff;
+        }
+
+            .btn-outline-accent:hover {
+                background: #0d8e660f;
+            }
+
+        .small-note {
+            font-size: .78rem;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e8eee9, transparent);
+            margin: .9rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <div class="hero-inner">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="pill"><i class="fa fa-shield-halved"></i> Secure application flow</span>
+                    <span class="pill"><i class="fa fa-clock"></i> ~10–15 minutes</span>
+                </div>
+
+                <h1>Apply to Forek Institute of Technology</h1>
+                <p>
+                    Before you start, review the requirements and prepare your documents. No ID details are required on this page.
+                </p>
+            </div>
+        </section>
+
+        <section class="grid">
+            <!-- Block A: Instructions -->
+            <div class="cardx">
+                <div class="hdr">
+                    <i class="fa fa-list-check"></i>
+                    <h2>Instructions & Requirements</h2>
+                </div>
+                <div class="body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="fw-semibold mb-1">Who should apply</div>
+                            <ul class="list-tight">
+                                <li>Prospective students applying for funded or self‑paid programmes.</li>
+                                <li>Applicants who can provide supporting documentation.</li>
+                                <li>Applicants ready to complete an online submission.</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="fw-semibold mb-1">Documents required</div>
+                            <ul class="list-tight">
+                                <li>RSA ID / Passport</li>
+                                <li>Highest Qualification certificate</li>
+                                <li>Proof of Residence (≤ 3 months)</li>
+                                <li>Guardian ID (if required)</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="fw-semibold mb-1">Accepted formats</div>
+                            <ul class="list-tight">
+                                <li>PDF / JPG / PNG</li>
+                                <li>Clear scans or screenshots</li>
+                            </ul>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="fw-semibold mb-1">File size limits</div>
+                            <ul class="list-tight">
+                                <li>Maximum <strong>4MB</strong> per file (recommended)</li>
+                                <li>Use compression if needed</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="pill"><i class="fa fa-hashtag"></i> Max 3 applications per year</span>
+                        <span class="pill"><i class="fa fa-circle-info"></i> Submit once – edits later via support</span>
+                    </div>
+
+                    <div class="small-note mt-2">
+                        Tip: If your document is large, take a clear screenshot and upload it as an image (JPG/PNG).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block B + C: Helpful actions + CTA -->
+            <aside class="cta">
+                <div class="cardx">
+                    <div class="hdr">
+                        <i class="fa fa-compass"></i>
+                        <h2>Helpful actions</h2>
+                    </div>
+                    <div class="body">
+                        <div class="d-grid gap-2">
+                            <a class="btn btn-outline-accent big" href="/Course/List">
+                                <i class="fa fa-graduation-cap"></i> View Courses
+                            </a>
+
+                            <a class="btn btn-outline-accent big" href="/Global/FAQ">
+                                <i class="fa fa-circle-question"></i> FAQ (Optional)
+                            </a>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="small-note">
+                            You'll confirm your identity on the next step by entering your ID number or Passport number.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cardx">
+                    <div class="hdr">
+                        <i class="fa fa-arrow-right-to-bracket"></i>
+                        <h2>Proceed</h2>
+                    </div>
+                    <div class="body">
+                        <a class="btn btn-accent big" asp-controller="Applications" asp-action="Identity">
+                            <i class="fa fa-play"></i> Proceed to Application
+                        </a>
+                        <div class="small-note mt-2">
+                            No personal info is captured on this page.
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

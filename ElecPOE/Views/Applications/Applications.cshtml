@@ -1,0 +1,1961 @@
+﻿@using ForekOnline.Application.Common.Utility
+@model IEnumerable<ForekOnline.Domain.ViewModels.ApplicationsViewModel>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+@{
+    Layout = null;
+    var apps = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.ApplicationsViewModel>();
+    int newCount = Convert.ToInt32(ViewData["New"] ?? 0);
+    int pendingCount = Convert.ToInt32(ViewData["Pending"] ?? 0);
+    int approvedCount = apps.Count(a => a.Status == ApplicationStatus.Approved.ToString());
+    int totalCount = apps.Count;
+    double idQuality = totalCount == 0 ? 0 : (double)apps.Count(a => !string.IsNullOrWhiteSpace(a.IDNumber)) / totalCount * 100;
+}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <title>Applications — Forek Online</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --d-bg: #0c0e14;
+            --d-bg-2: #12151e;
+            --d-bg-3: #181c28;
+            --d-surface: rgba(255,255,255,.04);
+            --d-surface-2: rgba(255,255,255,.06);
+            --d-surface-3: rgba(255,255,255,.08);
+            --d-glass: rgba(24,28,40,.72);
+            --d-glass-border: rgba(255,255,255,.08);
+            --d-glass-border-2: rgba(255,255,255,.12);
+            --d-text: #e8eaf0;
+            --d-text-2: #9ba1b0;
+            --d-text-3: #6b7186;
+            --d-accent: #ff7a18;
+            --d-accent-2: #ff9547;
+            --d-red: #ef4444;
+            --d-green: #22c55e;
+            --d-blue: #3b82f6;
+            --d-indigo: #818cf8;
+            --d-amber: #f59e0b;
+            --d-grad: linear-gradient(135deg, #ff7a18 0%, #b31217 50%, #320606 100%);
+            --d-grad-glow: 0 0 60px rgba(255,122,24,.12), 0 0 120px rgba(179,18,23,.06);
+            --d-shadow: 0 4px 24px rgba(0,0,0,.4);
+            --d-shadow-lg: 0 12px 48px rgba(0,0,0,.5);
+            --d-radius: 16px;
+            --d-radius-sm: 10px;
+            --d-radius-lg: 24px;
+            --d-transition: .25s cubic-bezier(.4,0,.2,1);
+        }
+
+        [data-theme="light"] {
+            --d-bg: #f5f6fa;
+            --d-bg-2: #eceef3;
+            --d-bg-3: #e4e6ec;
+            --d-surface: rgba(0,0,0,.03);
+            --d-surface-2: rgba(0,0,0,.05);
+            --d-surface-3: rgba(0,0,0,.07);
+            --d-glass: rgba(255,255,255,.82);
+            --d-glass-border: rgba(0,0,0,.08);
+            --d-glass-border-2: rgba(0,0,0,.12);
+            --d-text: #1a1a2e;
+            --d-text-2: #555b6e;
+            --d-text-3: #8e93a3;
+            --d-shadow: 0 4px 24px rgba(0,0,0,.08);
+            --d-shadow-lg: 0 12px 48px rgba(0,0,0,.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--d-bg);
+            color: var(--d-text);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+                pointer-events: none;
+                z-index: 9999;
+            }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: var(--d-bg-2);
+            border-right: 1px solid var(--d-glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform .3s;
+        }
+
+        .sidebar-brand {
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            border-bottom: 1px solid var(--d-glass-border);
+        }
+
+        .sidebar-brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--d-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(255,122,24,.3);
+        }
+
+        .sidebar-brand-text {
+            font-weight: 800;
+            font-size: .95rem;
+            letter-spacing: -.2px;
+        }
+
+            .sidebar-brand-text small {
+                display: block;
+                font-size: .58rem;
+                font-weight: 500;
+                color: var(--d-text-3);
+                letter-spacing: .3px;
+                text-transform: uppercase;
+                margin-top: 1px;
+            }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-section-label {
+            font-size: .54rem;
+            letter-spacing: .2rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--d-text-3);
+            padding: .6rem 1.3rem .35rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: .6rem 1.3rem;
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--d-text-2);
+            text-decoration: none;
+            border-radius: 0;
+            margin: 0 .5rem;
+            border-radius: var(--d-radius-sm);
+            transition: all var(--d-transition);
+        }
+
+            .sidebar-link i {
+                font-size: 1rem;
+                width: 1.2rem;
+                text-align: center;
+                opacity: .7;
+            }
+
+            .sidebar-link:hover {
+                background: var(--d-surface-2);
+                color: var(--d-text);
+            }
+
+                .sidebar-link:hover i {
+                    opacity: 1;
+                }
+
+            .sidebar-link.active {
+                background: var(--d-grad);
+                color: #fff;
+                box-shadow: 0 4px 16px rgba(255,122,24,.25);
+            }
+
+                .sidebar-link.active i {
+                    opacity: 1;
+                }
+
+        .sidebar-footer {
+            padding: 1rem 1.3rem;
+            border-top: 1px solid var(--d-glass-border);
+            font-size: .65rem;
+            color: var(--d-text-3);
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 260px;
+            right: 0;
+            height: 64px;
+            background: var(--d-glass);
+            border-bottom: 1px solid var(--d-glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            gap: 1rem;
+            z-index: 99;
+        }
+
+        .topbar-live {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .7rem;
+            font-weight: 600;
+            color: var(--d-text-2);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--d-green);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @@keyframes pulse-dot {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(34,197,94,.6);
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(34,197,94,0);
+            }
+        }
+
+        .topbar-search {
+            flex: 1;
+            max-width: 420px;
+            position: relative;
+        }
+
+            .topbar-search input {
+                width: 100%;
+                background: var(--d-surface-2);
+                border: 1px solid var(--d-glass-border);
+                border-radius: var(--d-radius-sm);
+                padding: .55rem .85rem .55rem 2.3rem;
+                font-size: .78rem;
+                color: var(--d-text);
+                transition: all var(--d-transition);
+            }
+
+                .topbar-search input::placeholder {
+                    color: var(--d-text-3);
+                }
+
+                .topbar-search input:focus {
+                    outline: none;
+                    border-color: var(--d-accent);
+                    box-shadow: 0 0 0 3px rgba(255,122,24,.12);
+                    background: var(--d-surface-3);
+                }
+
+            .topbar-search .bi-search {
+                position: absolute;
+                left: .8rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--d-text-3);
+                font-size: .85rem;
+            }
+
+        .search-hint {
+            position: absolute;
+            right: .65rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: .55rem;
+            font-weight: 600;
+            color: var(--d-text-3);
+            background: var(--d-surface-2);
+            padding: .2rem .45rem;
+            border-radius: 5px;
+            border: 1px solid var(--d-glass-border);
+            pointer-events: none;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-left: auto;
+        }
+
+        .topbar-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--d-radius-sm);
+            border: 1px solid var(--d-glass-border);
+            background: var(--d-surface);
+            color: var(--d-text-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all var(--d-transition);
+            position: relative;
+            cursor: pointer;
+        }
+
+            .topbar-btn:hover {
+                background: var(--d-surface-3);
+                color: var(--d-text);
+                border-color: var(--d-glass-border-2);
+            }
+
+            .topbar-btn .badge-dot {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--d-red);
+                border: 2px solid var(--d-bg-2);
+            }
+
+        .topbar-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--d-radius-sm);
+            background: var(--d-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: .75rem;
+            cursor: pointer;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+        }
+
+        .main-area {
+            margin-left: 260px;
+            padding-top: 64px;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            padding: 1.5rem 1.6rem 3rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+            .page-header h1 {
+                font-size: 1.55rem;
+                font-weight: 800;
+                letter-spacing: -.3px;
+                display: flex;
+                align-items: center;
+                gap: .65rem;
+            }
+
+                .page-header h1 .icon-box {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 14px;
+                    background: var(--d-grad);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #fff;
+                    font-size: 1.25rem;
+                    box-shadow: 0 8px 24px rgba(255,122,24,.25);
+                }
+
+        .page-header-actions {
+            display: flex;
+            gap: .5rem;
+            margin-left: auto;
+        }
+
+        .btn-glass {
+            background: var(--d-surface-2);
+            border: 1px solid var(--d-glass-border);
+            color: var(--d-text);
+            padding: .5rem .85rem;
+            border-radius: var(--d-radius-sm);
+            font-size: .72rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            transition: all var(--d-transition);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+            .btn-glass:hover {
+                background: var(--d-surface-3);
+                border-color: var(--d-glass-border-2);
+                color: var(--d-text);
+            }
+
+        .btn-grad {
+            background: var(--d-grad);
+            border: none;
+            color: #fff;
+            padding: .55rem .95rem;
+            border-radius: var(--d-radius-sm);
+            font-size: .72rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            transition: all var(--d-transition);
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(255,122,24,.25);
+        }
+
+            .btn-grad:hover {
+                filter: brightness(1.1);
+                box-shadow: 0 6px 24px rgba(255,122,24,.35);
+                transform: translateY(-1px);
+                color: #fff;
+            }
+
+        .stats-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--d-glass);
+            border: 1px solid var(--d-glass-border);
+            border-radius: var(--d-radius-lg);
+            padding: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all .4s var(--d-transition);
+        }
+
+            .stat-card::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                opacity: 0;
+                transition: opacity .4s;
+            }
+
+            .stat-card:hover {
+                transform: translateY(-4px);
+                border-color: var(--d-glass-border-2);
+                box-shadow: var(--d-shadow-lg);
+            }
+
+                .stat-card:hover::before {
+                    opacity: 1;
+                }
+
+            .stat-card:nth-child(1)::before {
+                background: radial-gradient(circle at 30% 50%, rgba(255,122,24,.12), transparent 60%);
+            }
+
+            .stat-card:nth-child(2)::before {
+                background: radial-gradient(circle at 30% 50%, rgba(59,130,246,.12), transparent 60%);
+            }
+
+            .stat-card:nth-child(3)::before {
+                background: radial-gradient(circle at 30% 50%, rgba(34,197,94,.12), transparent 60%);
+            }
+
+            .stat-card:nth-child(4)::before {
+                background: radial-gradient(circle at 30% 50%, rgba(129,140,248,.12), transparent 60%);
+            }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: .75rem;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: rgba(255,122,24,.15);
+            color: var(--d-accent);
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: rgba(59,130,246,.15);
+            color: var(--d-blue);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: rgba(34,197,94,.15);
+            color: var(--d-green);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: rgba(129,140,248,.15);
+            color: var(--d-indigo);
+        }
+
+        .stat-sparkline {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 28px;
+        }
+
+            .stat-sparkline span {
+                width: 4px;
+                border-radius: 2px;
+                transition: height .6s var(--d-transition);
+            }
+
+        .stat-card:nth-child(1) .stat-sparkline span {
+            background: var(--d-accent);
+        }
+
+        .stat-card:nth-child(2) .stat-sparkline span {
+            background: var(--d-blue);
+        }
+
+        .stat-card:nth-child(3) .stat-sparkline span {
+            background: var(--d-green);
+        }
+
+        .stat-card:nth-child(4) .stat-sparkline span {
+            background: var(--d-indigo);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -.5px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: .6rem;
+            letter-spacing: .15rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--d-text-3);
+            margin-top: .35rem;
+        }
+
+        .stat-sub {
+            font-size: .62rem;
+            font-weight: 600;
+            margin-top: .65rem;
+            padding: .3rem .55rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            background: var(--d-surface-2);
+            color: var(--d-text-2);
+        }
+
+        .progress-ring {
+            width: 64px;
+            height: 64px;
+            position: relative;
+            margin: -.5rem 0 .25rem auto;
+        }
+
+            .progress-ring svg {
+                transform: rotate(-90deg);
+            }
+
+            .progress-ring circle {
+                fill: none;
+                stroke-width: 5;
+                stroke-linecap: round;
+            }
+
+            .progress-ring .bg {
+                stroke: var(--d-surface-3);
+            }
+
+            .progress-ring .fill {
+                stroke: var(--d-indigo);
+                transition: stroke-dashoffset 1.5s var(--d-transition);
+            }
+
+            .progress-ring .label {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: .65rem;
+                font-weight: 800;
+                color: var(--d-indigo);
+            }
+
+        .filter-bar {
+            background: var(--d-glass);
+            border: 1px solid var(--d-glass-border);
+            border-radius: var(--d-radius-lg);
+            padding: .85rem 1.1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+        }
+
+            .filter-group label {
+                font-size: .52rem;
+                letter-spacing: .18rem;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: var(--d-text-3);
+            }
+
+        .filter-input {
+            background: var(--d-surface-2);
+            border: 1px solid var(--d-glass-border);
+            color: var(--d-text);
+            padding: .5rem .7rem;
+            font-size: .72rem;
+            border-radius: var(--d-radius-sm);
+            transition: all var(--d-transition);
+            min-width: 155px;
+        }
+
+            .filter-input:focus {
+                outline: none;
+                border-color: var(--d-accent);
+                box-shadow: 0 0 0 3px rgba(255,122,24,.1);
+            }
+
+        .filter-search {
+            flex: 1;
+            min-width: 260px;
+            position: relative;
+        }
+
+            .filter-search input {
+                width: 100%;
+                background: var(--d-surface-2);
+                border: 1px solid var(--d-glass-border);
+                color: var(--d-text);
+                padding: .55rem .85rem .55rem 2.2rem;
+                font-size: .74rem;
+                border-radius: var(--d-radius-sm);
+                transition: all var(--d-transition);
+            }
+
+                .filter-search input::placeholder {
+                    color: var(--d-text-3);
+                }
+
+                .filter-search input:focus {
+                    outline: none;
+                    border-color: var(--d-accent);
+                    box-shadow: 0 0 0 3px rgba(255,122,24,.1);
+                }
+
+            .filter-search i {
+                position: absolute;
+                left: .75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--d-text-3);
+            }
+
+        .export-dropdown .dropdown-menu {
+            background: var(--d-bg-3);
+            border: 1px solid var(--d-glass-border-2);
+            border-radius: var(--d-radius-sm);
+            box-shadow: var(--d-shadow-lg);
+            padding: .35rem;
+        }
+
+        .export-dropdown .dropdown-item {
+            color: var(--d-text);
+            font-size: .72rem;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: .5rem .7rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+            .export-dropdown .dropdown-item:hover {
+                background: var(--d-surface-3);
+            }
+
+        .table-panel {
+            background: var(--d-glass);
+            border: 1px solid var(--d-glass-border);
+            border-radius: var(--d-radius-lg);
+            overflow: hidden;
+        }
+
+            .table-panel table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: .74rem;
+            }
+
+            .table-panel thead th {
+                background: var(--d-surface-2);
+                font-size: .55rem;
+                letter-spacing: .18rem;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: var(--d-text-3);
+                padding: .75rem .85rem;
+                border-bottom: 1px solid var(--d-glass-border);
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                white-space: nowrap;
+            }
+
+            .table-panel tbody tr.main-row {
+                transition: background var(--d-transition);
+                border-bottom: 1px solid var(--d-glass-border);
+            }
+
+                .table-panel tbody tr.main-row:hover {
+                    background: var(--d-surface-2);
+                }
+
+            .table-panel td {
+                padding: .65rem .85rem;
+                vertical-align: middle;
+                color: var(--d-text-2);
+            }
+
+                .table-panel td:first-child {
+                    padding-left: 1rem;
+                }
+
+        .expand-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--d-glass-border);
+            background: var(--d-surface);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            color: var(--d-text-3);
+            transition: all var(--d-transition);
+            cursor: pointer;
+        }
+
+            .expand-btn:hover {
+                background: var(--d-accent);
+                color: #fff;
+                border-color: var(--d-accent);
+            }
+
+            .expand-btn.open {
+                background: var(--d-grad);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 12px rgba(255,122,24,.3);
+            }
+
+        .action-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            font-size: .95rem;
+            transition: all var(--d-transition);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .action-open {
+            color: var(--d-accent);
+            background: rgba(255,122,24,.1);
+        }
+
+            .action-open:hover {
+                background: var(--d-accent);
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(255,122,24,.3);
+            }
+
+        .action-msg {
+            color: var(--d-blue);
+            background: rgba(59,130,246,.1);
+        }
+
+            .action-msg:hover {
+                background: var(--d-blue);
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(59,130,246,.3);
+            }
+
+        .st-badge {
+            font-size: .58rem;
+            padding: .35rem .6rem;
+            border-radius: 30px;
+            letter-spacing: .1rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .st-submitted {
+            background: rgba(245,158,11,.15);
+            color: var(--d-amber);
+            border-color: rgba(245,158,11,.2);
+        }
+
+        .st-pending {
+            background: rgba(59,130,246,.15);
+            color: var(--d-blue);
+            border-color: rgba(59,130,246,.2);
+        }
+
+        .st-rejected {
+            background: rgba(239,68,68,.15);
+            color: var(--d-red);
+            border-color: rgba(239,68,68,.2);
+        }
+
+        .st-approved {
+            background: rgba(34,197,94,.15);
+            color: var(--d-green);
+            border-color: rgba(34,197,94,.2);
+        }
+
+        .collapsible-row td {
+            background: var(--d-bg-3);
+            padding: 0 !important;
+        }
+
+        .inner-box {
+            background: var(--d-glass);
+            border: 1px solid var(--d-glass-border);
+            border-radius: var(--d-radius);
+            padding: 1.1rem 1rem;
+            margin: .75rem;
+            display: grid;
+            gap: 1.2rem;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .mini-title {
+            font-size: .58rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--d-accent);
+            margin-bottom: .55rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .mini-line {
+            font-size: .68rem;
+            margin: 0 0 .4rem;
+            color: var(--d-text-2);
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+            .mini-line strong {
+                color: var(--d-text);
+                font-weight: 700;
+            }
+
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .85rem 1rem;
+            border-top: 1px solid var(--d-glass-border);
+        }
+
+        .pager-btn {
+            background: var(--d-surface-2);
+            border: 1px solid var(--d-glass-border);
+            color: var(--d-text-2);
+            font-size: .62rem;
+            letter-spacing: .15rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: .55rem .85rem;
+            border-radius: var(--d-radius-sm);
+            transition: all var(--d-transition);
+            cursor: pointer;
+        }
+
+            .pager-btn:hover:not(:disabled) {
+                background: var(--d-accent);
+                color: #fff;
+                border-color: var(--d-accent);
+            }
+
+            .pager-btn:disabled {
+                opacity: .3;
+                cursor: not-allowed;
+            }
+
+        .page-info {
+            font-size: .6rem;
+            letter-spacing: .15rem;
+            font-weight: 700;
+            color: var(--d-text-3);
+        }
+
+        .toast-banner {
+            position: fixed;
+            top: 76px;
+            right: 1.5rem;
+            background: var(--d-glass);
+            border: 1px solid var(--d-glass-border-2);
+            border-radius: var(--d-radius-sm);
+            padding: .65rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: .72rem;
+            font-weight: 600;
+            box-shadow: var(--d-shadow-lg);
+            z-index: 200;
+            animation: toastIn .5s var(--d-transition), toastOut .5s 5s forwards;
+            color: var(--d-text);
+        }
+
+        @@keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @@keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(30px);
+                pointer-events: none;
+            }
+        }
+
+        .toast-banner .bi-lightning-charge-fill {
+            color: var(--d-accent);
+            font-size: 1rem;
+        }
+
+        .modal-content {
+            background: var(--d-bg-3) !important;
+            border: 1px solid var(--d-glass-border-2) !important;
+            border-radius: var(--d-radius-lg) !important;
+            box-shadow: var(--d-shadow-lg);
+        }
+
+        .modal-header {
+            background: var(--d-grad);
+            border: none;
+            border-radius: var(--d-radius-lg) var(--d-radius-lg) 0 0;
+            padding: 1rem 1.2rem;
+        }
+
+        .modal-title {
+            font-size: .75rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .modal-body {
+            padding: 1.2rem;
+        }
+
+            .modal-body .form-control,
+            .modal-body textarea {
+                background: var(--d-surface-2) !important;
+                border: 1px solid var(--d-glass-border) !important;
+                color: var(--d-text) !important;
+                border-radius: var(--d-radius-sm);
+                font-size: .74rem !important;
+            }
+
+                .modal-body .form-control:focus,
+                .modal-body textarea:focus {
+                    border-color: var(--d-accent) !important;
+                    box-shadow: 0 0 0 3px rgba(255,122,24,.12) !important;
+                }
+
+            .modal-body label {
+                font-size: .55rem;
+                letter-spacing: .15rem;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: var(--d-text-3);
+                margin-bottom: .3rem;
+            }
+
+        .msg-btn-send {
+            background: var(--d-grad);
+            color: #fff;
+            border: none;
+            font-size: .65rem;
+            letter-spacing: .12rem;
+            padding: .6rem 1rem;
+            border-radius: var(--d-radius-sm);
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            transition: all var(--d-transition);
+        }
+
+            .msg-btn-send:hover {
+                filter: brightness(1.1);
+                box-shadow: 0 4px 16px rgba(255,122,24,.3);
+            }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--d-surface) 25%, var(--d-surface-2) 50%, var(--d-surface) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--d-radius-sm);
+        }
+
+        @@keyframes shimmer {
+            from {
+                background-position: 200% 0;
+            }
+
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        .sidebar-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--d-glass-border);
+            background: var(--d-surface);
+            border-radius: var(--d-radius-sm);
+            color: var(--d-text);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        @@media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+                .sidebar.show {
+                    transform: translateX(0);
+                    box-shadow: var(--d-shadow-lg);
+                }
+
+            .topbar {
+                left: 0;
+            }
+
+            .main-area {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .inner-box {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 1rem .75rem 2rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,.1);
+            border-radius: 999px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255,255,255,.2);
+            }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="sidebar-brand-text">
+                Forek Online
+                <small>Enterprise Portal</small>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Main</div>
+            <a href="@Url.Action("EmployeeInfo", "Employee")" class="sidebar-link"><i class="bi bi-house-fill text-danger"></i> Home</a>
+            <a href="@Url.Action("Dashboard", "Applications")" class="sidebar-link"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+            <a href="@Url.Action("Applications", "Applications")" class="sidebar-link active"><i class="bi bi-people-fill"></i> Applications</a>
+            <a href="@Url.Action("Calendar", "Applications")" class="sidebar-link"><i class="bi bi-calendar3"></i> Calendar</a>
+            <a href="@Url.Action("Index", "ApplicationCycle")" class="sidebar-link"><i class="bi bi-arrow-repeat"></i> Application Cycles</a>
+            <div class="nav-section-label mt-3">Management</div>
+            <a href="@Url.Action("StudentAnalytics", "Student")" class="sidebar-link"><i class="bi bi-mortarboard-fill"></i> Students</a>
+            <a href="@Url.Action("AdminEmployeePortal", "Employee")" class="sidebar-link"><i class="bi bi-person-badge-fill"></i> Employees</a>
+            <a href="@Url.Action("ListResources", "Resource")" class="sidebar-link"><i class="bi bi-folder-fill"></i> Resources</a>
+            <div class="nav-section-label mt-3">System</div>
+            <a href="@Url.Action("RetrieveUsers", "Auth")" class="sidebar-link"><i class="bi bi-shield-lock-fill"></i> Users</a>
+            <a href="@Url.Action("Settings", "Auth")" class="sidebar-link"><i class="bi bi-gear-fill"></i> Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+            &copy; @DateTime.UtcNow.Year Forek ICT Services
+        </div>
+    </aside>
+
+    <div class="topbar">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+        <div class="topbar-live">
+            <span class="live-dot"></span>
+            Updated just now
+        </div>
+        <div class="topbar-search">
+            <i class="bi bi-search"></i>
+            <input id="globalSearch" placeholder="Search applications..." autocomplete="off" />
+            <span class="search-hint">/</span>
+        </div>
+        <div class="topbar-actions">
+            <button class="topbar-btn theme-toggle" id="themeToggle" title="Toggle theme">
+                <i class="bi bi-moon-stars-fill"></i>
+            </button>
+            <button class="topbar-btn" title="Notifications">
+                <i class="bi bi-bell-fill"></i>
+                @if (newCount > 0)
+                {
+                    <span class="badge-dot"></span>
+                }
+            </button>
+            <div class="topbar-avatar" title="Account">IO</div>
+        </div>
+    </div>
+
+    @if (newCount > 0)
+    {
+        <div class="toast-banner" id="toastBanner">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span>@newCount new application@(newCount != 1 ? "s" : "") received — review now</span>
+        </div>
+    }
+
+    <div class="main-area">
+        <div class="main-content">
+
+            <div class="page-header">
+                <h1>
+                    <span class="icon-box"><i class="bi bi-people-fill"></i></span>
+                    Applications
+                </h1>
+                <div class="page-header-actions">
+                    <button class="btn-glass" onclick="location.reload()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                    <a class="btn-grad" asp-action="Dashboard" asp-controller="Applications"><i class="bi bi-graph-up-arrow"></i> Insights</a>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-bell-fill"></i></div>
+                        <div class="stat-sparkline">
+                            <span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span><span style="height:80%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:100%"></span>
+                        </div>
+                    </div>
+                    <div class="stat-value" data-count="@newCount">0</div>
+                    <div class="stat-label">New Applications</div>
+                    <div class="stat-sub"><i class="bi bi-exclamation-circle"></i> Action needed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="stat-sparkline">
+                            <span style="height:55%"></span><span style="height:70%"></span><span style="height:45%"></span><span style="height:85%"></span><span style="height:60%"></span><span style="height:75%"></span><span style="height:50%"></span>
+                        </div>
+                    </div>
+                    <div class="stat-value" data-count="@pendingCount">0</div>
+                    <div class="stat-label">Pending Review</div>
+                    <div class="stat-sub"><i class="bi bi-clock-history"></i> Awaiting decision</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-database-fill"></i></div>
+                        <div class="stat-sparkline">
+                            <span style="height:30%"></span><span style="height:50%"></span><span style="height:70%"></span><span style="height:55%"></span><span style="height:85%"></span><span style="height:95%"></span><span style="height:100%"></span>
+                        </div>
+                    </div>
+                    <div class="stat-value" data-count="@totalCount">0</div>
+                    <div class="stat-label">Total Records</div>
+                    <div class="stat-sub"><i class="bi bi-archive-fill"></i> All time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-shield-fill-check"></i></div>
+                        <div class="progress-ring">
+                            <svg width="64" height="64" viewBox="0 0 64 64">
+                                <circle class="bg" cx="32" cy="32" r="27" />
+                                <circle class="fill" cx="32" cy="32" r="27"
+                                        stroke-dasharray="169.65"
+                                        stroke-dashoffset="@((169.65 * (1 - idQuality / 100)).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))" />
+                            </svg>
+                            <span class="label">@idQuality.ToString("F0")%</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">Quality</div>
+                    <div class="stat-label">Data Integrity</div>
+                    <div class="stat-sub"><i class="bi bi-check-circle-fill"></i> ID presence</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label><i class="bi bi-calendar3"></i> From</label>
+                    <input type="date" id="fromDate" class="filter-input" />
+                </div>
+                <div class="filter-group">
+                    <label><i class="bi bi-calendar3"></i> To</label>
+                    <input type="date" id="toDate" class="filter-input" />
+                </div>
+                <div class="filter-search">
+                    <i class="bi bi-search"></i>
+                    <input id="tableSearch" placeholder="Search Ref, Names, ID, Phone, Course..." autocomplete="off" />
+                </div>
+                <div class="export-dropdown dropdown ms-auto">
+                    <button class="btn-grad dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" id="btnExportCurrent"><i class="bi bi-filetype-csv"></i> Current View (CSV)</a></li>
+                        <li><a class="dropdown-item" id="btnExportServer"><i class="bi bi-file-earmark-spreadsheet"></i> Full Range (CSV)</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="table-panel">
+                <div style="overflow-x:auto;">
+                    <table id="applicationsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:48px;"></th>
+                                <th>Action</th>
+                                <th>Notify</th>
+                                <th>Applicant</th>
+                                <th>ID Number</th>
+                                <th>Phone</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in apps)
+                            {
+                                string maskedId = "0000000000000";
+                                if (!string.IsNullOrEmpty(item.IDNumber))
+                                {
+                                    maskedId = item.IDNumber.Length == 13
+                                    ? $"{item.IDNumber[..4]}******{item.IDNumber[^2..]}"
+                                    : item.IDNumber;
+                                }
+
+                                string statusClass = item.Status switch
+                                {
+                                    var s when s == ApplicationStatus.Submitted.ToString() => "st-submitted",
+                                    var s when s == ApplicationStatus.Pending.ToString() => "st-pending",
+                                    var s when s == ApplicationStatus.Rejected.ToString() => "st-rejected",
+                                    _ => "st-approved"
+                                };
+
+                                string statusIcon = item.Status switch
+                                {
+                                    var s when s == ApplicationStatus.Submitted.ToString() => "bi-send-fill",
+                                    var s when s == ApplicationStatus.Pending.ToString() => "bi-hourglass-split",
+                                    var s when s == ApplicationStatus.Rejected.ToString() => "bi-x-circle-fill",
+                                    _ => "bi-check-circle-fill"
+                                };
+
+                                <tr class="main-row" data-id="@item.ApplicationId" data-date="@item.SubmittedDate.ToString("yyyy-MM-dd")">
+                                    <td>
+                                        <button class="expand-btn" title="Expand details">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <a class="action-icon action-open"
+                                           asp-action="OnApply" asp-controller="Applications" asp-route-ApplicationId="@item.ApplicationId"
+                                           title="Open Application">
+                                            <i class="bi bi-folder2-open"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="action-icon action-msg open-message-modal"
+                                           data-applicant-id="@item.ApplicationId"
+                                           data-bs-toggle="modal" data-bs-target="#notifyModal"
+                                           title="Notify Applicant">
+                                            <i class="bi bi-chat-dots-fill"></i>
+                                        </a>
+                                    </td>
+                                    <td style="font-weight:600;color:var(--d-text);">@item.Names</td>
+                                    <td><code style="font-size:.68rem;color:var(--d-text-2);">@maskedId</code></td>
+                                    <td>@item.Cellphone</td>
+                                    <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="@item.Course">@item.Course</td>
+                                    <td>@item.SubmittedDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="st-badge @statusClass">
+                                            <i class="bi @statusIcon"></i> @item.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr class="collapsible-row hidden" data-id="@item.ApplicationId">
+                                    <td colspan="9">
+                                        <div class="inner-box">
+                                            <div>
+                                                <div class="mini-title"><i class="bi bi-person-fill"></i> Applicant Details</div>
+                                                <p class="mini-line"><strong>Reference:</strong> @item.Reference</p>
+                                                <p class="mini-line"><strong>Email:</strong> @item.Email</p>
+                                                <p class="mini-line"><strong>Address:</strong> @item.ApplicantAddress?.Line1 | @item.ApplicantAddress?.StreetName | @item.ApplicantAddress?.PostalCode</p>
+                                            </div>
+                                            <div>
+                                                <div class="mini-title"><i class="bi bi-info-circle-fill"></i> Additional Info</div>
+                                                @if (item.ApplicantGuardian == null)
+                                                {
+                                                    <p class="mini-line" style="color:var(--d-red);font-weight:700;">No Guardian Available</p>
+                                                }
+                                                else
+                                                {
+                                                    <p class="mini-line"><strong>Guardian:</strong> @item.ApplicantGuardian.FirstName @item.ApplicantGuardian.LastName (@item.ApplicantGuardian.Relationship.GetDisplayName()) | @item.ApplicantGuardian.Cellphone</p>
+                                                }
+                                                <p class="mini-line"><strong>Submitted:</strong> @item.SubmittedDate.ToString("dd MMMM yyyy")</p>
+                                                <p class="mini-line"><strong>Full ID:</strong> @item.IDNumber</p>
+
+                                                @if (item.Status == ApplicationStatus.Approved.ToString())
+                                                {
+                                                    <div style="margin-top:.85rem;">
+                                                        <button type="button"
+                                                                class="btn-grad open-finance-gate"
+                                                                data-application-id="@item.ApplicationId"
+                                                                data-applicant-name="@item.Names">
+                                                            <i class="bi bi-arrow-right-circle-fill"></i> Proceed to Registration
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar">
+                    <button id="prevPage" class="pager-btn" disabled><i class="bi bi-chevron-left"></i> Previous</button>
+                    <span id="pageInfo" class="page-info">Page 1 of 1</span>
+                    <button id="nextPage" class="pager-btn" disabled>Next <i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="notifyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-white"><i class="bi bi-send-fill"></i> Notify Applicant</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="notifyApplicantForm" method="post">
+                        <div class="mb-3">
+                            <label>Applicant</label>
+                            <input name="UserId" readonly class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label>Message</label>
+                            <textarea name="Message" rows="4" class="form-control" placeholder="Type your message..."></textarea>
+                        </div>
+                        <input name="UserEmail" type="hidden" />
+                        <input name="UserPhone" type="hidden" />
+                        <div class="d-flex gap-3 mb-3" style="font-size:.74rem;">
+                            <label class="d-flex align-items-center gap-2" style="cursor:pointer;">
+                                <input name="IsSMS" type="checkbox" class="form-check-input" />
+                                <span style="color:var(--d-text-2);">Send SMS</span>
+                            </label>
+                            <label class="d-flex align-items-center gap-2" style="cursor:pointer;">
+                                <input name="IsEmail" type="checkbox" class="form-check-input" />
+                                <span style="color:var(--d-text-2);">Send Email</span>
+                            </label>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="pager-btn" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="msg-btn-send"><i class="bi bi-send-fill"></i> Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="financeGateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-white"><i class="bi bi-shield-lock-fill"></i> Financial Clearance Gate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="fgLoading" class="text-center py-4" style="display:none;">
+                        <div class="spinner-border text-warning" role="status"></div>
+                        <p class="mt-2" style="font-size:.72rem;color:var(--d-text-2);">Loading clearance status...</p>
+                    </div>
+
+                    <div id="fgContent" style="display:none;">
+                        <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:1rem;">
+                            <div style="width:44px;height:44px;border-radius:14px;background:var(--d-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:700;font-size:.88rem;" id="fgApplicantName"></div>
+                                <div style="font-size:.62rem;color:var(--d-text-3);letter-spacing:.12rem;text-transform:uppercase;" id="fgApplicationId"></div>
+                            </div>
+                            <span id="fgStatusBadge" class="st-badge ms-auto"></span>
+                        </div>
+
+                        <div id="fgAlreadyCleared" style="display:none;" class="mb-3">
+                            <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:var(--d-radius-sm);padding:.85rem;font-size:.74rem;">
+                                <i class="bi bi-check-circle-fill" style="color:var(--d-green);"></i>
+                                <strong>Financially cleared</strong> by <span id="fgClearedBy"></span> on <span id="fgClearedDate"></span>.
+                                <span id="fgOverrideReasonWrap" style="display:none;"><br /><strong>Override reason:</strong> <span id="fgOverrideReason"></span></span>
+                                <span id="fgNotesWrap" style="display:none;"><br /><strong>Notes:</strong> <span id="fgNotes"></span></span>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end">
+                                <a id="fgEnrollLink" class="btn-grad" href="#">
+                                    <i class="bi bi-person-plus-fill"></i> Register Student Now
+                                </a>
+                            </div>
+                        </div>
+
+                        <div id="fgPendingSection" style="display:none;">
+                            <div style="background:var(--d-surface-2);border:1px solid var(--d-glass-border);border-radius:var(--d-radius);padding:1rem;margin-bottom:1rem;">
+                                <div class="mini-title"><i class="bi bi-upload"></i> Upload Proof of Payment</div>
+                                <p style="font-size:.68rem;color:var(--d-text-3);margin-bottom:.75rem;">
+                                    Attach the applicant's proof-of-payment document (PDF, JPG, PNG).
+                                </p>
+                                <input type="file" id="fgProofFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                       style="font-size:.72rem;background:var(--d-surface);border:1px solid var(--d-glass-border);border-radius:var(--d-radius-sm);padding:.5rem;width:100%;color:var(--d-text);" />
+                                <div id="fgExistingProof" style="display:none;margin-top:.55rem;">
+                                    <span style="font-size:.64rem;color:var(--d-green);font-weight:600;">
+                                        <i class="bi bi-paperclip"></i> Current: <span id="fgProofFileName"></span>
+                                    </span>
+                                </div>
+                                <button type="button" id="fgUploadBtn" class="btn-grad mt-3" style="font-size:.68rem;">
+                                    <i class="bi bi-cloud-arrow-up-fill"></i> Upload Proof
+                                </button>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                                <div style="background:var(--d-surface-2);border:1px solid var(--d-glass-border);border-radius:var(--d-radius);padding:1rem;">
+                                    <div class="mini-title"><i class="bi bi-check-circle-fill"></i> Clear Applicant</div>
+                                    <p style="font-size:.68rem;color:var(--d-text-3);margin-bottom:.55rem;">
+                                        Confirm proof has been reviewed and payment is valid.
+                                    </p>
+                                    <div class="mb-2">
+                                        <label style="font-size:.52rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:var(--d-text-3);">Amount Received</label>
+                                        <input type="number" id="fgAmountReceived" step="0.01" min="0" placeholder="0.00"
+                                               class="form-control" style="font-size:.74rem;background:var(--d-surface)!important;border:1px solid var(--d-glass-border)!important;color:var(--d-text)!important;" />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label style="font-size:.52rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:var(--d-text-3);">Notes (optional)</label>
+                                        <input type="text" id="fgClearNotes" placeholder="e.g. Bank ref verified"
+                                               class="form-control" style="font-size:.74rem;background:var(--d-surface)!important;border:1px solid var(--d-glass-border)!important;color:var(--d-text)!important;" />
+                                    </div>
+                                    <button type="button" id="fgClearBtn" class="btn-grad" style="font-size:.68rem;width:100%;">
+                                        <i class="bi bi-shield-fill-check"></i> Clear
+                                    </button>
+                                </div>
+
+                                <div style="background:var(--d-surface-2);border:1px solid var(--d-glass-border);border-radius:var(--d-radius);padding:1rem;">
+                                    <div class="mini-title"><i class="bi bi-arrow-repeat"></i> Override (No Payment)</div>
+                                    <p style="font-size:.68rem;color:var(--d-text-3);margin-bottom:.55rem;">
+                                        Bypass the payment gate with a documented reason.
+                                    </p>
+                                    <div class="mb-2">
+                                        <label style="font-size:.52rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:var(--d-text-3);">Override Reason *</label>
+                                        <select id="fgOverrideSelect" class="form-control" style="font-size:.74rem;background:var(--d-surface)!important;border:1px solid var(--d-glass-border)!important;color:var(--d-text)!important;">
+                                            <option value="">Select reason...</option>
+                                            <option value="Funded">Government funded</option>
+                                            <option value="Bursary holder">Bursary holder</option>
+                                            <option value="Payment arrangement confirmed">Payment arrangement confirmed</option>
+                                            <option value="Company sponsored">Company sponsored</option>
+                                            <option value="Management discretion">Management discretion</option>
+                                            <option value="Other">Other (specify in notes)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label style="font-size:.52rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:var(--d-text-3);">Notes (optional)</label>
+                                        <input type="text" id="fgOverrideNotes" placeholder="Additional context..."
+                                               class="form-control" style="font-size:.74rem;background:var(--d-surface)!important;border:1px solid var(--d-glass-border)!important;color:var(--d-text)!important;" />
+                                    </div>
+                                    <button type="button" id="fgOverrideBtn" class="btn-glass" style="font-size:.68rem;width:100%;border-color:var(--d-amber);color:var(--d-amber);">
+                                        <i class="bi bi-shield-exclamation"></i> Override
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="d-none" id="sidebarOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            const html = document.documentElement;
+            const themeBtn = document.getElementById('themeToggle');
+            const savedTheme = localStorage.getItem('fo-theme') || 'dark';
+            html.setAttribute('data-theme', savedTheme);
+            updateThemeIcon();
+
+            themeBtn.addEventListener('click', function () {
+                const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', next);
+                localStorage.setItem('fo-theme', next);
+                updateThemeIcon();
+            });
+
+            function updateThemeIcon() {
+                const icon = themeBtn.querySelector('i');
+                icon.className = html.getAttribute('data-theme') === 'dark'
+                    ? 'bi bi-moon-stars-fill'
+                    : 'bi bi-sun-fill';
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            sidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('d-none');
+            });
+
+            overlay.addEventListener('click', function () {
+                sidebar.classList.remove('show');
+                overlay.classList.add('d-none');
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    document.getElementById('globalSearch').focus();
+                }
+            });
+
+            const globalSearch = document.getElementById('globalSearch');
+            const tableSearch = document.getElementById('tableSearch');
+            globalSearch.addEventListener('input', function () {
+                tableSearch.value = this.value;
+                tableSearch.dispatchEvent(new Event('input'));
+            });
+
+            document.querySelectorAll('.stat-value[data-count]').forEach(function (el) {
+                const target = parseInt(el.getAttribute('data-count'), 10);
+                if (isNaN(target) || target === 0) { el.textContent = '0'; return; }
+                const duration = 1200;
+                const start = performance.now();
+                function tick(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = Math.round(eased * target).toLocaleString();
+                    if (progress < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            });
+
+            $(document).on('click', '.open-message-modal', function () {
+                const row = $(this).closest('tr');
+                const name = row.find('td:nth-child(4)').text().trim();
+                const phone = row.find('td:nth-child(6)').text().trim();
+                const email = row.find('td:nth-child(8)').text().trim();
+                $('#notifyModal input[name="UserId"]').val(name + ' (' + phone + ')');
+                $('#notifyModal input[name="UserEmail"]').val(email);
+                $('#notifyModal input[name="UserPhone"]').val(phone);
+            });
+
+            $('#notifyApplicantForm').on('submit', function (e) {
+                e.preventDefault();
+                var data = $(this).serialize();
+                var emailChecked = $(this).find('input[name="IsEmail"]').prop('checked');
+                var smsChecked = $(this).find('input[name="IsSMS"]').prop('checked');
+                data += '&IsEmail=' + emailChecked + '&IsSMS=' + smsChecked;
+                $.ajax({
+                    url: '@Url.Action("OnNotifyApplicant", "Applications")',
+                    type: 'POST',
+                    data: data,
+                    success: function (r) { alert(r?.message || 'Sent.'); },
+                    error: function (er) { alert('Error: ' + er.statusText); }
+                });
+            });
+
+            const table = document.getElementById('applicationsTable');
+            const rows = Array.from(table.querySelectorAll('tbody tr.main-row'));
+            const prevButton = document.getElementById('prevPage');
+            const nextButton = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+            const fromDate = document.getElementById('fromDate');
+            const toDate = document.getElementById('toDate');
+            const rowsPerPage = 10;
+            let currentPage = 1;
+            let filteredRows = rows;
+
+            function resetDetails() {
+                document.querySelectorAll('.collapsible-row').forEach(function (r) { r.classList.add('hidden'); });
+                document.querySelectorAll('.expand-btn').forEach(function (b) {
+                    b.classList.remove('open');
+                    var i = b.querySelector('i');
+                    if (i) { i.className = 'bi bi-plus'; }
+                });
+            }
+
+            function applyFilters() {
+                var term = (tableSearch.value || '').toLowerCase();
+                var f = fromDate.value ? new Date(fromDate.value) : null;
+                var t = toDate.value ? new Date(toDate.value) : null;
+                filteredRows = rows.filter(function (r) {
+                    var dAttr = r.getAttribute('data-date');
+                    var rowDate = dAttr ? new Date(dAttr) : null;
+                    if (f && (!rowDate || rowDate < f)) return false;
+                    if (t && (!rowDate || rowDate > t)) return false;
+                    var tds = Array.from(r.querySelectorAll('td'));
+                    var content = tds.slice(3).map(function (td) { return td.textContent.toLowerCase(); }).join(' ');
+                    return !term || content.includes(term);
+                });
+                currentPage = 1;
+                displayRows(currentPage);
+            }
+
+            function displayRows(page) {
+                var start = (page - 1) * rowsPerPage;
+                var end = start + rowsPerPage;
+                rows.forEach(function (r) { r.classList.add('hidden'); });
+                filteredRows.slice(start, end).forEach(function (r) { r.classList.remove('hidden'); });
+                var totalPages = Math.max(1, Math.ceil(filteredRows.length / rowsPerPage));
+                pageInfo.textContent = 'Page ' + page + ' of ' + totalPages + '  (' + filteredRows.length + ' records)';
+                prevButton.disabled = page <= 1;
+                nextButton.disabled = page >= totalPages;
+                resetDetails();
+            }
+
+            table.addEventListener('click', function (e) {
+                var btn = e.target.closest('.expand-btn');
+                if (!btn) return;
+                var row = btn.closest('tr');
+                var id = row.getAttribute('data-id');
+                var detailRow = table.querySelector('.collapsible-row[data-id="' + id + '"]');
+                if (!detailRow) return;
+                var icon = btn.querySelector('i');
+                var isOpen = !detailRow.classList.contains('hidden');
+                resetDetails();
+                if (!isOpen) {
+                    detailRow.classList.remove('hidden');
+                    btn.classList.add('open');
+                    icon.className = 'bi bi-dash';
+                }
+            });
+
+            tableSearch.addEventListener('input', applyFilters);
+            fromDate.addEventListener('change', applyFilters);
+            toDate.addEventListener('change', applyFilters);
+            prevButton.addEventListener('click', function () { if (currentPage > 1) { currentPage--; displayRows(currentPage); } });
+            nextButton.addEventListener('click', function () {
+                var totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage < totalPages) { currentPage++; displayRows(currentPage); }
+            });
+
+            displayRows(currentPage);
+
+            document.getElementById('btnExportCurrent').addEventListener('click', function () {
+                var visible = filteredRows;
+                if (!visible.length) { alert('No rows to export.'); return; }
+                var csvRows = ['Reference,Names,ID,Phone,Course,AppDate,Status'];
+                visible.forEach(function (r) {
+                    var tds = r.querySelectorAll('td');
+                    var names = (tds[3]?.innerText || '').trim();
+                    var id = (tds[4]?.innerText || '').trim();
+                    var phone = (tds[5]?.innerText || '').trim();
+                    var course = (tds[6]?.innerText || '').trim();
+                    var date = (tds[7]?.innerText || '').trim();
+                    var status = (tds[8]?.innerText || '').trim();
+                    var idAttr = r.getAttribute('data-id');
+                    var ref = '';
+                    var collapsible = table.querySelector('.collapsible-row[data-id="' + idAttr + '"]');
+                    if (collapsible) {
+                        var refLine = Array.from(collapsible.querySelectorAll('.mini-line')).find(function (p) { return p.innerText.startsWith('Reference:'); });
+                        if (refLine) ref = refLine.innerText.replace('Reference:', '').trim();
+                    }
+                    csvRows.push([ref,names,id,phone,course,date,status].map(function (v) { return '"' + (v.replace(/"/g,'""')) + '"'; }).join(','));
+                });
+                var blob = new Blob([csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'applications-' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            });
+
+            document.getElementById('btnExportServer').addEventListener('click', function () {
+                var url = '@Url.Action("ExportApplicationsCsv", "Applications")'
+                    + '?from=' + encodeURIComponent(fromDate.value || '')
+                    + '&to=' + encodeURIComponent(toDate.value || '')
+                    + '&q=' + encodeURIComponent(tableSearch.value || '');
+                window.location.href = url;
+            });
+
+            document.addEventListener('hidden.bs.modal', function () {
+                if (!document.querySelector('.modal.show')) {
+                    document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
+                }
+            });
+
+            var fgAppId = null;
+            var fgToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                || $('input[name="__RequestVerificationToken"]').val() || '';
+
+            $(document).on('click', '.open-finance-gate', function () {
+                fgAppId = $(this).data('application-id');
+                var name = $(this).data('applicant-name');
+
+                $('#fgApplicantName').text(name);
+                $('#fgApplicationId').text(fgAppId);
+                $('#fgContent').hide();
+                $('#fgLoading').show();
+                $('#fgAlreadyCleared').hide();
+                $('#fgPendingSection').hide();
+
+                new bootstrap.Modal(document.getElementById('financeGateModal')).show();
+
+                $.getJSON('@Url.Action("FinancialGate", "Applications")', { applicationId: fgAppId })
+                    .done(function (data) {
+                        $('#fgLoading').hide();
+                        $('#fgContent').show();
+
+                        var cleared = data.status === 'Cleared' || data.status === 'Overridden';
+
+                        var badgeClass = data.status === 'Cleared' ? 'st-approved'
+                            : data.status === 'Overridden' ? 'st-approved'
+                            : data.status === 'ProofUploaded' ? 'st-pending'
+                            : 'st-submitted';
+                        var badgeIcon = cleared ? 'bi-check-circle-fill' : 'bi-hourglass-split';
+
+                        $('#fgStatusBadge').attr('class', 'st-badge ms-auto ' + badgeClass)
+                            .html('<i class="bi ' + badgeIcon + '"></i> ' + data.status);
+
+                        if (cleared) {
+                            $('#fgAlreadyCleared').show();
+                            $('#fgPendingSection').hide();
+                            $('#fgClearedBy').text(data.clearedBy || 'System');
+                            $('#fgClearedDate').text(data.clearedUtc || '—');
+
+                            if (data.overrideReason) {
+                                $('#fgOverrideReasonWrap').show();
+                                $('#fgOverrideReason').text(data.overrideReason);
+                            } else {
+                                $('#fgOverrideReasonWrap').hide();
+                            }
+
+                            if (data.notes) {
+                                $('#fgNotesWrap').show();
+                                $('#fgNotes').text(data.notes);
+                            } else {
+                                $('#fgNotesWrap').hide();
+                            }
+
+                            $('#fgEnrollLink').attr('href',
+                                '@Url.Action("EnrollStudent", "Student")' + '?applicationId=' + fgAppId);
+                        } else {
+                            $('#fgAlreadyCleared').hide();
+                            $('#fgPendingSection').show();
+
+                            if (data.proofFileName) {
+                                $('#fgExistingProof').show();
+                                $('#fgProofFileName').text(data.proofFileName);
+                            } else {
+                                $('#fgExistingProof').hide();
+                            }
+                        }
+                    })
+                    .fail(function () {
+                        $('#fgLoading').hide();
+                        alert('Failed to load clearance status.');
+                    });
+            });
+
+            $('#fgUploadBtn').on('click', function () {
+                var fileInput = document.getElementById('fgProofFile');
+                if (!fileInput.files.length) { alert('Please select a file.'); return; }
+
+                var formData = new FormData();
+                formData.append('applicationId', fgAppId);
+                formData.append('proofFile', fileInput.files[0]);
+                formData.append('__RequestVerificationToken', fgToken);
+
+                $(this).prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Uploading...');
+
+                $.ajax({
+                    url: '@Url.Action("UploadProofOfPayment", "Applications")',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (r) {
+                        alert(r.message || 'Uploaded.');
+                        $('.open-finance-gate[data-application-id="' + fgAppId + '"]').trigger('click');
+                    },
+                    error: function (err) { alert('Upload failed: ' + err.statusText); },
+                    complete: function () {
+                        $('#fgUploadBtn').prop('disabled', false).html('<i class="bi bi-cloud-arrow-up-fill"></i> Upload Proof');
+                    }
+                });
+            });
+
+            $('#fgClearBtn').on('click', function () {
+                if (!confirm('Clear this applicant financially?')) return;
+
+                $.post('@Url.Action("ClearApplicant", "Applications")', {
+                    applicationId: fgAppId,
+                    amountReceived: $('#fgAmountReceived').val() || null,
+                    notes: $('#fgClearNotes').val(),
+                    __RequestVerificationToken: fgToken
+                }).done(function (r) {
+                    alert(r.message || 'Cleared.');
+                    $('.open-finance-gate[data-application-id="' + fgAppId + '"]').trigger('click');
+                }).fail(function (err) { alert('Error: ' + err.statusText); });
+            });
+
+            $('#fgOverrideBtn').on('click', function () {
+                var reason = $('#fgOverrideSelect').val();
+                if (!reason) { alert('Please select an override reason.'); return; }
+                if (!confirm('Override financial gate for this applicant?')) return;
+
+                $.post('@Url.Action("OverrideClearance", "Applications")', {
+                    applicationId: fgAppId,
+                    overrideReason: reason,
+                    notes: $('#fgOverrideNotes').val(),
+                    __RequestVerificationToken: fgToken
+                }).done(function (r) {
+                    alert(r.message || 'Overridden.');
+                    $('.open-finance-gate[data-application-id="' + fgAppId + '"]').trigger('click');
+                }).fail(function (err) { alert('Error: ' + err.statusText); });
+            });
+
+        })();
+    </script>
+</body>
+</html>

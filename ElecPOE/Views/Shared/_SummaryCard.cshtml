@@ -1,0 +1,24 @@
+﻿@model ForekOnline.Domain.ViewModels.NotificationEventSummaryViewModel
+<div class="summary-card">
+    <h3 class="summary-title">
+        @if (!string.IsNullOrEmpty(Model.HeaderIconCss))
+        {
+            <i class="@Model.HeaderIconCss"></i>
+        }
+        @Model.Title
+    </h3>
+    <div class="summary-meta">
+        <span class="badge-window"><i class="fa fa-clock"></i> @Model.StartUtc.ToShortDateString() → @Model.EndUtc.ToShortDateString()</span>
+        <span class="badge-window"><i class="fa fa-sort-numeric-up"></i> Order @Model.DisplayOrder</span>
+    </div>
+    <div>
+        <span class="status-chip @(Model.IsActive ? "status-active" : "status-inactive")">
+            <i class="fa @(Model.IsActive ? "fa-check-circle" : "fa-pause-circle")"></i>
+            @(Model.IsActive ? "Active" : "Inactive")
+        </span>
+    </div>
+    <div class="summary-actions">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-info"><i class="fa fa-eye"></i></a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary"><i class="fa fa-pen"></i></a>
+    </div>
+</div>

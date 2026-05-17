@@ -1,0 +1,95 @@
+﻿@model ForekOnline.Domain.ViewModels.NotificationContentBlockViewModel
+@{
+    var idx = (int)ViewData["index"];
+}
+<style>
+    .block-editor {
+        background: #fff;
+        border: 1px solid #e1e4e8;
+        border-radius: 16px;
+        padding: .75rem .7rem .65rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .block-editor:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg,#32060606,#b3121708,#ff7a180a);
+            pointer-events: none;
+        }
+
+    .block-head {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: .4rem;
+    }
+
+        .block-head h6 {
+            margin: 0;
+            font-size: .58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .14rem;
+            color: #b31217;
+            flex: 1;
+        }
+
+    .remove-block-btn {
+        position: absolute;
+        top: .4rem;
+        right: .45rem;
+        font-size: .5rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .35rem .55rem;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="block-editor mb-2" data-index="@idx">
+    <input type="hidden" name="Blocks[@idx].Id" value="@Model.Id" />
+    <div class="block-head">
+        <h6>Block @idx</h6>
+        <span style="font-size:.5rem;font-weight:600;color:#666;">@Model.Type</span>
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Order</label>
+        <input name="Blocks[@idx].Order" class="form-control form-control-sm" type="number" value="@Model.Order" />
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Type</label>
+        <select name="Blocks[@idx].Type" class="form-select form-select-sm">
+            @foreach (var val in Enum.GetValues(typeof(ForekOnline.Domain.Enums.EnumRegistry.eNotificationContentType)))
+            {
+                <option value="@val" selected="@(val.Equals(Model.Type))">@val</option>
+            }
+        </select>
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Text / HTML</label>
+        <textarea name="Blocks[@idx].Text" class="form-control form-control-sm" rows="2">@Model.Text</textarea>
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">List Items (comma separated)</label>
+        <input name="Blocks[@idx].ListItems" class="form-control form-control-sm"
+               value="@(Model.ListItems != null ? string.Join(',', Model.ListItems) : string.Empty)" />
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Table JSON</label>
+        <textarea name="Blocks[@idx].TableJson" class="form-control form-control-sm" rows="2">@Model.TableJson</textarea>
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Image URL</label>
+        <input name="Blocks[@idx].ImageUrl" class="form-control form-control-sm" value="@Model.ImageUrl" />
+    </div>
+    <div class="mb-2">
+        <label class="form-label small fw-semibold">Alt Text</label>
+        <input name="Blocks[@idx].AltText" class="form-control form-control-sm" value="@Model.AltText" />
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-danger remove-block-btn">Remove</button>
+</div>

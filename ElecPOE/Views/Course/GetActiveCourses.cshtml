@@ -1,0 +1,1621 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.CourseViewModel>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    var courses = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.CourseViewModel>();
+    var typeGroups = courses.GroupBy(c => c.Type ?? "Unknown").OrderByDescending(g => g.Count()).ToList();
+    var total = courses.Count;
+    var avgCredits = courses.Any() ? courses.Where(c => c.Credit.HasValue).Average(c => c.Credit ?? 0).ToString("F0") : "0";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<style>
+    :root {
+        --p-navy: #ac1900;
+        --p-navy-light: #e65100;
+        --p-navy-dark: #0F1D45;
+        --p-indigo: #4F46E5;
+        --p-teal: #10B981;
+        --p-teal-soft: #D1FAE5;
+        --p-bg: #F8FAFC;
+        --p-bg-card: #FFFFFF;
+        --p-bg-glass: rgba(255,255,255,.72);
+        --p-border: #E2E8F0;
+        --p-border-hover: #CBD5E1;
+        --p-text: #0F172A;
+        --p-text-secondary: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-radius-sm: 8px;
+        --p-radius-md: 12px;
+        --p-radius-lg: 16px;
+        --p-radius-xl: 24px;
+        --p-shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+        --p-shadow-md: 0 4px 16px -2px rgba(15,23,42,.08), 0 2px 6px -2px rgba(15,23,42,.04);
+        --p-shadow-lg: 0 12px 40px -8px rgba(15,23,42,.12), 0 4px 12px -4px rgba(15,23,42,.06);
+        --p-shadow-xl: 0 20px 60px -12px rgba(15,23,42,.18);
+        --p-gradient: linear-gradient(135deg, #1E3A8A 0%, #4F46E5 50%, #7C3AED 100%);
+        --p-gradient-soft: linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 50%, #F5F3FF 100%);
+        --p-transition: .28s cubic-bezier(.4,0,.2,1);
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background: var(--p-bg);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .courses-shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        animation: pageIn .6s ease;
+    }
+
+    @@keyframes pageIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .accent-line {
+        height: 3px;
+        border-radius: 3px;
+        background: var(--p-gradient);
+        margin-bottom: 1.75rem;
+        animation: accentGlow 3s ease-in-out infinite alternate;
+    }
+
+    @@keyframes accentGlow {
+        0% {
+            box-shadow: 0 0 8px rgba(79,70,229,.15);
+        }
+
+        100% {
+            box-shadow: 0 0 20px rgba(79,70,229,.3);
+        }
+    }
+
+    .header-band {
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-xl);
+        padding: 1.5rem 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--p-shadow-md);
+        transition: box-shadow var(--p-transition);
+    }
+
+        .header-band:hover {
+            box-shadow: var(--p-shadow-lg);
+        }
+
+        .header-band::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--p-gradient-soft);
+            pointer-events: none;
+            opacity: .5;
+        }
+
+    .icon-pill {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: var(--p-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #fff;
+        box-shadow: 0 8px 24px -8px rgba(30,58,138,.4);
+        animation: iconPulse 3s ease-in-out infinite;
+        position: relative;
+        z-index: 1;
+    }
+
+    @@keyframes iconPulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.04);
+        }
+    }
+
+    .header-band h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        font-weight: 700;
+        color: var(--p-text);
+        letter-spacing: -.3px;
+        line-height: 1.2;
+        position: relative;
+        z-index: 1;
+        animation: titleIn .8s ease .1s both;
+    }
+
+    @@keyframes titleIn {
+        from {
+            opacity: 0;
+            transform: translateX(-12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .tagline {
+        font-size: .6rem;
+        letter-spacing: .2rem;
+        font-weight: 700;
+        background: var(--p-gradient);
+        -webkit-background-clip: text;
+        color: transparent;
+        padding: .5rem 0;
+        text-transform: uppercase;
+        margin-top: .3rem;
+        display: inline-flex;
+        gap: .4rem;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+        .tagline i {
+            color: var(--p-indigo);
+        }
+
+    .toolbar {
+        margin-left: auto;
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-act {
+        font-size: .6rem;
+        letter-spacing: .1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: .6rem 1rem;
+        border-radius: var(--p-radius-md);
+        border: 1px solid var(--p-border);
+        background: var(--p-bg-card);
+        color: var(--p-navy);
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all var(--p-transition);
+        box-shadow: var(--p-shadow-sm);
+    }
+
+        .btn-act:hover {
+            background: var(--p-navy);
+            color: #fff;
+            border-color: var(--p-navy);
+            box-shadow: 0 4px 16px -4px rgba(30,58,138,.35);
+            transform: translateY(-1px);
+        }
+
+        .btn-act i.spin-on-click {
+            transition: transform .6s ease;
+        }
+
+        .btn-act:active i.spin-on-click {
+            transform: rotate(360deg);
+        }
+
+    .btn-primary-cta {
+        background: var(--p-gradient);
+        color: #fff;
+        border: none;
+        font-weight: 700;
+        letter-spacing: .08rem;
+        padding: .7rem 1.4rem;
+        border-radius: var(--p-radius-md);
+        font-size: .7rem;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px -6px rgba(30,58,138,.4);
+        transition: all var(--p-transition);
+    }
+
+        .btn-primary-cta::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+            transition: left .5s ease;
+        }
+
+        .btn-primary-cta:hover::after {
+            left: 100%;
+        }
+
+        .btn-primary-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px -6px rgba(30,58,138,.5);
+        }
+
+    .summary-grid {
+        margin-top: 1.75rem;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .sum-card {
+        position: relative;
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-lg);
+        padding: 1.25rem 1.2rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        overflow: hidden;
+        transition: all var(--p-transition);
+        box-shadow: var(--p-shadow-sm);
+        border-left: 4px solid var(--p-border);
+    }
+
+        .sum-card:nth-child(1) {
+            border-left-color: var(--p-navy);
+        }
+
+        .sum-card:nth-child(2) {
+            border-left-color: var(--p-indigo);
+        }
+
+        .sum-card:nth-child(3) {
+            border-left-color: var(--p-teal);
+        }
+
+        .sum-card:nth-child(4) {
+            border-left-color: #F59E0B;
+        }
+
+        .sum-card:nth-child(5) {
+            border-left-color: #EF4444;
+        }
+
+        .sum-card:nth-child(6) {
+            border-left-color: #8B5CF6;
+        }
+
+        .sum-card:nth-child(7) {
+            border-left-color: #06B6D4;
+        }
+
+        .sum-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--p-shadow-lg);
+            border-color: var(--p-border-hover);
+        }
+
+    .sum-label {
+        font-size: .52rem;
+        letter-spacing: .18rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--p-text-muted);
+    }
+
+    .sum-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1;
+        background: var(--p-gradient);
+        -webkit-background-clip: text;
+        color: transparent;
+        letter-spacing: -.5px;
+    }
+
+    .sum-chip {
+        font-size: .48rem;
+        letter-spacing: .12rem;
+        font-weight: 700;
+        background: #EEF2FF;
+        color: var(--p-navy);
+        padding: .3rem .6rem;
+        border-radius: 30px;
+        align-self: flex-start;
+    }
+
+    .filter-bar {
+        margin-top: 1.75rem;
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-xl);
+        padding: 1.1rem 1.25rem 1rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        box-shadow: var(--p-shadow-sm);
+        backdrop-filter: blur(8px);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+        .filter-group label {
+            font-size: .5rem;
+            letter-spacing: .16rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--p-text-muted);
+        }
+
+    .filter-bar input[type="text"],
+    .filter-bar input[type="number"],
+    .filter-bar select {
+        background: var(--p-bg);
+        border: 1px solid var(--p-border);
+        font-size: .72rem;
+        padding: .55rem .75rem;
+        border-radius: var(--p-radius-sm);
+        min-width: 160px;
+        transition: all var(--p-transition);
+        color: var(--p-text);
+    }
+
+        .filter-bar input:focus, .filter-bar select:focus {
+            outline: none;
+            border-color: var(--p-indigo);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            background: #fff;
+        }
+
+    .search-wrap {
+        position: relative;
+        flex: 1 1 300px;
+    }
+
+        .search-wrap i {
+            position: absolute;
+            top: 50%;
+            left: .85rem;
+            transform: translateY(-50%);
+            font-size: .72rem;
+            color: var(--p-text-muted);
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding-left: 2.3rem;
+        }
+
+        .search-wrap .kbd-hint {
+            position: absolute;
+            top: 50%;
+            right: .75rem;
+            transform: translateY(-50%);
+            font-size: .5rem;
+            letter-spacing: .08rem;
+            font-weight: 600;
+            color: var(--p-text-muted);
+            background: var(--p-bg);
+            border: 1px solid var(--p-border);
+            padding: .15rem .4rem;
+            border-radius: 4px;
+        }
+
+    .view-toggle {
+        display: flex;
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-sm);
+        overflow: hidden;
+        margin-left: auto;
+    }
+
+        .view-toggle button {
+            background: var(--p-bg);
+            border: none;
+            padding: .5rem .7rem;
+            cursor: pointer;
+            color: var(--p-text-muted);
+            transition: all var(--p-transition);
+            font-size: .7rem;
+        }
+
+            .view-toggle button.active {
+                background: var(--p-navy);
+                color: #fff;
+            }
+
+            .view-toggle button:hover:not(.active) {
+                background: #EEF2FF;
+                color: var(--p-navy);
+            }
+
+    .table-shell {
+        margin-top: 1.4rem;
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-xl);
+        padding: 1.4rem 1.3rem 1.1rem;
+        overflow: hidden;
+        box-shadow: var(--p-shadow-sm);
+        transition: box-shadow var(--p-transition);
+    }
+
+        .table-shell:hover {
+            box-shadow: var(--p-shadow-md);
+        }
+
+    .table-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .6rem;
+        margin-bottom: .8rem;
+        font-size: .55rem;
+        letter-spacing: .12rem;
+        font-weight: 600;
+        color: var(--p-text-muted);
+    }
+
+        .table-meta span.badge {
+            background: #EEF2FF;
+            color: var(--p-navy);
+            padding: .4rem .7rem;
+            border-radius: 30px;
+            font-size: .52rem;
+            font-weight: 700;
+            letter-spacing: .1rem;
+        }
+
+    .table-scroll {
+        overflow-x: auto;
+    }
+
+    .courses-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .72rem;
+    }
+
+        .courses-table thead th {
+            background: var(--p-navy);
+            color: #fff;
+            font-size: .52rem;
+            letter-spacing: .2rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: .7rem .75rem;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            border-bottom: 2px solid var(--p-navy-dark);
+        }
+
+            .courses-table thead th:first-child {
+                border-radius: var(--p-radius-sm) 0 0 0;
+            }
+
+            .courses-table thead th:last-child {
+                border-radius: 0 var(--p-radius-sm) 0 0;
+            }
+
+        .courses-table tbody tr {
+            transition: all var(--p-transition);
+        }
+
+            .courses-table tbody tr:nth-child(even) {
+                background: #FAFBFD;
+            }
+
+            .courses-table tbody tr:nth-child(odd) {
+                background: #fff;
+            }
+
+            .courses-table tbody tr:hover {
+                background: #EEF2FF;
+            }
+
+        .courses-table td {
+            padding: .6rem .75rem;
+            border-bottom: 1px solid var(--p-border);
+            vertical-align: middle;
+            color: var(--p-text);
+        }
+
+            .courses-table td.course-name {
+                font-weight: 600;
+                color: var(--p-text);
+                max-width: 280px;
+            }
+
+    .action-pill {
+        font-weight: 600;
+        font-size: .52rem;
+        letter-spacing: .06rem;
+        text-transform: uppercase;
+        background: #EEF2FF;
+        padding: .45rem .7rem;
+        border: 1px solid #C7D2FE;
+        border-radius: 30px;
+        text-decoration: none;
+        display: inline-flex;
+        gap: .35rem;
+        align-items: center;
+        color: var(--p-navy);
+        transition: all var(--p-transition);
+    }
+
+        .action-pill:hover {
+            background: var(--p-navy);
+            color: #fff;
+            border-color: var(--p-navy);
+            box-shadow: 0 4px 12px -4px rgba(30,58,138,.35);
+            transform: translateY(-1px);
+        }
+
+        .action-pill.modules-pill {
+            background: #F0FDF4;
+            color: #15803D;
+            border-color: #BBF7D0;
+        }
+
+            .action-pill.modules-pill:hover {
+                background: #15803D;
+                color: #fff;
+                border-color: #15803D;
+            }
+
+    .badge-type {
+        font-size: .5rem;
+        padding: .35rem .6rem;
+        border-radius: 30px;
+        font-weight: 700;
+        letter-spacing: .08rem;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+        background: #EEF2FF;
+        color: var(--p-navy);
+        border: 1px solid #C7D2FE;
+    }
+
+    .date-display {
+        font-size: .65rem;
+        color: var(--p-text-secondary);
+    }
+
+        .date-display .relative {
+            font-weight: 600;
+            color: var(--p-text);
+        }
+
+    .cb-cell {
+        width: 36px;
+        text-align: center;
+    }
+
+        .cb-cell input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--p-navy);
+            border-radius: 4px;
+        }
+
+    .hidden-row {
+        display: none !important;
+    }
+
+    .limit-note {
+        font-size: .5rem;
+        letter-spacing: .12rem;
+        font-weight: 700;
+        background: #FEF3C7;
+        color: #92400E;
+        padding: .35rem .6rem;
+        border-radius: 30px;
+        display: inline-flex;
+        gap: .35rem;
+        align-items: center;
+    }
+
+    .grid-view {
+        display: none;
+    }
+
+        .grid-view.active {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+    .list-view.hidden {
+        display: none;
+    }
+
+    .course-grid-card {
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-lg);
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+        box-shadow: var(--p-shadow-sm);
+        transition: all var(--p-transition);
+        cursor: default;
+    }
+
+        .course-grid-card:hover {
+            border-color: var(--p-border-hover);
+            box-shadow: var(--p-shadow-lg);
+            transform: translateY(-3px);
+        }
+
+        .course-grid-card .card-title {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--p-text);
+            line-height: 1.3;
+        }
+
+        .course-grid-card .card-meta {
+            font-size: .6rem;
+            color: var(--p-text-muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .course-grid-card .card-actions {
+            display: flex;
+            gap: .5rem;
+            margin-top: auto;
+            padding-top: .5rem;
+            border-top: 1px solid var(--p-border);
+        }
+
+    .bottom-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .6rem;
+        margin-top: .8rem;
+        font-size: .55rem;
+        letter-spacing: .1rem;
+        color: var(--p-text-muted);
+        flex-wrap: wrap;
+    }
+
+    .btn-mini {
+        padding: .4rem .7rem;
+        font-size: .5rem;
+        letter-spacing: .12rem;
+        border-radius: var(--p-radius-sm);
+        border: 1px solid var(--p-border);
+        background: var(--p-bg-card);
+        color: var(--p-navy);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all var(--p-transition);
+    }
+
+        .btn-mini:hover {
+            background: var(--p-navy);
+            color: #fff;
+        }
+
+    .kbd-bottom {
+        font-size: .48rem;
+        color: var(--p-text-muted);
+        display: flex;
+        gap: .4rem;
+        align-items: center;
+    }
+
+        .kbd-bottom kbd {
+            background: var(--p-bg);
+            border: 1px solid var(--p-border);
+            padding: .15rem .35rem;
+            border-radius: 4px;
+            font-size: .45rem;
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+        .empty-state .empty-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 28px;
+            background: var(--p-gradient-soft);
+            border: 1px solid var(--p-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--p-indigo);
+        }
+
+        .empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--p-text);
+            margin: 0;
+        }
+
+        .empty-state p {
+            font-size: .75rem;
+            color: var(--p-text-muted);
+            max-width: 380px;
+            margin: 0;
+        }
+
+    .skeleton-row {
+        animation: shimmer 1.6s ease-in-out infinite;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: .4;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .modal-backdrop {
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-add .modal-content {
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-xl);
+        box-shadow: var(--p-shadow-xl);
+        overflow: hidden;
+    }
+
+    .modal-add .modal-header {
+        background: var(--p-gradient);
+        color: #fff;
+        border: none;
+        padding: 1.5rem 2rem 1.3rem;
+        position: relative;
+    }
+
+        .modal-add .modal-header h5 {
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: .3px;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .modal-add .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: .8;
+        }
+
+        .modal-add .modal-header .modal-subtitle {
+            font-size: .6rem;
+            letter-spacing: .16rem;
+            font-weight: 600;
+            opacity: .75;
+            margin-top: .3rem;
+        }
+
+    .modal-add .modal-body {
+        padding: 2rem 2rem 1.5rem;
+        background: var(--p-bg);
+    }
+
+    .modal-add .modal-footer {
+        background: var(--p-bg-card);
+        border-top: 1px solid var(--p-border);
+        padding: 1rem 2rem;
+    }
+
+    .modal-form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+    }
+
+    .modal-form-group {
+        flex: 1 1 240px;
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+
+        .modal-form-group label {
+            font-size: .55rem;
+            font-weight: 700;
+            color: var(--p-text-muted);
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+        }
+
+        .modal-form-group input,
+        .modal-form-group select {
+            border: 1px solid var(--p-border);
+            border-radius: var(--p-radius-sm);
+            font-size: .82rem;
+            padding: .6rem .8rem;
+            background: #fff;
+            transition: all var(--p-transition);
+            color: var(--p-text);
+        }
+
+            .modal-form-group input:focus,
+            .modal-form-group select:focus {
+                outline: none;
+                border-color: var(--p-indigo);
+                box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            }
+
+    .dup-panel {
+        background: #FFFBEB;
+        border: 1px solid #FDE68A;
+        border-radius: var(--p-radius-md);
+        padding: .85rem 1rem;
+        margin-top: .8rem;
+        display: none;
+        animation: slideDown .3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dup-panel .dup-title {
+        font-size: .6rem;
+        font-weight: 700;
+        letter-spacing: .1rem;
+        color: #92400E;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        margin-bottom: .5rem;
+    }
+
+    .dup-panel .dup-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .dup-panel .dup-list li {
+            font-size: .68rem;
+            padding: .35rem .5rem;
+            border-radius: var(--p-radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #78350F;
+            transition: background .2s;
+        }
+
+            .dup-panel .dup-list li:hover {
+                background: #FEF3C7;
+            }
+
+            .dup-panel .dup-list li .dup-type {
+                font-size: .5rem;
+                font-weight: 700;
+                letter-spacing: .08rem;
+                background: #FDE68A;
+                color: #78350F;
+                padding: .2rem .4rem;
+                border-radius: 20px;
+            }
+
+    .dup-panel .dup-proceed {
+        margin-top: .6rem;
+        font-size: .55rem;
+        font-weight: 600;
+        color: #92400E;
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    .export-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .export-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: .4rem;
+        background: var(--p-bg-card);
+        border: 1px solid var(--p-border);
+        border-radius: var(--p-radius-md);
+        box-shadow: var(--p-shadow-lg);
+        min-width: 180px;
+        z-index: 50;
+        overflow: hidden;
+        animation: menuIn .2s ease;
+    }
+
+    @@keyframes menuIn {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .export-menu.show {
+        display: block;
+    }
+
+    .export-menu button {
+        width: 100%;
+        text-align: left;
+        border: none;
+        background: none;
+        padding: .6rem 1rem;
+        font-size: .62rem;
+        font-weight: 600;
+        color: var(--p-text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        transition: background .2s;
+        letter-spacing: .04rem;
+    }
+
+        .export-menu button:hover {
+            background: #EEF2FF;
+            color: var(--p-navy);
+        }
+
+        .export-menu button i {
+            width: 16px;
+            text-align: center;
+            color: var(--p-text-muted);
+        }
+
+    @@media (max-width: 900px) {
+        .courses-table thead th:nth-child(6), .courses-table td:nth-child(6) {
+            display: none;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+
+    @@media (max-width: 740px) {
+        .courses-table thead th:nth-child(5), .courses-table td:nth-child(5) {
+            display: none;
+        }
+
+        .header-band {
+            padding: 1.2rem;
+        }
+
+        .icon-pill {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+
+        .header-band h1 {
+            font-size: 1.3rem;
+        }
+
+        .filter-bar {
+            padding: .9rem;
+        }
+    }
+
+    @@media (max-width: 540px) {
+        .courses-table thead th:nth-child(7), .courses-table td:nth-child(7) {
+            display: none;
+        }
+
+        .toolbar {
+            margin-left: 0;
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+</style>
+
+<div class="courses-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-graduation-cap"></i></div>
+        <div>
+            <h1>Active Courses</h1>
+            <div class="tagline"><i class="fa fa-layer-group"></i> ACADEMIC MANAGEMENT</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-act" id="btnRefresh" title="Refresh">
+                <i class="fa fa-rotate spin-on-click"></i>
+            </button>
+            <div class="export-dropdown">
+                <button type="button" class="btn-act" id="btnExportToggle">
+                    <i class="fa fa-file-export"></i> Export <i class="fa fa-chevron-down" style="font-size:.45rem;"></i>
+                </button>
+                <div class="export-menu" id="exportMenu">
+                    <button type="button" id="btnExportCsv"><i class="fa fa-file-csv"></i> Export CSV</button>
+                    <button type="button" id="btnExportJson"><i class="fa fa-code"></i> Export JSON</button>
+                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-pdf"></i> Export PDF (soon)</button>
+                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-excel"></i> Export Excel (soon)</button>
+                </div>
+            </div>
+            <button type="button" class="btn-primary-cta" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                <i class="fa fa-plus"></i> Add Course
+            </button>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="sum-card">
+            <div class="sum-label">Total Courses</div>
+            <div class="sum-value" data-count="@total">0</div>
+            <div class="sum-chip"><i class="fa fa-database"></i> RECORDS</div>
+        </div>
+        <div class="sum-card">
+            <div class="sum-label">Avg Credits</div>
+            <div class="sum-value" data-count="@avgCredits">0</div>
+            <div class="sum-chip"><i class="fa fa-star"></i> MEAN</div>
+        </div>
+        @foreach (var g in typeGroups)
+        {
+            <div class="sum-card">
+                <div class="sum-label">@g.Key</div>
+                <div class="sum-value" data-count="@g.Count()">0</div>
+                <div class="sum-chip">@g.Key.ToUpperInvariant()</div>
+            </div>
+        }
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search courses, type, added by..." autocomplete="off" />
+            <span class="kbd-hint">Ctrl+K</span>
+        </div>
+        <div class="filter-group">
+            <label>Type</label>
+            <select id="typeFilter">
+                <option value="">All Types</option>
+                @foreach (var g in typeGroups)
+                {
+                    <option value="@g.Key">@g.Key</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Min Credits</label>
+            <input id="minCredit" type="number" min="0" placeholder="0" style="max-width:100px;" />
+        </div>
+        <div class="view-toggle">
+            <button type="button" class="active" data-view="list" title="List View"><i class="fa fa-list"></i></button>
+            <button type="button" data-view="grid" title="Grid View"><i class="fa fa-grip"></i></button>
+        </div>
+    </div>
+
+    <div class="table-shell list-view" id="listView">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge">Showing @courses.Count record(s)</span>
+            <span id="filterInfo"></span>
+            <span id="limitNote" class="limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED TO 200</span>
+        </div>
+
+        @if (!courses.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa fa-book-open"></i></div>
+                <h3>No Courses Found</h3>
+                <p>Get started by adding your first course. Click the "Add Course" button above to begin.</p>
+                <button type="button" class="btn-primary-cta" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                    <i class="fa fa-plus"></i> Add Your First Course
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="courses-table" id="coursesTable">
+                    <thead>
+                        <tr>
+                            <th class="cb-cell"><input type="checkbox" id="selectAll" title="Select All" /></th>
+                            <th>Action</th>
+                            <th>Course</th>
+                            <th>Type</th>
+                            <th>Credits</th>
+                            <th>Added By</th>
+                            <th>Added On</th>
+                            <th>Modules</th>
+                        </tr>
+                    </thead>
+                    <tbody id="coursesBody">
+                        @foreach (var c in courses)
+                        {
+                            var created = c.CreatedOn;
+                            <tr data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit" data-added="@c.CreatedBy" data-name="@c.CourseName">
+                                <td class="cb-cell"><input type="checkbox" class="row-cb" value="@c.CourseId" /></td>
+                                <td>
+                                    <a class="action-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
+                                        <i class="fa fa-arrow-right"></i> Open
+                                    </a>
+                                </td>
+                                <td class="course-name">@c.CourseName</td>
+                                <td><span class="badge-type">@c.Type</span></td>
+                                <td>@c.Credit</td>
+                                <td>@c.CreatedBy</td>
+                                <td>
+                                    <span class="date-display" title="@created">
+                                        <span class="relative" data-date="@created">@created</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a class="action-pill modules-pill" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
+                                        <i class="fa fa-book"></i> Modules
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bottom-bar">
+                <div>
+                    <button id="btnShowAll" class="btn-mini" type="button" style="display:none;"><i class="fa fa-list"></i> Show All</button>
+                    <button id="btnLimit" class="btn-mini" type="button" style="display:none;"><i class="fa fa-compress"></i> Limit</button>
+                </div>
+                <div class="kbd-bottom">
+                    <kbd>Ctrl</kbd>+<kbd>K</kbd> Search
+                </div>
+                <div id="perfInfo"></div>
+            </div>
+        }
+    </div>
+
+    <div class="grid-view" id="gridView">
+        @foreach (var c in courses)
+        {
+            <div class="course-grid-card" data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit" data-added="@c.CreatedBy" data-name="@c.CourseName">
+                <div class="card-title">@c.CourseName</div>
+                <span class="badge-type" style="align-self:flex-start;">@c.Type</span>
+                <div class="card-meta">
+                    <span><i class="fa fa-star"></i> @c.Credit credits</span>
+                    <span><i class="fa fa-user"></i> @c.CreatedBy</span>
+                    <span><i class="fa fa-calendar"></i> @c.CreatedOn</span>
+                </div>
+                <div class="card-actions">
+                    <a class="action-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
+                        <i class="fa fa-arrow-right"></i> Open
+                    </a>
+                    <a class="action-pill modules-pill" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
+                        <i class="fa fa-book"></i> Modules
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade modal-add" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="addCourseModalLabel">
+                        <i class="fa fa-plus-circle"></i> Add New Course
+                    </h5>
+                    <div class="modal-subtitle">COURSE REGISTRATION</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Course" asp-controller="Course" method="post" id="addCourseForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="modal-form-row">
+                        <div class="modal-form-group">
+                            <label>Course Type</label>
+                            <select name="Type" class="CType" id="modalCourseType" required>
+                                <option selected value="">Select Course Type</option>
+                                @foreach (var val in Enum.GetValues<eCourseType>())
+                                {
+                                    var display = ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val);
+                                    <option value="@((int)val)">@display</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Course Name</label>
+                            <input name="Name" id="modalCourseName" required placeholder="Start typing to check duplicates..." autocomplete="off" />
+                        </div>
+                    </div>
+
+                    <div class="dup-panel" id="dupPanel">
+                        <div class="dup-title">
+                            <i class="fa fa-exclamation-triangle"></i> Potential Duplicates Found
+                        </div>
+                        <ul class="dup-list" id="dupList"></ul>
+                        <div class="dup-proceed">
+                            <i class="fa fa-info-circle"></i> Do you still want to proceed? This course might already exist.
+                        </div>
+                    </div>
+
+                    <div class="modal-form-row" style="margin-top:1rem;">
+                        <div class="modal-form-group Level" id="modalLevelGroup">
+                            <label>NQF Level</label>
+                            <select name="CourseNQFLevel">
+                                <option selected value="">Select NQF Level</option>
+                                @foreach (var val in Enum.GetValues<eNQF>())
+                                {
+                                    var display = ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val);
+                                    <option value="@((int)val)">@display</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="modal-form-group NType" id="modalNTypeGroup" style="display:none;">
+                            <label>N Type</label>
+                            <select name="NType">
+                                <option selected value="">Select Option</option>
+                                @foreach (var val in Enum.GetValues<eNType>())
+                                {
+                                    <option value="@((int)val)">@val</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Course Credit</label>
+                            <input name="CourseCredit" required type="number" min="0" step="1" placeholder="e.g. 120" />
+                        </div>
+                        <div class="modal-form-group">
+                            <label>Minimum Requirements</label>
+                            <select name="MinimumRequirement">
+                                <option selected value="">Select Minimum Requirement</option>
+                                @foreach (var val in Enum.GetValues<eMinimumRequirement>())
+                                {
+                                    var display = ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val);
+                                    <option value="@((int)val)">@display</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1.2rem; display:flex; align-items:center; gap:.6rem;">
+                        <input name="IsEligibleForOnlineApplications" type="checkbox" id="modalEligibility"
+                               style="width:18px;height:18px;accent-color:var(--p-navy);cursor:pointer;" />
+                        <label for="modalEligibility" style="font-size:.72rem;font-weight:600;color:var(--p-text);cursor:pointer;margin:0;letter-spacing:.02rem;">
+                            Eligible for Online Applications
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
+                    <button type="submit" class="btn-primary-cta" id="btnSaveCourse"><i class="fa fa-save"></i> Save Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function () {
+        const DEFAULT_LIMIT = 200;
+        const body = document.getElementById('coursesBody');
+        const searchBox = document.getElementById('searchBox');
+        const typeFilter = document.getElementById('typeFilter');
+        const minCredit = document.getElementById('minCredit');
+        const rowsInfo = document.getElementById('rowsInfo');
+        const filterInfo = document.getElementById('filterInfo');
+        const limitNote = document.getElementById('limitNote');
+        const btnShowAll = document.getElementById('btnShowAll');
+        const btnLimit = document.getElementById('btnLimit');
+        const perfInfo = document.getElementById('perfInfo');
+        let limitedMode = true;
+
+        function norm(v) { return (v || '').toString().toLowerCase().trim(); }
+
+        document.querySelectorAll('.sum-value[data-count]').forEach(el => {
+            const target = parseInt(el.getAttribute('data-count')) || 0;
+            const duration = 800;
+            const start = performance.now();
+            function step(now) {
+                const progress = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(eased * target);
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        });
+
+        function applyFilters() {
+            if (!body) return;
+            const t0 = performance.now();
+            const q = norm(searchBox.value);
+            const tp = typeFilter.value;
+            const minC = parseFloat(minCredit.value) || 0;
+            const filtering = !!(q || tp || minC > 0);
+            const rows = Array.from(body.querySelectorAll('tr'));
+            const gridCards = document.querySelectorAll('#gridView .course-grid-card');
+            let shown = 0, matched = 0;
+
+            rows.forEach(r => {
+                const text = norm(r.innerText);
+                const rt = r.getAttribute('data-type');
+                const rc = parseFloat(r.getAttribute('data-credit')) || 0;
+                let show = true;
+                if (q && !text.includes(q)) show = false;
+                if (tp && rt !== tp) show = false;
+                if (minC > 0 && rc < minC) show = false;
+                if (show) {
+                    matched++;
+                    if (limitedMode && !filtering && shown >= DEFAULT_LIMIT) show = false;
+                }
+                r.classList.toggle('hidden-row', !show);
+                if (show) shown++;
+            });
+
+            gridCards.forEach(card => {
+                const text = norm(card.innerText);
+                const rt = card.getAttribute('data-type');
+                const rc = parseFloat(card.getAttribute('data-credit')) || 0;
+                let show = true;
+                if (q && !text.includes(q)) show = false;
+                if (tp && rt !== tp) show = false;
+                if (minC > 0 && rc < minC) show = false;
+                card.style.display = show ? '' : 'none';
+            });
+
+            if (rowsInfo) rowsInfo.textContent = 'Showing ' + shown + ' record(s)' + (filtering ? ' (filtered)' : '');
+            if (filterInfo) filterInfo.textContent = filtering ? 'FILTERED' : (limitedMode ? '' : '');
+            if (limitNote) limitNote.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+            if (btnShowAll) btnShowAll.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+            if (btnLimit) btnLimit.style.display = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+            if (perfInfo) perfInfo.textContent = 'Render: ' + (performance.now() - t0).toFixed(1) + 'ms';
+        }
+
+        if (searchBox) searchBox.addEventListener('input', () => { limitedMode = false; applyFilters(); });
+        if (typeFilter) typeFilter.addEventListener('change', () => { limitedMode = false; applyFilters(); });
+        if (minCredit) minCredit.addEventListener('input', () => { limitedMode = false; applyFilters(); });
+        if (btnShowAll) btnShowAll.addEventListener('click', () => { limitedMode = false; applyFilters(); });
+        if (btnLimit) btnLimit.addEventListener('click', () => { limitedMode = true; applyFilters(); });
+
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (searchBox) searchBox.focus();
+            }
+        });
+
+        const btnRefresh = document.getElementById('btnRefresh');
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', () => {
+                const icon = btnRefresh.querySelector('i');
+                icon.style.transform = 'rotate(360deg)';
+                setTimeout(() => { icon.style.transform = ''; location.reload(); }, 600);
+            });
+        }
+
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.addEventListener('change', () => {
+                document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = selectAll.checked; });
+            });
+        }
+
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const view = btn.getAttribute('data-view');
+                const listView = document.getElementById('listView');
+                const gridView = document.getElementById('gridView');
+                if (view === 'grid') {
+                    listView.classList.add('hidden');
+                    gridView.classList.add('active');
+                } else {
+                    listView.classList.remove('hidden');
+                    gridView.classList.remove('active');
+                }
+            });
+        });
+
+        const exportToggle = document.getElementById('btnExportToggle');
+        const exportMenu = document.getElementById('exportMenu');
+        if (exportToggle && exportMenu) {
+            exportToggle.addEventListener('click', e => {
+                e.stopPropagation();
+                exportMenu.classList.toggle('show');
+            });
+            document.addEventListener('click', () => exportMenu.classList.remove('show'));
+        }
+
+        const btnExportCsv = document.getElementById('btnExportCsv');
+        if (btnExportCsv && body) {
+            btnExportCsv.addEventListener('click', () => {
+                exportMenu.classList.remove('show');
+                const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
+                if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
+                const lines = ['Course,Type,Credits,AddedBy,AddedOn'];
+                visible.forEach(r => {
+                    const cells = r.querySelectorAll('td');
+                    const row = [cells[2], cells[3], cells[4], cells[5], cells[6]]
+                        .map(td => '"' + (td?.innerText?.trim() || '').replace(/"/g, '""') + '"').join(',');
+                    lines.push(row);
+                });
+                const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = 'courses-' + new Date().toISOString().slice(0, 10) + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            });
+        }
+
+        const btnExportJson = document.getElementById('btnExportJson');
+        if (btnExportJson && body) {
+            btnExportJson.addEventListener('click', () => {
+                exportMenu.classList.remove('show');
+                const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
+                if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
+                const data = visible.map(r => {
+                    const cells = r.querySelectorAll('td');
+                    return {
+                        course: cells[2]?.innerText?.trim() || '',
+                        type: cells[3]?.innerText?.trim() || '',
+                        credits: cells[4]?.innerText?.trim() || '',
+                        addedBy: cells[5]?.innerText?.trim() || '',
+                        addedOn: cells[6]?.innerText?.trim() || ''
+                    };
+                });
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = 'courses-' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            });
+        }
+
+        const modalCourseType = document.getElementById('modalCourseType');
+        const modalLevelGroup = document.getElementById('modalLevelGroup');
+        const modalNTypeGroup = document.getElementById('modalNTypeGroup');
+        if (modalCourseType) {
+            modalCourseType.addEventListener('change', () => {
+                const text = modalCourseType.options[modalCourseType.selectedIndex]?.text || '';
+                if (text.includes('Nated')) {
+                    modalNTypeGroup.style.display = '';
+                    modalLevelGroup.style.display = 'none';
+                } else {
+                    modalNTypeGroup.style.display = 'none';
+                    modalLevelGroup.style.display = '';
+                }
+            });
+        }
+
+        const modalCourseName = document.getElementById('modalCourseName');
+        const dupPanel = document.getElementById('dupPanel');
+        const dupList = document.getElementById('dupList');
+        let dupTimeout = null;
+
+                if (modalCourseName) {
+            modalCourseName.addEventListener('input', () => {
+                clearTimeout(dupTimeout);
+                const q = modalCourseName.value.trim();
+                if (q.length < 2) {
+                    dupPanel.style.display = 'none';
+                    return;
+                }
+                dupTimeout = setTimeout(() => {
+                    fetch('/Course/SearchCoursesByName?q=' + encodeURIComponent(q))
+                        .then(r => r.json())
+                        .then(results => {
+                            if (results.length === 0) {
+                                dupPanel.style.display = 'none';
+                                return;
+                            }
+                            dupList.innerHTML = '';
+                            results.forEach(c => {
+                                const li = document.createElement('li');
+                                li.innerHTML = '<span>' + escapeHtml(c.name) + '</span><span class="dup-type">' + escapeHtml(c.type) + ' &bull; ' + (c.credit || 0) + ' credits</span>';
+                                dupList.appendChild(li);
+                            });
+                            dupPanel.style.display = 'block';
+                        })
+                        .catch(() => { dupPanel.style.display = 'none'; });
+                }, 350);
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        document.querySelectorAll('.relative[data-date]').forEach(el => {
+            const raw = el.getAttribute('data-date');
+            if (!raw) return;
+            try {
+                const d = new Date(raw);
+                if (isNaN(d.getTime())) return;
+                const now = new Date();
+                const diffMs = now - d;
+                const diffDays = Math.floor(diffMs / 86400000);
+                let text;
+                if (diffDays === 0) text = 'Today';
+                else if (diffDays === 1) text = 'Yesterday';
+                else if (diffDays < 7) text = diffDays + ' days ago';
+                else if (diffDays < 30) text = Math.floor(diffDays / 7) + 'w ago';
+                else text = d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
+                el.textContent = text;
+                el.closest('.date-display').title = d.toLocaleString('en-ZA');
+            } catch {  }
+        });
+
+        applyFilters();
+    })();
+</script>

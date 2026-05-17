@@ -1,0 +1,328 @@
+﻿@model ForekOnline.Domain.ViewModels.CompanyAddressContactViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Edit Host Company";
+    bool isEdit = Model?.CompanyId != Guid.Empty;
+    var hasLat = Model?.GetType().GetProperty("Latitude") != null;
+    var hasLng = Model?.GetType().GetProperty("Longitude") != null;
+}
+
+<style>
+:root{
+    --cmp-bg:#ffffff;--cmp-bg-alt:#f6f8fa;--cmp-border:#e2e5ea;
+    --cmp-accent:#7d0e11;--cmp-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --cmp-soft:#fff4f2;--cmp-text:#20262d;--cmp-muted:#66717d;
+    --cmp-shadow:0 14px 34px -18px rgba(125,14,17,.28),0 6px 18px -10px rgba(125,14,17,.18);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+body{background:var(--cmp-bg-alt);margin:0;color:var(--cmp-text);}
+.page-shell{max-width:1280px;margin:0 auto;padding:1.9rem 1.25rem 2.4rem;display:flex;flex-direction:column;gap:1.6rem;}
+
+.header-band{background:var(--cmp-bg);border:1px solid var(--cmp-border);border-radius:32px;padding:1.25rem 1.5rem 1.2rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;}
+.icon-pill{width:76px;height:76px;border-radius:26px;background:var(--cmp-accent-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.95rem;box-shadow:0 12px 28px -14px rgba(179,18,23,.5);}
+.header-band h1{margin:0;font-size:1.45rem;font-weight:600;letter-spacing:.5px;}
+.tagline{font-size:.55rem;letter-spacing:.18rem;font-weight:700;background:var(--cmp-soft);color:var(--cmp-accent);padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;}
+
+.toolbar{margin-left:auto;display:flex;flex-wrap:wrap;gap:.55rem;}
+.btn{font-size:.58rem;letter-spacing:.11rem;font-weight:600;text-transform:uppercase;padding:.6rem 1rem;border-radius:18px;border:1px solid var(--cmp-border);background:#fff;color:var(--cmp-accent);display:inline-flex;align-items:center;gap:.45rem;text-decoration:none;cursor:pointer;transition:.3s;}
+.btn:hover{background:var(--cmp-accent-grad);color:#fff;border-color:var(--cmp-accent);box-shadow:var(--cmp-shadow);}
+.btn-accent{background:var(--cmp-accent-grad);color:#fff;border:1px solid var(--cmp-accent);} .btn-accent:hover{filter:brightness(.92);}
+.btn-outline{background:#fff;color:var(--cmp-accent);border:1px solid var(--cmp-accent);} .btn-outline:hover{background:var(--cmp-accent-grad);color:#fff;}
+.btn-danger-soft{background:#ffe8ea;color:#7d0e11;border:1px solid #f6c9cf;} .btn-danger-soft:hover{background:var(--cmp-accent-grad);color:#fff;border-color:var(--cmp-accent);}
+
+.grid{display:grid;gap:1.35rem;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));}
+.section{background:var(--cmp-bg);border:1px solid var(--cmp-border);border-radius:28px;padding:1.05rem 1.15rem .95rem;display:flex;flex-direction:column;gap:.95rem;}
+.section-head{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.section-head h2{margin:0;font-size:.68rem;letter-spacing:.2rem;font-weight:700;text-transform:uppercase;color:var(--cmp-accent);display:flex;align-items:center;gap:.5rem;}
+
+.field-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+.field{display:flex;flex-direction:column;gap:.35rem;}
+.field label{font-size:.5rem;letter-spacing:.14rem;text-transform:uppercase;font-weight:700;color:#565f66;display:flex;align-items:center;gap:.4rem;}
+.required:after{content:"*";color:#b31217;font-weight:800;margin-left:.25rem;}
+.input-wrap{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--cmp-border);padding:.55rem .7rem;border-radius:14px;transition:.25s;}
+.input-wrap:focus-within{border-color:#b31217;box-shadow:0 0 0 .16rem #b3121724;}
+.input-wrap i{font-size:.7rem;color:#848c94;}
+.field input[type=text],.field input[type=email],.field input[type=number],.field select{border:none;background:transparent;outline:none;width:100%;font-size:.7rem;color:var(--cmp-text);}
+
+.toggle-box{display:inline-flex;align-items:center;gap:.55rem;background:#f4f6f8;border:1px solid var(--cmp-border);padding:.5rem .7rem;border-radius:14px;font-size:.55rem;font-weight:600;}
+.toggle-box input{transform:scale(1.15);cursor:pointer;}
+
+.validation-summary{font-size:.58rem;border:1px solid #f1d0d4;background:#fff5f7;color:#7d0e11;padding:.7rem .85rem;border-radius:16px;}
+
+.map-actions-wrapper{display:flex;flex-wrap:wrap;gap:1rem;align-items:stretch;}
+.map-box{flex:1 1 340px;min-width:320px;height:300px;border:1px solid var(--cmp-border);border-radius:22px;overflow:hidden;position:relative;background:#fff;}
+.map-hint{position:absolute;top:.5rem;left:.6rem;background:var(--cmp-soft);padding:.3rem .55rem;border-radius:12px;font-size:.5rem;letter-spacing:.07rem;font-weight:600;color:var(--cmp-accent);}
+.map-coords{position:absolute;bottom:.5rem;right:.6rem;background:#fff;padding:.35rem .55rem;border-radius:12px;font-size:.5rem;letter-spacing:.07rem;font-weight:600;color:#333;border:1px solid var(--cmp-border);}
+.note{font-size:.5rem;letter-spacing:.12rem;color:var(--cmp-muted);margin:.15rem 0 0;}
+
+@@media (max-width:760px){
+  .map-box{height:260px;}
+}
+
+/* Mobile sticky quick actions */
+@@media (max-width:620px){
+  .sticky-bar{position:fixed;bottom:.6rem;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--cmp-border);border-radius:24px;padding:.45rem .55rem;display:flex;gap:.45rem;z-index:5000;box-shadow:0 12px 28px -14px rgba(50,6,6,.35);}
+  .sticky-bar .btn{padding:.5rem .7rem;font-size:.52rem;}
+}
+
+@@media (prefers-color-scheme:dark){
+  .section,.map-box{background:#1f242d;border-color:#2f3741;}
+  .input-wrap{background:#242b34;border-color:#2f3741;}
+  .map-hint{background:#2a3139;color:#ffb3b3;}
+  .map-coords{background:#2a3139;color:#e6ebf1;border-color:#35404c;}
+  .toggle-box{background:#2a3139;border-color:#35404c;color:#e6ebf1;}
+}
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+<div class="page-shell">
+  <div class="header-band">
+    <div class="icon-pill"><i class="fa fa-building-circle-check"></i></div>
+    <div style="flex:1 1 320px;min-width:250px;">
+      <h1>@(isEdit ? "Edit Host Company" : "Create Host Company")</h1>
+      <div class="tagline"><i class="fa fa-pen-to-square"></i> Placement Company Profile</div>
+      <small style="display:block;margin-top:.45rem;font-size:.55rem;letter-spacing:.12rem;color:var(--cmp-muted);">
+        Manage corporate details, contact person & optional location.
+      </small>
+    </div>
+    <div class="toolbar">
+      <a asp-action="HostCompanies" asp-controller="Company" class="btn"><i class="fa fa-list"></i> List</a>
+      <button type="submit" form="hostCompanyForm" class="btn btn-accent"><i class="fa fa-save"></i> Save</button>
+      <a asp-action="Settings" asp-controller="Auth" class="btn btn-danger-soft"><i class="fa fa-xmark"></i> Exit</a>
+    </div>
+  </div>
+
+  <form id="hostCompanyForm" asp-action="OnModifyHostCompany" method="post" autocomplete="off" novalidate>
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+    <input asp-for="CompanyId" type="hidden" />
+
+    <div class="grid">
+
+      <div class="section">
+        <div class="section-head"><h2><i class="fa fa-building"></i> Company</h2></div>
+        <div class="field-grid">
+          <div class="field">
+            <label class="required"><i class="fa fa-hospital"></i> Company Name</label>
+            <div class="input-wrap">
+              <i class="fa fa-tag"></i>
+              <input asp-for="CompanyName" required placeholder="Registered company name" />
+            </div>
+            <span asp-validation-for="CompanyName" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-bullseye"></i> Speciality</label>
+            <div class="input-wrap">
+              <i class="fa fa-layer-group"></i>
+              <select asp-for="Speciality" asp-items="Html.GetEnumSelectList<eSpeciality>()">
+                <option value="">Select speciality…</option>
+              </select>
+            </div>
+            <span asp-validation-for="Speciality" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-phone"></i> Phone</label>
+            <div class="input-wrap">
+              <i class="fa fa-phone"></i>
+              <input asp-for="Phone" required placeholder="+27..." />
+            </div>
+            <span asp-validation-for="Phone" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label><i class="fa fa-toggle-on"></i> Status</label>
+            <div class="toggle-box">
+              <input asp-for="IsActive" type="checkbox" id="isActiveCb" />
+              <span id="activeLabel">@((Model?.IsActive ?? false) ? "Active" : "Inactive")</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2><i class="fa fa-map-location-dot"></i> Address</h2></div>
+        <div class="field-grid">
+          <div class="field">
+            <label class="required"><i class="fa fa-road"></i> Street / Complex</label>
+            <div class="input-wrap">
+              <i class="fa fa-road"></i>
+              <input asp-for="StreetName" required placeholder="Street / complex" />
+            </div>
+            <span asp-validation-for="StreetName" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label><i class="fa fa-location-dot"></i> Address Line 2</label>
+            <div class="input-wrap">
+              <i class="fa fa-location-dot"></i>
+              <input asp-for="Line1" placeholder="Suite / Unit / Area" />
+            </div>
+            <span asp-validation-for="Line1" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-compass"></i> Province</label>
+            <div class="input-wrap">
+              <i class="fa fa-compass"></i>
+              <select asp-for="Province" asp-items="Html.GetEnumSelectList<eProvince>()">
+                <option value="">Select province…</option>
+              </select>
+            </div>
+            <span asp-validation-for="Province" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-city"></i> City</label>
+            <div class="input-wrap">
+              <i class="fa fa-city"></i>
+              <input asp-for="City" required placeholder="City / Town" />
+            </div>
+            <span asp-validation-for="City" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-envelope"></i> Postal Code</label>
+            <div class="input-wrap">
+              <i class="fa fa-keyboard"></i>
+              <input asp-for="PostalCode" required placeholder="Code" />
+            </div>
+            <span asp-validation-for="PostalCode" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          @if (hasLat && hasLng)
+          {
+            <div class="field">
+              <label><i class="fa fa-location-crosshairs"></i> Latitude</label>
+              <div class="input-wrap">
+                <i class="fa fa-arrow-up"></i>
+                <input name="Latitude" value="@Model.GetType().GetProperty("Latitude")?.GetValue(Model)" readonly />
+              </div>
+            </div>
+            <div class="field">
+              <label><i class="fa fa-location-crosshairs"></i> Longitude</label>
+              <div class="input-wrap">
+                <i class="fa fa-arrow-right"></i>
+                <input name="Longitude" value="@Model.GetType().GetProperty("Longitude")?.GetValue(Model)" readonly />
+              </div>
+            </div>
+          }
+          else
+          {
+            <input type="hidden" name="Latitude" id="Latitude" />
+            <input type="hidden" name="Longitude" id="Longitude" />
+          }
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2><i class="fa fa-user-tie"></i> Contact Person</h2></div>
+        <div class="field-grid">
+          <div class="field">
+            <label class="required"><i class="fa fa-id-badge"></i> First Name</label>
+            <div class="input-wrap">
+              <i class="fa fa-id-badge"></i>
+              <input asp-for="Name" required placeholder="First name" />
+            </div>
+            <span asp-validation-for="Name" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-user"></i> Last Name</label>
+            <div class="input-wrap">
+              <i class="fa fa-user"></i>
+              <input asp-for="LastName" required placeholder="Last name" />
+            </div>
+            <span asp-validation-for="LastName" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-mobile"></i> Cellphone</label>
+            <div class="input-wrap">
+              <i class="fa fa-mobile-screen-button"></i>
+              <input asp-for="Cellphone" type="number" required placeholder="e.g. 082..." />
+            </div>
+            <span asp-validation-for="Cellphone" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+          <div class="field">
+            <label class="required"><i class="fa fa-envelope"></i> Email</label>
+            <div class="input-wrap">
+              <i class="fa fa-envelope"></i>
+              <input asp-for="Email" type="email" required placeholder="contact@company.com" />
+            </div>
+            <span asp-validation-for="Email" class="text-danger" style="font-size:.5rem;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map only (commit/actions removed) -->
+      <div class="section">
+        <div class="section-head"><h2><i class="fa fa-map"></i> Location (Optional)</h2></div>
+        <div class="map-actions-wrapper">
+          <div class="map-box" id="osmMap">
+            <div class="map-hint">Click map to set coordinates</div>
+            <div class="map-coords" id="coordBox"><i class="fa fa-location-dot"></i> Not set</div>
+          </div>
+        </div>
+        <small class="note" style="margin-top:.4rem;">
+          OpenStreetMap tiles via Leaflet (no key). Respect fair-use guidelines.
+        </small>
+        @if (isEdit)
+        {
+          <p class="note"><i class="fa fa-circle-info"></i> Editing existing company (ID: @Model.CompanyId)</p>
+        }
+      </div>
+
+    </div>
+
+    <div class="sticky-bar d-md-none">
+      <button type="submit" class="btn-accent"><i class="fa fa-save"></i></button>
+      <button type="reset" class="btn-outline"><i class="fa fa-rotate-left"></i></button>
+      <a asp-action="HostCompanies" asp-controller="Company" class="btn"><i class="fa fa-list"></i></a>
+      <a asp-action="Settings" asp-controller="Auth" class="btn btn-danger-soft"><i class="fa fa-xmark"></i></a>
+    </div>
+  </form>
+</div>
+
+@section Scripts{
+  <partial name="_ValidationScriptsPartial" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    (function(){
+      const activeCb = document.getElementById('isActiveCb');
+      const activeLbl = document.getElementById('activeLabel');
+      activeCb?.addEventListener('change',()=> activeLbl.textContent = activeCb.checked ? 'Active':'Inactive');
+
+      document.querySelectorAll('input[type="text"],input[type="email"],input[type="number"]').forEach(i=>{
+        i.addEventListener('blur',()=>{ i.value = i.value.trim(); });
+      });
+
+      const mapDiv = document.getElementById('osmMap');
+      const coordBox = document.getElementById('coordBox');
+      const latEl = document.querySelector('[name="Latitude"]');
+      const lngEl = document.querySelector('[name="Longitude"]');
+
+      let startLat = -28.4793, startLng = 24.6727, zoom = 5;
+      if(latEl?.value && lngEl?.value){
+        startLat = parseFloat(latEl.value);
+        startLng = parseFloat(lngEl.value);
+        zoom = 13;
+      }
+
+      const map = L.map(mapDiv).setView([startLat,startLng], zoom);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      let marker = null;
+      function place(lat,lng){
+        if(marker){ marker.remove(); }
+        marker = L.marker([lat,lng]).addTo(map);
+        coordBox.innerHTML = '<i class="fa fa-location-dot"></i> '+lat.toFixed(5)+', '+lng.toFixed(5);
+        if(latEl) latEl.value = lat;
+        if(lngEl) lngEl.value = lng;
+      }
+
+      if(latEl?.value && lngEl?.value){
+        place(parseFloat(latEl.value), parseFloat(lngEl.value));
+      }
+
+      map.on('click', e => place(e.latlng.lat, e.latlng.lng));
+    })();
+  </script>
+}

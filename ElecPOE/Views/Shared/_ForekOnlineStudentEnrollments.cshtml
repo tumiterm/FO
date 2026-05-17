@@ -1,0 +1,31 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.EnrollmentHistory>
+@if (Model == null || !Model.Any())
+{
+    <div class="fos-no-enroll">No enrollment history.</div>
+}
+else
+{
+    <table class="fos-table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Start</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model.OrderByDescending(e => e.StartDate))
+            {
+                <tr>
+                    <td>@e.CourseTitle</td>
+                    <td>@e.CourseType</td>
+                    <td><span class="fos-status">@e.EnrollmentStatus</span></td>
+                    <td>@(e.StartDate == DateTime.MinValue ? "-" : e.StartDate.ToString("yyyy-MM-dd"))</td>
+                    <td>@(e.IsActive ? "Yes" : "No")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

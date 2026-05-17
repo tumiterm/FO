@@ -1,0 +1,280 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.LearnerViewModel>
+@{
+    ViewData["Title"] = "Placed Learners";
+    var learners = (Model ?? Enumerable.Empty<ForekOnline.Domain.ViewModels.LearnerViewModel>()).ToList();
+    string comp = (string?)ViewData["Comp"] ?? (string?)ViewData["comp"] ?? "Company";
+    string address = (string?)ViewData["address"] ?? "Address Unknown";
+}
+
+<style>
+:root{
+    --lr-bg:#ffffff;--lr-bg-alt:#f6f8fa;--lr-border:#e2e6ea;--lr-border-strong:#cdd3d9;
+    --lr-accent:#7d0e11;--lr-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --lr-soft:#fff5f3;--lr-text:#1f262e;--lr-radius-xl:34px;--lr-radius:22px;--lr-radius:14px;
+    --lr-focus:0 0 0 .13rem #b3121725;--lr-shadow:0 14px 40px -18px rgba(125,14,17,.28),0 6px 20px -10px rgba(125,14,17,.12);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1250px;margin:0 auto;padding:1.85rem 1.15rem 3rem;}
+.header-band{
+    background:var(--lr-bg);border:1px solid var(--lr-border);border-radius:var(--lr-radius-xl);
+    padding:1.25rem 1.55rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1115,#b3121715,#ff7a1818);pointer-events:none;}
+.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--lr-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.05rem;color:#fff;box-shadow:0 12px 28px -12px rgba(179,18,23,.5);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.6rem;}
+.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--lr-soft);color:var(--lr-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
+
+.btn-base,.btn-accent,.btn-outline{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--lr-border);
+    background:#fff;color:var(--lr-accent);display:inline-flex;align-items:center;gap:.5rem;
+    cursor:pointer;text-decoration:none;transition:.32s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--lr-accent-grad);color:#fff;border-color:var(--lr-accent);box-shadow:var(--lr-shadow);}
+.btn-accent{background:var(--lr-accent-grad);color:#fff;border:1px solid var(--lr-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+
+.company-card{
+    margin-top:1.4rem;background:var(--lr-bg);border:1px solid var(--lr-border);border-radius:28px;
+    padding:1.1rem 1.2rem 1rem;display:flex;flex-direction:column;gap:.75rem;position:relative;overflow:hidden;
+}
+.company-card:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e110d,#b312170d,#ff7a1812);}
+.company-header{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;}
+.company-name{font-size:1.05rem;font-weight:600;letter-spacing:.5px;color:#222;display:flex;gap:.5rem;align-items:center;}
+.company-meta{display:flex;flex-wrap:wrap;gap:.5rem;}
+.meta-pill{
+    background:#eef3f7;color:#173a51;border:1px solid #d3dde4;padding:.38rem .65rem;
+    font-size:.48rem;font-weight:700;letter-spacing:.08rem;border-radius:30px;display:inline-flex;align-items:center;gap:.35rem;
+}
+
+.filter-bar{
+    margin-top:1.3rem;background:var(--lr-bg);border:1px solid var(--lr-border);border-radius:28px;
+    padding:1rem 1rem .9rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:flex-end;
+}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:150px;}
+.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap{position:relative;flex:1 1 300px;}
+.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding:.5rem .65rem .5rem 2rem;border:1px solid var(--lr-border);border-radius:14px;font-size:.68rem;background:#fff;transition:.25s;}
+.search-wrap input:focus{outline:none;border-color:var(--lr-accent);box-shadow:var(--lr-focus);}
+.filter-bar select{background:#fff;border:1px solid var(--lr-border);border-radius:14px;font-size:.65rem;padding:.48rem .6rem;transition:.25s;}
+.filter-bar select:focus{outline:none;border-color:var(--lr-accent);box-shadow:var(--lr-focus);}
+#filterState{display:none;font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.36rem .65rem;border-radius:30px;background:var(--lr-soft);color:var(--lr-accent);}
+
+.table-shell{margin-top:1.2rem;background:var(--lr-bg);border:1px solid var(--lr-border);border-radius:30px;padding:1.15rem 1.1rem 1.05rem;overflow:auto;}
+.table-meta{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.6rem;
+    font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;}
+.table-meta .badge{background:var(--lr-soft);color:var(--lr-accent);padding:.4rem .7rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.1rem;}
+.learners-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
+.learners-table thead th{
+    background:var(--lr-accent-grad);color:#fff;font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;
+    font-weight:700;padding:.55rem .55rem;position:sticky;top:0;z-index:3;
+}
+.learners-table tbody tr{transition:.2s;}
+.learners-table tbody tr:nth-child(even){background:#fff;}
+.learners-table tbody tr:nth-child(odd){background:#fffdfd;}
+.learners-table tbody tr:hover{background:#fff4ef;}
+.learners-table td{padding:.5rem .55rem;border-bottom:1px solid var(--lr-border);vertical-align:middle;color:#333;}
+.badge-status{
+    font-size:.46rem;font-weight:700;letter-spacing:.08rem;padding:.28rem .55rem;border-radius:22px;display:inline-flex;align-items:center;gap:.35rem;
+}
+.status-active{background:#e8f9ef;color:#157a41;border:1px solid #b8e6c7;}
+.status-ended{background:#ffe8ea;color:#b31217;border:1px solid #f3b4ba;}
+.status-pending{background:#fff3e1;color:#b36a00;border:1px solid #f0c68a;}
+.hidden-row{display:none!important;}
+.empty-row{font-style:italic;text-align:center;color:#777;}
+.action-link{font-size:.48rem;font-weight:600;letter-spacing:.08rem;padding:.38rem .55rem;border-radius:10px;background:#fff;
+    border:1px solid var(--lr-border);text-decoration:none;color:var(--lr-accent);display:inline-flex;align-items:center;gap:.35rem;transition:.3s;}
+.action-link:hover{background:var(--lr-accent-grad);color:#fff;border-color:var(--lr-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+
+.footer-hint{margin-top:.7rem;font-size:.48rem;letter-spacing:.1rem;color:#666;font-weight:600;display:flex;gap:.8rem;flex-wrap:wrap;}
+.fade-in{animation:fade .55s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:760px){
+    .learners-table thead th:nth-child(2),
+    .learners-table td:nth-child(2){display:none;}
+}
+@@media (max-width:620px){
+    .learners-table thead th:nth-child(3),
+    .learners-table td:nth-child(3){display:none;}
+}
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-building"></i></div>
+        <div>
+            <h1>Placed Learners</h1>
+            <div class="tagline"><i class="fa fa-id-card"></i> @comp</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="HostCompanies" class="btn-base"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <div class="company-card">
+        <div class="company-header">
+            <div class="company-name"><i class="fa fa-briefcase text-danger"></i> @comp</div>
+        </div>
+        <div class="company-meta">
+            <span class="meta-pill"><i class="fa fa-map-marker-alt"></i> @address</span>
+            <span class="meta-pill"><i class="fa fa-users"></i> @learners.Count learner(s)</span>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search learner / status..." autocomplete="off"/>
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter">
+                <option value="">Any</option>
+                @foreach(var s in learners.Select(l=>l.Status).Distinct().OrderBy(s=>s)){
+                    <option value="@s">@s</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Start From</label>
+            <input type="date" id="fromDate"/>
+        </div>
+        <div class="filter-group">
+            <label>End To</label>
+            <input type="date" id="toDate"/>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="filterState"><i class="fa fa-filter"></i> FILTERED</span>
+        </div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge"><i class="fa fa-database"></i> Loading...</span>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+                <button id="btnExport" type="button" class="action-link"><i class="fa fa-file-export"></i> Export</button>
+                <button id="btnRefresh" type="button" class="action-link"><i class="fa fa-rotate"></i> Refresh</button>
+            </div>
+        </div>
+        <table class="learners-table" id="learnersTable">
+            <thead>
+                <tr>
+                    <th>Learner</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="learnersBody">
+            @if(!learners.Any()){
+                <tr><td colspan="4" class="empty-row">No learners placed.</td></tr>
+            } else {
+                foreach(var l in learners){
+                    var st = l.Status ?? "";
+                    var statusClass = st.ToLower() switch {
+                        var x when x.Contains("active") => "status-active",
+                        var x when x.Contains("pending") => "status-pending",
+                        var x when x.Contains("end") || x.Contains("close") => "status-ended",
+                        _ => "status-pending"
+                    };
+                    string startText = l.Start?.ToString() ?? "";
+                    string endText = l.End?.ToString() ?? "";
+                    <tr data-text="@($"{l.LearnerName} {l.Status} {startText} {endText}".ToLower())"
+                        data-status="@l.Status"
+                        data-start="@startText"
+                        data-end="@endText">
+                        <td>@l.LearnerName</td>
+                        <td>@startText</td>
+                        <td>@endText</td>
+                        <td><span class="badge-status @statusClass">@l.Status</span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+        <div class="footer-hint">
+            <span><i class="fa fa-info-circle"></i> Use filters to refine list. Export respects current view.</span>
+            <span id="perfInfo"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const body=document.getElementById('learnersBody');
+    const rowsInfo=document.getElementById('rowsInfo');
+    const perfInfo=document.getElementById('perfInfo');
+    const searchBox=document.getElementById('searchBox');
+    const statusFilter=document.getElementById('statusFilter');
+    const fromDate=document.getElementById('fromDate');
+    const toDate=document.getElementById('toDate');
+    const filterState=document.getElementById('filterState');
+    const btnExport=document.getElementById('btnExport');
+    const btnRefresh=document.getElementById('btnRefresh');
+
+    function norm(v){return (v||'').toString().toLowerCase().trim();}
+    function parseDate(d){
+        if(!d) return null;
+        const dt=new Date(d);
+        return isNaN(dt.getTime())? null: dt;
+    }
+
+    function apply(){
+        const t0=performance.now();
+        const q=norm(searchBox.value);
+        const st=statusFilter.value;
+        const f=fromDate.value? parseDate(fromDate.value):null;
+        const t=toDate.value? parseDate(toDate.value):null;
+        const rows=[...body.querySelectorAll('tr')];
+        let shown=0,total=0;
+        rows.forEach(r=>{
+            if(r.classList.contains('empty-row')) return;
+            total++;
+            const txt=r.getAttribute('data-text')||'';
+            const rst=r.getAttribute('data-status')||'';
+            const rs=r.getAttribute('data-start');
+            const re=r.getAttribute('data-end');
+            const dS=parseDate(rs);
+            const dE=parseDate(re);
+            let show=true;
+            if(q && !txt.includes(q)) show=false;
+            if(st && rst!==st) show=false;
+            if(f && (!dS || dS < f)) show=false;
+            if(t && (!dE || dE > t)) show=false;
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+        const filtering=!!(q||st||f||t);
+        filterState.style.display = filtering ? '' : 'none';
+        rowsInfo.innerHTML=`<i class="fa fa-database"></i> Showing ${shown} of ${total} learner(s)` + (filtering?' (filtered)':'');
+        perfInfo.textContent='Render '+(performance.now()-t0).toFixed(1)+'ms';
+    }
+
+    [searchBox,statusFilter,fromDate,toDate].forEach(el=>{
+        el.addEventListener(el.tagName==='INPUT'?'input':'change',apply);
+    });
+
+    btnExport.addEventListener('click',()=>{
+        const visible=[...body.querySelectorAll('tr:not(.hidden-row)')].filter(r=>!r.classList.contains('empty-row'));
+        if(!visible.length){alert('No rows to export.');return;}
+        const lines=['Learner,Start,End,Status'];
+        visible.forEach(r=>{
+            const c=r.querySelectorAll('td');
+            const arr=[c[0].innerText.trim(),c[1].innerText.trim(),c[2].innerText.trim(),c[3].innerText.trim()]
+                .map(v=>'"'+v.replace(/"/g,'""')+'"');
+            lines.push(arr.join(','));
+        });
+        const blob=new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='placed-learners-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    });
+
+    btnRefresh.addEventListener('click',()=>location.reload());
+
+    apply();
+})();
+</script>

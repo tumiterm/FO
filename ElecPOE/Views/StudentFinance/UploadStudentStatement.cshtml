@@ -1,0 +1,137 @@
+﻿@model dynamic
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Domain.Entities
+
+<style>
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+
+
+    .form-control {
+        border-color: black;
+    }
+</style>
+<div class="col-xl-12">
+
+                            
+    <div class="card mb-4">
+
+
+        @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+        {
+            <div class="card-header">
+                <i class="fas fa-file me-1 text-white"></i>
+                <span class="text-white text-bold">Upload Student Financial Statements</span>
+            </div>
+
+            <br />
+
+            <div class="col-xl-12 p-2">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-file me-1 text-white"></i>
+                        <span class="text-white">Student Financial Statements<span class="text-bold"></span></span>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="UploadStudentStatement" enctype="multipart/form-data">
+                            <div class="row">
+
+                                <div class="form-group col-md-4">
+                                    <label class="control-label">Statement Name</label>
+                                    <input name="StatementName" required class="form-control" placeholder="E.g N Mandela's Financial Statement" />
+                                </div>
+
+                                <div class="form-group col-md-4">
+                                    <label class="control-label">Attach Statement</label>
+                                    <input name="FileAttach" type="file" required class="form-control" />
+                                </div>
+
+                                <div hidden>
+                                    @Html.TextBox("StudentId", ViewData["StudentId"], new {htmlAttributes = new {@class="form-control",name="StudentId"}})
+                                    @Html.TextBox("StudentNumber", ViewData["StudentNumber"], new {htmlAttributes = new {@class="form-control",name="StudentNumber"}})
+
+                                </div>
+
+                                <div class="form-group col-md-4 mt-3">
+                                    <div class="form-group col-md-12 mt-2" style="background-color:whitesmoke;">
+                                        <button type="submit" class="btn btn-success save"><i class="fa fa-save"></i> Save</button>
+                                        <button type="reset" class="btn btn-outline-warning float-end"><i class="fa fa-undo"></i> Reset</button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        }
+
+        <div class="col-xl-12 p-2"> 
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file me-1 text-white"></i>
+                    <span class="text-white">Student Uploaded Financial Statement - @ViewData["Studenz"] </span>
+                </div>
+                <div class="card-body">
+                    <table class="table mr-5 ml-5 table-striped" id="datatablesSimple">
+                        <thead class="head">
+                            <tr>
+                                <th class="text-white">
+                                    Action
+                                </th>
+
+                                <th class="text-white">
+                                    Report
+                                </th>
+
+                                <th class="text-white">
+                                    Added On
+                                </th>
+                                <th class="text-white">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (LearnerFinance finance in Model.StatementList)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <a class="text-danger" href="@Url.Action("RemoveAttachment", "StudentFinance",new {ReportId = finance.Id})"><i class="fa bi-trash-fill"></i> Remove</a>
+
+                                    </td>
+
+                                    <td>
+                                        @finance.StatementName
+                                    </td>
+
+                                    <td>
+                                        @finance.CreatedOn
+                                    </td>
+
+                                    <td>
+                                        <a class="text-primary" href="@Url.Action("AttachmentDownload", "Results",new {filename  = finance.File})"><i class="fa fa-download"></i> Download</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

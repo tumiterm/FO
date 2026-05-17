@@ -1,0 +1,277 @@
+﻿@model ForekOnline.Domain.ViewModels.LicenseViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Add License";
+}
+
+<style>
+:root{
+    --lic-bg:#ffffff;--lic-border:#e2e5ea;--lic-accent:#7d0e11;
+    --lic-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --lic-soft:#fff5f3;--lic-text:#1f252c;--lic-radius-xl:30px;--lic-radius:16px;
+    --lic-focus:0 0 0 .15rem #b3121728;--lic-shadow:0 10px 30px -14px rgba(125,14,17,.28),0 4px 16px -8px rgba(125,14,17,.18);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1250px;margin:0 auto;padding:1.8rem 1.1rem 3rem;}
+.header-band{
+    background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:var(--lic-radius-xl);
+    padding:1.2rem 1.5rem 1.1rem;display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;position:relative;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1112,#b3121714,#ff7a1816);pointer-events:none;}
+.icon-pill{width:70px;height:70px;border-radius:24px;background:var(--lic-accent-grad);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:#fff;box-shadow:0 10px 24px -10px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.5rem;font-weight:600;letter-spacing:.55px;color:var(--lic-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--lic-soft);color:var(--lic-accent);padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+
+.btn-base,.btn-accent,.btn-outline{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--lic-border);
+    background:#fff;color:var(--lic-accent);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;text-decoration:none;transition:.3s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--lic-accent-grad);color:#fff;border-color:var(--lic-accent);box-shadow:var(--lic-shadow);}
+.btn-accent{background:var(--lic-accent-grad);color:#fff;border:1px solid var(--lic-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+
+.form-grid{margin-top:1.6rem;display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));align-items:start;}
+.section-card{
+    background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:26px;
+    padding:1.15rem 1.15rem 1.05rem;display:flex;flex-direction:column;gap:1.05rem;position:relative;
+}
+.section-card h2{margin:0;font-size:.82rem;letter-spacing:.22rem;font-weight:700;color:var(--lic-accent);text-transform:uppercase;display:flex;align-items:center;gap:.55rem;}
+.field-grid{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+.field{display:flex;flex-direction:column;gap:.38rem;}
+.field label{font-size:.5rem;letter-spacing:.14rem;text-transform:uppercase;font-weight:700;color:#4c535a;display:flex;align-items:center;gap:.35rem;}
+.required:after{content:"*";color:#b31217;margin-left:.25rem;font-weight:800;}
+.input-wrap{display:flex;align-items:center;gap:.45rem;background:#fff;border:1px solid var(--lic-border);padding:.5rem .6rem;border-radius:14px;transition:.25s;}
+.input-wrap:focus-within{border-color:var(--lic-accent);box-shadow:var(--lic-focus);}
+.input-wrap i{font-size:.75rem;color:#888;}
+.field input[type='text'],.field input[type='number'],.field input[type='date'],.field select,.field input[type='file']{
+    width:100%;border:none;background:transparent;font-size:.7rem;outline:none;color:#222;
+}
+.full-span{grid-column:1/-1;}
+.validation-summary{font-size:.6rem;border:1px solid #f1d0d4;background:#fff5f7;color:#7d0e11;padding:.65rem .85rem;border-radius:14px;}
+.actions-bar{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:.4rem;}
+.note{font-size:.5rem;letter-spacing:.14rem;color:#666;font-weight:600;margin-top:.35rem;}
+
+.preview-box{background:#f6f8fa;border:1px solid var(--lic-border);border-radius:20px;padding:.9rem;display:flex;flex-direction:column;gap:.55rem;align-items:center;justify-content:center;min-height:260px;}
+.preview-box img{max-width:100%;max-height:240px;object-fit:contain;border-radius:12px;}
+.preview-box .placeholder{font-size:.55rem;font-weight:600;color:#777;letter-spacing:.08rem;text-align:center;}
+
+.badge-inline{background:#eef3f7;color:#17394f;border:1px solid #d1dce5;padding:.32rem .6rem;font-size:.48rem;font-weight:700;letter-spacing:.08rem;border-radius:30px;display:inline-flex;align-items:center;gap:.35rem;}
+.meta-bar{display:flex;flex-wrap:wrap;gap:.5rem;font-size:.48rem;}
+
+@@media (max-width:640px){
+    .header-band{padding:1.1rem 1.1rem .95rem;}
+    .icon-pill{width:60px;height:60px;font-size:1.45rem;}
+    .header-band h1{font-size:1.32rem;}
+}
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-id-card"></i></div>
+        <div>
+            <h1>Add License</h1>
+            <div class="tagline"><i class="fa fa-certificate"></i> Candidate License</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="Licenses" asp-controller="License" class="btn-base"><i class="fa fa-eye"></i> View Licenses</a>
+        </div>
+    </div>
+
+    <form asp-action="AddUserLicense" method="post" enctype="multipart/form-data" novalidate autocomplete="off">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="form-grid">
+
+            <!-- Candidate Info -->
+            <div class="section-card">
+                <h2><i class="fa fa-user"></i> Candidate</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <label class="required">Title</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-user-tag"></i>
+                            <select asp-for="Title" asp-items="Html.GetEnumSelectList<eTitle>()">
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Title" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">First Name</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-id-badge"></i>
+                            <input asp-for="Name" required />
+                        </div>
+                        <span asp-validation-for="Name" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">Last Name</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-user"></i>
+                            <input asp-for="LastName" required />
+                        </div>
+                        <span asp-validation-for="LastName" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">ID / Passport</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-id-card"></i>
+                            <input asp-for="IDNumber" required />
+                        </div>
+                        <span asp-validation-for="IDNumber" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label>Client Type</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-users"></i>
+                            <select asp-for="ClientType" asp-items="Html.GetEnumSelectList<eClientType>()">
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="ClientType" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label>Company</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-building"></i>
+                            <select asp-for="CompanyId" asp-items="@ViewBag.CompanyId">
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="CompanyId" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Info -->
+            <div class="section-card">
+                <h2><i class="fa fa-shield-halved"></i> License</h2>
+                <div class="field-grid">
+                    <div class="field full-span">
+                        <label class="required">License Type</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-layer-group"></i>
+                            <select asp-for="CourseKey" asp-items="@ViewBag.CourseId" required>
+                                <option value="">Select license...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="CourseKey" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">Issue Date</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-calendar-plus"></i>
+                            <input asp-for="DateOfIssue" type="date" required />
+                        </div>
+                        <span asp-validation-for="DateOfIssue" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">Expiry Date</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-calendar-xmark"></i>
+                            <input asp-for="DateOfExpiry" type="date" required />
+                        </div>
+                        <span asp-validation-for="DateOfExpiry" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field">
+                        <label class="required">Application Count</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-repeat"></i>
+                            <select asp-for="Frequency" asp-items="Html.GetEnumSelectList<eLicenseFrequency>()" required>
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Frequency" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                    <div class="field full-span">
+                        <label class="required">Upload License (PDF / Image)</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-file-arrow-up"></i>
+                            <input asp-for="IFormFileUpload" id="licenseFile" type="file" accept="application/pdf,image/*" required />
+                        </div>
+                        <small class="text-muted" style="font-size:.5rem;">Max ~5MB; accepted: PDF / JPG / PNG</small>
+                        <span asp-validation-for="IFormFileUpload" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+                </div>
+                <div class="actions-bar">
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                    <button type="reset" id="btnReset" class="btn-outline"><i class="fa fa-undo"></i> Reset</button>
+                    <a asp-action="Licenses" asp-controller="License" class="btn-base"><i class="fa fa-eye"></i> View List</a>
+                </div>
+                <div class="note"><strong>Note:</strong> All required fields must be completed before saving.</div>
+            </div>
+
+            <!-- Preview -->
+            <div class="section-card" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.1rem;">
+                <div style="display:flex;flex-direction:column;gap:.6rem;">
+                    <h2 style="margin-bottom:.2rem;"><i class="fa fa-eye"></i> Preview</h2>
+                    <div class="preview-box" id="previewBox">
+                        <div class="placeholder">
+                            <i class="fa fa-file fa-2x" style="color:#b31217;margin-bottom:.3rem;"></i><br/>
+                            No file selected
+                        </div>
+                    </div>
+                </div>
+                <div style="align-self:flex-end;">
+                    <div class="meta-bar">
+                        <span class="badge-inline" id="fileNameBadge" style="display:none;"><i class="fa fa-file"></i><span id="fileNameText"></span></span>
+                        <span class="badge-inline" id="fileSizeBadge" style="display:none;"><i class="fa fa-weight-hanging"></i><span id="fileSizeText"></span></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function(){
+            const fileInput = document.getElementById('licenseFile');
+            const preview = document.getElementById('previewBox');
+            const nameBadge = document.getElementById('fileNameBadge');
+            const nameText = document.getElementById('fileNameText');
+            const sizeBadge = document.getElementById('fileSizeBadge');
+            const sizeText = document.getElementById('fileSizeText');
+            const resetBtn = document.getElementById('btnReset');
+
+            function formatSize(bytes){
+                if(bytes < 1024) return bytes + ' B';
+                if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+' KB';
+                return (bytes/1024/1024).toFixed(2)+' MB';
+            }
+
+            function clearPreview(){
+                preview.innerHTML = '<div class="placeholder"><i class="fa fa-file fa-2x" style="color:#b31217;margin-bottom:.3rem;"></i><br/>No file selected</div>';
+                nameBadge.style.display='none';
+                sizeBadge.style.display='none';
+            }
+
+            function showPreview(file){
+                if(!file){ clearPreview(); return; }
+                nameText.textContent = file.name;
+                sizeText.textContent = formatSize(file.size);
+                nameBadge.style.display='inline-flex';
+                sizeBadge.style.display='inline-flex';
+
+                if(file.type.startsWith('image/')){
+                    const url = URL.createObjectURL(file);
+                    preview.innerHTML = `<img src="${url}" alt="License Image"/>`;
+                } else if(file.type === 'application/pdf' || /\.pdf$/i.test(file.name)){
+                    preview.innerHTML = '<div class="placeholder"><i class="fa fa-file-pdf fa-2x" style="color:#b31217;margin-bottom:.3rem;"></i><br/>PDF Selected</div>';
+                } else {
+                    preview.innerHTML = '<div class="placeholder"><i class="fa fa-file fa-2x" style="color:#b31217;margin-bottom:.3rem;"></i><br/>File Selected</div>';
+                }
+            }
+
+            fileInput.addEventListener('change', e => showPreview(e.target.files[0]));
+            resetBtn?.addEventListener('click', ()=> setTimeout(clearPreview,0));
+            clearPreview();
+        })();
+    </script>
+}
+

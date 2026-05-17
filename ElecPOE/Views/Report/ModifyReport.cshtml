@@ -1,0 +1,104 @@
+﻿@model ForekOnline.Domain.Entities.Report
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+<style>
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    .form-control {
+        border-color: black;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+</style>
+
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-file me-1 text-white"></i>
+            <span class="text-white">Instructor's Report<span class="text-bold"></span></span>
+        </div><br />
+        <div class="col-xl-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file me-1 text-white"></i>
+                    <span class="text-white">Create Report<span class="text-bold"></span></span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ModifyReport" enctype="multipart/form-data">
+                        <div class="row">
+
+                            <div class="form-group col-md-4">
+                                <label asp-for="ReportType" class="control-label"></label>
+                                <div class="input-group mb-3 input1">
+                                    <span class="input-group-text" id="basic-addon1"><i class="fa bi-question-octagon-fill text-danger"></i></span>
+                                <select asp-for="ReportType" class="form-control Type" required asp-items="Html.GetEnumSelectList<ReportType>()">
+                                    <option selected="selected" value="">Select Report Type</option>
+                                </select>
+                            </div>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Urgency</label>
+                                <select asp-for="Urgency" class="form-control Facilitator" required asp-items="Html.GetEnumSelectList<eUrgency>()">
+                                    <option selected="selected" value="">Select Level of Urgency</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label class="control-label">Date</label>
+                                <input asp-for="Date" required class="form-control" />
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label class="control-label">Facilitator</label>
+                                <select asp-for="FacilitatorId" required style="background-color:#F7DEE0" class="form-control Facilitator" asp-items="@ViewBag.UserId">
+                                    <option selected="selected" value="">Select Facilitator</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label asp-for="Module" class="control-label"></label>
+                                <input asp-for="Module" class="form-control" required style="background-color:#F7DEE0" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label asp-for="ActivityReport"></label>
+                                <textarea asp-for="ActivityReport" required class="form-control" text-wrap:normal" type="text" placeholder="Please add your activity report here"></textarea>
+                                <span asp-validation-for="ActivityReport" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label asp-for="Challenges"></label>
+                                <textarea asp-for="Challenges" required class="form-control" text-wrap:normal" type="text" placeholder="Please add your challenge(s) here"></textarea>
+                                <span asp-validation-for="Challenges" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label asp-for="Recommendation"></label>
+                                <textarea asp-for="Recommendation" required class="form-control" text-wrap:normal" type="text" placeholder="Please add your recommendation(s) here"></textarea>
+                                <span asp-validation-for="Recommendation" class="text-danger"></span>
+                            </div>
+
+                            <input asp-for="ReportId" hidden />
+
+                            <div class="form-group col-md-12 mt-3">
+                                <div class="form-group col-md-12 mt-2" style="background-color:whitesmoke;">
+                                    <button type="submit" class="btn btn-success save"><i class="fa fa-save"></i> Save</button>
+                                    <a class="btn btn-outline-danger"><i class="fa bi-file-pdf"></i> Download</a>
+                                    <button type="reset" class="btn btn-outline-warning float-end"><i class="fa fa-undo"></i> Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

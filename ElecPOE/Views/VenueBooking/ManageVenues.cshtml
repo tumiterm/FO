@@ -1,0 +1,443 @@
+﻿@model IReadOnlyList<ForekOnline.Domain.Entities.Venue>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Manage Venues";
+    var activeCount = Model.Count(v => v.Status == eVenueStatus.Active);
+    var totalCount = Model.Count;
+}
+
+@section Styles {
+    <style>
+        :root {
+            --mv-red: #b31217;
+            --mv-orange: #ff7a18;
+            --mv-bg: #f7f8fb;
+            --mv-panel: #fff;
+            --mv-border: #e6e9f0;
+            --mv-muted: #64748b;
+            --mv-text: #0f172a;
+            --mv-grad: linear-gradient(135deg,#320606,#b31217 55%,#ff7a18);
+            --mv-shadow: 0 14px 42px -18px rgba(50,6,6,.28);
+            --mv-r-lg: 26px;
+            --mv-r-md: 18px;
+            --mv-t: 250ms cubic-bezier(.2,.75,.2,1);
+            --mv-focus: 0 0 0 4px rgba(179,18,23,.14);
+        }
+
+        .mv-shell {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 1.25rem 1rem 3.5rem;
+        }
+
+        /* ── Hero ── */
+        .mv-hero {
+            position: relative;
+            border-radius: var(--mv-r-lg);
+            background: var(--mv-grad);
+            color: #fff;
+            padding: 1.5rem 1.5rem 1.25rem;
+            overflow: hidden;
+            box-shadow: var(--mv-shadow);
+        }
+
+            .mv-hero::before {
+                content: "";
+                position: absolute;
+                inset: -140px -140px auto auto;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle,rgba(255,255,255,.18),transparent 60%);
+                transform: rotate(20deg);
+                pointer-events: none;
+            }
+
+        .mv-hero-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .mv-hero-left {
+            display: flex;
+            align-items: center;
+            gap: .95rem;
+        }
+
+        .mv-hero-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.22);
+            backdrop-filter: blur(10px);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,.18);
+            font-size: 1.25rem;
+        }
+
+        .mv-hero h1 {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .mv-hero p {
+            margin: .25rem 0 0;
+            opacity: .92;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        /* ── Cards ── */
+        .mv-card {
+            background: rgba(255,255,255,.88);
+            border: 1px solid var(--mv-border);
+            border-radius: var(--mv-r-lg);
+            box-shadow: 0 10px 30px rgba(15,23,42,.06);
+            overflow: hidden;
+            margin-top: 1.15rem;
+        }
+
+        .mv-card-head {
+            padding: 1.1rem 1.25rem .95rem;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 1rem;
+            background: linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));
+        }
+
+            .mv-card-head h2 {
+                margin: 0;
+                font-size: .82rem;
+                font-weight: 900;
+                letter-spacing: .16rem;
+                text-transform: uppercase;
+                color: var(--mv-red);
+                display: flex;
+                gap: .5rem;
+                align-items: center;
+            }
+
+            .mv-card-head p {
+                margin: .2rem 0 0;
+                color: var(--mv-muted);
+                font-size: .78rem;
+                font-weight: 600;
+            }
+
+        .mv-card-body {
+            padding: 1.15rem 1.25rem 1.35rem;
+        }
+
+        /* ── Buttons ── */
+        .mv-btn {
+            font-size: .58rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .6rem 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--mv-border);
+            background: #fff;
+            color: var(--mv-red);
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            transition: var(--mv-t);
+            text-decoration: none;
+        }
+
+            .mv-btn:hover {
+                background: var(--mv-grad);
+                color: #fff;
+                border-color: var(--mv-red);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(15,23,42,.1);
+            }
+
+            .mv-btn:disabled {
+                opacity: .45;
+                pointer-events: none;
+            }
+
+            .mv-btn.primary {
+                background: var(--mv-grad);
+                color: #fff;
+                border-color: var(--mv-red);
+            }
+
+                .mv-btn.primary:hover {
+                    filter: brightness(.96);
+                }
+
+            .mv-btn.warn {
+                background: linear-gradient(135deg,#dc2626,#b91c1c);
+                color: #fff;
+                border-color: #dc2626;
+            }
+
+                .mv-btn.warn:hover {
+                    filter: brightness(.95);
+                }
+
+            .mv-btn.ghost {
+                background: rgba(255,255,255,.14);
+                border-color: rgba(255,255,255,.22);
+                color: #fff;
+            }
+
+        .mv-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+        }
+
+        /* ── Pills ── */
+        .mv-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .32rem .6rem;
+            border-radius: 50px;
+            font-size: .58rem;
+            font-weight: 800;
+            border: 1px solid var(--mv-border);
+            background: #fff;
+            color: var(--mv-muted);
+        }
+
+        .mv-pill-ok {
+            background: rgba(16,185,129,.1);
+            border-color: rgba(16,185,129,.25);
+            color: #065f46;
+        }
+
+        .mv-pill-no {
+            background: rgba(239,68,68,.08);
+            border-color: rgba(239,68,68,.22);
+            color: #7f1d1d;
+        }
+
+        .mv-pill-warn {
+            background: rgba(245,158,11,.1);
+            border-color: rgba(245,158,11,.28);
+            color: #92400e;
+        }
+
+        /* ── Table ── */
+        .mv-table-wrap {
+            border: 1px solid var(--mv-border);
+            border-radius: var(--mv-r-md);
+            overflow: hidden;
+            margin-top: .85rem;
+        }
+
+        .mv-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+            .mv-table thead th {
+                text-align: left;
+                padding: .8rem .9rem;
+                font-size: .58rem;
+                letter-spacing: .14rem;
+                text-transform: uppercase;
+                color: var(--mv-muted);
+                background: linear-gradient(180deg,#fbfcff,#f6f8fd);
+                border-bottom: 1px solid var(--mv-border);
+                font-weight: 900;
+            }
+
+            .mv-table tbody td {
+                padding: .75rem .9rem;
+                border-bottom: 1px solid rgba(230,233,240,.9);
+                font-size: .78rem;
+                font-weight: 650;
+                color: var(--mv-text);
+                vertical-align: middle;
+            }
+
+            .mv-table tbody tr:hover td {
+                background: rgba(179,18,23,.03);
+            }
+
+        /* ── Empty ── */
+        .mv-empty {
+            border: 2px dashed rgba(100,116,139,.3);
+            border-radius: var(--mv-r-md);
+            padding: 2rem;
+            text-align: center;
+            color: var(--mv-muted);
+            font-weight: 700;
+            font-size: .82rem;
+        }
+
+        /* ── Metrics ── */
+        .mv-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+            gap: .85rem;
+            margin-top: .85rem;
+        }
+
+        .mv-metric {
+            background: linear-gradient(135deg,rgba(179,18,23,.06),rgba(0,78,137,.04));
+            border: 1px solid var(--mv-border);
+            border-radius: var(--mv-r-md);
+            padding: .85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .mv-metric-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: var(--mv-grad);
+            color: #fff;
+            font-size: 1rem;
+            box-shadow: 0 8px 18px rgba(179,18,23,.22);
+        }
+
+        .mv-metric strong {
+            display: block;
+            font-size: .95rem;
+            font-weight: 900;
+        }
+
+        .mv-metric span {
+            display: block;
+            margin-top: .1rem;
+            color: var(--mv-muted);
+            font-weight: 650;
+            font-size: .68rem;
+        }
+    </style>
+}
+
+<section class="mv-shell">
+
+    <header class="mv-hero">
+        <div class="mv-hero-row">
+            <div class="mv-hero-left">
+                <div class="mv-hero-icon"><i class="fa fa-building"></i></div>
+                <div>
+                    <h1>Venue Management</h1>
+                    <p>Create, edit and deactivate physical venues available for assessment bookings (FR-01).</p>
+                </div>
+            </div>
+            <div class="mv-actions">
+                <a class="mv-btn ghost" href="@Url.Action("ReserveVenue", "VenueBooking")"><i class="fa fa-map-pin"></i> Reserve Venue</a>
+                <a class="mv-btn ghost" href="@Url.Action("CreateVenue", "VenueBooking")"><i class="fa fa-plus"></i> Add Venue</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="mv-metrics">
+        <div class="mv-metric">
+            <div class="mv-metric-badge"><i class="fa fa-building"></i></div>
+            <div><strong>@totalCount</strong><span>Total Venues</span></div>
+        </div>
+        <div class="mv-metric">
+            <div class="mv-metric-badge"><i class="fa fa-circle-check"></i></div>
+            <div><strong>@activeCount</strong><span>Active</span></div>
+        </div>
+        <div class="mv-metric">
+            <div class="mv-metric-badge"><i class="fa fa-circle-xmark"></i></div>
+            <div><strong>@(totalCount - activeCount)</strong><span>Inactive / Maintenance</span></div>
+        </div>
+    </div>
+
+    <div class="mv-card">
+        <div class="mv-card-head">
+            <div>
+                <h2><i class="fa fa-list"></i> All Venues</h2>
+                <p>Full venue register. Click Edit to modify or Deactivate to disable a venue.</p>
+            </div>
+            <a class="mv-btn primary" href="@Url.Action("CreateVenue", "VenueBooking")"><i class="fa fa-plus"></i> Add Venue</a>
+        </div>
+        <div class="mv-card-body">
+            @if (!Model.Any())
+            {
+                <div class="mv-empty">
+                    <i class="fa fa-building" style="font-size:1.6rem;display:block;margin-bottom:.5rem;color:var(--mv-red);"></i>
+                    No venues have been created yet. Click <strong>Add Venue</strong> to get started.
+                </div>
+            }
+            else
+            {
+                <div class="mv-table-wrap">
+                    <table class="mv-table">
+                        <thead>
+                            <tr>
+                                <th>Venue Name</th>
+                                <th>Campus</th>
+                                <th>Department</th>
+                                <th>Capacity</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var v in Model.OrderBy(x => x.Campus).ThenBy(x => x.Name))
+                            {
+                                <tr>
+                                    <td><strong>@v.Name</strong></td>
+                                    <td>@v.Campus</td>
+                                    <td>@v.Departments</td>
+                                    <td>@v.MaxCapacity</td>
+                                    <td><span class="mv-pill">IsTracked</span></td>
+                                    <td>
+                                        @if (v.Status == eVenueStatus.Active)
+                                        {
+                                            <span class="mv-pill mv-pill-ok"><i class="fa fa-circle-check"></i> Active</span>
+                                        }
+                                        else if (v.Status == eVenueStatus.UnderMaintenance)
+                                        {
+                                            <span class="mv-pill mv-pill-warn"><i class="fa fa-wrench"></i> Maintenance</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="mv-pill mv-pill-no"><i class="fa fa-circle-xmark"></i> Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="mv-actions">
+                                            <a class="mv-btn" href="@Url.Action("EditVenue", "VenueBooking", new { id = v.Id })">
+                                                <i class="fa fa-pen"></i> Edit
+                                            </a>
+                                            @if (v.Status == eVenueStatus.Active)
+                                            {
+                                                <form method="post" asp-action="DeactivateVenue" asp-controller="VenueBooking" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@v.Id" />
+                                                    <button type="submit" class="mv-btn warn" onclick="return confirm('Deactivate this venue?');">
+                                                        <i class="fa fa-power-off"></i> Deactivate
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+</section>

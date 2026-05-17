@@ -1,0 +1,277 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.ApplicationsViewModel>
+@using ForekOnline.Application.Common.Utility
+@using static ForekOnline.Domain.Enums.EnumRegistry 
+
+
+<style>
+    .form-control, .accordion-item {
+        border-color: black;
+    }
+
+    .acchead {
+        background-color: #2774F1
+    }
+
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-color: black;
+    }
+
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .card-border, .table {
+        border-color: black;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+
+    .vs {
+        margin-left: 240px;
+    }
+
+    .table-striped > tbody > tr:nth-child(odd) > td,
+    .table-striped > tbody > tr:nth-child(odd) > th {
+        background-color: #FCCFCF;
+    }
+</style>
+
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas bi-mortarboard-fill me-1 text-white"></i>
+            <span class="text-white">Online Applications List<span class="text-bold"></span></span>
+        </div>
+
+        <div>
+            <div class="row">
+                <div class="col-md-6 card-body">
+                    <div class="alert alert-danger " role="alert" style="border-left-width: 4px; border-left-color: darkred">
+                        Applications needing your attention - <strong>New Applications Count (@ViewData["New"])</strong>
+                    </div>
+                </div>
+
+                <div class="col-md-6 card-body">
+                    <div class="alert alert-success" role="alert" style="border-right-width: 4px; border-right-color: darkgreen">
+                        Applications needing your attention - <strong>Pending Applications Count (@ViewData["Pending"])</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-striped" id="datatablesSimple">
+                <thead style="color:darkred">
+                    <tr>
+                        <th>
+                            Action
+                        </th>
+                        <th class="text-white">Respond</th>
+                        <th class="text-white">Ref</th>
+                        <th class="text-white">Names</th>
+                        <th class="text-white">ID</th>
+                        <th class="text-white">Phone</th>
+                        <th class="text-white">Course</th>
+                        <th class="text-white">App Date</th>
+                        <th class="text-white">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a class="text-primary" asp-action="OnApply" asp-controller="Applications" asp-route-ApplicationId="@item.ApplicationId"><i class="fa fa-folder-open"></i></a>
+                            </td>
+                            <td>
+                                <a class="text-dark open-message-modal" data-applicant-id="@item.ApplicationId" data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="cursor:pointer"><i class="fa fa-message"></i></a>
+                            </td>
+                            <td>@item.Reference</td>
+                            <td>@item.Names</td>
+                            <td>
+
+                                @if (!string.IsNullOrEmpty(item.IDNumber) && item.IDNumber.Length == 13)
+                                {
+                                    @($"{item.IDNumber.Substring(0, 4)}{new string('*', 6)}{item.IDNumber.Substring(11, 2)}")
+                                }
+                                else if (!string.IsNullOrEmpty(item.IDNumber) && item.IDNumber.Length < 13)
+                                {
+                                    @item.IDNumber
+                                }
+                                else
+                                {
+                                    @("0000000000000")
+                                }
+
+                            </td>
+                            <td>@item.Cellphone</td>
+                            <td>@item.Course</td>
+                            <td>@item.SubmittedDate.ToShortDateString()</td>
+                            <td>
+                                <span class="badge @(item.Status == ApplicationStatus.Submitted.ToString() ? "bg-warning text-white" :
+                        item.Status == ApplicationStatus.Pending.ToString() ? "bg-primary text-white" :
+                        item.Status == ApplicationStatus.Rejected.ToString() ? "bg-danger text-white" :
+                        "bg-success text-white")">@item.Status</span>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: darkmagenta">
+                <h5 class="modal-title text-white" id="staticBackdropLabel">Send Applicant Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="notifyApplicantForm" action="" method="post">
+
+                    <label>Applicant</label>
+                    <input name="UserId" value="" readonly class="form-control text-white fw-bold" style="background-color:darkgoldenrod" />
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="Message" class="form-control" text-wrap:normal" type="text" placeholder="Message..."></textarea>
+                    </div>
+
+                    <input name="UserEmail" hidden />
+
+                    <input name="UserPhone" hidden />
+
+                    <div class="form-check">
+                        <input class="form-check-input" name="IsSMS" type="checkbox" value="" id="flexCheckDefault" style="background-color:darkred">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Send SMS?
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" name="IsEmail" type="checkbox" value="" id="flexCheckChecked" style="background-color:darkgoldenrod">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Send Email?
+                        </label>
+                    </div>
+
+                    <div class="modal-footer mt-1">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary sendButton"><i class="fa fa-paper-plane"></i> Send</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+
+        $('.open-message-modal').click(function () {
+
+            var $link = $(this);
+
+            var $row = $link.closest('tr');
+
+            var applicantId = $(this).data('applicant-id');
+
+            var applicantName = $(this).closest('tr').find('td:eq(3)').text();
+
+            var applicantNumber = $(this).closest('tr').find('td:eq(5)').text();
+
+            var applicantEmail = $(this).closest('tr').find('td:eq(7)').text();
+
+            var appDetails = applicantName + " (" + applicantNumber + ")";
+
+            $('#staticBackdrop input[name="UserId"]').val(appDetails);
+
+            $('#staticBackdrop input[name="UserEmail"]').val(applicantEmail);
+
+            $('#staticBackdrop input[name="UserPhone"]').val(applicantNumber);
+
+        });
+
+        $('#notifyApplicantForm').submit(function (event) {
+
+            event.preventDefault();
+
+            var formData = $(this).serialize();
+
+            var isEmailChecked = $(this).find('input[name="IsEmail"]').prop('checked');
+
+            var isSMSChecked = $(this).find('input[name="IsSMS"]').prop('checked');
+
+            formData += '&IsEmail=' + isEmailChecked + '&IsSMS=' + isSMSChecked
+
+            $.ajax({
+
+                url: '@Url.Action("OnNotifyApplicant", "Application")',
+
+                data: formData,
+
+                type: 'POST',
+
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+
+                success: function (result) {
+                    alert("Message sent successfully");
+                },
+                error: function (error) {
+                    alert("Error: Unable to send message");
+                }
+            });
+
+
+            $('textarea[name="Message"]').on('input', function () {
+
+                var messageBody = $(this).val().trim();
+
+                if (messageBody !== '') {
+
+                    $('.sendButton').prop('disabled', false);
+
+                } else {
+
+                    $('.sendButton').prop('disabled', true);
+                }
+            });
+
+        });
+    });
+
+</script>
+
+
+
+
+
+
+
+
+
+
+

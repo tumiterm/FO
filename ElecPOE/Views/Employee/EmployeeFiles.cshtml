@@ -1,0 +1,357 @@
+﻿@model ForekOnline.Domain.Entities.File
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using static ForekOnline.Application.Common.Utility.EncryptionHelper
+@{
+    ViewData["Title"] = "Employee Dashboard";
+
+    var fileCounts = ViewData["FileCounts"] as Dictionary<string,int> ?? new();
+    int timetableCount    = fileCounts.TryGetValue("Timetable", out var t) ? t : 0;
+    int trainingSchedule  = fileCounts.TryGetValue("TrainingSchedule", out var ts) ? ts : 0;
+    int assessmentPlan    = fileCounts.TryGetValue("AssessmentPlan", out var ap) ? ap : 0;
+    int studyMaterial     = fileCounts.TryGetValue("StudyMaterial", out var sm) ? sm : 0;
+    int attendance        = fileCounts.TryGetValue("Attendance", out var at) ? at : 0;
+    var lessonPlans       = ViewData["plans"] ?? 0;
+    var weeklyReports     = ViewData["weekly"] ?? 0;
+    var monthlyReports    = ViewData["monthly"] ?? 0;
+    var annualReports     = ViewData["annual"] ?? 0;
+
+    string? employeeName  = ViewData["Name"]?.ToString();
+    string idNumber       = ViewData["Id"]?.ToString() ?? "";
+    var userId            = ViewData["UserId"];
+    string encryptedId    = Encrypt(idNumber);
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+:root{
+    --emp-bg:#ffffff;--emp-bg-alt:#f6f8fa;--emp-border:#e2e6ea;--emp-border-strong:#cbd2d8;
+    --emp-accent:#7d0e11;--emp-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --emp-soft:#fff5f3;--emp-text:#1f262e;--emp-green:#1d7a46;--emp-blue:#1d4d7a;--emp-gold:#b87400;
+    --emp-radius-xl:40px;--emp-radius:22px;--emp-radius-sm:14px;
+    --emp-shadow:0 18px 50px -20px rgba(125,14,17,.28),0 8px 26px -12px rgba(125,14,17,.14);
+    --emp-focus:0 0 0 .16rem #b3121725;
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1480px;margin:0 auto;padding:1.9rem 1.1rem 3.2rem;}
+.header-band{
+    background:var(--emp-bg);border:1px solid var(--emp-border);border-radius:var(--emp-radius-xl);
+    padding:1.4rem 1.7rem 1.25rem;display:flex;flex-wrap:wrap;gap:1.35rem;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121717,#ff7a1818);pointer-events:none;}
+.icon-pill{width:90px;height:90px;border-radius:32px;background:var(--emp-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#fff;box-shadow:0 16px 40px -18px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.8rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.65rem;}
+.tagline{font-size:.6rem;letter-spacing:.2rem;font-weight:700;background:var(--emp-soft);color:var(--emp-accent);padding:.55rem 1rem;border-radius:50px;text-transform:uppercase;display:inline-flex;gap:.5rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.7rem;flex-wrap:wrap;}
+
+.btn-base,.btn-accent,.btn-outline{
+    font-size:.6rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.68rem 1.15rem;border-radius:18px;border:1px solid var(--emp-border);
+    background:#fff;color:var(--emp-accent);display:inline-flex;align-items:center;gap:.55rem;cursor:pointer;
+    text-decoration:none;transition:.35s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--emp-accent-grad);color:#fff;border-color:var(--emp-accent);box-shadow:var(--emp-shadow);}
+.btn-accent{background:var(--emp-accent-grad);color:#fff;border:1px solid var(--emp-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+.btn-ghost{background:var(--emp-soft);color:var(--emp-accent);border:1px solid var(--emp-accent);}
+
+.grid-stats{margin-top:1.7rem;display:grid;gap:1.3rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+.stat-card{
+    position:relative;display:flex;flex-direction:column;gap:.75rem;
+    background:var(--emp-bg);border:1px solid var(--emp-border);border-radius:26px;
+    padding:1.05rem 1.1rem 1rem;overflow:hidden;isolation:isolate;transition:.4s cubic-bezier(.25,.9,.25,1);
+}
+.stat-card:before{
+    content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 18%,rgba(255,122,24,.28),transparent 70%);
+    opacity:.45;pointer-events:none;mix-blend-mode:overlay;
+}
+.stat-card:hover{transform:translateY(-5px);border-color:var(--emp-border-strong);box-shadow:0 14px 38px -18px rgba(179,18,23,.32);}
+.stat-head{display:flex;align-items:center;gap:.55rem;}
+.stat-icon{
+    width:50px;height:50px;border-radius:16px;background:var(--emp-accent-grad);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1.25rem;box-shadow:0 6px 16px -8px rgba(179,18,23,.55);flex-shrink:0;
+}
+.stat-title{font-size:.68rem;font-weight:700;letter-spacing:.18rem;color:#555;text-transform:uppercase;}
+.stat-value{font-size:1.8rem;font-weight:600;line-height:1;background:var(--emp-accent-grad);-webkit-background-clip:text;color:transparent;letter-spacing:.6px;}
+.inline-meta{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.2rem;}
+.meta-pill{
+    background:#eef3f7;color:#173a51;border:1px solid #d3dde4;
+    padding:.34rem .6rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.08rem;display:inline-flex;align-items:center;gap:.35rem;
+}
+.link-line{margin-top:auto;display:flex;align-items:center;gap:.5rem;}
+.link-line a{font-size:.5rem;font-weight:700;letter-spacing:.1rem;text-transform:uppercase;color:var(--emp-accent);text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;padding:.4rem .65rem;border:1px solid var(--emp-border);border-radius:12px;transition:.3s;}
+.link-line a:hover{background:var(--emp-accent-grad);color:#fff;border-color:var(--emp-accent);box-shadow:0 6px 16px -10px rgba(179,18,23,.5);}
+
+.progress-bar-wrap{background:#f0f2f5;border:1px solid #e1e6eb;border-radius:14px;overflow:hidden;height:9px;width:100%;margin-top:.35rem;position:relative;}
+.progress-fill{height:100%;background:var(--emp-accent-grad);width:0%;transition:width 1s cubic-bezier(.55,.1,.3,1);}
+.sub-foot{font-size:.46rem;font-weight:600;letter-spacing:.1rem;color:#777;margin-top:.25rem;display:flex;gap:.4rem;flex-wrap:wrap;}
+
+.modal-header-modern{background:var(--emp-accent-grad);color:#fff;}
+.modal-footer-modern{background:#fff5f4;border-top:1px solid var(--emp-border);}
+
+.form-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:.6rem;}
+.field{display:flex;flex-direction:column;gap:.45rem;}
+.field label{font-size:.5rem;text-transform:uppercase;font-weight:700;letter-spacing:.15rem;color:#4e5660;display:flex;gap:.4rem;align-items:center;}
+.required:after{content:"*";color:#b31217;margin-left:.25rem;font-weight:800;}
+.input-shell{display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--emp-border);padding:.55rem .65rem;border-radius:14px;transition:.25s;}
+.input-shell:focus-within{border-color:var(--emp-accent);box-shadow:var(--emp-focus);}
+.input-shell select,.input-shell input{border:none;outline:none;background:transparent;width:100%;font-size:.7rem;color:#222;}
+.field small{font-size:.46rem;color:#777;font-weight:600;letter-spacing:.08rem;}
+
+.fade-in{animation:fade .55s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:640px){
+    .header-band{padding:1.1rem 1.15rem 1rem;}
+    .icon-pill{width:72px;height:72px;font-size:1.9rem;}
+    .header-band h1{font-size:1.45rem;}
+}
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-user-tie"></i></div>
+        <div>
+            <h1>Employee Dashboard</h1>
+            <div class="tagline"><i class="fa fa-id-card"></i> @employeeName</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-accent" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="fa fa-plus-circle"></i> Add Files
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-stats" id="statsGrid">
+        <div class="stat-card" data-kind="TrainingSchedule">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-calendar-days"></i></div>
+                <div>
+                    <div class="stat-title">Training Schedule</div>
+                    <div class="stat-value" data-count="@trainingSchedule">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="OnViewFiles" asp-route-UserId="@userId" asp-route-docType="TrainingSchedule"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-database"></i> Count</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="Timetable">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-clock"></i></div>
+                <div>
+                    <div class="stat-title">Timetable</div>
+                    <div class="stat-value" data-count="@timetableCount">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="OnViewFiles" asp-route-UserId="@userId" asp-route-docType="Timetable"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-layer-group"></i> Structured</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="AssessmentPlan">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-list-check"></i></div>
+                <div>
+                    <div class="stat-title">Assessment Plan</div>
+                    <div class="stat-value" data-count="@assessmentPlan">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="OnViewFiles" asp-route-UserId="@userId" asp-route-docType="AssessmentPlan"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-clipboard"></i> Overview</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="LessonPlan">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-chalkboard"></i></div>
+                <div>
+                    <div class="stat-title">Lesson Plan</div>
+                    <div class="stat-value" data-count="@lessonPlans">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="OnCreatePlan" asp-controller="LessonPlanConfig" asp-route-IdPass="@ViewData["Id"]"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-book-open"></i> Reference</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="WeeklyReport">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-calendar-week"></i></div>
+                <div>
+                    <div class="stat-title">Weekly Report</div>
+                    <div class="stat-value" data-count="@weeklyReports">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@ViewData["Id"]"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-repeat"></i> Cycle</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="MonthlyReport">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-calendar-alt"></i></div>
+                <div>
+                    <div class="stat-title">Monthly Report</div>
+                    <div class="stat-value" data-count="@monthlyReports">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@encryptedId"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-chart-line"></i> Trend</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="AnnualReport">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-calendar"></i></div>
+                <div>
+                    <div class="stat-title">Annual Report</div>
+                    <div class="stat-value" data-count="@annualReports">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@encryptedId"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-flag-checkered"></i> Year End</span></div>
+        </div>
+
+        <div class="stat-card" data-kind="Attendance">
+            <div class="stat-head">
+                <div class="stat-icon"><i class="fa fa-user-check"></i></div>
+                <div>
+                    <div class="stat-title">Attendance Registers</div>
+                    <div class="stat-value" data-count="@attendance">0</div>
+                </div>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-fill"></div></div>
+            <div class="link-line">
+                <a asp-action="OnViewFiles" asp-route-UserId="@userId" asp-route-docType="Attendance"><i class="fa fa-eye"></i> View</a>
+            </div>
+            <div class="sub-foot"><span class="meta-pill"><i class="fa fa-users"></i> Presence</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header modal-header-modern">
+          <h5 class="modal-title" id="uploadModalLabel"><i class="fa fa-upload"></i> Upload Files</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form asp-action="EmployeeFiles" asp-controller="Employee" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
+        @Html.AntiForgeryToken()
+        <input asp-for="UserId" type="hidden" value="@userId"/>
+        <div class="modal-body">
+            <div class="form-grid">
+                <div class="field">
+                    <label class="required">File Type</label>
+                    <div class="input-shell">
+                        <i class="fa fa-layer-group" style="color:#888;"></i>
+                        <select name="Type" asp-items="Html.GetEnumSelectList<eFileType>()">
+                            <option value="">Select type...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="required">Phase</label>
+                    <div class="input-shell">
+                        <i class="fa fa-sliders" style="color:#888;"></i>
+                        <select name="Phase" asp-items="Html.GetEnumSelectList<ePhase>()">
+                            <option value="">Select phase...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Start Date</label>
+                    <div class="input-shell">
+                        <i class="fa fa-calendar-plus" style="color:#888;"></i>
+                        <input name="StartDate" type="date"/>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>End Date</label>
+                    <div class="input-shell">
+                        <i class="fa fa-calendar-xmark" style="color:#888;"></i>
+                        <input name="EndDate" type="date"/>
+                    </div>
+                </div>
+                <div class="field" style="grid-column:1/-1;">
+                    <label class="required">Attach File</label>
+                    <div class="input-shell">
+                        <i class="fa fa-file-arrow-up" style="color:#888;"></i>
+                        <input asp-for="AttachmentFile" type="file" id="fileInput" />
+                    </div>
+                    <small id="fileInfo">Select a document (max 10MB).</small>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer modal-footer-modern">
+            <button type="button" class="btn-outline btn-base" data-bs-dismiss="modal"><i class="fa fa-xmark"></i> Close</button>
+            <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts{
+<script>
+(function(){
+    // Animate counts + bars
+    const cards = document.querySelectorAll('.stat-card');
+    const io = new IntersectionObserver(entries=>{
+        entries.forEach(e=>{
+            if(e.isIntersecting){
+                const val = e.target.querySelector('.stat-value');
+                const bar = e.target.querySelector('.progress-fill');
+                const target = +val.getAttribute('data-count');
+                let cur=0;
+                const step = Math.max(1,Math.ceil(target/40));
+                const tick=()=>{
+                    cur+=step;
+                    if(cur>=target){ val.textContent=target; bar.style.width = (target? '100%':'8%'); }
+                    else { val.textContent=cur; bar.style.width = (Math.min(100,(cur/target)*100))+'%'; requestAnimationFrame(tick); }
+                };
+                requestAnimationFrame(tick);
+                io.unobserve(e.target);
+            }
+        });
+    },{threshold:.25});
+    cards.forEach(c=>io.observe(c));
+
+    // File size validation
+    const fileInput=document.getElementById('fileInput');
+    const fileInfo=document.getElementById('fileInfo');
+    const MAX=10*1024*1024;
+    fileInput?.addEventListener('change',function(){
+        const f=this.files[0];
+        if(!f){ fileInfo.textContent='Select a document (max 10MB).'; return; }
+        if(f.size>MAX){
+            alert('File exceeds 10MB limit.');
+            this.value='';
+            fileInfo.textContent='Select a document (max 10MB).';
+            return;
+        }
+        fileInfo.textContent = f.name + ' (' + (f.size/1024).toFixed(0) + ' KB)';
+    });
+})();
+
+</script>
+}
+
+

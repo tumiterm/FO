@@ -1,0 +1,293 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.VisitationViewModel>
+@{
+    ViewData["Title"] = "Visitations";
+    var visits = (Model ?? Enumerable.Empty<ForekOnline.Domain.ViewModels.VisitationViewModel>()).ToList();
+    string companyName = (string?)ViewData["result"] ?? "Company";
+    var mentors = visits.Select(v => v.Mentor).Where(m=>!string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m=>m).ToList();
+    var visitors = visits.Select(v => v.VisitBy).Where(m=>!string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m=>m).ToList();
+    var companyId = ViewData["CompanyId"];
+}
+
+<style>
+:root{
+  --v-bg:#ffffff;--v-bg-alt:#f6f8fa;--v-border:#e2e6ea;--v-border-strong:#cbd1d7;
+  --v-accent:#7d0e11;--v-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+  --v-soft:#fff5f3;--v-text:#1f262e;--v-radius-xl:34px;--v-radius:22px;--v-radius:14px;
+  --v-shadow:0 14px 42px -18px rgba(125,14,17,.28),0 6px 22px -12px rgba(125,14,17,.14);
+  --v-focus:0 0 0 .15rem #b3121726;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1250px;margin:0 auto;padding:1.9rem 1.15rem 3rem;}
+.header-band{
+  background:var(--v-bg);border:1px solid var(--v-border);border-radius:var(--v-radius-xl);
+  padding:1.25rem 1.55rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121714,#ff7a1816);}
+.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--v-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.05rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.6rem;}
+.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--v-soft);color:var(--v-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
+.btn-base,.btn-accent{
+  font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+  padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--v-border);
+  background:#fff;color:var(--v-accent);display:inline-flex;align-items:center;gap:.5rem;
+  cursor:pointer;text-decoration:none;transition:.35s;
+}
+.btn-base:hover{background:var(--v-accent-grad);color:#fff;border-color:var(--v-accent);box-shadow:var(--v-shadow);}
+.btn-accent{background:var(--v-accent-grad);color:#fff;border:1px solid var(--v-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+.filter-bar{
+  margin-top:1.45rem;background:var(--v-bg);border:1px solid var(--v-border);border-radius:28px;
+  padding:1rem 1rem .9rem;display:flex;flex-wrap:wrap;gap:.85rem;align-items:flex-end;
+}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:150px;}
+.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap{position:relative;flex:1 1 300px;}
+.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding:.5rem .65rem .5rem 2rem;border:1px solid var(--v-border);border-radius:14px;font-size:.68rem;background:#fff;transition:.25s;}
+.search-wrap input:focus{outline:none;border-color:var(--v-accent);box-shadow:var(--v-focus);}
+.filter-bar select,.filter-bar input[type='date']{
+  background:#fff;border:1px solid var(--v-border);border-radius:14px;font-size:.65rem;padding:.5rem .6rem;transition:.25s;
+}
+.filter-bar select:focus,.filter-bar input[type='date']:focus{outline:none;border-color:var(--v-accent);box-shadow:var(--v-focus);}
+#filterState{display:none;font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.38rem .65rem;border-radius:30px;background:var(--v-soft);color:var(--v-accent);}
+
+.table-shell{margin-top:1.25rem;background:var(--v-bg);border:1px solid var(--v-border);border-radius:30px;padding:1.2rem 1.1rem 1.05rem;overflow:auto;}
+.table-meta{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.65rem;font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;}
+.table-meta .badge{background:var(--v-soft);color:var(--v-accent);padding:.4rem .65rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.1rem;}
+.visits-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
+.visits-table thead th{
+  background:var(--v-accent-grad);color:#fff;font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;padding:.55rem .55rem;position:sticky;top:0;z-index:2;
+}
+.visits-table tbody tr{transition:.18s;}
+.visits-table tbody tr:nth-child(even){background:#fff;}
+.visits-table tbody tr:nth-child(odd){background:#fffdfd;}
+.visits-table tbody tr:hover{background:#fff4ef;}
+.visits-table td{padding:.5rem .55rem;border-bottom:1px solid var(--v-border);vertical-align:middle;color:#333;}
+.action-link{
+  font-size:.48rem;font-weight:600;letter-spacing:.08rem;text-transform:uppercase;
+  background:#fff;padding:.38rem .55rem;border:1px solid var(--v-border);border-radius:10px;text-decoration:none;
+  display:inline-flex;align-items:center;gap:.3rem;color:var(--v-accent);transition:.3s;
+}
+.action-link:hover{background:var(--v-accent-grad);color:#fff;border-color:var(--v-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+.pill{
+  font-size:.46rem;font-weight:700;letter-spacing:.08rem;padding:.28rem .55rem;border-radius:24px;display:inline-flex;align-items:center;gap:.3rem;
+  background:#f0f1f3;color:#555;
+}
+.pill-yes{background:#e8f9ef;color:#147a40;border:1px solid #b6e6c6;}
+.pill-no{background:#ffe8eb;color:#b31217;border:1px solid #f3b4ba;}
+.empty-row{font-style:italic;text-align:center;color:#777;}
+.hidden-row{display:none!important;}
+.footer-info{margin-top:.6rem;font-size:.48rem;color:#666;font-weight:600;display:flex;gap:.9rem;flex-wrap:wrap;}
+@@media (max-width:860px){
+  .visits-table thead th:nth-child(3),.visits-table td:nth-child(3){display:none;}
+}
+@@media (max-width:640px){
+  .visits-table thead th:nth-child(2),.visits-table td:nth-child(2){display:none;}
+}
+.fade-in{animation:fade .55s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="page-shell fade-in">
+  <div class="header-band">
+      <div class="icon-pill"><i class="fa fa-archway"></i></div>
+      <div>
+          <h1>Visitations</h1>
+          <div class="tagline"><i class="fa fa-building"></i> @companyName</div>
+      </div>
+      <div class="toolbar">
+          <a asp-action="Visitation" asp-route-CompanyId="@companyId" class="btn-accent"><i class="fa fa-plus-circle"></i> New</a>
+          <a asp-action="HostCompanies" class="btn-base"><i class="fa fa-arrow-left"></i> Back</a>
+      </div>
+  </div>
+
+  <div class="filter-bar">
+      <div class="search-wrap">
+          <i class="fa fa-search"></i>
+          <input id="searchBox" type="text" placeholder="Search mentor / visitor / report status..." autocomplete="off" />
+      </div>
+      <div class="filter-group">
+          <label>Mentor</label>
+          <select id="mentorFilter">
+              <option value="">Any</option>
+              @foreach(var m in mentors){ <option value="@m">@m</option> }
+          </select>
+      </div>
+      <div class="filter-group">
+          <label>Visited By</label>
+          <select id="visitorFilter">
+              <option value="">Any</option>
+              @foreach(var vb in visitors){ <option value="@vb">@vb</option> }
+          </select>
+      </div>
+      <div class="filter-group">
+          <label>Report</label>
+          <select id="reportFilter">
+              <option value="">Any</option>
+              <option value="yes">Has Report</option>
+              <option value="no">No Report</option>
+          </select>
+      </div>
+      <div class="filter-group">
+          <label>Date From</label>
+          <input type="date" id="fromDate"/>
+      </div>
+      <div class="filter-group">
+          <label>Date To</label>
+          <input type="date" id="toDate"/>
+      </div>
+      <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+          <span id="filterState"><i class="fa fa-filter"></i> FILTERED</span>
+      </div>
+  </div>
+
+  <div class="table-shell">
+      <div class="table-meta">
+          <span id="rowsInfo" class="badge"><i class="fa fa-database"></i> Loading...</span>
+          <div style="display:flex;gap:.45rem;flex-wrap:wrap;">
+              <button id="btnExport" type="button" class="action-link"><i class="fa fa-file-export"></i> Export</button>
+              <button id="btnRefresh" type="button" class="action-link"><i class="fa fa-rotate"></i> Refresh</button>
+          </div>
+      </div>
+      <table class="visits-table" id="visitsTable">
+          <thead>
+              <tr>
+                  <th>Action</th>
+                  <th>Mentor</th>
+                  <th>Visited By</th>
+                  <th>Date</th>
+                  <th>Report</th>
+                  <th>File</th>
+              </tr>
+          </thead>
+          <tbody id="visitsBody">
+          @if(!visits.Any()){
+              <tr><td class="empty-row" colspan="6">No visitations recorded.</td></tr>
+          } else {
+              foreach(var v in visits){
+                  var dateTxt = v.Date.ToString() ?? "";
+                  var has = v.HasReport;
+                  <tr data-text="@($"{v.Mentor} {v.VisitBy} {(has?"yes":"no")} {dateTxt}".ToLower())"
+                      data-mentor="@v.Mentor"
+                      data-visitor="@v.VisitBy"
+                      data-report="@(has?"yes":"no")"
+                      data-date="@dateTxt">
+                      <td>
+                          <a class="action-link" asp-action="OnModifyVisitation" asp-route-VisitId="@v.VisitId"><i class="fa fa-folder-open"></i> Open</a>
+                      </td>
+                      <td>@v.Mentor</td>
+                      <td>@v.VisitBy</td>
+                      <td>@dateTxt</td>
+                      <td>
+                          <span class="pill @(has?"pill-yes":"pill-no")">
+                              <i class="fa @(has?"fa-check-circle":"fa-times-circle")"></i> @(has?"YES":"NO")
+                          </span>
+                      </td>
+                      <td>
+                          @if (has && !string.IsNullOrWhiteSpace(v.Report))
+                          {
+                              <a class="action-link" asp-action="AttachmentDownload" asp-route-filename="@v.Report" title="Download"><i class="fa fa-download"></i></a>
+                          }
+                          else
+                          {
+                              <span class="action-link" style="opacity:.45;cursor:not-allowed;"><i class="fa fa-ban"></i> N/A</span>
+                          }
+                      </td>
+                  </tr>
+              }
+          }
+          </tbody>
+      </table>
+      <div class="footer-info">
+          <span><i class="fa fa-info-circle"></i> Filters & export apply to current visible rows.</span>
+          <span id="perfInfo"></span>
+      </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const body = document.getElementById('visitsBody');
+  const rowsInfo = document.getElementById('rowsInfo');
+  const perfInfo = document.getElementById('perfInfo');
+  const searchBox = document.getElementById('searchBox');
+  const mentorFilter = document.getElementById('mentorFilter');
+  const visitorFilter = document.getElementById('visitorFilter');
+  const reportFilter = document.getElementById('reportFilter');
+  const fromDate = document.getElementById('fromDate');
+  const toDate = document.getElementById('toDate');
+  const filterState = document.getElementById('filterState');
+  const btnExport = document.getElementById('btnExport');
+  const btnRefresh = document.getElementById('btnRefresh');
+
+  function norm(v){return (v||'').toString().toLowerCase().trim();}
+  function parseDate(d){ if(!d) return null; const dt=new Date(d); return isNaN(dt.getTime())? null: dt; }
+
+  function apply(){
+    const t0=performance.now();
+    const q=norm(searchBox.value);
+    const m=mentorFilter.value;
+    const vb=visitorFilter.value;
+    const rp=reportFilter.value;
+    const f=fromDate.value? parseDate(fromDate.value):null;
+    const t=toDate.value? parseDate(toDate.value):null;
+
+    const rows=[...body.querySelectorAll('tr')];
+    let shown=0,total=0;
+    rows.forEach(r=>{
+      if(r.classList.contains('empty-row')) return;
+      total++;
+      const txt=r.getAttribute('data-text')||'';
+      const dm=r.getAttribute('data-mentor')||'';
+      const dv=r.getAttribute('data-visitor')||'';
+      const dr=r.getAttribute('data-report')||'';
+      const dRaw=r.getAttribute('data-date');
+      const dObj=parseDate(dRaw);
+      let show=true;
+      if(q && !txt.includes(q)) show=false;
+      if(m && dm!==m) show=false;
+      if(vb && dv!==vb) show=false;
+      if(rp && dr!==rp) show=false;
+      if(f && (!dObj || dObj < f)) show=false;
+      if(t && (!dObj || dObj > t)) show=false;
+      r.classList.toggle('hidden-row', !show);
+      if(show) shown++;
+    });
+
+    const filtering=!!(q||m||vb||rp||f||t);
+    filterState.style.display = filtering? '' : 'none';
+    rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${shown} of ${total} visit(s)` + (filtering? ' (filtered)':'');
+    perfInfo.textContent = 'Render '+(performance.now()-t0).toFixed(1)+'ms';
+  }
+
+  [searchBox, mentorFilter, visitorFilter, reportFilter, fromDate, toDate].forEach(el=>{
+    el.addEventListener(el.tagName==='INPUT'?'input':'change', apply);
+  });
+
+  btnExport.addEventListener('click', ()=>{
+    const visible=[...body.querySelectorAll('tr:not(.hidden-row)')].filter(r=>!r.classList.contains('empty-row'));
+    if(!visible.length){ alert('No rows to export.'); return; }
+    const lines=['Mentor,VisitedBy,Date,HasReport'];
+    visible.forEach(r=>{
+      const cells=r.querySelectorAll('td');
+      const arr=[
+        cells[1].innerText.trim(),
+        cells[2].innerText.trim(),
+        cells[3].innerText.trim(),
+        cells[4].innerText.replace(/\s+/g,' ').trim()
+      ].map(v=>'"'+v.replace(/"/g,'""')+'"');
+      lines.push(arr.join(','));
+    });
+    const blob=new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='visitations-'+new Date().toISOString().slice(0,10)+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  });
+
+  btnRefresh.addEventListener('click', ()=>location.reload());
+
+  apply();
+})();
+</script>

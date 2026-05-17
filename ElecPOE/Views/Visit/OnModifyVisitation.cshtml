@@ -1,0 +1,166 @@
+﻿@model ForekOnline.Domain.ViewModels.VisitViewModel
+<style>
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    .res {
+        margin-right: 10px;
+    }
+
+    .form-control {
+        border-color: black;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+</style>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+</head>
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fa bi-building me-1 text-white"></i>
+            <span class="text-white">Learners Workplace Visitation Details<span class="text-bold"></span></span>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="OnModifyVisitation" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-xl-6 bod">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="form-group col-md-6">
+
+                                    <label class="control-label">Company</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-building  text-primary"></i></span>
+                                        <input asp-for="Company" class="form-control fw-bold" style="background-color: rgb(255, 213, 128)" readonly />
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label class="control-label">Visitor</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-user  text-primary"></i></span>
+                                        <select asp-for="VisitBy" class="form-control" asp-items="@ViewBag.userList">
+                                            <option disabled selected="selected" value="">Select Visitor</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group col-md-12 student">
+                                    <label class="control-label">Student(s)</label>
+                                    <div class="input-group mb-3 input1">
+                                        <select asp-for="SelectedIDArray" multiple class="form-control studs" asp-items="@ViewBag.StudentId">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label class="control-label">Date of Visit</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-calendar  text-primary"></i></span>
+                                        <input asp-for="Date" class="form-control" type="datetime-local" />
+                                    </div>
+                                </div>
+
+                                <input asp-for="CompanyId" value="@ViewData["CompId"]" hidden />
+
+                                <div class="form-group col-md-6">
+                                    <label class="control-label">Workplace Mentor</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-user text-primary"></i></span>
+                                        <input asp-for="Mentor" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-12">
+                                    <label class="control-label">Purpose of Visit</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-info-circle-fill  text-primary"></i></span>
+                                        <textarea asp-for="VisitPurpose" class="form-control" text-wrap:normal" type="text" placeholder="Please write purpose of visitation here..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-12">
+                                    <label class="control-label">Learners Feedback</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-bullhorn  text-primary"></i></span>
+                                        <textarea asp-for="LearnerFeedback" class="form-control" text-wrap:normal" type="text" placeholder="Please write learner feedback here..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-2">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input hasRep" asp-for="HasReport" style="background-color: rgb(255, 213, 128)" />
+                                            @Html.DisplayNameFor(model => model.HasReport)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group col-md-12 rep">
+                                    <label class="control-label">Workplace Report</label>
+                                    <div class="input-group input1">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-file-pdf-fill text-primary"></i></span>
+                                        <input asp-for="ReportFile" class="form-control" type="file" />
+                                    </div>
+                                </div>
+
+                                <input asp-for="VisitId" hidden/>
+
+                                <div class="form-group col-md-12 mt-3" style="background-color:whitesmoke;">
+                                    <button type="submit" class="btn btn-success save"><i class="fa fa-save"></i> Save</button>
+                                    <a class="btn btn-outline-danger float-end" asp-action="StudentList" asp-controller="Student"><i class="fa fa-window-close"></i> Exit</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card-body mb-4">
+                            <img id="output" src="~/Theme/images/Work.jpg" class="form-control" height="350px" style="border:none" />
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+
+        $(".rep").hide();
+
+        $('.studs').select2();
+
+        $(".hasRep").on("click", function () {
+
+            if (this.checked) {
+
+                $(".rep").show();
+
+            } else {
+
+                $(".rep").hide();
+            }
+        });
+    });
+
+</script>

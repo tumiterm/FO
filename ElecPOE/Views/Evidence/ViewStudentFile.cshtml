@@ -1,0 +1,80 @@
+﻿@using System.Net
+@model ForekOnline.Domain.Entities.Evidence
+
+<style>
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    .form-control {
+        border-color: black;
+    }
+
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-color: black;
+    }
+
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+</style>
+
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user me-1 text-white"></i>
+            <span class="text-white">@ViewData["Stud"]'s Uploaded File</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="card mb-4 bod">
+                        <div class="card-header text-white">
+                            <i class="fas fa-info-circle me-1"></i>
+                            File Details
+                        </div>
+                        <div class="card-body mb-4">
+                            <strong>Module: </strong> @ViewData["Module"]<hr />
+                            <strong>Attached By: </strong> @ViewData["By"]<hr />
+                            <strong>Attached On: </strong> @ViewData["On"]<hr />
+                            <strong>Is Active ?: </strong> @ViewData["Active"]<hr />
+                            <strong>
+                                Attachment:
+                                <a asp-action="AttachmentDownload"
+                                   asp-controller="Evidence"
+                                   asp-route-fileId="@Model.Photo"
+                                   class="text-danger">
+                                    <i class="fa fa-download"></i> Download
+                                </a>
+                            </strong>
+                            <hr />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6 bod">
+                    <div class="card mb-4 bod">
+                        <div class="card-header text-white">
+                            <i class="fas fa-id-card me-1"></i>
+                            Student File
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Photo))
+                        {
+                            <img src="@Url.Action("EvidenceImage", "Evidence", new { fileId = WebUtility.UrlEncode(Model.Photo) })"
+                                 height="310" width="415" style="object-fit:contain;" alt="Student Evidence" />
+                        }
+                        else
+                        {
+                            <div class="text-muted">No image available.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,24 @@
+﻿@model ForekOnline.Domain.ViewModels.NotificationEventSummaryViewModel
+<div class="modal fade" id="notif-@Model.Id" tabindex="-1" aria-labelledby="notifLabel-@Model.Id" aria-hidden="true">
+    <div class="modal-dialog @Model.SizeClass">
+        <div class="modal-content" style="border-radius:26px;border:1px solid #e1e4e8;overflow:hidden;">
+            <div class="modal-header" style="@Model.HeaderGradientCss">
+                <h5 class="modal-title" id="notifLabel-@Model.Id" style="color:@Model.HeaderTextColor;display:flex;align-items:center;gap:.55rem;">
+                    @if (!string.IsNullOrEmpty(Model.HeaderIconCss))
+                    {
+                        <i class="@Model.HeaderIconCss"></i>
+                    }
+                    @Model.Title
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:#ffffff;">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow-sm mb-3" />
+                }
+                @await Html.PartialAsync("_BlockList", Model.Blocks)
+            </div>
+        </div>
+    </div>
+</div>

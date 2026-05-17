@@ -1,0 +1,32 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.NotificationContentBlockViewModel>
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary small mb-0">No blocks.</div>
+}
+else
+{
+    <ul class="list-group list-group-flush small">
+        @foreach (var b in Model)
+        {
+            <li class="list-group-item">
+                <div>
+                    <strong>@b.Type</strong>
+                    @if (!string.IsNullOrEmpty(b.Text))
+                    {
+                        <div class="text-muted" style="font-size:.65rem;">@b.Text</div>
+                    }
+                    @if (!string.IsNullOrEmpty(b.ImageUrl))
+                    {
+                        <div class="mt-1"><img src="@b.ImageUrl" alt="@b.AltText" style="max-height:60px;border-radius:6px;" /></div>
+                    }
+                </div>
+                <div class="mt-2">
+                    <form asp-action="RemoveBlock" asp-route-eventId="@ViewContext.RouteData.Values["id"]" asp-route-blockId="@b.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash"></i> Remove</button>
+                    </form>
+                </div>
+            </li>
+        }
+    </ul>
+}

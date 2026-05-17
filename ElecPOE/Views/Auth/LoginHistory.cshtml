@@ -1,0 +1,850 @@
+﻿@model ForekOnline.Domain.ViewModels.LoginHistoryDashboardViewModel
+
+@using ForekOnline.Application.Common.Utility
+
+@{
+    ViewData["Title"] = "Login History";
+
+    var m = Model;
+    var rows = m?.Rows ?? Array.Empty<ForekOnline.Domain.ViewModels.LoginHistoryRowViewModel>();
+}
+
+<style>
+    :root {
+        --hero1: #0b5d46;
+        --hero2: #0d8e66;
+        --hero3: #0aa377;
+        --ink: #14211b;
+        --muted: #5a6b63;
+        --card: #ffffff;
+        --border: #e2e8e4;
+        --shadow: 0 16px 40px -26px rgba(0,0,0,.35);
+        --radius: 16px;
+    }
+
+    .lh-hero {
+        border-radius: 22px;
+        background: linear-gradient(135deg, var(--hero1), var(--hero2) 60%, var(--hero3));
+        color: #fff;
+        padding: 1.35rem 1.25rem;
+        box-shadow: var(--shadow);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+        .lh-hero:before {
+            content: "";
+            position: absolute;
+            inset: -50% -20%;
+            background: radial-gradient(circle at 30% 35%, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 60%);
+            pointer-events: none;
+        }
+
+        .lh-hero .inner {
+            position: relative;
+        }
+
+        .lh-hero h1 {
+            margin: 0 0 .25rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .lh-hero p {
+            margin: 0;
+            color: rgba(255,255,255,.9);
+            max-width: 80ch;
+            font-size: .9rem;
+        }
+
+    .lh-kpis {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+
+    @@media (max-width: 1200px) {
+        .lh-kpis {
+            grid-template-columns: repeat(3, minmax(0,1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .lh-kpis {
+            grid-template-columns: repeat(2, minmax(0,1fr));
+        }
+    }
+
+    .kpi {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 22px -20px rgba(0,0,0,.35);
+        padding: .85rem .9rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        cursor: pointer;
+        transition: box-shadow .15s, transform .15s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .kpi:hover {
+            box-shadow: 0 14px 30px -18px rgba(0,0,0,.45);
+            transform: translateY(-2px);
+        }
+
+        .kpi .label {
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .12rem;
+            color: var(--muted);
+            font-weight: 800;
+        }
+
+        .kpi .value {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--ink);
+            line-height: 1.1;
+        }
+
+        .kpi .sub {
+            font-size: .68rem;
+            font-weight: 700;
+        }
+
+        .kpi .icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: #0d8e6612;
+            border: 1px solid #0d8e6630;
+            color: #0b5d46;
+            flex: 0 0 auto;
+        }
+
+        .kpi.warn .icon {
+            background: #f59e0b12;
+            border-color: #f59e0b35;
+            color: #7a4b00;
+        }
+
+        .kpi.bad .icon {
+            background: #dc262612;
+            border-color: #dc262635;
+            color: #7a2525;
+        }
+
+        .kpi.neutral .icon {
+            background: #64748b14;
+            border-color: #64748b2c;
+            color: #334155;
+        }
+
+        .kpi.info .icon {
+            background: #3b82f612;
+            border-color: #3b82f635;
+            color: #1e3a5f;
+        }
+
+    .lh-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        margin-bottom: .75rem;
+    }
+
+    .lh-chip {
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1rem;
+        padding: .35rem .7rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all .15s;
+    }
+
+        .lh-chip:hover, .lh-chip.active-chip {
+            background: var(--hero2);
+            color: #fff;
+            border-color: var(--hero2);
+        }
+
+    .lh-ticker {
+        font-size: .8rem;
+        color: var(--muted);
+        margin-bottom: .75rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+        .lh-ticker .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0d8e66;
+            animation: pulse-anim 1.4s infinite;
+        }
+
+    @@keyframes pulse-anim {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: .4;
+            transform: scale(1.4);
+        }
+    }
+
+    .lh-tools {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 10px 22px -22px rgba(0,0,0,.35);
+        padding: .85rem .9rem;
+        margin-bottom: 1rem;
+    }
+
+        .lh-tools .hint {
+            font-size: .82rem;
+            color: var(--muted);
+        }
+
+    .lh-search {
+        border-radius: 12px;
+    }
+
+    .lh-table-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+        .lh-table-card .card-body {
+            padding: 1rem;
+        }
+
+    .lh-badge {
+        font-size: .68rem;
+        text-transform: uppercase;
+        letter-spacing: .12rem;
+        font-weight: 900;
+        border-radius: 999px;
+        padding: .28rem .55rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        border: 1px solid transparent;
+    }
+
+        .lh-badge.active {
+            background: #0d8e6612;
+            border-color: #0d8e6628;
+            color: #0b5d46;
+        }
+
+        .lh-badge.closed {
+            background: #64748b14;
+            border-color: #64748b2c;
+            color: #334155;
+        }
+
+        .lh-badge.abnormal {
+            background: #f59e0b12;
+            border-color: #f59e0b35;
+            color: #7a4b00;
+        }
+
+        .lh-badge.forced {
+            background: #dc262612;
+            border-color: #dc262635;
+            color: #7a2525;
+        }
+
+    .role-badge {
+        font-size: .62rem;
+        text-transform: uppercase;
+        letter-spacing: .08rem;
+        font-weight: 800;
+        border-radius: 6px;
+        padding: .15rem .4rem;
+        background: #e2e8e4;
+        color: var(--ink);
+    }
+
+    .pulse-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #0d8e66;
+        margin-right: 4px;
+        animation: pulse-anim 1.4s infinite;
+    }
+
+    .lh-meta {
+        font-size: .78rem;
+        color: var(--muted);
+    }
+
+    .lh-name {
+        font-weight: 800;
+        color: var(--ink);
+        line-height: 1.15;
+    }
+
+    .lh-email {
+        font-size: .82rem;
+        color: var(--muted);
+    }
+
+    .lh-empty {
+        padding: 1.1rem;
+        text-align: center;
+        color: var(--muted);
+    }
+
+    .lh-details {
+        background: #fbfcfb;
+        border: 1px dashed #e6ede8;
+        border-radius: 14px;
+        padding: .75rem .8rem;
+    }
+
+        .lh-details .k {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .12rem;
+            color: var(--muted);
+            font-weight: 900;
+        }
+
+        .lh-details .v {
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--ink);
+            word-break: break-word;
+        }
+
+        .lh-details code {
+            font-size: .78rem;
+        }
+
+    .duration-live {
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .bulk-check {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+</style>
+
+
+<section class="lh-hero">
+    <div class="inner d-flex justify-content-between align-items-start">
+        <div>
+            <h1>User Login History</h1>
+            <p>Monitor active sessions, detect abnormal terminations, and force-close sessions when needed.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ExportLoginHistory"
+               asp-route-from="@m?.From?.ToString("yyyy-MM-dd")"
+               asp-route-to="@m?.To?.ToString("yyyy-MM-dd")"
+               asp-route-format="csv"
+               class="btn btn-sm btn-outline-light">
+                <i class="fa fa-file-csv me-1"></i> CSV
+            </a>
+            <a asp-action="ExportLoginHistory"
+               asp-route-from="@m?.From?.ToString("yyyy-MM-dd")"
+               asp-route-to="@m?.To?.ToString("yyyy-MM-dd")"
+               asp-route-format="json"
+               class="btn btn-sm btn-outline-light">
+                <i class="fa fa-file-code me-1"></i> JSON
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="lh-kpis">
+    <a asp-action="LoginHistory" asp-route-filter="all" class="kpi">
+        <div>
+            <div class="label">Total Sessions</div>
+            <div class="value">@(m?.TotalSessions ?? 0)</div>
+        </div>
+        <div class="icon"><i class="fa fa-list"></i></div>
+    </a>
+
+    <a asp-action="LoginHistory" asp-route-filter="active" class="kpi">
+        <div>
+            <div class="label">Active Now</div>
+            <div class="value">@(m?.ActiveNow ?? 0)</div>
+        </div>
+        <div class="icon"><i class="fa fa-circle-play"></i></div>
+    </a>
+
+    <a asp-action="LoginHistory" asp-route-filter="all" class="kpi neutral">
+        <div>
+            <div class="label">Closed</div>
+            <div class="value">@(m?.ClosedCount ?? 0)</div>
+        </div>
+        <div class="icon"><i class="fa fa-circle-check"></i></div>
+    </a>
+
+    <a asp-action="LoginHistory" asp-route-filter="abnormal" class="kpi bad">
+        <div>
+            <div class="label">Abnormal / Forced</div>
+            <div class="value">@(m?.AbnormalOrForcedCount ?? 0)</div>
+        </div>
+        <div class="icon"><i class="fa fa-triangle-exclamation"></i></div>
+    </a>
+
+    <div class="kpi info">
+        <div>
+            <div class="label">Avg Duration</div>
+            <div class="value">
+                @{
+                    var avgToday = m?.AvgDurationToday ?? TimeSpan.Zero;
+                    var avgDisplay = avgToday.TotalHours >= 1
+                    ? $"{(int)avgToday.TotalHours}h {avgToday.Minutes}m"
+                    : $"{(int)avgToday.TotalMinutes}m";
+                }
+                @avgDisplay
+            </div>
+            <div class="sub @(m?.AvgDurationChangePercent >= 0 ? "text-success" : "text-danger")">
+                @(m?.AvgDurationChangePercent >= 0 ? "▲" : "▼") @Math.Abs(m?.AvgDurationChangePercent ?? 0)% vs yesterday
+            </div>
+        </div>
+        <div class="icon"><i class="fa fa-clock"></i></div>
+    </div>
+
+    <div class="kpi warn">
+        <div>
+            <div class="label">Peak Concurrent</div>
+            <div class="value">@(m?.PeakConcurrentToday ?? 0)</div>
+            <div class="sub text-muted">today</div>
+        </div>
+        <div class="icon"><i class="fa fa-chart-line"></i></div>
+    </div>
+</section>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+    <div class="lh-chips">
+        @{
+            var chips = new[] {
+                ("all", "All"),
+                ("active", "Active Only"),
+                ("abnormal", "Abnormal Only"),
+                ("thisweek", "This Week"),
+                ("last7", "Last 7 Days"),
+                ("last30", "Last 30 Days")
+                };
+        }
+        @foreach (var (val, label) in chips)
+        {
+            <a asp-action="LoginHistory"
+               asp-route-filter="@val"
+               asp-route-take="@m?.Take"
+               class="lh-chip @(string.Equals(m?.ActiveFilter, val, StringComparison.OrdinalIgnoreCase) ? "active-chip" : "")">
+                @label
+            </a>
+        }
+    </div>
+    <div class="lh-ticker">
+        <span class="pulse"></span>
+        <span id="tickerText">@(m?.RecentLoginsLast5Min ?? 0) new logins in last 5 minutes</span>
+    </div>
+</div>
+
+<section class="lh-tools">
+    <div class="row g-2 align-items-end">
+        <div class="col-lg-5">
+            <label class="form-label small fw-semibold text-uppercase" style="letter-spacing:.12rem;">Search</label>
+            <input id="sessionSearch" type="text" class="form-control lh-search"
+                   placeholder="Search by name, email, user id, IP, reason, session key..." />
+            <div class="hint mt-1">Client-side filter. Use server filters for limiting results.</div>
+        </div>
+
+        <div class="col-lg-7">
+            <form method="get" class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <input type="hidden" name="filter" value="@(m?.ActiveFilter ?? "all")" />
+                <div>
+                    <label class="form-label small fw-semibold text-uppercase" style="letter-spacing:.12rem;">Take</label>
+                    <input type="number" class="form-control" style="max-width:140px;" name="take" value="@(m?.Take ?? 200)" min="1" max="2000" />
+                </div>
+
+                <div>
+                    <label class="form-label small fw-semibold text-uppercase" style="letter-spacing:.12rem;">From</label>
+                    <input type="date" class="form-control" name="from" value="@(m?.From?.ToString("yyyy-MM-dd") ?? string.Empty)" />
+                </div>
+
+                <div>
+                    <label class="form-label small fw-semibold text-uppercase" style="letter-spacing:.12rem;">To</label>
+                    <input type="date" class="form-control" name="to" value="@(m?.To?.ToString("yyyy-MM-dd") ?? string.Empty)" />
+                </div>
+
+                <div style="padding-top:1.95rem;">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa fa-filter me-1"></i> Apply
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<div id="bulkBar" class="alert alert-danger d-flex align-items-center justify-content-between mb-2" style="display:none !important;">
+    <span><strong id="bulkCount">0</strong> session(s) selected</span>
+    <form asp-action="BulkForceLogout" method="post" id="bulkForm" class="d-inline">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-sm btn-danger"
+                onclick="return confirm('Force close all selected sessions?');">
+            <i class="fa fa-ban me-1"></i> Force Close Selected
+        </button>
+    </form>
+</div>
+
+<div class="lh-table-card">
+    <div class="card-body">
+        @if (rows.Count == 0)
+        {
+            <div class="lh-empty">
+                <i class="fa fa-inbox fa-2x mb-2 d-block text-muted"></i>
+                No sessions found for the current filter.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0" id="loginHistoryTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="bulk-check" id="selectAll" title="Select all" /></th>
+                            <th>Status</th>
+                            <th>User</th>
+                            <th>Login (UTC)</th>
+                            <th>Last Activity</th>
+                            <th>Logout (UTC)</th>
+                            <th>Reason</th>
+                            <th>Duration</th>
+                            <th>Device / Browser</th>
+                            <th>IP</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var row in rows)
+                        {
+                            var s = row.Session;
+                            var isActive = !s.LogoutTimeUtc.HasValue;
+                            var modalId = $"modal_{(s.SessionKey ?? s.Id.ToString("N"))}";
+
+                            <tr class="lh-row"
+                                data-search="@($"{row.DisplayName} {row.Email} {row.UserId} {s.IpAddress} {s.LogoutReason} {s.UserAgent} {s.SessionKey}".ToLowerInvariant())">
+
+                                <td>
+                                    @if (isActive)
+                                    {
+                                        <input type="checkbox" class="bulk-check row-check" value="@s.SessionKey" />
+                                    }
+                                </td>
+
+                                <td style="white-space:nowrap;">
+                                    @if (row.IsRecentlyActive)
+                                    {
+                                        <span class="pulse-dot"></span>
+                                    }
+                                    <span class="lh-badge @row.StatusCssClass">
+                                        <i class="fa @row.StatusIcon"></i> @row.Status
+                                    </span>
+                                </td>
+
+                                <td style="min-width:240px;">
+                                    <div class="lh-name">@row.DisplayName</div>
+                                    <div class="lh-email">@row.Email</div>
+                                    <div class="lh-meta">
+                                        <span class="role-badge me-1">@(row.Role.HasValue? Helper.GetDisplayName(row.Role.Value) : "N/A")</span>
+                                        <span class="text-muted" title="@row.UserId">Id: @row.UserId.ToString()[..8]…</span>
+                                    </div>
+                                </td>
+
+                                <td style="white-space:nowrap;" title="@s.LoginTimeUtc.ToString("u")">
+                                    @row.LoginRelative
+                                </td>
+
+                                <td style="white-space:nowrap;" title="@(s.LastActivityUtc?.ToString("u") ?? "-")">
+                                    @row.LastActivityRelative
+                                </td>
+
+                                <td style="white-space:nowrap;" title="@(s.LogoutTimeUtc?.ToString("u") ?? "-")">
+                                    @row.LogoutRelative
+                                </td>
+
+                                <td class="small" style="min-width:140px;">
+                                    @(s.LogoutReason ?? "-")
+                                    @if (row.Status == "Abnormal")
+                                    {
+                                        <div class="text-warning small"><i class="fa fa-triangle-exclamation me-1"></i> Suspected tab close / timeout</div>
+                                    }
+                                    @if (row.Status == "Forced")
+                                    {
+                                        <div class="text-danger small"><i class="fa fa-user-shield me-1"></i> Admin forced</div>
+                                    }
+                                </td>
+
+                                <td style="white-space:nowrap;">
+                                    <span class="duration-live @row.DurationCssClass"
+                                          data-login-utc="@s.LoginTimeUtc.ToString("o")"
+                                          data-is-active="@isActive.ToString().ToLowerInvariant()">
+                                        @row.DurationDisplay
+                                    </span>
+                                </td>
+
+                                <td style="white-space:nowrap;">
+                                    <i class="fa @row.DeviceIcon me-1" title="@(s.DeviceType ?? "Unknown")"></i>
+                                    <i class="@row.BrowserIcon" title="@(s.Browser ?? "Unknown")"></i>
+                                </td>
+
+                                <td class="small">@(s.IpAddress ?? "-")</td>
+
+                                <td class="text-end" style="white-space:nowrap;">
+                                    <button class="btn btn-sm btn-outline-secondary me-1"
+                                            type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#@modalId">
+                                        <i class="fa fa-circle-info"></i>
+                                    </button>
+                                    @if (isActive)
+                                    {
+                                        <form asp-action="ForceLogoutSession" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="sessionKey" value="@s.SessionKey" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Force close this session for @row.DisplayName?');">
+                                                <i class="fa fa-ban"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)Label" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background: linear-gradient(135deg, var(--hero1), var(--hero2)); color:#fff;">
+                                            <h5 class="modal-title" id="@(modalId)Label">
+                                                <i class="fa fa-circle-info me-2"></i> Session Details
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="lh-details">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="k">User</div>
+                                                        <div class="v">@row.DisplayName</div>
+                                                        <div class="small text-muted">@row.Email</div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="k">Role</div>
+                                                        <div class="v">@(row.Role.HasValue? Helper.GetDisplayName(row.Role.Value) : "N/A")</div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="k">Status</div>
+                                                        <div class="v"><span class="lh-badge @row.StatusCssClass"><i class="fa @row.StatusIcon"></i> @row.Status</span></div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="k">Session Key</div>
+                                                        <div class="v">
+                                                            <code class="user-select-all" style="background:#fce4ec; padding:2px 6px; border-radius:6px;">@(s.SessionKey ?? "-")</code>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="k">IP Address</div>
+                                                        <div class="v">@(s.IpAddress ?? "-")</div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="k">Duration</div>
+                                                        <div class="v @row.DurationCssClass">@row.DurationDisplay</div>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <div class="k">Device Type</div>
+                                                        <div class="v"><i class="fa @row.DeviceIcon me-1"></i> @(s.DeviceType ?? "Unknown")</div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="k">Browser</div>
+                                                        <div class="v"><i class="@row.BrowserIcon me-1"></i> @(s.Browser ?? "Unknown")</div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="k">Logout Reason</div>
+                                                        <div class="v">@(s.LogoutReason ?? "-")</div>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <div class="k">User Agent</div>
+                                                        <div class="v small">@(s.UserAgent ?? "-")</div>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <div class="k">Timestamps (UTC)</div>
+                                                        <div class="v">
+                                                            Login: <code>@s.LoginTimeUtc.ToString("u")</code> <span class="text-muted small">(@row.LoginRelative)</span><br />
+                                                            Last Activity: <code>@(s.LastActivityUtc?.ToString("u") ?? "-")</code> <span class="text-muted small">(@row.LastActivityRelative)</span><br />
+                                                            Logout: <code>@(s.LogoutTimeUtc?.ToString("u") ?? "-")</code> <span class="text-muted small">(@row.LogoutRelative)</span>
+                                                        </div>
+                                                    </div>
+
+                                                    @if (row.Status == "Abnormal")
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-warning mb-0 small">
+                                                                <i class="fa fa-triangle-exclamation me-1"></i>
+                                                                <strong>Risk Indicator:</strong> This session ended abnormally — suspected tab close or network timeout.
+                                                            </div>
+                                                        </div>
+                                                    }
+
+                                                    @if (row.Status == "Forced")
+                                                    {
+                                                        <div class="col-12">
+                                                            <div class="alert alert-danger mb-0 small">
+                                                                <i class="fa fa-user-shield me-1"></i>
+                                                                <strong>Risk Indicator:</strong> This session was forcibly terminated by an administrator.
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="small text-muted mt-2">
+                Tip: Click <strong><i class="fa fa-circle-info"></i></strong> for full session details. Hover on timestamps for exact UTC. Duration updates live for active sessions.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const input = document.getElementById('sessionSearch');
+            const table = document.getElementById('loginHistoryTable');
+            if (input && table) {
+                const rows = Array.from(table.querySelectorAll('tr.lh-row'));
+                input.addEventListener('input', function () {
+                    const q = (input.value || '').trim().toLowerCase();
+                    rows.forEach(r => {
+                        const hay = r.getAttribute('data-search') || '';
+                        r.style.display = q.length === 0 || hay.indexOf(q) >= 0 ? '' : 'none';
+                    });
+                });
+            }
+
+            function updateDurations() {
+                document.querySelectorAll('.duration-live[data-is-active="true"]').forEach(el => {
+                    const login = new Date(el.getAttribute('data-login-utc'));
+                    const now = new Date();
+                    let diff = Math.max(0, (now - login) / 1000);
+
+                    const h = Math.floor(diff / 3600);
+                    diff %= 3600;
+                    const m = Math.floor(diff / 60);
+                    const s = Math.floor(diff % 60);
+
+                    let text = '';
+                    if (h > 0) text += h + 'h ';
+                    text += m + 'm ' + s + 's';
+                    el.textContent = text;
+
+                    const mins = (h * 60) + m;
+                    el.classList.remove('text-success', 'text-warning', 'text-danger');
+                    el.classList.add(mins < 30 ? 'text-success' : mins < 120 ? 'text-warning' : 'text-danger');
+                });
+            }
+            setInterval(updateDurations, 15000);
+
+            function refreshTicker() {
+                fetch('@Url.Action("RecentLoginCount", "Auth")?minutes=5')
+                    .then(r => r.json())
+                    .then(d => {
+                        const el = document.getElementById('tickerText');
+                        if (el) el.textContent = d.count + ' new logins in last 5 minutes';
+                    })
+                    .catch(() => { });
+            }
+            setInterval(refreshTicker, 30000);
+
+            const selectAll = document.getElementById('selectAll');
+            const bulkBar = document.getElementById('bulkBar');
+            const bulkCount = document.getElementById('bulkCount');
+            const bulkForm = document.getElementById('bulkForm');
+
+            function updateBulkBar() {
+                const checked = document.querySelectorAll('.row-check:checked');
+                if (checked.length > 0) {
+                    bulkBar.style.cssText = '';
+                    bulkCount.textContent = checked.length;
+
+                    bulkForm.querySelectorAll('input[name="sessionKeys"]').forEach(i => i.remove());
+                    checked.forEach(cb => {
+                        const inp = document.createElement('input');
+                        inp.type = 'hidden';
+                        inp.name = 'sessionKeys';
+                        inp.value = cb.value;
+                        bulkForm.appendChild(inp);
+                    });
+                } else {
+                    bulkBar.style.cssText = 'display:none !important;';
+                }
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    document.querySelectorAll('.row-check').forEach(cb => {
+                        if (cb.closest('tr').style.display !== 'none') {
+                            cb.checked = selectAll.checked;
+                        }
+                    });
+                    updateBulkBar();
+                });
+            }
+
+            document.querySelectorAll('.row-check').forEach(cb => {
+                cb.addEventListener('change', updateBulkBar);
+            });
+        })();
+    </script>
+}

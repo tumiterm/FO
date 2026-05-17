@@ -1,0 +1,242 @@
+﻿@model ForekOnline.Domain.ViewModels.LicenseViewModel
+@{
+    ViewData["Title"] = "License Detail";
+
+    var today = DateTime.Today;
+    var daysToExpiry = (Model.DateOfExpiry - today).TotalDays;
+    string status = daysToExpiry < 0 ? "Expired"
+        : daysToExpiry <= 30 ? "Expiring Soon"
+        : "Active";
+
+    string statusClass = status switch {
+        "Expired" => "lic-status expired",
+        "Expiring Soon" => "lic-status soon",
+        _ => "lic-status active"
+    };
+
+    // Progress: show how far through the validity period (if issue < expiry)
+    double totalDays = (Model.DateOfExpiry - Model.DateOfIssue).TotalDays <= 0
+        ? 1
+        : (Model.DateOfExpiry - Model.DateOfIssue).TotalDays;
+    double elapsedDays = (today - Model.DateOfIssue).TotalDays;
+    if (elapsedDays < 0) elapsedDays = 0;
+    double pct = Math.Min(100, Math.Max(0, elapsedDays / totalDays * 100));
+}
+
+<style>
+:root{
+    --lic-bg:#ffffff;--lic-bg-alt:#f6f8fa;--lic-border:#e2e5ea;
+    --lic-accent:#7d0e11;--lic-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --lic-soft:#fff5f3;--lic-text:#1f252c;--lic-radius-xl:34px;--lic-radius:18px;
+    --lic-shadow:0 14px 42px -18px rgba(125,14,17,.30),0 6px 22px -12px rgba(125,14,17,.18);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1100px;margin:0 auto;padding:1.9rem 1rem 3.2rem;}
+.header-band{
+    background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:var(--lic-radius-xl);
+    padding:1.35rem 1.6rem 1.2rem;display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121714,#ff7a1816);pointer-events:none;}
+.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--lic-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.1rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.52);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:var(--lic-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--lic-soft);color:var(--lic-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-base,.btn-accent,.btn-outline{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--lic-border);
+    background:#fff;color:var(--lic-accent);display:inline-flex;align-items:center;gap:.5rem;
+    text-decoration:none;cursor:pointer;transition:.3s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--lic-accent-grad);color:#fff;border-color:var(--lic-accent);box-shadow:var(--lic-shadow);}
+.btn-accent{background:var(--lic-accent-grad);color:#fff;border:1px solid var(--lic-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+
+.layout-grid{margin-top:1.6rem;display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));align-items:start;}
+.card{
+    background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:26px;
+    padding:1.15rem 1.2rem 1.1rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;
+}
+.card:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,#7d0e110c,#b3121710,#ff7a1810);pointer-events:none;}
+.card h2{
+    margin:0;font-size:.78rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;
+    color:var(--lic-accent);display:flex;align-items:center;gap:.5rem;
+}
+
+.avatar-box{display:flex;flex-direction:column;align-items:center;gap:.7rem;}
+.avatar{
+    width:140px;height:140px;border-radius:50%;background:linear-gradient(140deg,#eceff3,#fff);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;border:4px solid #fff;box-shadow:0 8px 28px -12px rgba(0,0,0,.25);
+    font-size:3.2rem;color:#b31217;font-weight:600;
+}
+.name-line{font-size:.9rem;font-weight:600;letter-spacing:.5px;color:#222;text-align:center;}
+.sub-line{font-size:.6rem;font-weight:600;letter-spacing:.1rem;color:#666;text-align:center;text-transform:uppercase;}
+
+.meta-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.65rem;}
+.meta-row{display:flex;justify-content:space-between;gap:.8rem;align-items:flex-start;border-bottom:1px dashed #e5e8ec;padding-bottom:.45rem;}
+.meta-row:last-child{border-bottom:none;padding-bottom:0;}
+.meta-key{font-size:.55rem;letter-spacing:.16rem;font-weight:700;color:#555;text-transform:uppercase;flex:0 0 110px;}
+.meta-val{font-size:.62rem;color:#222;font-weight:600;letter-spacing:.04rem;word-break:break-word;}
+
+.lic-status{
+    display:inline-flex;align-items:center;gap:.4rem;
+    font-size:.5rem;font-weight:700;letter-spacing:.14rem;padding:.42rem .75rem;
+    border-radius:30px;text-transform:uppercase;border:1px solid transparent;
+}
+.lic-status.active{background:#e8f9ef;color:#157b41;border-color:#b8e7c6;}
+.lic-status.soon{background:#fff3e0;color:#b76a00;border-color:#f1c78b;}
+.lic-status.expired{background:#ffe8ea;color:#b31217;border-color:#f3b4ba;}
+
+.progress-shell{display:flex;flex-direction:column;gap:.4rem;margin-top:.2rem;}
+.progress-bar-wrap{background:#f0f2f5;border:1px solid #e1e5ea;border-radius:14px;overflow:hidden;height:16px;position:relative;}
+.progress-fill{height:100%;background:var(--lic-accent-grad);width:0%;transition:width .8s cubic-bezier(.65,.05,.36,1);}
+.progress-info{display:flex;justify-content:space-between;font-size:.48rem;font-weight:700;letter-spacing:.1rem;color:#555;}
+
+.badge-inline{
+    background:#eef3f7;color:#173c54;border:1px solid #d3dde4;
+    padding:.32rem .6rem;border-radius:28px;font-size:.48rem;font-weight:700;letter-spacing:.08rem;display:inline-flex;align-items:center;gap:.35rem;
+}
+.inline-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.4rem;}
+.inline-actions a{text-decoration:none;}
+
+.download-area{
+    display:flex;flex-direction:column;gap:.7rem;
+}
+.download-card{
+    background:#f6f8fa;border:1px dashed #ced3d9;border-radius:18px;padding:1rem .95rem;
+    display:flex;flex-direction:column;gap:.55rem;align-items:flex-start;
+}
+.download-card p{margin:0;font-size:.52rem;letter-spacing:.12rem;font-weight:600;color:#555;}
+.helper-note{font-size:.48rem;color:#777;font-weight:600;letter-spacing:.1rem;}
+
+.fade-in{animation:fade .55s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:640px){
+    .header-band{padding:1.1rem 1.15rem 1rem;}
+    .icon-pill{width:64px;height:64px;font-size:1.75rem;}
+    .header-band h1{font-size:1.35rem;}
+}
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-id-card"></i></div>
+        <div>
+            <h1>License Detail</h1>
+            <div class="tagline"><i class="fa fa-certificate"></i> Compliance Certificate</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="Licenses" asp-controller="License" class="btn-base"><i class="fa fa-list"></i> All Licenses</a>
+            <a asp-action="AddUserLicense" asp-controller="License" class="btn-outline"><i class="fa fa-plus"></i> New</a>
+        </div>
+    </div>
+
+    <div class="layout-grid">
+        <!-- Profile -->
+        <div class="card">
+            <h2><i class="fa fa-user"></i> Candidate</h2>
+            <div class="avatar-box">
+                <div class="avatar">@((Model.Name ?? "X").Trim().FirstOrDefault().ToString().ToUpper())</div>
+                <div class="name-line">@Model.Name @Model.LastName</div>
+                <div class="sub-line">@Model.Title</div>
+                <div class="inline-actions">
+                    <span class="@statusClass"><i class="fa @(status=="Expired"?"fa-times-circle":status=="Active"?"fa-check-circle":"fa-hourglass-half")"></i> @status</span>
+                    <span class="badge-inline"><i class="fa fa-id-card"></i>@Model.IDNumber</span>
+                </div>
+            </div>
+            <div class="progress-shell">
+                <div class="progress-info">
+                    <span>Progress</span>
+                    <span>@pct.ToString("0")%</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-fill" style="width:@pct%;"></div>
+                </div>
+                <div class="progress-info" style="margin-top:-.2rem;">
+                    <span>@Model.DateOfIssue:yyyy-MM-dd</span>
+                    <span>@Model.DateOfExpiry:yyyy-MM-dd</span>
+                </div>
+                <div class="progress-info" style="justify-content:center;">
+                    <span>
+                        @if (daysToExpiry < 0)
+                        {
+                            <text>@Math.Abs((int)daysToExpiry) day(s) past expiry</text>
+                        }
+                        else
+                        {
+                            <text>@( (int)daysToExpiry ) day(s) remaining</text>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- License Info -->
+        <div class="card">
+            <h2><i class="fa fa-file-shield"></i> Certificate</h2>
+            <ul class="meta-list">
+                <li class="meta-row">
+                    <span class="meta-key">Certificate</span>
+                    <span class="meta-val">@Model.LicenseName</span>
+                </li>
+                <li class="meta-row">
+                    <span class="meta-key">Issued On</span>
+                    <span class="meta-val">@Model.DateOfIssue.ToShortDateString()</span>
+                </li>
+                <li class="meta-row">
+                    <span class="meta-key">Expiry</span>
+                    <span class="meta-val">@Model.DateOfExpiry.ToShortDateString()</span>
+                </li>
+                <li class="meta-row">
+                    <span class="meta-key">Attempts</span>
+                    <span class="meta-val">@Model.Frequency</span>
+                </li>
+                <li class="meta-row">
+                    <span class="meta-key">Company</span>
+                    <span class="meta-val">@Model.Company</span>
+                </li>
+            </ul>
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.4rem;">
+                <span class="badge-inline"><i class="fa fa-calendar"></i>@Model.DateOfIssue:yyyy</span>
+                <span class="badge-inline"><i class="fa fa-clock"></i>@(totalDays.ToString("0"))d span</span>
+            </div>
+        </div>
+
+        <!-- Download -->
+        <div class="card">
+            <h2><i class="fa fa-download"></i> Document</h2>
+            <div class="download-area">
+                <div class="download-card">
+                    <p><i class="fa fa-file-pdf" style="color:#b31217;"></i> Digital License File</p>
+                    @if (string.IsNullOrWhiteSpace(Model.FileUpload))
+                    {
+                        <span class="helper-note"><i class="fa fa-circle-info"></i> No file uploaded.</span>
+                    }
+                    else
+                    {
+                        <a asp-action="LicenseDownload"
+                           asp-controller="License"
+                           asp-route-fileId="@Model.FileUpload"
+                           class="btn-accent"
+                           style="font-size:.55rem;">
+                            <i class="fa fa-download"></i> Download License
+                        </a>
+                    }
+                </div>
+                <div class="helper-note">
+                    @if (status == "Expired")
+                    {
+                        <span><i class="fa fa-triangle-exclamation"></i> This license has expired. Renew immediately.</span>
+                    }
+                    else if (status == "Expiring Soon")
+                    {
+                        <span><i class="fa fa-hourglass-half"></i> Renewal advisable within 30 days.</span>
+                    }
+                    else
+                    {
+                        <span><i class="fa fa-thumbs-up"></i> License is in good standing.</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

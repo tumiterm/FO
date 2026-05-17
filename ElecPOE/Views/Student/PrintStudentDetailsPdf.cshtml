@@ -1,0 +1,518 @@
+﻿@model ForekOnline.Domain.ViewModels.StudentPrintDetailsViewModel
+@{
+    Layout = null;
+
+    const string LetterheadImageUrl = "https://forek.co.za/wp-content/uploads/2026/02/FHeader.png";
+
+    var generatedOn = DateTime.UtcNow;
+
+    var s = Model.Student;
+    var placement = Model.Placement;
+    var hasCompany = placement?.Company is not null;
+
+    var fullName = string.Join(' ', new[] { s.FirstName, s.MiddleName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+    var address = string.Join(", ",
+        new[]
+        {
+            s.StreetAddressLine1,
+            s.StreetAddressLine2,
+           
+        }.Where(x => !string.IsNullOrWhiteSpace(x)));
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Student Details</title>
+    <style>
+        :root {
+            --forek-blue: #003087;
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #e5e7eb;
+            --soft: #f8fafc;
+            --section-bg: #f9fafb;
+            --header-fill: rgba(0,48,135,0.08);
+            --body-size: 14.5px;
+            --page-pad-x: 28px;
+            --page-pad-y: 24px;
+            --header-height: 160px;
+            --space-after-letterhead: 28px;
+            --section-gap: 42px;
+            --space-after-summary: 36px;
+            --space-after-enrollments: 36px;
+            --accent-w: 5px;
+            --table-radius: 10px;
+            --table-cell-pad-y: 11px;
+            --table-cell-pad-x: 13px;
+            --ok-bg: #d1fae5;
+            --ok-br: #6ee7b7;
+            --ok-fg: #065f46;
+            --bad-bg: #fee2e2;
+            --bad-br: #fca5a5;
+            --bad-fg: #7f1d1d;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: var(--body-size);
+            line-height: 1.65;
+            color: var(--ink);
+            margin: 0;
+        }
+
+        .letterhead {
+            height: var(--header-height);
+            width: 100%;
+            overflow: hidden;
+        }
+
+            .letterhead img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+            }
+
+        .page {
+            padding: var(--page-pad-y) var(--page-pad-x) calc(var(--page-pad-y) + 10px);
+        }
+
+        .after-letterhead {
+            height: var(--space-after-letterhead);
+        }
+
+        .doc-title {
+            text-align: center;
+            margin: 0 0 24px;
+        }
+
+            .doc-title h1 {
+                margin: 0;
+                font-size: 32px;
+                font-weight: 900;
+                color: var(--forek-blue);
+                letter-spacing: 0.3px;
+            }
+
+            .doc-title .underline {
+                height: 3px;
+                width: 280px;
+                background: var(--forek-blue);
+                margin: 12px auto 14px;
+                opacity: 0.92;
+            }
+
+            .doc-title .meta {
+                font-size: 12.5px;
+                color: var(--muted);
+            }
+
+        .section {
+            margin-top: var(--section-gap);
+        }
+
+        .section-head {
+            background: var(--section-bg);
+            border: 0;
+            border-left: var(--accent-w) solid var(--forek-blue);
+            padding: 12px 16px;
+            margin: 0 0 14px;
+        }
+
+        .section-head--strong {
+            border-left-width: calc(var(--accent-w) + 2px);
+            background: rgba(0, 48, 135, 0.04);
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 19.5px;
+            font-weight: 900;
+            color: var(--forek-blue);
+        }
+
+        .section-subtitle {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .summary-grid {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            padding: 18px 18px 14px;
+        }
+
+        .summary-row {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .summary-col {
+            display: table-cell;
+            vertical-align: top;
+            width: 50%;
+            padding: 0 10px;
+        }
+
+        .kv {
+            margin: 0 0 9px;
+        }
+
+        .k {
+            display: inline-block;
+            width: 155px;
+            color: var(--muted);
+            font-weight: 800;
+            font-size: 13.5px;
+        }
+
+        .v {
+            font-weight: 800;
+            color: var(--ink);
+        }
+
+        .verified {
+            margin-top: 12px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--line);
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .table-wrap {
+            border: 1px solid var(--line);
+            border-radius: var(--table-radius);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: var(--header-fill);
+        }
+
+            thead th {
+                padding: var(--table-cell-pad-y) var(--table-cell-pad-x);
+                font-size: 11.5px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--forek-blue);
+                border-bottom: 2px solid var(--forek-blue);
+                text-align: left;
+            }
+
+        tbody td {
+            padding: var(--table-cell-pad-y) var(--table-cell-pad-x);
+            border-bottom: 1px solid var(--line);
+            font-size: var(--body-size);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: rgba(0, 48, 135, 0.015);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 900;
+            border-radius: 999px;
+            border: 1.5px solid;
+            line-height: 1;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .pill-ok {
+            background: var(--ok-bg);
+            border-color: var(--ok-br);
+            color: var(--ok-fg);
+        }
+
+        .pill-no {
+            background: var(--bad-bg);
+            border-color: var(--bad-br);
+            color: var(--bad-fg);
+        }
+
+        .placement-hero {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--soft);
+            padding: 16px;
+        }
+
+        .placement-grid {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            margin-top: 8px;
+        }
+
+        .placement-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+
+        .not-placed {
+            border: 1px solid var(--bad-br);
+            background: var(--bad-bg);
+            color: var(--bad-fg);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-weight: 900;
+            line-height: 1.55;
+            font-size: 14.5px;
+        }
+
+        .company-name {
+            font-size: 17.5px;
+            font-weight: 900;
+            margin: 0 0 10px;
+            color: var(--ink);
+        }
+
+        .fineprint {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .disclaimer {
+            margin-top: 44px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            padding: 0;
+            overflow: hidden;
+        }
+
+            .disclaimer .head {
+                background: var(--section-bg);
+                border-bottom: 1px solid var(--line);
+                padding: 12px 16px;
+                font-weight: 900;
+                color: var(--forek-blue);
+                font-size: 14px;
+            }
+
+            .disclaimer .body {
+                padding: 14px 16px;
+                font-size: 13px;
+                line-height: 1.65;
+                color: var(--muted);
+            }
+
+        .spacer-summary,
+        .spacer-enrollments {
+            height: var(--space-after-summary);
+        }
+
+    </style>
+</head>
+<body>
+    <header class="letterhead">
+        <img src="@LetterheadImageUrl" alt="Forek Letterhead" />
+    </header>
+
+    <div class="page">
+        <div class="after-letterhead"></div>
+
+        <div class="doc-title">
+            <h1>Student Details</h1>
+            <div class="underline"></div>
+            <div class="meta">
+                Generated on @generatedOn.ToString("yyyy-MM-dd")
+            </div>
+        </div>
+
+        <section class="section" style="margin-top: 0;">
+            <div class="section-head">
+                <h2 class="section-title">Student Summary</h2>
+                <p class="section-subtitle">
+                    The information below reflects the learner's verified personal and contact details as recorded by the institute.
+                </p>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-row">
+                    <div class="summary-col">
+                        <div class="kv"><span class="k">Student Number</span> <span style="color:darkorange" class="v">@s.StudentNumber</span></div>
+                        <div class="kv"><span class="k">Full Name</span> <span class="v">@fullName</span></div>
+                        <div class="kv"><span class="k">Last Name</span> <span class="v">@s.LastName</span></div>
+                        <div class="kv"><span class="k">ID Number</span> <span class="v">@s.IDNumber</span></div>
+                    </div>
+                    <div class="summary-col">
+                        <div class="kv"><span class="k">Cellphone</span> <span class="v">@s.Cellphone</span></div>
+                        <div class="kv">
+                            <span class="k">Email</span>
+                            <span class="v">
+                                @if (string.IsNullOrWhiteSpace(s.Email))
+                                {
+                                    <span class="v" style="color:red;">None Supplied</span>
+                                }
+                                else
+                                {
+                                    @s.Email
+                                }
+                            </span>
+                        </div>
+                        <div class="kv">
+                            <span class="k">Address</span>
+                            <span class="v">@(string.IsNullOrWhiteSpace(address) ? "N/A" : address)</span>
+                        </div>
+                        <div class="kv"><span class="k">Category</span> <span class="v">@s.AdmissionCategory</span></div>
+
+                    </div>
+                </div>
+
+                <div class="verified">
+                    All details verified as of @generatedOn.ToString("yyyy-MM-dd").
+                </div>
+            </div>
+        </section>
+
+        <hr />
+
+        <section class="section" style="margin-top: 0;">
+            <div class="section-head">
+                <h2 class="section-title">Enrollment(s)</h2>
+                <p class="section-subtitle">
+                    The following qualification(s) and program(s) have been undertaken by the learner.
+                </p>
+            </div>
+
+            @if (s.EnrollmentHistory is null || s.EnrollmentHistory.Count == 0)
+            {
+                <div class="section-subtitle">No enrollment history found for this learner.</div>
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="section-title" style="width: 52%;">Course</th>
+                                <th class="section-title" style="width: 16%;">Type</th>
+                                <th class="section-title" style="width: 16%;">Date</th>
+                                <th class="section-title" style="width: 16%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in s.EnrollmentHistory)
+                            {
+                                var start = e.StartDate == DateTime.MinValue ? "-" : e.StartDate.ToString("yyyy-MM-dd");
+                                var statusText = (e.EnrollmentStatus ?? string.Empty).ToString();
+                                var isActive = statusText.Contains("active", StringComparison.OrdinalIgnoreCase);
+
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(e.CourseTitle) ? "-" : e.CourseTitle)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(e.CourseType) ? "-" : e.CourseType)</td>
+                                    <td>@start</td>
+                                    <td>
+                                        @if (isActive)
+                                        {
+                                            <span class="pill pill-ok">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="pill pill-no">@((string.IsNullOrWhiteSpace(statusText) ? "Inactive" : statusText))</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
+        <hr />
+
+        <section class="section" style="margin-top: 0;">
+            <div class="section-head section-head--strong">
+                <h2 class="section-title" style="font-size: 21px;">Learner Workplace Information</h2>
+                @if (!hasCompany)
+                {
+                    <p class="section-subtitle">
+                        Workplace placement has not yet been confirmed for this learner. The institute is actively coordinating suitable opportunities.
+                    </p>
+                }
+                else
+                {
+                    <p class="section-subtitle">
+                        This learner was placed for experiential training within the company below to apply their skills in a real-world setting.
+                    </p>
+                }
+            </div>
+
+            @if (!hasCompany)
+            {
+                <div class="not-placed">
+                    This learner has not yet been placed for experiential training.
+                    The institute is actively seeking suitable opportunities to support their practical development.
+                </div>
+            }
+            else
+            {
+                <div class="placement-hero">
+                    <p class="company-name">@placement!.Company!.CompanyName</p>
+
+                    <div class="placement-grid">
+                        <div class="placement-col">
+                            <div class="kv">
+                                <span class="k">Placement Start</span>
+                                <span class="v">@(placement.StartDate?.ToString("yyyy-MM-dd") ?? "-")</span>
+                            </div>
+                        </div>
+                        <div class="placement-col">
+                            <div class="kv">
+                                <span class="k">Placement End</span>
+                                <span class="v">@(placement.EndDate?.ToString("yyyy-MM-dd") ?? "-")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fineprint">Placement facilitated by Forek Institute of Technology.</div>
+                </div>
+            }
+        </section>
+
+        <hr />
+
+        <section class="disclaimer">
+            <div class="head">
+                Disclaimer
+            </div>
+            <div class="body">
+                This document is generated for official record-keeping purposes only. All information contained herein is accurate as of the date of generation.
+                Any discrepancies should be reported to the institute's administration immediately. Forek Institute of Technology reserves the right to verify
+                all details and maintain compliance with relevant regulatory requirements.
+            </div>
+        </section>
+    </div>
+</body>
+</html>

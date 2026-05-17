@@ -1,0 +1,607 @@
+﻿@model ForekOnline.Domain.ViewModels.EnrollStudentViewModel
+@{
+    ViewData["Title"] = "Enroll Student";
+    var hasError = TempData["error"] != null;
+    var errorMessage = TempData["error"]?.ToString();
+}
+
+<link rel="stylesheet" href="~/css/Enrollment.css">
+
+<div class="enroll-shell">
+    <div class="enroll-hero fade-up">
+        <div class="enroll-hero__icon">
+            <i class="fa fa-user-plus"></i>
+        </div>
+
+        <div class="enroll-hero__content">
+            <div class="enroll-kicker">
+                <i class="fa fa-sparkles"></i>
+                Student Enrollment Suite
+            </div>
+            <h1 class="enroll-title">Students Enrollment</h1>
+            <p class="enroll-subtitle">
+                Start with an identity lookup (Id or Passport), verify prefilled applicant data where available,
+                then complete the structured enrollment to completion.
+            </p>
+        </div>
+
+        <div class="enroll-hero__meta">
+            <div class="hero-stat">
+                <div class="hero-stat__label">Workflow</div>
+                <div class="hero-stat__value">Lookup → Review → Capture → Enroll</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat__label">Behavior</div>
+                <div class="hero-stat__value">Auto-prefill for approved applicants</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="enroll-grid">
+        <aside class="enroll-side">
+            <div class="glass-card progress-card fade-up">
+                <h5 class="progress-title">
+                    <i class="fa fa-compass"></i>
+                    Enrollment Journey
+                </h5>
+
+                <ul class="progress-list">
+                    <li class="progress-item @(Model.IsLookupComplete ? "complete" : "active")">
+                        <div class="progress-item__dot"><i class="fa fa-search"></i></div>
+                        <div class="progress-item__body">
+                            <h6>Identity Lookup</h6>
+                            <p>Find an approved applicant first. If not found, continue as a walk-in.</p>
+                        </div>
+                    </li>
+                    <li class="progress-item @(Model.IsLookupComplete ? "active" : "")">
+                        <div class="progress-item__dot">2</div>
+                        <div class="progress-item__body">
+                            <h6>Personal Profile</h6>
+                            <p>Confirm core identity, demographic and background information.</p>
+                        </div>
+                    </li>
+                    <li class="progress-item @(Model.IsLookupComplete ? "active" : "")">
+                        <div class="progress-item__dot">3</div>
+                        <div class="progress-item__body">
+                            <h6>Contact & Address</h6>
+                            <p>Capture communication and residential information cleanly.</p>
+                        </div>
+                    </li>
+                    <li class="progress-item @(Model.IsLookupComplete ? "active" : "")">
+                        <div class="progress-item__dot">4</div>
+                        <div class="progress-item__body">
+                            <h6>Course Assignment</h6>
+                            <p>Attach the learner to the correct course and queue enrollment.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="lookup-badge-row">
+                    <span class="smart-badge smart-badge--soft">
+                        <i class="fa fa-bolt"></i> Real-time hints
+                    </span>
+                    <span class="smart-badge smart-badge--soft">
+                        <i class="fa fa-shield-check"></i> Guided validation
+                    </span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="enroll-main">
+            @if (hasError)
+            {
+                <div class="alert-premium alert-premium--error fade-up">
+                    <i class="fa fa-circle-exclamation me-2"></i>@errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert-premium alert-premium--success fade-up">
+                    <i class="fa fa-check-circle me-2"></i>@Model.SuccessMessage
+                </div>
+            }
+
+            @if (!Model.IsLookupComplete)
+            {
+                <div class="glass-card lookup-card fade-up">
+                    <div class="section-heading">
+                        <div>
+                            <h3 class="section-heading__title">
+                                <i class="fa fa-fingerprint"></i>
+                                Start with identity lookup
+                            </h3>
+                            <div class="section-heading__hint">
+                                Use the applicant’s ID Number or Passport. If a matching approved application exists,
+                                we’ll prefill known fields to reduce manual capture.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lookup-panel">
+                        <div class="lookup-orb">
+                            <i class="fa fa-id-card"></i>
+                        </div>
+                        <h4 class="lookup-title">Lookup before capture</h4>
+                        <p class="lookup-copy">
+                            This step keeps the experience intelligent. Known applicants move faster, while walk-ins
+                            still get a clean, guided path.
+                        </p>
+
+                        <form method="post" asp-controller="Student" asp-action="Lookup" novalidate enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+
+                            <div class="lookup-input-wrap">
+                                <div>
+                                    <div class="floating-field">
+                                        <input id="lookupIdentity"
+                                               type="text"
+                                               name="idOrPassport"
+                                               class="form-control"
+                                               placeholder=" "
+                                               required
+                                               minlength="8"
+                                               maxlength="20"
+                                               inputmode="text"
+                                               autocomplete="off" />
+                                        <label for="lookupIdentity">ID Number or Passport</label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help" id="lookupHelp">
+                                            Enter a South African ID number or passport reference.
+                                        </span>
+                                        <span class="field-state info" id="lookupState">Waiting for input</span>
+                                    </div>
+                                    <div class="lookup-badge-row">
+                                        <span class="smart-badge smart-badge--soft" id="lookupFormatBadge">
+                                            <i class="fa fa-wand-magic-sparkles"></i> Format not detected yet
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-premium btn-premium--primary">
+                                    <i class="fa fa-search me-2"></i>Lookup Applicant
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="glass-card form-card fade-up">
+                    <div class="form-card__header">
+                        <h3 class="form-card__title">
+                            <i class="fa fa-address-card"></i>
+                            Student Enrollment Workspace
+                        </h3>
+                        <p class="form-card__copy">
+                            Complete all the remaining details below. 
+                        </p>
+
+                        <div class="status-badge-row">
+                            @if (Model.IsFromApplication)
+                            {
+                                <span class="smart-badge smart-badge--success">
+                                    <i class="fa fa-check-circle"></i> Approved applicant found
+                                </span>
+                                <span class="smart-badge smart-badge--info">
+                                    <i class="fa fa-wand-magic-sparkles"></i> Known data prefilled
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="smart-badge smart-badge--walkin">
+                                    <i class="fa fa-person-walking"></i> Walk-in enrollment
+                                </span>
+                                <span class="smart-badge smart-badge--soft">
+                                    <i class="fa fa-pen"></i> Fresh capture required
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="inline-progress">
+                        <button type="button" class="inline-progress__step active" data-step-target="identity">
+                            <div class="inline-progress__step-index">1</div>
+                            <h6>Identity</h6>
+                            <p>Confirm primary identity and source.</p>
+                        </button>
+                        <button type="button" class="inline-progress__step" data-step-target="personal">
+                            <div class="inline-progress__step-index">2</div>
+                            <h6>Personal</h6>
+                            <p>Capture demographics and academics.</p>
+                        </button>
+                        <button type="button" class="inline-progress__step" data-step-target="contact">
+                            <div class="inline-progress__step-index">3</div>
+                            <h6>Contact</h6>
+                            <p>Collect communication and address details.</p>
+                        </button>
+                        <button type="button" class="inline-progress__step" data-step-target="enrollment">
+                            <div class="inline-progress__step-index">4</div>
+                            <h6>Enrollment</h6>
+                            <p>Assign the student to the correct course.</p>
+                        </button>
+                        <button type="button" class="inline-progress__step" data-step-target="attachments">
+                            <div class="inline-progress__step-index">5</div>
+                            <h6>Attachments</h6>
+                            <p>Upload required supporting documents.</p>
+                        </button>
+                    </div>
+
+                    <form method="post" asp-controller="Student" asp-action="SubmitEnrollment" id="enrollmentForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="IsFromApplication" />
+                        <input type="hidden" asp-for="IsLookupComplete" />
+                        <input type="hidden" asp-for="OriginalApplicationId" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <section class="form-section is-active" data-step-section="identity">
+                            <h4 class="form-section__title">
+                                <i class="fa fa-fingerprint"></i>
+                                Identity & Source
+                            </h4>
+                            <p class="form-section__subtitle">
+                                Anchor the enrollment to the correct person. We prioritize verified identity first.
+                            </p>
+
+                            <div class="field-grid">
+                                <div class="span-6">
+                                    <div class="floating-field">
+                                        <input asp-for="IDNumber"
+                                               class="form-control"
+                                               placeholder=" "
+                                               inputmode="numeric"
+                                               maxlength="13"
+                                               autocomplete="off"
+                                               readonly="@(Model.IsFromApplication ? "readonly" : null)" />
+                                        <label asp-for="IDNumber"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">13 digits for SA ID where applicable.</span>
+                                        <span class="field-state" data-state-for="IDNumber"></span>
+                                    </div>
+                                    @if (Model.IsFromApplication && !string.IsNullOrWhiteSpace(Model.IDNumber))
+                                    {
+                                        <div class="autofill-chip">
+                                            <i class="fa fa-check"></i> Prefilled from approved application
+                                        </div>
+                                    }
+                                    <span asp-validation-for="IDNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-6">
+                                    <div class="floating-field">
+                                        <input asp-for="PassportNumber"
+                                               class="form-control"
+                                               placeholder=" "
+                                               maxlength="20"
+                                               autocomplete="off" />
+                                        <label asp-for="PassportNumber"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">Use when no ID Number is available.</span>
+                                        <span class="field-state" data-state-for="PassportNumber"></span>
+                                    </div>
+                                    @if (Model.IsFromApplication && !string.IsNullOrWhiteSpace(Model.PassportNumber))
+                                    {
+                                        <div class="autofill-chip">
+                                            <i class="fa fa-check"></i> Prefilled from approved application
+                                        </div>
+                                    }
+                                    <span asp-validation-for="PassportNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section is-hidden" data-step-section="personal">
+                            <h4 class="form-section__title">
+                                <i class="fa fa-user"></i>
+                                Personal Profile
+                            </h4>
+                            <p class="form-section__subtitle">
+                                These are the details that shape the student’s core academic record.
+                            </p>
+
+                            <div class="field-grid">
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="FirstName" required
+                                               class="form-control person-name"
+                                               placeholder=" "
+                                               autocomplete="given-name" />
+                                        <label asp-for="FirstName"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="FirstName"></span>
+                                    </div>
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="MiddleName"
+                                               class="form-control person-name"
+                                               placeholder=" "
+                                               autocomplete="additional-name" />
+                                        <label asp-for="MiddleName"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="MiddleName"></span>
+                                    </div>
+                                    <span asp-validation-for="MiddleName" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="LastName" required
+                                               class="form-control person-name"
+                                               placeholder=" "
+                                               autocomplete="family-name" />
+                                        <label asp-for="LastName"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="LastName"></span>
+                                    </div>
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <select asp-for="Gender" class="form-select">
+                                            <option value=""></option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <label asp-for="Gender"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="Gender"></span>
+                                    </div>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="DateOfBirth"
+                                               type="date"
+                                               class="form-control"
+                                               placeholder=" "
+                                               autocomplete="bday" />
+                                        <label asp-for="DateOfBirth"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="DateOfBirth"></span>
+                                    </div>
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="Nationality" required
+                                               class="form-control person-name"
+                                               placeholder=" "
+                                               autocomplete="country-name" />
+                                        <label asp-for="Nationality"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="Nationality"></span>
+                                    </div>
+                                    <span asp-validation-for="Nationality" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="HighestGrade" required
+                                               class="form-control"
+                                               placeholder=" "
+                                               autocomplete="off" type="number" />
+                                        <label asp-for="HighestGrade"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="HighestGrade"></span>
+                                    </div>
+                                    <span asp-validation-for="HighestGrade" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-12">
+                                    <div class="floating-field">
+                                        <input asp-for="NameOfSchool" required
+                                               class="form-control person-name"
+                                               placeholder=" "
+                                               autocomplete="organization" />
+                                        <label asp-for="NameOfSchool"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="NameOfSchool"></span>
+                                    </div>
+                                    <span asp-validation-for="NameOfSchool" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section is-hidden" data-step-section="contact">
+                            <h4 class="form-section__title">
+                                <i class="fa fa-address-book"></i>
+                                Contact & Address
+                            </h4>
+                            <p class="form-section__subtitle">
+                                Capture how we reach the student and where they are primarily based.
+                            </p>
+
+                            <div class="field-grid">
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="Cellphone" required
+                                               class="form-control"
+                                               placeholder=" "
+                                               inputmode="tel"
+                                               autocomplete="tel"/>
+                                        <label asp-for="Cellphone"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="Cellphone"></span>
+                                    </div>
+                                    <span asp-validation-for="Cellphone" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="Email"
+                                               type="email"
+                                               class="form-control"
+                                               placeholder=" "
+                                               inputmode="email"
+                                               autocomplete="email" />
+                                        <label asp-for="Email"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="Email"></span>
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field">
+                                        <input asp-for="StreetAddressLine1"
+                                               class="form-control"
+                                               placeholder=" "
+                                               autocomplete="address-line1" />
+                                        <label asp-for="StreetAddressLine1"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="StreetAddressLine1"></span>
+                                    </div>
+                                    <span asp-validation-for="StreetAddressLine1" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-8">
+                                    <div class="floating-field">
+                                        <input asp-for="StreetAddressLine2"
+                                               class="form-control"
+                                               placeholder=" "
+                                               autocomplete="address-line2" />
+                                        <label asp-for="StreetAddressLine2"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="StreetAddressLine2"></span>
+                                    </div>
+                                    <span asp-validation-for="StreetAddressLine2" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section is-hidden" data-step-section="enrollment">
+                            <h4 class="form-section__title">
+                                <i class="fa fa-graduation-cap"></i>
+                                Enrollment Assignment
+                            </h4>
+                            <p class="form-section__subtitle">
+                                Choose the course that will be used to create the student’s enrollment record.
+                            </p>
+
+                            <div class="field-grid">
+                                <div class="span-6">
+                                    <div class="floating-field">
+                                        <select asp-for="CourseId"
+                                                class="form-select"
+                                                asp-items="Model.AvailableCourses">
+                                            <option value=""></option>
+                                        </select>
+                                        <label asp-for="CourseId"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-state" data-state-for="CourseId"></span>
+                                    </div>
+                                    <span asp-validation-for="CourseId" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-6 d-flex align-items-end">
+                                    @if (Model.IsFromApplication)
+                                    {
+                                        <div class="prefilled-note">
+                                            <i class="fa fa-badge-check"></i>
+                                            Applicant-backed enrollment path
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="prefilled-note" style="color:#9a6700;background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.14);">
+                                            <i class="fa fa-clipboard-user"></i>
+                                            Walk-in capture path
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-section is-hidden" data-step-section="attachments">
+                            <h4 class="form-section__title">
+                                <i class="fa fa-paperclip"></i>
+                                Attachments
+                            </h4>
+                            <p class="form-section__subtitle">
+                                Upload supporting documents for the enrollment record. Keep files clear, current and correctly labelled.
+                            </p>
+
+                            <div class="field-grid">
+                                <div class="span-4">
+                                    <div class="floating-field floating-field--file">
+                                        <input name="IDPassFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                                        <label name="IDPassFile"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">ID document or passport copy.</span>
+                                        <span class="field-state" data-state-for="IDPassFile"></span>
+                                    </div>
+@*                                     <span asp-validation-for="IDPassFile" class="text-danger"></span>
+ *@                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field floating-field--file">
+                                        <input name="HighestQualFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                                        <label name="HighestQualFile"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">Highest qualification proof.</span>
+                                        <span class="field-state" data-state-for="HighestQualFile"></span>
+                                    </div>
+@*                                     <span asp-validation-for="HighestQualFile" class="text-danger"></span>
+ *@                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field floating-field--file">
+                                        <input name="ResidenceFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                                        <label name="ResidenceFile"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">Proof of residence.</span>
+                                        <span class="field-state" data-state-for="ResidenceFile"></span>
+                                    </div>
+@*                                     <span asp-validation-for="ResidenceFile" class="text-danger"></span>
+ *@                                </div>
+                            </div>
+                        </section>
+
+                        <div class="form-actions">
+                            <a asp-controller="Student" asp-action="EnrollStudent" class="btn-premium btn-premium--ghost">
+                                <i class="fa fa-arrow-left me-2"></i>Start Over
+                            </a>
+
+                            <div class="action-cluster">
+                                <button type="submit" class="btn-premium btn-premium--primary">
+                                    <i class="fa fa-check me-2"></i>Submit Enrollment
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            }
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-4.0.0.js" integrity="sha256-9fsHeVnKBvqh3FB2HYu7g2xseAZ5MlN6Kz/qnkASV8U=" crossorigin="anonymous"></script>
+<script src="~/js/enrollment.js"></script>

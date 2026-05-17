@@ -1,0 +1,843 @@
+﻿@model ForekOnline.Domain.ViewModels.UserReportViewModel
+
+@{
+    var report = Model.Report;
+    var user = Model.User;
+    var subs = Model.SubReports ?? new List<ForekOnline.Domain.Entities.ReportSubReport>();
+    var isExpired = report?.ExpiryDate != null && report.ExpiryDate < DateTime.UtcNow;
+    var daysToExpiry = !isExpired && report?.ExpiryDate != null
+        ? (int)Math.Ceiling((report.ExpiryDate.Value - DateTime.UtcNow).TotalDays)
+        : 0;
+    var likedState = report?.IsLiked == true ? "liked" : (report?.IsLiked == false ? "disliked" : "none");
+    string reactionLabel = likedState switch { "liked" => "Liked", "disliked" => "Not Liked", _ => "No Reaction" };
+    string expiresBadge = isExpired ? "Expired" : (daysToExpiry <= 5 ? "Expiring Soon" : "Active");
+    string expiresClass = isExpired ? "status-expired" : (daysToExpiry <= 5 ? "status-soon" : "status-active");
+    var reference = report?.Reference ?? "—";
+    var fileUrl = report?.ReportURL;
+}
+
+<style>
+    :root {
+        --d-bg: #0c0e14;
+        --d-bg-2: #12151e;
+        --d-bg-3: #181c28;
+        --d-surface: rgba(255,255,255,.04);
+        --d-surface-2: rgba(255,255,255,.06);
+        --d-surface-3: rgba(255,255,255,.08);
+        --d-glass: rgba(24,28,40,.72);
+        --d-glass-border: rgba(255,255,255,.08);
+        --d-glass-border-2: rgba(255,255,255,.12);
+        --d-text: #e8eaf0;
+        --d-text-2: #9ba1b0;
+        --d-text-3: #6b7186;
+        --d-accent: #ff7a18;
+        --d-accent-2: #ff9547;
+        --d-red: #ef4444;
+        --d-green: #22c55e;
+        --d-grad: linear-gradient(135deg, #ff7a18 0%, #b31217 50%, #320606 100%);
+        --d-shadow: 0 4px 24px rgba(0,0,0,.4);
+        --d-shadow-lg: 0 12px 48px rgba(0,0,0,.5);
+        --d-radius: 16px;
+        --d-radius-sm: 10px;
+        --d-radius-lg: 24px;
+        --d-transition: .25s cubic-bezier(.4,0,.2,1);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* ===== Shell card ===== */
+    .rd-shell {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius-lg);
+        padding: 1.35rem 1.35rem 1.25rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--d-shadow);
+    }
+
+        .rd-shell:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 15% 8%, rgba(255,122,24,.18), transparent 55%), radial-gradient(circle at 90% 15%, rgba(179,18,23,.15), transparent 50%);
+            pointer-events: none;
+            opacity: .85;
+        }
+
+    /* Header */
+    .rd-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        position: relative;
+        z-index: 1;
+    }
+
+        .rd-header .icon-block {
+            width: 68px;
+            height: 68px;
+            border-radius: 20px;
+            background: var(--d-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.7rem;
+            box-shadow: 0 10px 28px -8px rgba(255,122,24,.35);
+        }
+
+        .rd-header h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -.2px;
+            margin: 0;
+            color: var(--d-text);
+        }
+
+    .ref-pill {
+        margin-top: .4rem;
+        font-size: .58rem;
+        letter-spacing: .2rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        background: var(--d-surface-2);
+        color: var(--d-accent);
+        border: 1px solid var(--d-glass-border);
+        padding: .45rem .8rem;
+        border-radius: 999px;
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+    }
+
+    .rd-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-left: auto;
+    }
+
+    .rd-btn {
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        color: var(--d-text);
+        padding: .5rem .85rem;
+        border-radius: var(--d-radius-sm);
+        font-size: .65rem;
+        font-weight: 800;
+        letter-spacing: .1rem;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        transition: all var(--d-transition);
+        text-decoration: none;
+        cursor: pointer;
+        position: relative;
+    }
+
+        .rd-btn:hover {
+            background: var(--d-grad);
+            color: #fff;
+            border-color: var(--d-glass-border-2);
+            box-shadow: 0 6px 18px -8px rgba(255,122,24,.35);
+        }
+
+        .rd-btn.danger:hover {
+            background: linear-gradient(135deg, #5c0a0e, #b31217 70%, #ff7a18);
+        }
+
+        .rd-btn.grad {
+            background: var(--d-grad);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 16px rgba(255,122,24,.25);
+        }
+
+            .rd-btn.grad:hover {
+                filter: brightness(1.1);
+                box-shadow: 0 8px 28px rgba(255,122,24,.4);
+                transform: translateY(-1px);
+            }
+
+    .copy-ref[data-copied="true"]::after {
+        content: "Copied!";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translate(-50%, 6px);
+        background: #222;
+        color: #fff;
+        font-size: .5rem;
+        padding: .25rem .5rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        animation: fadeSlide .9s ease;
+    }
+
+    @@keyframes fadeSlide {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, 10px);
+        }
+
+        25% {
+            opacity: 1;
+            transform: translate(-50%, 6px);
+        }
+
+        85% {
+            opacity: 1;
+            transform: translate(-50%, 6px);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translate(-50%, 2px);
+        }
+    }
+
+    /* Meta grid */
+    .meta-grid {
+        display: grid;
+        gap: .85rem;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        margin-bottom: 1.25rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .meta-block {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius);
+        padding: .85rem .95rem .9rem;
+        position: relative;
+        overflow: hidden;
+        transition: all var(--d-transition);
+    }
+
+        .meta-block:before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: var(--d-grad);
+        }
+
+        .meta-block:hover {
+            transform: translateY(-4px);
+            border-color: var(--d-glass-border-2);
+            box-shadow: var(--d-shadow-lg);
+        }
+
+    .meta-label {
+        font-size: .52rem;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: var(--d-text-3);
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .meta-value {
+        font-size: .88rem;
+        font-weight: 700;
+        letter-spacing: .3px;
+        margin-top: .35rem;
+        color: var(--d-text);
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        word-break: break-word;
+    }
+
+    .meta-accent {
+        background: var(--d-grad);
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 800;
+    }
+
+    .meta-status {
+        font-size: .52rem;
+        letter-spacing: .12rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        margin-top: .35rem;
+    }
+
+    .status-active {
+        background: rgba(34,197,94,.12);
+        color: #9ff7c7;
+        border: 1px solid rgba(34,197,94,.22);
+    }
+
+    .status-soon {
+        background: rgba(255,122,24,.12);
+        color: #ffd9bf;
+        border: 1px solid rgba(255,122,24,.22);
+    }
+
+    .status-expired {
+        background: rgba(239,68,68,.12);
+        color: #ffd2d2;
+        border: 1px solid rgba(239,68,68,.22);
+    }
+
+    /* Body layout */
+    .rd-body {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rd-main {
+        flex: 1 1 520px;
+        min-width: 340px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .rd-side {
+        width: 300px;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .rd-card {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius);
+        padding: 1rem .95rem .95rem;
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .rd-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 10%, rgba(255,122,24,.08), transparent 50%);
+            pointer-events: none;
+        }
+
+        .rd-card h5 {
+            margin: 0;
+            font-size: .65rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: var(--d-accent);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .rd-card p {
+            font-size: .72rem;
+            line-height: 1.25rem;
+            margin: 0;
+            color: var(--d-text-2);
+        }
+
+    /* Avatar */
+    .avatar-wrap {
+        width: 120px;
+        height: 120px;
+        border-radius: 22px;
+        overflow: hidden;
+        margin: .2rem auto;
+        border: 1px solid var(--d-glass-border);
+        box-shadow: 0 8px 24px -8px rgba(255,122,24,.25);
+    }
+
+        .avatar-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+    /* Integrity list */
+    .meta-lines {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+        font-size: .65rem;
+    }
+
+        .meta-lines li {
+            display: flex;
+            justify-content: space-between;
+            gap: .75rem;
+            background: var(--d-surface-2);
+            border: 1px solid var(--d-glass-border);
+            padding: .5rem .65rem;
+            border-radius: 12px;
+            font-weight: 800;
+            color: var(--d-text-2);
+        }
+
+        .meta-lines span.val {
+            color: var(--d-text);
+        }
+
+    /* Reaction */
+    .reaction-group {
+        display: flex;
+        gap: .55rem;
+        margin-top: .3rem;
+    }
+
+    .reaction-toggle {
+        border: 1px solid var(--d-glass-border);
+        background: var(--d-surface);
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .9rem;
+        color: var(--d-text-2);
+        transition: all var(--d-transition);
+        cursor: pointer;
+    }
+
+        .reaction-toggle.active {
+            background: var(--d-grad);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 16px rgba(255,122,24,.3);
+        }
+
+        .reaction-toggle:hover:not(.active) {
+            border-color: var(--d-glass-border-2);
+            color: var(--d-accent);
+            background: var(--d-surface-3);
+        }
+
+    /* ===== Sub-Reports section ===== */
+    .sub-section {
+        position: relative;
+        z-index: 1;
+        margin-top: 1.25rem;
+    }
+
+    .sub-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: .85rem;
+    }
+
+        .sub-section-header h4 {
+            margin: 0;
+            font-size: .68rem;
+            letter-spacing: .2rem;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: var(--d-text);
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+        }
+
+    .sub-count-pill {
+        font-size: .55rem;
+        font-weight: 900;
+        background: var(--d-grad);
+        color: #fff;
+        padding: .3rem .55rem;
+        border-radius: 999px;
+        letter-spacing: .08rem;
+    }
+
+    .sub-grid {
+        display: grid;
+        gap: .75rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .sub-card {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius);
+        padding: .85rem .95rem;
+        display: flex;
+        flex-direction: column;
+        gap: .55rem;
+        position: relative;
+        overflow: hidden;
+        transition: all var(--d-transition);
+    }
+
+        .sub-card:before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+            background: var(--d-grad);
+            opacity: .6;
+        }
+
+        .sub-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--d-glass-border-2);
+            box-shadow: var(--d-shadow-lg);
+        }
+
+            .sub-card:hover:before {
+                opacity: 1;
+            }
+
+    .sub-card-title {
+        font-size: .82rem;
+        font-weight: 800;
+        color: var(--d-text);
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+        .sub-card-title i {
+            color: var(--d-accent);
+            font-size: .9rem;
+        }
+
+    .sub-card-desc {
+        font-size: .68rem;
+        color: var(--d-text-3);
+        line-height: 1.15rem;
+    }
+
+    .sub-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        margin-top: auto;
+        padding-top: .45rem;
+        border-top: 1px solid var(--d-glass-border);
+    }
+
+    .sub-card-meta {
+        font-size: .52rem;
+        letter-spacing: .1rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--d-text-3);
+    }
+
+    .sub-empty {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        color: var(--d-text-3);
+        font-size: .78rem;
+    }
+
+        .sub-empty i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: .45rem;
+            color: var(--d-accent);
+            opacity: .5;
+        }
+
+    /* Preview modal */
+    .preview-skeleton {
+        width: 100%;
+        height: 70vh;
+        border-radius: 12px;
+        background: linear-gradient(110deg, rgba(255,255,255,.04) 8%, rgba(255,255,255,.08) 18%, rgba(255,255,255,.04) 33%);
+        background-size: 200% 100%;
+        animation: shine 1.2s linear infinite;
+    }
+
+    @@keyframes shine {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .rd-side {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container-fluid py-2">
+    <div class="rd-shell">
+
+        <!-- Header -->
+        <div class="rd-header">
+            <div class="icon-block"><i class="fa fa-file-pdf"></i></div>
+            <div>
+                <h2>Report Details</h2>
+                <div class="ref-pill">
+                    <i class="fa fa-hashtag"></i> @reference
+                </div>
+            </div>
+
+            <div class="rd-actions">
+                <a class="rd-btn copy-ref" href="javascript:void(0)" id="btnCopyRef" data-ref="@reference">
+                    <i class="fa fa-copy"></i> Copy Ref
+                </a>
+                @if (!string.IsNullOrWhiteSpace(fileUrl))
+                {
+                    <a asp-action="ReportDownload" asp-controller="Report" asp-route-fileId="@report.ReportURL"
+                       class="rd-btn" download>
+                        <i class="fa fa-download"></i> Download
+                    </a>
+                    <a asp-action="ReportDownload" asp-controller="Report" asp-route-fileId="@report.ReportURL"
+                       class="rd-btn" target="_blank" rel="noopener">
+                        <i class="fa fa-arrow-up-right-from-square"></i> Open
+                    </a>
+                }
+                <a class="rd-btn danger" href="javascript:void(0)" id="btnDeleteReport" data-report-id="@report?.ReportId">
+                    <i class="fa fa-trash"></i> Delete
+                </a>
+            </div>
+        </div>
+
+        <!-- Meta cards -->
+        <div class="meta-grid">
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-user"></i> Uploaded By</div>
+                <div class="meta-value">
+                    <span class="meta-accent">@user?.Name @user?.LastName</span>
+                </div>
+                <div style="font-size:.5rem;color:var(--d-text-3);letter-spacing:.08rem;margin-top:.15rem;">@user?.Department Department</div>
+            </div>
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-calendar-plus"></i> Created</div>
+                <div class="meta-value">@report?.CreatedOn</div>
+            </div>
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-clock-rotate-left"></i> Last Opened</div>
+                <div class="meta-value">@(report?.LastOpened?.ToString("yyyy-MM-dd HH:mm") ?? "—")</div>
+            </div>
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-eye"></i> Open Count</div>
+                <div class="meta-value">@report?.OpenCount</div>
+            </div>
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-calendar-xmark"></i> Expires</div>
+                <div class="meta-value">
+                    @(report?.ExpiryDate?.ToString("yyyy-MM-dd") ?? "—")
+                </div>
+                <div class="meta-status @expiresClass">
+                    @if (expiresBadge == "Active")
+                    {
+                        <i class="fa fa-check-circle"></i>
+                    }
+                    else if (expiresBadge == "Expiring Soon")
+                    {
+                        <i class="fa fa-exclamation-triangle"></i>
+                    }
+                    else
+                    {
+                        <i class="fa fa-times-circle"></i>
+                    }
+                    @expiresBadge
+                </div>
+            </div>
+            <div class="meta-block">
+                <div class="meta-label"><i class="fa fa-heart"></i> Reaction</div>
+                <div class="meta-value">@reactionLabel</div>
+                <div class="reaction-group" id="reactionGroup" data-report-id="@report?.ReportId">
+                    <div class="reaction-toggle @(likedState == "liked" ? "active" : "")" data-type="up" title="Like">
+                        <i class="fa fa-thumbs-up"></i>
+                    </div>
+                    <div class="reaction-toggle @(likedState == "disliked" ? "active" : "")" data-type="down" title="Dislike">
+                        <i class="fa fa-thumbs-down"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="rd-body">
+            <div class="rd-main">
+                <div class="rd-card">
+                    <h5><i class="fa fa-circle-info"></i> Summary</h5>
+                    <p>
+                        This panel consolidates report metadata including open frequency, expiry lifecycle and ownership.
+                        Use <strong>Open</strong> or <strong>Download</strong> to access the file directly.
+                    </p>
+                </div>
+                <div class="rd-card">
+                    <h5><i class="fa fa-shield-halved"></i> Integrity</h5>
+                    <ul class="meta-lines">
+                        <li><span>Reference</span><span class="val">@reference</span></li>
+                        <li><span>Report Type</span><span class="val">@report?.ReportType</span></li>
+                        <li><span>Is Active</span><span class="val">@report?.IsActive</span></li>
+                        <li><span>Operation</span><span class="val">@report?.Operation</span></li>
+                        <li><span>Sub-Reports</span><span class="val">@subs.Count</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="rd-side">
+                <div class="rd-card">
+                    <h5><i class="fa fa-user"></i> Uploader</h5>
+                    <div class="avatar-wrap">
+                        <img id="avatarPreview"
+                             src="@Url.Action("ProfileImage", "Auth", new { fileId = user?.ProfileImage })"
+                             alt="Profile Image" loading="lazy" />
+                    </div>
+                    <div style="text-align:center;font-size:.78rem;font-weight:700;color:var(--d-text);">
+                        @user?.Name @user?.LastName
+                    </div>
+                    <div style="text-align:center;font-size:.52rem;color:var(--d-text-3);letter-spacing:.12rem;text-transform:uppercase;">
+                        @user?.Department Department
+                    </div>
+                </div>
+                <div class="rd-card">
+                    <h5><i class="fa fa-gear"></i> Quick Actions</h5>
+                    <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                        @if (!string.IsNullOrWhiteSpace(fileUrl))
+                        {
+                            <a asp-action="ReportDownload" asp-controller="Report" asp-route-fileId="@report.ReportURL"
+                               class="rd-btn" target="_blank" rel="noopener">
+                                <i class="fa fa-eye"></i> Preview
+                            </a>
+                            <a asp-action="ReportDownload" asp-controller="Report" asp-route-fileId="@report.ReportURL"
+                               class="rd-btn">
+                                <i class="fa fa-download"></i> Download
+                            </a>
+                        }
+                    </div>
+                    <div style="font-size:.55rem;color:var(--d-text-3);margin-top:.25rem;">
+                        If embedded preview fails (private blob), use Open or Download.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sub-Reports -->
+        <div class="sub-section">
+            <div class="sub-section-header">
+                <h4>
+                    <i class="bi bi-layers-fill" style="color:var(--d-accent);"></i>
+                    Sub-Reports
+                    <span class="sub-count-pill">@subs.Count</span>
+                </h4>
+            </div>
+
+            @if (subs.Count == 0)
+            {
+                <div class="sub-empty">
+                    <i class="bi bi-file-earmark-x"></i>
+                    No sub-reports attached to this report.
+                </div>
+            }
+            else
+            {
+                <div class="sub-grid">
+                    @foreach (var s in subs)
+                    {
+                        <div class="sub-card">
+                            <div class="sub-card-title">
+                                <i class="bi bi-file-earmark-pdf-fill"></i>
+                                @s.FileName
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(s.Description))
+                            {
+                                <div class="sub-card-desc">@s.Description</div>
+                            }
+                            <div class="sub-card-footer">
+                                <span class="sub-card-meta">
+                                    <i class="bi bi-calendar3"></i>
+                                    @s.DateCreated.ToString("yyyy-MM-dd")
+                                </span>
+                                <a asp-action="ReportDownload" asp-controller="Report" asp-route-fileId="@s.FileId"
+                                   class="rd-btn grad" style="padding:.35rem .6rem;font-size:.55rem;" title="Download">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function () {
+        // Copy reference
+        const btnCopy = document.getElementById('btnCopyRef');
+        btnCopy?.addEventListener('click', () => {
+            const ref = btnCopy.getAttribute('data-ref');
+            if (!ref) return;
+            navigator.clipboard.writeText(ref).then(() => {
+                btnCopy.setAttribute('data-copied', 'true');
+                setTimeout(() => btnCopy.removeAttribute('data-copied'), 1400);
+            });
+        });
+
+        // Delete
+        const deleteBtn = document.getElementById('btnDeleteReport');
+        deleteBtn?.addEventListener('click', () => {
+            const id = deleteBtn.getAttribute('data-report-id');
+            if (!id) return;
+            Swal.fire({
+                title: 'Delete Report?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#b31217',
+                background: '#181c28',
+                color: '#e8eaf0'
+            }).then(res => {
+                if (res.isConfirmed) {
+                    fetch('/Report/RemoveReport?reportId=' + encodeURIComponent(id), { method: 'GET' })
+                        .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+                        .then(() => {
+                            Swal.fire({ title: 'Deleted', text: 'Report removed successfully.', icon: 'success', background: '#181c28', color: '#e8eaf0' })
+                                .then(() => window.history.back());
+                        })
+                        .catch(() => Swal.fire({ title: 'Error', text: 'Failed to remove report.', icon: 'error', background: '#181c28', color: '#e8eaf0' }));
+                }
+            });
+        });
+
+        // Reactions
+        document.querySelectorAll('.reaction-toggle').forEach(el => {
+            el.addEventListener('click', () => {
+                if (el.classList.contains('active')) return;
+                const group = el.parentElement;
+                group.querySelectorAll('.reaction-toggle').forEach(r => r.classList.remove('active'));
+                el.classList.add('active');
+            });
+        });
+    })();
+</script>

@@ -1,0 +1,663 @@
+﻿@* 
+    FUTURE DYNAMIC NOTE:
+    Replace the fallback 'departments' array with a strongly typed model:
+    @model IEnumerable<DepartmentSummaryViewModel>
+    where DepartmentSummaryViewModel {
+        string Name; string RouteKey; string IconClass; string AccentColor;
+        IEnumerable<StaffMember> Staff (Name, Role, RoleTagColor, IsInactive);
+    }
+*@
+@{
+    var departments = new[]
+    {
+        new {
+            Name = "Electrical",
+            RouteKey = "Electrical",
+            Icon = "fa-bolt",
+            Gradient = "linear-gradient(135deg, #FF6B35 0%, #D62828 100%)",
+            Staff = new[] {
+                new { Full="L Gamede", Role="HOD", Tag="danger", Inactive=false },
+                new { Full="P Dube", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="E Mgwenya", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="S Mahlinza", Role="Instructor", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Civil & Construction",
+            RouteKey = "Plumbing",
+            Icon = "fa-pipe-valve",
+            Gradient = "linear-gradient(135deg, #004E89 0%, #1A659E 100%)",
+            Staff = new[] {
+                new { Full="G Hlungwane", Role="HOD", Tag="danger", Inactive=false },
+                new { Full="P Mgwenya", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="S Mabuza", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="J Mbokodo", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="X Msimango", Role="Instructor", Tag="primary", Inactive=true },
+                new { Full="TP Molepo", Role="Instructor", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Fabrication",
+            RouteKey = "Welding",
+            Icon = "fa-fire-flame-curved",
+            Gradient = "linear-gradient(135deg, #8E0E14 0%, #FF6B35 100%)",
+            Staff = new[] {
+                new { Full="VH Phangisa", Role="HOD", Tag="danger", Inactive=false },
+                new { Full="B Mokgoshi", Role="Admin", Tag="primary", Inactive=false },
+                new { Full="X Thobela", Role="Instructor", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Administration",
+            RouteKey = "Admin",
+            Icon = "fa-print",
+            Gradient = "linear-gradient(135deg, #2A0506 0%, #8E0E14 100%)",
+            Staff = new[] {
+                new { Full="S Mawelele", Role="Manager", Tag="danger", Inactive=false },
+                new { Full="M Langa", Role="Admin", Tag="danger", Inactive=false },
+                new { Full="L Mthombothi", Role="Admin", Tag="danger", Inactive=false },
+                new { Full="A Mathebula", Role="Admin", Tag="danger", Inactive=false }
+            }
+        },
+        new {
+            Name = "Agriculture",
+            RouteKey = "Environmental",
+            Icon = "fa-seedling",
+            Gradient = "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+            Staff = new[] {
+                new { Full="NN Mabuza", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="T Nyathi", Role="Mentor", Tag="secondary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Non-Trades",
+            RouteKey = "Operations",
+            Icon = "fa-arrows-spin",
+            Gradient = "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+            Staff = new[] {
+                new { Full="L Sibiya", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="K Mashaya", Role="Instructor", Tag="primary", Inactive=true },
+                new { Full="T Cuna", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="KP Ndlovu", Role="Instructor", Tag="primary", Inactive=false },
+                new { Full="JA Chibi", Role="Instructor", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "OHS",
+            RouteKey = "Health",
+            Icon = "fa-shield-heart",
+            Gradient = "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)",
+            Staff = new[] {
+                new { Full="G Seleka", Role="Safety Officer", Tag="primary", Inactive=false },
+                new { Full="S Zweni", Role="Instructor", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Training",
+            RouteKey = "Training",
+            Icon = "fa-chalkboard-user",
+            Gradient = "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)",
+            Staff = new[] {
+                new { Full="T Manyimo", Role="General Manager", Tag="danger", Inactive=false },
+                new { Full="NL Nsibande", Role="TT Admin", Tag="primary", Inactive=false },
+                new { Full="P Phiri", Role="HR", Tag="primary", Inactive=false },
+                new { Full="L Sibiya", Role="T Manager", Tag="danger", Inactive=false }
+            }
+        },
+        new {
+            Name = "Corporate",
+            RouteKey = "Corporate",
+            Icon = "fa-briefcase",
+            Gradient = "linear-gradient(135deg, #1F2937 0%, #111827 100%)",
+            Staff = new[] {
+                new { Full="E Chinyuke", Role="CEO", Tag="danger", Inactive=false },
+                new { Full="T Nkosi", Role="CEO's PA", Tag="primary", Inactive=false }
+            }
+        },
+        new {
+            Name = "Finance",
+            RouteKey = "Finance",
+            Icon = "fa-chart-line",
+            Gradient = "linear-gradient(135deg, #059669 0%, #047857 100%)",
+            Staff = new[] {
+                new { Full="HS Matjie", Role="Manager", Tag="danger", Inactive=false },
+            }
+        },
+        new {
+            Name = "ICT",
+            RouteKey = "ICT",
+            Icon = "fa-laptop-code",
+            Gradient = "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
+            Staff = new[] {
+                new { Full="IF Oliphant", Role="Manager", Tag="danger", Inactive=false },
+                new { Full="M Mkhabela", Role="ICT Officer", Tag="danger", Inactive=false },
+            }
+        },
+        new {
+            Name = "Marketing",
+            RouteKey = "Marketing",
+            Icon = "fa-bullhorn",
+            Gradient = "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)",
+            Staff = new[] {
+                new { Full="M Khoza", Role="Marketing Officer", Tag="primary", Inactive=false }
+            }
+        }
+    };
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-orange: #FF6B35;
+        --primary-red: #D62828;
+        --bg-light: #F8F9FC;
+        --text-primary: #1A202C;
+        --text-secondary: #718096;
+        --text-muted: #A0AEC0;
+        --border-light: #E2E8F0;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --gradient-primary: linear-gradient(135deg, #FF6B35 0%, #D62828 100%);
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 18px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: var(--bg-light);
+        color: var(--text-primary);
+    }
+
+    .compact-header {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-sm);
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        box-shadow: 0 4px 12px rgba(214, 40, 40, 0.25);
+    }
+
+    .header-title h1 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+        letter-spacing: -0.3px;
+    }
+
+    .header-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-top: 0.15rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .btn-icon:hover {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-1px);
+        }
+
+    .dept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .dept-card {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+    }
+
+        .dept-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-orange);
+        }
+
+    .dept-header {
+        padding: 0.9rem 1rem;
+        background: linear-gradient(135deg, rgba(255,107,53,0.04) 0%, rgba(214,40,40,0.04) 100%);
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .dept-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        flex-shrink: 0;
+    }
+
+    .dept-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .dept-name {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dept-meta {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+        .dept-meta i {
+            color: var(--primary-orange);
+            font-size: 0.7rem;
+        }
+
+    .dept-body {
+        padding: 0.85rem 1rem 0.75rem;
+        flex: 1;
+    }
+
+    .staff-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .staff-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.45rem 0.6rem;
+        background: var(--bg-light);
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+    }
+
+        .staff-item:hover {
+            background: linear-gradient(135deg, rgba(255,107,53,0.06) 0%, rgba(214,40,40,0.06) 100%);
+            transform: translateX(3px);
+        }
+
+    .staff-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .staff-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .staff-name {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .staff-role {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 0.2rem 0.5rem;
+        border-radius: 50px;
+        flex-shrink: 0;
+    }
+
+    .role-danger {
+        background: rgba(220, 38, 38, 0.1);
+        color: #DC2626;
+    }
+
+    .role-primary {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563EB;
+    }
+
+    .role-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #D97706;
+    }
+
+    .role-secondary {
+        background: rgba(107, 114, 128, 0.1);
+        color: #4B5563;
+    }
+
+    .staff-item.inactive .staff-name {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+
+    .staff-item.inactive .staff-avatar {
+        opacity: 0.4;
+    }
+
+    .dept-footer {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .view-btn {
+        width: 100%;
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, rgba(255,107,53,0.08) 0%, rgba(214,40,40,0.08) 100%);
+        border: 1px solid rgba(255,107,53,0.15);
+        border-radius: var(--radius-sm);
+        color: var(--primary-red);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+    }
+
+    .dept-card:hover .view-btn {
+        background: var(--gradient-primary);
+        color: white;
+        border-color: transparent;
+    }
+
+    .info-banner {
+        background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, rgba(214,40,40,0.05) 100%);
+        border: 1px solid rgba(255,107,53,0.12);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.85rem;
+    }
+
+    .info-text {
+        flex: 1;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+        .info-text strong {
+            color: var(--primary-red);
+            font-weight: 700;
+        }
+
+    @@media (max-width: 1200px) {
+        .dept-grid {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .dept-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+
+        .compact-header {
+            padding: 0.85rem 1rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.1rem;
+        }
+
+        .dept-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 1.25rem;
+        }
+    }
+
+    @@media (max-width: 575px) {
+        .dept-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dept-card {
+        animation: fadeIn 0.4s ease backwards;
+    }
+
+        .dept-card:nth-child(n+1):nth-child(-n+4) {
+            animation-delay: 0.05s;
+        }
+
+        .dept-card:nth-child(n+5):nth-child(-n+8) {
+            animation-delay: 0.1s;
+        }
+
+        .dept-card:nth-child(n+9):nth-child(-n+12) {
+            animation-delay: 0.15s;
+        }
+</style>
+
+<div class="container-fluid px-3 py-3">
+
+    <div class="compact-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div class="header-title">
+                <h1>Departments Directory</h1>
+                <p class="header-subtitle">@departments.Length departments • Click to explore</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" type="button" onclick="location.reload()" title="Refresh">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button class="btn-icon" type="button" title="Grid View" onclick="document.getElementById('deptGrid')?.scrollIntoView({behavior:'smooth'});">
+                <i class="fa-solid fa-grip"></i>
+            </button>
+            <button class="btn-icon" type="button" title="Filter">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="info-banner">
+        <div class="info-icon">
+            <i class="fa-solid fa-info"></i>
+        </div>
+        <div class="info-text">
+            <strong>Announcement</strong> — If your name doesn't appear here please contact ICT Department.
+        </div>
+    </div>
+
+    <div id="deptGrid" class="dept-grid">
+        @foreach (var d in departments)
+        {
+            <a class="dept-card"
+               asp-action="OnGetDeptEmployees"
+               asp-controller="Employee"
+               asp-route-Dept="@d.RouteKey">
+
+                <div class="dept-header">
+                    <div class="dept-icon" style="background: @d.Gradient">
+                        <i class="fa-solid @d.Icon"></i>
+                    </div>
+                    <div class="dept-info">
+                        <h3 class="dept-name">@d.Name</h3>
+                        <div class="dept-meta">
+                            <i class="fa-solid fa-users"></i>
+                            <span>@d.Staff.Length @(d.Staff.Length == 1 ? "member" : "members")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dept-body">
+                    <ul class="staff-list">
+                        @foreach (var s in d.Staff)
+                        {
+                            var initials = string.Join("", s.Full.Split(' ').Select(n => n.FirstOrDefault()));
+                            var roleClass = s.Tag switch
+                            {
+                                "danger" => "role-danger",
+                                "primary" => "role-primary",
+                                "warning" => "role-warning",
+                                "secondary" => "role-secondary",
+                                _ => "role-primary"
+                            };
+
+                            <li class="staff-item @(s.Inactive ? "inactive" : "")">
+                                <div class="staff-avatar">@initials</div>
+                                <div class="staff-info">
+                                    <span class="staff-name">@s.Full</span>
+                                    <span class="staff-role @roleClass">@s.Role</span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="dept-footer">
+                    <div class="view-btn">
+                        <span>View Details</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href'))?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+    </script>
+}

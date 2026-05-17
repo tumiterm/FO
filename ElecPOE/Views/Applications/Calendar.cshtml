@@ -1,0 +1,799 @@
+﻿@{
+    ViewData["Title"] = "Academic Calendar";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+<style>
+    :root {
+        --cal-bg: var(--fo-bg-card, #fff);
+        --cal-bg2: var(--fo-bg, #f3f4f8);
+        --cal-text: var(--fo-text, #1a1a2e);
+        --cal-text2: var(--fo-text-2, #4a4f5e);
+        --cal-muted: var(--fo-muted, #6b7280);
+        --cal-border: var(--fo-border, #e3e5eb);
+        --cal-orange: var(--fo-orange, #e65100);
+        --cal-orange-lt: var(--fo-orange-light, #ff8a50);
+        --cal-orange-dk: var(--fo-orange-dark, #ac1900);
+        --cal-radius: 16px;
+        --cal-radius-sm: 10px;
+        --cal-radius-lg: 22px;
+        --cal-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.03);
+        --cal-t: .22s cubic-bezier(.4,0,.2,1);
+        --cal-grad: linear-gradient(135deg, var(--cal-orange), var(--cal-orange-dk));
+        --cal-green: #22c55e;
+        --cal-blue: #3b82f6;
+        --cal-indigo: #818cf8;
+        --cal-amber: #f59e0b;
+        --cal-red: #ef4444;
+    }
+
+    [data-theme="dark"] .cal-shell {
+        --cal-bg: #161a24;
+        --cal-bg2: #0e1018;
+        --cal-text: #e2e5eb;
+        --cal-text2: #9ca3b4;
+        --cal-muted: #6b7186;
+        --cal-border: rgba(255,255,255,.08);
+        --cal-shadow: 0 1px 3px rgba(0,0,0,.2), 0 6px 20px rgba(0,0,0,.12);
+    }
+
+    .cal-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: .25rem 0 3rem;
+    }
+
+    .cal-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .85rem;
+        margin-bottom: 1.35rem;
+    }
+
+        .cal-header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            color: var(--cal-text);
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+
+    .cal-header-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--cal-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.15rem;
+        box-shadow: 0 8px 24px rgba(230,81,0,.22);
+        flex-shrink: 0;
+    }
+
+    .cal-header-meta {
+        font-size: .55rem;
+        letter-spacing: .18rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--cal-muted);
+        margin-top: .15rem;
+    }
+
+    .cal-header-actions {
+        display: flex;
+        gap: .4rem;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    .cal-btn {
+        font-size: .62rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .55rem .9rem;
+        border-radius: var(--cal-radius-sm);
+        border: 1px solid var(--cal-border);
+        background: var(--cal-bg);
+        color: var(--cal-text2);
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+        transition: all var(--cal-t);
+        text-decoration: none;
+    }
+
+        .cal-btn:hover {
+            border-color: var(--cal-orange);
+            color: var(--cal-orange);
+            box-shadow: 0 4px 12px rgba(230,81,0,.12);
+            transform: translateY(-1px);
+        }
+
+    .cal-btn-grad {
+        background: var(--cal-grad) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(230,81,0,.22);
+    }
+
+        .cal-btn-grad:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 6px 24px rgba(230,81,0,.32);
+            color: #fff !important;
+        }
+
+    .cal-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .cal-stat {
+        background: var(--cal-bg);
+        border: 1px solid var(--cal-border);
+        border-radius: var(--cal-radius);
+        padding: .85rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        box-shadow: var(--cal-shadow);
+        transition: all .3s var(--cal-t);
+    }
+
+        .cal-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        }
+
+    .cal-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .cal-stat:nth-child(1) .cal-stat-icon {
+        background: rgba(230,81,0,.1);
+        color: var(--cal-orange);
+    }
+
+    .cal-stat:nth-child(2) .cal-stat-icon {
+        background: rgba(34,197,94,.1);
+        color: var(--cal-green);
+    }
+
+    .cal-stat:nth-child(3) .cal-stat-icon {
+        background: rgba(59,130,246,.1);
+        color: var(--cal-blue);
+    }
+
+    .cal-stat:nth-child(4) .cal-stat-icon {
+        background: rgba(245,158,11,.1);
+        color: var(--cal-amber);
+    }
+
+    .cal-stat-val {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--cal-text);
+        line-height: 1;
+    }
+
+    .cal-stat-label {
+        font-size: .5rem;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--cal-muted);
+        margin-top: .15rem;
+    }
+
+    /* ── LEGEND ── */
+    .cal-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+        margin-bottom: 1rem;
+    }
+
+    .cal-legend-item {
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        font-size: .6rem;
+        font-weight: 600;
+        color: var(--cal-muted);
+        padding: .3rem .6rem;
+        background: var(--cal-bg);
+        border: 1px solid var(--cal-border);
+        border-radius: 30px;
+    }
+
+    .cal-legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .cal-card {
+        background: var(--cal-bg);
+        border: 1px solid var(--cal-border);
+        border-radius: var(--cal-radius-lg);
+        padding: 1.1rem;
+        box-shadow: var(--cal-shadow);
+        transition: background .35s, border-color .35s;
+    }
+
+    .fc {
+        font-family: 'Inter', system-ui, sans-serif !important;
+    }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem !important;
+            font-weight: 800 !important;
+            color: var(--cal-text) !important;
+        }
+
+        .fc .fc-button {
+            border-radius: 8px !important;
+            font-size: .65rem !important;
+            font-weight: 700 !important;
+            letter-spacing: .06rem !important;
+            text-transform: uppercase !important;
+        }
+
+        .fc .fc-button-primary {
+            background: var(--cal-orange) !important;
+            border-color: var(--cal-orange) !important;
+        }
+
+            .fc .fc-button-primary:hover {
+                background: var(--cal-orange-dk) !important;
+            }
+
+            .fc .fc-button-primary:not(:disabled).fc-button-active,
+            .fc .fc-button-primary:not(:disabled):active {
+                background: var(--cal-orange-dk) !important;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,.15) !important;
+            }
+
+        .fc .fc-col-header-cell {
+            background: var(--cal-bg2) !important;
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            font-size: .58rem !important;
+            letter-spacing: .12rem !important;
+            text-transform: uppercase !important;
+            font-weight: 700 !important;
+            color: var(--cal-muted) !important;
+            text-decoration: none !important;
+        }
+
+        .fc .fc-daygrid-day-number {
+            font-size: .72rem !important;
+            font-weight: 600 !important;
+            color: var(--cal-text2) !important;
+            text-decoration: none !important;
+        }
+
+        .fc .fc-day-today {
+            background: rgba(230,81,0,.04) !important;
+        }
+
+        .fc .fc-event {
+            border-radius: 6px !important;
+            font-size: .62rem !important;
+            font-weight: 600 !important;
+            padding: 2px 5px !important;
+            border: none !important;
+        }
+
+            .fc .fc-event:hover {
+                filter: brightness(.92);
+            }
+
+        .fc td, .fc th {
+            border-color: var(--cal-border) !important;
+        }
+
+        .fc .fc-scrollgrid {
+            border-color: var(--cal-border) !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+        }
+
+        .fc .fc-highlight {
+            background: rgba(230,81,0,.08) !important;
+        }
+
+    [data-theme="dark"] .fc .fc-col-header-cell {
+        background: rgba(255,255,255,.03) !important;
+    }
+
+    [data-theme="dark"] .fc .fc-day-today {
+        background: rgba(230,81,0,.06) !important;
+    }
+
+    .cal-modal .modal-content {
+        border: 1px solid var(--cal-border) !important;
+        border-radius: var(--cal-radius-lg) !important;
+        box-shadow: 0 24px 64px rgba(0,0,0,.18) !important;
+        overflow: hidden;
+        background: var(--cal-bg) !important;
+    }
+
+    .cal-modal .modal-header {
+        background: var(--cal-grad);
+        border: none !important;
+        padding: 1rem 1.25rem;
+    }
+
+    .cal-modal .modal-title {
+        font-weight: 800;
+        letter-spacing: .3px;
+        color: #fff;
+    }
+
+    .cal-modal .modal-body {
+        padding: 1.25rem;
+    }
+
+    .cal-modal .modal-footer {
+        border-top: 1px solid var(--cal-border) !important;
+        padding: .85rem 1.25rem;
+    }
+
+    .cal-modal .form-label {
+        font-size: .6rem !important;
+        letter-spacing: .12rem;
+        text-transform: uppercase;
+        font-weight: 700 !important;
+        color: var(--cal-muted) !important;
+        margin-bottom: .2rem !important;
+    }
+
+    .cal-modal .form-control,
+    .cal-modal .form-select {
+        background: var(--cal-bg2) !important;
+        border: 1px solid var(--cal-border) !important;
+        border-radius: var(--cal-radius-sm) !important;
+        color: var(--cal-text) !important;
+        font-size: .78rem !important;
+        transition: all var(--cal-t);
+    }
+
+        .cal-modal .form-control:focus,
+        .cal-modal .form-select:focus {
+            border-color: var(--cal-orange) !important;
+            box-shadow: 0 0 0 3px rgba(230,81,0,.1) !important;
+        }
+
+    .cal-modal .form-check-input:checked {
+        background-color: var(--cal-orange);
+        border-color: var(--cal-orange);
+    }
+
+    .cal-hint {
+        font-size: .55rem;
+        color: var(--cal-muted);
+        margin-top: .1rem;
+    }
+
+    .cal-modal .btn-save {
+        background: var(--cal-grad);
+        color: #fff;
+        border: none;
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .1rem;
+        text-transform: uppercase;
+        padding: .55rem 1.1rem;
+        border-radius: var(--cal-radius-sm);
+        transition: all var(--cal-t);
+    }
+
+        .cal-modal .btn-save:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 4px 16px rgba(230,81,0,.28);
+        }
+
+    .cal-modal .btn-del {
+        background: transparent;
+        border: 1px solid var(--cal-border);
+        color: var(--cal-muted);
+        font-size: .62rem;
+        font-weight: 700;
+        letter-spacing: .08rem;
+        text-transform: uppercase;
+        padding: .5rem .85rem;
+        border-radius: var(--cal-radius-sm);
+        transition: all var(--cal-t);
+    }
+
+        .cal-modal .btn-del:hover {
+            background: rgba(239,68,68,.1);
+            border-color: var(--cal-red);
+            color: var(--cal-red);
+        }
+
+    @@media (max-width: 991.98px) {
+        .cal-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .cal-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .cal-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .cal-header-actions {
+            width: 100%;
+        }
+
+            .cal-header-actions .cal-btn {
+                flex: 1;
+                justify-content: center;
+            }
+    }
+</style>
+
+<div class="cal-shell">
+    <div class="cal-header">
+        <div>
+            <h1>
+                <span class="cal-header-icon"><i class="fa fa-calendar-days"></i></span>
+                Academic Calendar
+            </h1>
+            <div class="cal-header-meta">Manage events, deadlines &amp; schedules</div>
+        </div>
+        <div class="cal-header-actions">
+            <a class="cal-btn" asp-action="ListCalendarEvents" asp-controller="Applications">
+                <i class="fa fa-list"></i> All Events
+            </a>
+            <button id="refreshBtn" class="cal-btn"><i class="fa fa-rotate"></i> Refresh</button>
+            <button class="cal-btn cal-btn-grad" data-bs-toggle="modal" data-bs-target="#eventModal">
+                <i class="fa fa-plus"></i> New Event
+            </button>
+        </div>
+    </div>
+
+    <div class="cal-stats">
+        <div class="cal-stat">
+            <div class="cal-stat-icon"><i class="fa fa-calendar-check"></i></div>
+            <div>
+                <div class="cal-stat-val" id="statTotal">–</div>
+                <div class="cal-stat-label">Total Events</div>
+            </div>
+        </div>
+        <div class="cal-stat">
+            <div class="cal-stat-icon"><i class="fa fa-clock"></i></div>
+            <div>
+                <div class="cal-stat-val" id="statUpcoming">–</div>
+                <div class="cal-stat-label">Upcoming</div>
+            </div>
+        </div>
+        <div class="cal-stat">
+            <div class="cal-stat-icon"><i class="fa fa-star"></i></div>
+            <div>
+                <div class="cal-stat-val" id="statThisMonth">–</div>
+                <div class="cal-stat-label">This Month</div>
+            </div>
+        </div>
+        <div class="cal-stat">
+            <div class="cal-stat-icon"><i class="fa fa-tags"></i></div>
+            <div>
+                <div class="cal-stat-val" id="statCategories">–</div>
+                <div class="cal-stat-label">Categories</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cal-legend" id="calLegend"></div>
+
+    <div class="cal-card">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<div class="modal fade cal-modal" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="eventForm" method="post">
+            @Html.AntiForgeryToken()
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-calendar-plus me-2"></i> <span id="modalTitleText">New Event</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="EventId" id="EventId" />
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input class="form-control" name="Title" id="Title" maxlength="120" required placeholder="e.g. Application Window Opens">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="Category" id="Category">
+                            <option value="">(None)</option>
+                            <option value="Application Window">Application Window</option>
+                            <option value="Holiday">Holiday</option>
+                            <option value="Exam">Exam</option>
+                            <option value="Deadline">Deadline</option>
+                            <option value="Meeting">Meeting</option>
+                            <option value="Orientation">Orientation</option>
+                            <option value="Orientation">Commencement</option>
+                            <option value="Orientation">Closing</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col">
+                            <label class="form-label">Start</label>
+                            <input type="datetime-local" class="form-control" name="StartUtc" id="StartUtc" required>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">End</label>
+                            <input type="datetime-local" class="form-control" name="EndUtc" id="EndUtc">
+                            <div class="cal-hint">Leave empty for open-ended events</div>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="AllDay" id="AllDay">
+                        <label class="form-check-label" for="AllDay" style="font-size:.78rem;font-weight:600;color:var(--cal-text2);">All-day event</label>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-auto">
+                            <label class="form-label">Color</label>
+                            <input type="color" class="form-control form-control-color" id="ColorPicker" value="#e65100" title="Pick color" style="width:48px;height:38px;border-radius:10px;">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Hex Code</label>
+                            <input class="form-control" name="ColorHex" id="ColorHex" placeholder="#e65100">
+                            <div class="cal-hint">Auto-synced with the color picker</div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="Description" id="Description" rows="3" maxlength="500" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="deleteBtn" class="btn-del" style="display:none;">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                    <button type="submit" class="btn-save">
+                        <i class="fa fa-save"></i> Save Event
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var calendarEl = document.getElementById('calendar');
+            var modalEl = document.getElementById('eventModal');
+            var form = document.getElementById('eventForm');
+            var deleteBtn = document.getElementById('deleteBtn');
+            var refreshBtn = document.getElementById('refreshBtn');
+            var hexInput = document.getElementById('ColorHex');
+            var colorPicker = document.getElementById('ColorPicker');
+            var modalTitle = document.getElementById('modalTitleText');
+            var legendEl = document.getElementById('calLegend');
+
+            colorPicker.addEventListener('input', function () { hexInput.value = colorPicker.value; });
+            hexInput.addEventListener('input', function () {
+                var v = hexInput.value.trim();
+                if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(v)) colorPicker.value = v;
+            });
+
+            var catColors = {
+                'Application Window': '#e65100',
+                'Holiday': '#22c55e',
+                'Exam': '#ef4444',
+                'Deadline': '#f59e0b',
+                'Meeting': '#3b82f6',
+                'Orientation': '#818cf8'
+            };
+
+            var allEvents = [];
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listMonth' },
+                selectable: true,
+                editable: true,
+                eventSources: [{
+                    url: '@Url.Action("CalendarEvents", "Applications")',
+                    method: 'GET',
+                    success: function (data) {
+                        allEvents = data;
+                        updateStats(data);
+                        buildLegend(data);
+                    },
+                    failure: function () { alert('Failed to load calendar events.'); }
+                }],
+                select: function (info) {
+                    openModal({
+                        EventId: '',
+                        Title: '',
+                        Category: '',
+                        StartUtc: toLocalInput(info.startStr),
+                        EndUtc: info.endStr ? toLocalInput(info.endStr) : '',
+                        AllDay: info.allDay,
+                        ColorHex: '#e65100',
+                        Description: ''
+                    }, true);
+                },
+                eventClick: function (info) {
+                    var e = info.event;
+                    openModal({
+                        EventId: e.id,
+                        Title: e.title,
+                        Category: (e.extendedProps && e.extendedProps.category) || '',
+                        StartUtc: toLocalInput(e.start),
+                        EndUtc: e.end ? toLocalInput(e.end) : '',
+                        AllDay: !!e.allDay,
+                        ColorHex: e.backgroundColor || '#e65100',
+                        Description: (e.extendedProps && e.extendedProps.description) || ''
+                    }, false);
+                },
+                eventDrop: function (info) { submitUpdate(payloadFrom(info.event)); },
+                eventResize: function (info) { submitUpdate(payloadFrom(info.event)); }
+            });
+            calendar.render();
+
+            refreshBtn.addEventListener('click', function () { calendar.refetchEvents(); });
+
+            function payloadFrom(e) {
+                return {
+                    EventId: e.id, Title: e.title,
+                    Category: (e.extendedProps && e.extendedProps.category) || '',
+                    StartUtc: toLocalInput(e.start),
+                    EndUtc: e.end ? toLocalInput(e.end) : '',
+                    AllDay: !!e.allDay,
+                    ColorHex: e.backgroundColor || '#e65100',
+                    Description: (e.extendedProps && e.extendedProps.description) || ''
+                };
+            }
+
+            function openModal(data, createMode) {
+                modalTitle.textContent = createMode ? 'New Event' : 'Edit Event';
+                setVal('EventId', data.EventId);
+                setVal('Title', data.Title);
+                setVal('Category', data.Category);
+                setVal('StartUtc', data.StartUtc);
+                setVal('EndUtc', data.EndUtc);
+                setChecked('AllDay', data.AllDay);
+                setVal('ColorHex', data.ColorHex);
+                colorPicker.value = /^#/.test(data.ColorHex || '') ? data.ColorHex : '#e65100';
+                setVal('Description', data.Description);
+
+                deleteBtn.style.display = createMode ? 'none' : 'inline-flex';
+                deleteBtn.onclick = function () {
+                    var id = getVal('EventId');
+                    if (!id || !confirm('Delete this event permanently?')) return;
+                    postForm('@Url.Action("DeleteEvent", "Applications")', { id: id }).then(function () {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                        calendar.refetchEvents();
+                    });
+                };
+
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+
+            document.getElementById('Category').addEventListener('change', function () {
+                var c = catColors[this.value];
+                if (c) { hexInput.value = c; colorPicker.value = c; }
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var payload = getFormPayload();
+                var url = payload.EventId
+                    ? '@Url.Action("UpdateEvent", "Applications")'
+                    : '@Url.Action("CreateEvent", "Applications")';
+                postForm(url, payload).then(function () {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                    calendar.refetchEvents();
+                });
+            });
+
+            function getFormPayload() {
+                return {
+                    __RequestVerificationToken: form.querySelector('input[name="__RequestVerificationToken"]').value,
+                    EventId: getVal('EventId'), Title: getVal('Title'), Category: getVal('Category'),
+                    StartUtc: getVal('StartUtc'), EndUtc: getVal('EndUtc') || null,
+                    AllDay: document.getElementById('AllDay').checked,
+                    ColorHex: getVal('ColorHex'), Description: getVal('Description')
+                };
+            }
+
+            function submitUpdate(payload) { postForm('@Url.Action("UpdateEvent", "Applications")', payload); }
+
+            function postForm(url, data) {
+                var fd = new URLSearchParams();
+                Object.keys(data).forEach(function (k) { if (data[k] !== null && data[k] !== undefined) fd.append(k, data[k]); });
+                return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: fd.toString() })
+                    .then(function (r) { if (!r.ok) alert('Operation failed.'); });
+            }
+
+            function updateStats(events) {
+                var now = new Date();
+                var thisMonth = now.getMonth();
+                var thisYear = now.getFullYear();
+                var upcoming = 0, month = 0, cats = new Set();
+                events.forEach(function (e) {
+                    var s = new Date(e.start);
+                    if (s >= now) upcoming++;
+                    if (s.getMonth() === thisMonth && s.getFullYear() === thisYear) month++;
+                    var cat = e.extendedProps && e.extendedProps.category;
+                    if (cat) cats.add(cat);
+                });
+                animateCount('statTotal', events.length);
+                animateCount('statUpcoming', upcoming);
+                animateCount('statThisMonth', month);
+                animateCount('statCategories', cats.size);
+            }
+
+            function buildLegend(events) {
+                var cats = {};
+                events.forEach(function (e) {
+                    var cat = (e.extendedProps && e.extendedProps.category) || 'Uncategorized';
+                    if (!cats[cat]) cats[cat] = e.backgroundColor || catColors[cat] || '#6b7280';
+                });
+                legendEl.innerHTML = '';
+                Object.keys(cats).forEach(function (c) {
+                    legendEl.innerHTML += '<span class="cal-legend-item"><span class="cal-legend-dot" style="background:' + cats[c] + '"></span>' + c + '</span>';
+                });
+            }
+
+            function animateCount(id, target) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                if (target === 0) { el.textContent = '0'; return; }
+                var dur = 800, start = performance.now();
+                function tick(now) {
+                    var p = Math.min((now - start) / dur, 1);
+                    el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+                    if (p < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }
+
+            function toLocalInput(dt) {
+                var d = (typeof dt === 'string') ? new Date(dt) : dt;
+                var pad = function (n) { return String(n).padStart(2, '0'); };
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+            function setVal(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; }
+            function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+            function setChecked(id, val) { var el = document.getElementById(id); if (el) el.checked = !!val; }
+        })();
+    </script>
+}

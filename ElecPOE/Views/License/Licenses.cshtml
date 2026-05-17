@@ -1,0 +1,291 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.LicenseViewModel>
+@{
+    ViewData["Title"] = "Licenses";
+    var list = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.LicenseViewModel>();
+    var freqValues = list.Select(l => l.Frequency).Distinct().OrderBy(f => f).ToList();
+    DateTime today = DateTime.Today;
+}
+
+<style>
+:root{
+    --lic-bg:#ffffff;--lic-bg-alt:#f6f8fa;--lic-border:#e2e5ea;--lic-border-strong:#c9ced4;
+    --lic-accent:#7d0e11;--lic-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --lic-soft:#fff5f3;--lic-text:#1f262d;--lic-radius-xl:30px;--lic-radius:24px;--lic-radius:14px;
+    --lic-shadow:0 14px 38px -16px rgba(125,14,17,.32),0 6px 22px -12px rgba(125,14,17,.18);
+    --lic-focus:0 0 0 .15rem #b3121726;
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1400px;margin:0 auto;padding:1.85rem 1.15rem 3rem;}
+.header-band{background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:var(--lic-radius-xl);
+    padding:1.25rem 1.55rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1112,#b3121714,#ff7a1816);pointer-events:none;}
+.icon-pill{width:74px;height:74px;border-radius:26px;background:var(--lic-accent-grad);display:flex;
+    align-items:center;justify-content:center;font-size:2rem;color:#fff;box-shadow:0 10px 30px -12px rgba(179,18,23,.52);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:var(--lic-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.6rem;letter-spacing:.18rem;font-weight:700;background:var(--lic-soft);color:var(--lic-accent);
+    padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
+.btn-base,.btn-accent,.btn-outline{font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--lic-border);background:#fff;color:var(--lic-accent);
+    display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;cursor:pointer;transition:.3s;}
+.btn-base:hover,.btn-outline:hover{background:var(--lic-accent-grad);color:#fff;border-color:var(--lic-accent);box-shadow:var(--lic-shadow);}
+.btn-accent{background:var(--lic-accent-grad);color:#fff;border:1px solid var(--lic-accent);} .btn-accent:hover{filter:brightness(.94);}
+
+.filter-bar{margin-top:1.5rem;background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:28px;
+    padding:1rem 1rem .9rem;display:flex;flex-wrap:wrap;gap:.85rem;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:155px;}
+.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap{position:relative;flex:1 1 320px;}
+.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding:.52rem .65rem .52rem 2.05rem;border:1px solid var(--lic-border);border-radius:14px;font-size:.7rem;background:#fff;transition:.25s;}
+.search-wrap input:focus{outline:none;border-color:var(--lic-accent);box-shadow:var(--lic-focus);}
+.filter-bar select,.filter-bar input[type='date']{border:1px solid var(--lic-border);background:#fff;border-radius:14px;
+    font-size:.68rem;padding:.5rem .65rem;transition:.25s;}
+.filter-bar select:focus,.filter-bar input[type='date']:focus{outline:none;border-color:var(--lic-accent);box-shadow:var(--lic-focus);}
+#filterState{display:none;font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.38rem .65rem;border-radius:30px;
+    background:var(--lic-soft);color:var(--lic-accent);}
+
+.table-shell{margin-top:1.3rem;background:var(--lic-bg);border:1px solid var(--lic-border);border-radius:30px;padding:1.2rem 1.1rem 1.05rem;overflow:auto;}
+.table-meta{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.65rem;
+    font-size:.52rem;letter-spacing:.14rem;font-weight:700;color:#666;}
+.table-meta .badge{background:var(--lic-soft);color:var(--lic-accent);padding:.4rem .7rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.1rem;}
+.license-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.66rem;}
+.license-table thead th{background:var(--lic-accent-grad);color:#fff;font-size:.52rem;letter-spacing:.16rem;
+    text-transform:uppercase;font-weight:700;padding:.55rem .6rem;position:sticky;top:0;z-index:3;}
+.license-table tbody tr{transition:.18s;} .license-table tbody tr:nth-child(even){background:#fff;}
+.license-table tbody tr:nth-child(odd){background:#fffdfd;} .license-table tbody tr:hover{background:#fff4ef;}
+.license-table td{padding:.48rem .6rem;border-bottom:1px solid var(--lic-border);vertical-align:middle;color:#333;}
+.action-link{font-weight:600;font-size:.48rem;letter-spacing:.08rem;text-transform:uppercase;background:#fff;
+    padding:.38rem .55rem;border:1px solid var(--lic-border);border-radius:10px;text-decoration:none;display:inline-flex;gap:.35rem;
+    align-items:center;color:var(--lic-accent);transition:.3s;}
+.action-link:hover{background:var(--lic-accent-grad);color:#fff;border-color:var(--lic-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+
+.pill-exp{font-size:.46rem;font-weight:700;letter-spacing:.07rem;padding:.28rem .5rem;border-radius:24px;display:inline-flex;align-items:center;gap:.3rem;}
+.expired{background:#ffe8ea;color:#b31217;border:1px solid #f3b4ba;}
+.soon{background:#fff3e0;color:#b76a00;border:1px solid #f1c78b;}
+.active{background:#e8f9ef;color:#157b41;border:1px solid #b7e7c8;}
+.hidden-row{display:none!important;}
+.empty-row{font-style:italic;text-align:center;color:#777;}
+
+.badge-freq{background:#eef2f7;color:#17374f;padding:.3rem .55rem;border-radius:28px;font-size:.46rem;font-weight:700;border:1px solid #d3dbe3;}
+.nowrap{white-space:nowrap;}
+@@media (max-width:900px){
+ .license-table thead th:nth-child(6),.license-table td:nth-child(6){display:none;}
+}
+@@media (max-width:720px){
+ .license-table thead th:nth-child(7),.license-table td:nth-child(7){display:none;}
+}
+@@media (max-width:600px){
+ .license-table thead th:nth-child(3),.license-table td:nth-child(3){display:none;}
+}
+.fade-in{animation:fade .5s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-id-card"></i></div>
+        <div>
+            <h1>License Collection</h1>
+            <div class="tagline"><i class="fa fa-certificate"></i> Registry</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="AddUserLicense" asp-controller="License" class="btn-accent"><i class="fa fa-plus"></i> Add License</a>
+            <button id="btnExport" type="button" class="btn-base"><i class="fa fa-file-export"></i> Export CSV</button>
+            <button id="btnRefresh" type="button" class="btn-outline"><i class="fa fa-rotate"></i> Refresh</button>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search name / id / license / company ..." autocomplete="off"/>
+        </div>
+        <div class="filter-group">
+            <label>Frequency</label>
+            <select id="freqFilter">
+                <option value="">Any</option>
+                @foreach(var f in freqValues){ <option value="@f">@f</option> }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter">
+                <option value="">Any</option>
+                <option value="expired">Expired</option>
+                <option value="soon">Expiring Soon</option>
+                <option value="active">Active</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Issued From</label>
+            <input type="date" id="issueFrom"/>
+        </div>
+        <div class="filter-group">
+            <label>Issued To</label>
+            <input type="date" id="issueTo"/>
+        </div>
+        <div class="filter-group">
+            <label>Expiry Before</label>
+            <input type="date" id="expiryBefore"/>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="filterState"><i class="fa fa-filter"></i> FILTERED</span>
+        </div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge"><i class="fa fa-database"></i> Loading...</span>
+            <span id="perfInfo"></span>
+        </div>
+        <table class="license-table" id="licenseTable">
+            <thead>
+                <tr>
+                    <th>Open</th>
+                    <th>User</th>
+                    <th>ID Number</th>
+                    <th>License</th>
+                    <th>Issued</th>
+                    <th>Expires</th>
+                    <th>Attempt</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="licenseBody">
+            @if(!list.Any())
+            {
+                <tr><td class="empty-row" colspan="9">No licenses found.</td></tr>
+            }
+            else
+            {
+                foreach(var l in list)
+                {
+                    var daysTo = (l.DateOfExpiry - today).TotalDays;
+                    string status = daysTo < 0 ? "expired" : (daysTo <= 30 ? "soon" : "active");
+                    string pillClass = status switch {
+                        "expired" => "pill-exp expired",
+                        "soon" => "pill-exp soon",
+                        _ => "pill-exp active"
+                    };
+                    <tr data-text="@($"{l.Name} {l.LastName} {l.IDNumber} {l.LicenseName} {l.Company} {l.Frequency}".ToLower())"
+                        data-freq="@l.Frequency"
+                        data-status="@status"
+                        data-issued="@l.DateOfIssue.ToString("yyyy-MM-dd")"
+                        data-expiry="@l.DateOfExpiry.ToString("yyyy-MM-dd")">
+                        <td>
+                            <a class="action-link" asp-action="LicenseInfo" asp-route-LicenseId="@l.LicenseId"><i class="fa fa-folder-open"></i> Open</a>
+                        </td>
+                        <td class="nowrap">@l.Name @l.LastName</td>
+                        <td>@l.IDNumber</td>
+                        <td>@l.LicenseName</td>
+                        <td>@l.DateOfIssue.ToShortDateString()</td>
+                        <td>@l.DateOfExpiry.ToShortDateString()</td>
+                        <td><span class="badge-freq">@l.Frequency</span></td>
+                        <td>@l.Company</td>
+                        <td><span class="@pillClass">
+                            <i class="fa @(status=="expired"?"fa-times-circle":status=="soon"?"fa-hourglass-half":"fa-check-circle")"></i>
+                            @(status.ToUpper())
+                        </span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function(){
+    const body = document.getElementById('licenseBody');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const perfInfo = document.getElementById('perfInfo');
+    const filterState = document.getElementById('filterState');
+
+    const searchBox = document.getElementById('searchBox');
+    const freqFilter = document.getElementById('freqFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const issueFrom = document.getElementById('issueFrom');
+    const issueTo = document.getElementById('issueTo');
+    const expiryBefore = document.getElementById('expiryBefore');
+    const btnExport = document.getElementById('btnExport');
+    const btnRefresh = document.getElementById('btnRefresh');
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+    function parseDate(v){ return v ? new Date(v) : null; }
+
+    function apply(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const fq = freqFilter.value;
+        const st = statusFilter.value;
+        const iF = parseDate(issueFrom.value);
+        const iT = parseDate(issueTo.value);
+        const eB = parseDate(expiryBefore.value);
+
+        const rows = [...body.querySelectorAll('tr')];
+        let shown=0,total=0;
+        rows.forEach(r=>{
+            if(r.classList.contains('empty-row')) return;
+            total++;
+            const text = r.getAttribute('data-text')||'';
+            const freq = r.getAttribute('data-freq')||'';
+            const stat = r.getAttribute('data-status')||'';
+            const issuedStr = r.getAttribute('data-issued');
+            const expiryStr = r.getAttribute('data-expiry');
+            const issued = parseDate(issuedStr);
+            const expiry = parseDate(expiryStr);
+
+            let show=true;
+            if(q && !text.includes(q)) show=false;
+            if(fq && freq!==fq) show=false;
+            if(st && stat!==st) show=false;
+            if(iF && (!issued || issued < iF)) show=false;
+            if(iT && (!issued || issued > iT)) show=false;
+            if(eB && (!expiry || expiry > eB)) show=false;
+
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+
+        const filtering = !!(q||fq||st||iF||iT||eB);
+        filterState.style.display = filtering ? '' : 'none';
+        rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${shown} of ${total} record(s)` + (filtering?' (filtered)':'');
+        perfInfo.textContent = 'Render ' + (performance.now()-t0).toFixed(1) + 'ms';
+    }
+
+    function exportCsv(){
+        const visible = [...body.querySelectorAll('tr:not(.hidden-row)')].filter(r=>!r.classList.contains('empty-row'));
+        if(!visible.length){ alert('No rows to export.'); return; }
+        const lines = ['User,ID Number,License,Issued,Expires,Attempt,Company,Status'];
+        visible.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const arr = [
+                cells[1].innerText.trim(),
+                cells[2].innerText.trim(),
+                cells[3].innerText.trim(),
+                cells[4].innerText.trim(),
+                cells[5].innerText.trim(),
+                cells[6].innerText.trim(),
+                cells[7].innerText.trim(),
+                cells[8].innerText.trim()
+            ].map(v=>'"'+v.replace(/"/g,'""')+'"');
+            lines.push(arr.join(','));
+        });
+        const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='licenses-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }
+
+    [searchBox,freqFilter,statusFilter,issueFrom,issueTo,expiryBefore]
+        .forEach(el=> el.addEventListener(el.tagName==='INPUT'?'input':'change', apply));
+
+    btnExport.addEventListener('click', exportCsv);
+    btnRefresh.addEventListener('click', ()=>location.reload());
+
+    apply();
+})();
+</script>

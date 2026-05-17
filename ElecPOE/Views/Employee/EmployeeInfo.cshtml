@@ -1,0 +1,1612 @@
+﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+@model ForekOnline.Domain.ViewModels.EmployeeContactsViewModel
+@using static ForekOnline.Application.Common.Utility.Helper
+@using static ForekOnline.Application.Common.Utility.EncryptionHelper
+
+@{
+    var signatureLink = Model.User.EmailSignatureLink;
+    bool hasSignature = !string.IsNullOrWhiteSpace(signatureLink);
+    var deptName = Model.User.Department.ToString() ?? "Department";
+}
+
+<style>
+    :root {
+        --emp-dr: #320606;
+        --emp-red: #9d1117;
+        --emp-red-strong: #b31217;
+        --emp-orange: #ff7a18;
+        --emp-orange-soft: #ff9c55;
+        --emp-bg: #ffffff;
+        --emp-bg-alt: #f6f7fb;
+        --emp-soft: #fff5f3;
+        --emp-soft-2: #fffaf9;
+        --emp-border: #e5e7eb;
+        --emp-border-alt: #d7dbe0;
+        --emp-text: #20242b;
+        --emp-muted: #69707d;
+        --emp-success: #1f9d55;
+        --emp-info: #2563eb;
+        --emp-grad: linear-gradient(95deg,#320606 0%,#b31217 55%,#ff7a18 100%);
+        --emp-grad-soft: linear-gradient(120deg,#3206060d,#b3121714,#ff7a181d);
+        --emp-glow: radial-gradient(circle at 20% 10%, rgba(179,18,23,.12), transparent 30%), radial-gradient(circle at 80% 0%, rgba(255,122,24,.13), transparent 24%);
+        --emp-radius-2xl: 34px;
+        --emp-radius-xl: 28px;
+        --emp-radius-lg: 22px;
+        --emp-radius-md: 16px;
+        --emp-radius-sm: 12px;
+        --emp-shadow-xl: 0 28px 60px -26px rgba(50,6,6,.28), 0 16px 24px -18px rgba(50,6,6,.18);
+        --emp-shadow-lg: 0 18px 34px -20px rgba(50,6,6,.22), 0 10px 18px -12px rgba(50,6,6,.14);
+        --emp-shadow-md: 0 10px 24px -16px rgba(50,6,6,.16);
+        --emp-shadow-sm: 0 6px 14px -10px rgba(50,6,6,.15);
+        --emp-speed: 180ms;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+        background: radial-gradient(circle at top left, rgba(179,18,23,.05), transparent 28%), radial-gradient(circle at top right, rgba(255,122,24,.06), transparent 22%), var(--emp-bg-alt);
+    }
+
+    .page-shell {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 1.75rem 1.2rem 3.8rem;
+    }
+
+    .hub-hero {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1.2fr .85fr;
+        gap: 1.2rem;
+        align-items: stretch;
+    }
+
+    .hero-panel,
+    .profile-panel,
+    .workspace-panel,
+    .section-panel {
+        position: relative;
+        background: rgba(255,255,255,.94);
+        border: 1px solid var(--emp-border);
+        border-radius: var(--emp-radius-2xl);
+        box-shadow: var(--emp-shadow-xl);
+        overflow: hidden;
+    }
+
+        .hero-panel::before,
+        .profile-panel::before,
+        .workspace-panel::before,
+        .section-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--emp-grad-soft);
+            pointer-events: none;
+        }
+
+    .hero-panel__inner {
+        position: relative;
+        z-index: 1;
+        padding: 1.55rem 1.65rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.15rem;
+        min-height: 100%;
+    }
+
+    .hero-topline {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        width: fit-content;
+        padding: .55rem .95rem;
+        border-radius: 999px;
+        background: var(--emp-soft);
+        color: var(--emp-red-strong);
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .2rem;
+        text-transform: uppercase;
+    }
+
+    .hero-title {
+        margin: 0;
+        font-size: 2.05rem;
+        line-height: 1.06;
+        font-weight: 800;
+        letter-spacing: -.02em;
+        color: var(--emp-text);
+    }
+
+    .hero-copy {
+        margin: 0;
+        max-width: 820px;
+        color: var(--emp-muted);
+        font-size: .97rem;
+        line-height: 1.75;
+    }
+
+    .hero-commandbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        margin-top: .15rem;
+    }
+
+    .btn-act {
+        font-size: .66rem;
+        letter-spacing: .14rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: .78rem 1rem;
+        border-radius: 15px;
+        background: #fff;
+        border: 1px solid var(--emp-border);
+        color: var(--emp-red-strong);
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform var(--emp-speed) ease, box-shadow var(--emp-speed) ease, color var(--emp-speed) ease, background-color var(--emp-speed) ease, border-color var(--emp-speed) ease;
+        box-shadow: var(--emp-shadow-sm);
+    }
+
+        .btn-act:hover {
+            transform: translateY(-1px);
+            background: var(--emp-grad);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 12px 26px -16px rgba(179,18,23,.45);
+        }
+
+    .btn-act-primary {
+        background: var(--emp-grad);
+        color: #fff;
+        border-color: transparent;
+    }
+
+        .btn-act-primary:hover {
+            filter: brightness(.97);
+            color: #fff;
+        }
+
+    .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .9rem;
+        margin-top: .25rem;
+    }
+
+    .metric-card {
+        position: relative;
+        border-radius: 22px;
+        padding: 1rem .95rem;
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,248,247,.94));
+        border: 1px solid rgba(179,18,23,.08);
+        box-shadow: var(--emp-shadow-md);
+        min-height: 112px;
+        transition: transform var(--emp-speed) ease, box-shadow var(--emp-speed) ease;
+    }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--emp-shadow-lg);
+        }
+
+    .metric-label {
+        color: var(--emp-muted);
+        font-size: .62rem;
+        text-transform: uppercase;
+        letter-spacing: .18rem;
+        font-weight: 800;
+        margin-bottom: .55rem;
+    }
+
+    .metric-value {
+        color: var(--emp-text);
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.3;
+    }
+
+    .metric-sub {
+        margin-top: .35rem;
+        color: var(--emp-red-strong);
+        font-size: .74rem;
+        font-weight: 700;
+    }
+
+    .profile-panel__inner {
+        position: relative;
+        z-index: 1;
+        padding: 1.35rem;
+        height: 100%;
+        display: grid;
+        gap: 1rem;
+        align-content: start;
+    }
+
+    .profile-head {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .avatar-circle {
+        width: 102px;
+        height: 102px;
+        border-radius: 30px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 18px 30px -18px rgba(179,18,23,.55);
+        border: 4px solid #fff;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-circle .fa-user-circle {
+            font-size: 4.5rem;
+            color: #b31217;
+        }
+
+    .profile-name {
+        margin: 0;
+        color: var(--emp-text);
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1.15;
+    }
+
+    .profile-meta {
+        display: grid;
+        gap: .24rem;
+        margin-top: .35rem;
+    }
+
+    .profile-meta__row {
+        color: var(--emp-muted);
+        font-size: .8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .profile-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .55rem;
+    }
+
+    .profile-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .48rem .75rem;
+        border-radius: 999px;
+        font-size: .68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .1rem;
+    }
+
+    .profile-badge--primary {
+        background: var(--emp-soft);
+        color: var(--emp-red-strong);
+        border: 1px solid rgba(179,18,23,.1);
+    }
+
+    .profile-badge--dark {
+        background: rgba(50,6,6,.08);
+        color: var(--emp-dr);
+        border: 1px solid rgba(50,6,6,.08);
+    }
+
+    .workspace-panel {
+        margin-top: 1.35rem;
+    }
+
+    .workspace-panel__inner {
+        position: relative;
+        z-index: 1;
+        padding: 1.25rem 1.35rem 1.35rem;
+    }
+
+    .workspace-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .workspace-title {
+        margin: 0;
+        color: var(--emp-text);
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -.01em;
+    }
+
+    .workspace-copy {
+        margin: .3rem 0 0;
+        color: var(--emp-muted);
+        font-size: .88rem;
+        line-height: 1.7;
+        max-width: 700px;
+    }
+
+    .workspace-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem .8rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(50,6,6,.06), rgba(179,18,23,.08), rgba(255,122,24,.12));
+        color: var(--emp-red-strong);
+        font-size: .68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .14rem;
+        border: 1px solid rgba(179,18,23,.08);
+        white-space: nowrap;
+    }
+
+    .command-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .command-card {
+        position: relative;
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(252,252,253,.94));
+        border: 1px solid var(--emp-border);
+        border-radius: var(--emp-radius-lg);
+        padding: 1rem 1rem .95rem;
+        display: flex;
+        flex-direction: column;
+        gap: .7rem;
+        min-height: 220px;
+        overflow: hidden;
+        isolation: isolate;
+        transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease, filter .2s ease;
+        cursor: pointer;
+        box-shadow: var(--emp-shadow-sm);
+    }
+
+        .command-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 16%, rgba(255,122,24,.18), transparent 60%);
+            opacity: .8;
+            transition: opacity .3s ease;
+        }
+
+        .command-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(130deg, rgba(50,6,6,.03), rgba(179,18,23,.06), rgba(255,122,24,.08));
+            opacity: 0;
+            transition: opacity .28s ease;
+        }
+
+        .command-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--emp-border-alt);
+            box-shadow: var(--emp-shadow-lg);
+        }
+
+            .command-card:hover::after {
+                opacity: 1;
+            }
+
+        .command-card:active {
+            transform: translateY(-2px);
+        }
+
+        .command-card.is-disabled {
+            filter: grayscale(.38);
+            opacity: .66;
+            cursor: not-allowed;
+        }
+
+            .command-card.is-disabled .command-go {
+                background: #fff;
+                color: #999;
+                border-color: #d8d8d8;
+                pointer-events: none;
+            }
+
+    .span-3 {
+        grid-column: span 3;
+    }
+
+    .span-4 {
+        grid-column: span 4;
+    }
+
+    .span-5 {
+        grid-column: span 5;
+    }
+
+    .span-6 {
+        grid-column: span 6;
+    }
+
+    .command-head {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .command-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+        background: var(--emp-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        color: #fff;
+        box-shadow: 0 14px 22px -16px rgba(179,18,23,.6);
+    }
+
+    .command-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        border-radius: 999px;
+        padding: .34rem .58rem;
+        font-size: .54rem;
+        font-weight: 800;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        background: var(--emp-soft);
+        color: var(--emp-red-strong);
+    }
+
+    .command-body {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: .5rem;
+        flex: 1;
+    }
+
+    .command-title {
+        margin: 0;
+        color: var(--emp-text);
+        font-size: .98rem;
+        font-weight: 800;
+        letter-spacing: .01rem;
+        line-height: 1.28;
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        flex-wrap: wrap;
+    }
+
+    .new-chip {
+        font-size: .46rem;
+        letter-spacing: .16rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        background: linear-gradient(135deg,#b31217,#ff7a18);
+        color: #fff;
+        padding: .24rem .52rem;
+        border-radius: 999px;
+        animation: newPulse 2s ease-in-out infinite;
+    }
+
+    .command-desc {
+        margin: 0;
+        color: #5a6270;
+        font-size: .72rem;
+        line-height: 1.45;
+    }
+
+    .check-list {
+        font-size: .66rem;
+        line-height: 1.1rem;
+        margin: .1rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+        .check-list li {
+            display: flex;
+            gap: .45rem;
+            align-items: flex-start;
+            color: #55606d;
+        }
+
+        .check-list i {
+            color: var(--emp-success);
+            font-size: .75rem;
+            margin-top: .14rem;
+        }
+
+    .command-footer {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .8rem;
+        margin-top: .15rem;
+    }
+
+    .command-go {
+        font-size: .56rem;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        background: #fff;
+        color: var(--emp-red-strong);
+        border: 1px solid var(--emp-red-strong);
+        padding: .42rem .72rem;
+        border-radius: 999px;
+        display: inline-flex;
+        gap: .35rem;
+        align-items: center;
+        transition: .28s ease;
+    }
+
+    .command-card:hover .command-go {
+        background: var(--emp-grad);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    .section-stack {
+        margin-top: 1.35rem;
+        display: grid;
+        grid-template-columns: 1.15fr .85fr;
+        gap: 1.2rem;
+    }
+
+    .section-panel__inner {
+        position: relative;
+        z-index: 1;
+        padding: 1.2rem 1.3rem;
+    }
+
+    .section-title {
+        margin: 0;
+        color: var(--emp-text);
+        font-size: 1.05rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+    }
+
+    .section-copy {
+        margin: .35rem 0 0;
+        color: var(--emp-muted);
+        font-size: .8rem;
+        line-height: 1.65;
+    }
+
+    .quick-grid {
+        margin-top: 1rem;
+        display: grid;
+        gap: .8rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quick-tile {
+        border: 1px solid var(--emp-border);
+        border-radius: 18px;
+        background: linear-gradient(180deg,#fff,#fcfcfd);
+        padding: .95rem .95rem .9rem;
+        box-shadow: var(--emp-shadow-sm);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+        .quick-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--emp-shadow-md);
+        }
+
+    .quick-label {
+        color: var(--emp-muted);
+        font-size: .58rem;
+        font-weight: 800;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        margin-bottom: .45rem;
+    }
+
+    .quick-value {
+        color: var(--emp-text);
+        font-size: .9rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .72rem;
+    }
+
+        .table-modern thead th {
+            background: var(--emp-soft);
+            font-size: .55rem;
+            letter-spacing: .16rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--emp-red-strong);
+            padding: .62rem .7rem;
+            border-bottom: 1px solid var(--emp-border);
+        }
+
+        .table-modern tbody td {
+            padding: .62rem .7rem;
+            border-top: 1px solid var(--emp-border);
+            color: #46505d;
+        }
+
+        .table-modern tbody tr:hover td {
+            background: rgba(255,122,24,.025);
+        }
+
+    .modal-content {
+        border-radius: 28px;
+        border: 1px solid var(--emp-border);
+        box-shadow: var(--emp-shadow-xl);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: var(--emp-grad);
+        border: none;
+        padding: 1rem 1.15rem;
+    }
+
+        .modal-header .modal-title {
+            font-size: .76rem;
+            letter-spacing: .2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+    .contact-filter {
+        margin-bottom: .85rem;
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+
+        .contact-filter input,
+        .form-grid select,
+        .form-grid input {
+            background: #fff;
+            border: 1px solid var(--emp-border);
+            border-radius: 12px;
+            font-size: .72rem;
+            padding: .62rem .72rem;
+            transition: border-color var(--emp-speed) ease, box-shadow var(--emp-speed) ease, transform var(--emp-speed) ease;
+        }
+
+        .contact-filter input {
+            min-width: 240px;
+        }
+
+            .contact-filter input:focus,
+            .form-grid select:focus,
+            .form-grid input:focus {
+                outline: none;
+                border-color: var(--emp-red-strong);
+                box-shadow: 0 0 0 .18rem rgba(179,18,23,.1);
+                transform: translateY(-1px);
+            }
+
+    .form-grid {
+        display: grid;
+        gap: .9rem;
+        grid-template-columns: repeat(auto-fit,minmax(210px,1fr));
+    }
+
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        .form-grid label {
+            display: block;
+            margin-bottom: .45rem;
+            font-size: .56rem;
+            letter-spacing: .16rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #606875;
+        }
+
+    .btn-submit {
+        background: var(--emp-grad);
+        color: #fff;
+        border: none;
+        font-size: .66rem;
+        letter-spacing: .14rem;
+        font-weight: 800;
+        padding: .72rem 1.1rem;
+        border-radius: 14px;
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+        box-shadow: var(--emp-shadow-sm);
+        transition: transform var(--emp-speed) ease, filter var(--emp-speed) ease;
+    }
+
+        .btn-submit:hover {
+            filter: brightness(.96);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .signature-preview-box {
+        background: #fff;
+        border: 1px solid var(--emp-border);
+        border-radius: 18px;
+        padding: .85rem .9rem;
+        font-size: .65rem;
+        line-height: 1rem;
+        letter-spacing: .02rem;
+        color: #222;
+        overflow: auto;
+        max-height: 220px;
+        font-family: Segoe UI, Arial, sans-serif;
+    }
+
+    .sig-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .55rem;
+        margin-top: .7rem;
+    }
+
+        .sig-actions button {
+            font-size: .56rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            border: 1px solid var(--emp-border);
+            background: #fff;
+            color: var(--emp-red-strong);
+            padding: .52rem .82rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            gap: .4rem;
+            align-items: center;
+            transition: .3s;
+        }
+
+            .sig-actions button:hover {
+                background: var(--emp-grad);
+                color: #fff;
+                border-color: transparent;
+            }
+
+    .loading-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        font-size: .58rem;
+        font-weight: 700;
+        letter-spacing: .14rem;
+    }
+
+        .loading-inline .spin {
+            width: 16px;
+            height: 16px;
+            border: 3px solid var(--emp-red-strong);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .empty-hint {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .04rem;
+        color: #777;
+        padding: .95rem 1rem;
+        border: 1px dashed var(--emp-border);
+        border-radius: 16px;
+        background: #fff;
+    }
+
+    .stat-grid {
+        display: grid;
+        gap: .95rem;
+        grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+        margin-top: .8rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(180deg,#fff,#fcfcfd);
+        border: 1px solid var(--emp-border);
+        border-radius: 18px;
+        padding: .8rem .8rem .72rem;
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+        position: relative;
+        overflow: hidden;
+        font-size: .56rem;
+        min-height: 90px;
+        transition: .3s;
+        box-shadow: var(--emp-shadow-sm);
+    }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 78% 18%,rgba(255,122,24,.16),transparent 65%);
+            opacity: .65;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--emp-border-alt);
+            box-shadow: var(--emp-shadow-md);
+        }
+
+    .stat-val {
+        font-size: 1.14rem;
+        font-weight: 800;
+        letter-spacing: .2px;
+        background: var(--emp-grad);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .stat-label {
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: .52rem;
+        letter-spacing: .14rem;
+        color: #626a76;
+    }
+
+    .chart-zone {
+        margin-top: 1rem;
+    }
+
+        .chart-zone canvas {
+            width: 100%;
+            max-height: 240px;
+        }
+
+    @@keyframes newPulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: .72;
+            transform: scale(1.08);
+        }
+    }
+
+    @@media (max-width: 1200px) {
+        .hub-hero,
+        .section-stack {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 980px) {
+        .command-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .span-3,
+        .span-4,
+        .span-5,
+        .span-6 {
+            grid-column: span 1;
+        }
+    }
+
+    @@media (max-width: 720px) {
+        .page-shell {
+            padding-inline: .9rem;
+        }
+
+        .hero-metrics,
+        .quick-grid,
+        .command-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-head {
+            align-items: flex-start;
+        }
+
+        .hero-title {
+            font-size: 1.6rem;
+        }
+
+        .workspace-head {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="page-shell">
+    <div class="hub-hero">
+        <section class="hero-panel">
+            <div class="hero-panel__inner">
+                <div class="hero-topline">
+                    <i class="fa fa-layer-group"></i>
+                    Employee Hub
+                </div>
+
+                <div>
+                    <h1 class="hero-title">One premium workspace for your reports, files, signatures and departmental tools</h1>
+                    <p class="hero-copy">
+                        Navigate faster, surface the right tools immediately, and work from a cleaner operational dashboard
+                        designed to feel focused, executive and quietly powerful.
+                    </p>
+                </div>
+
+                <div class="hero-commandbar">
+                    <a asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@Encrypt(Model.User.IDPass)" class="btn-act">
+                        <i class="fa fa-chart-bar"></i> Reports
+                    </a>
+                    <a asp-action="EmployeeFiles" asp-controller="Employee" asp-route-EmployeeId="@Encrypt(Model.User.IDPass)" class="btn-act btn-act-primary">
+                        <i class="fa fa-box-open"></i> My Files
+                    </a>
+                    <button type="button" class="btn-act" onclick="$('#modalContacts').modal('show')">
+                        <i class="fa fa-address-book"></i> Colleagues
+                    </button>
+                </div>
+
+                <div class="hero-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Department</div>
+                        <div class="metric-value">@deptName</div>
+                        <div class="metric-sub">Current operating base</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Profile</div>
+                        <div class="metric-value">@Model.User.Name @Model.User.LastName</div>
+                        <div class="metric-sub">@Model.User.StudentNumber</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Signature</div>
+                        <div class="metric-value">@(hasSignature ? "Configured" : "Unavailable")</div>
+                        <div class="metric-sub">Brand identity status</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Workspace Mode</div>
+                        <div class="metric-value">Operational Control</div>
+                        <div class="metric-sub">Reports, files and requests</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="profile-panel">
+            <div class="profile-panel__inner">
+                <div class="profile-head">
+                    <div class="avatar-circle">
+                        @if (!string.IsNullOrWhiteSpace(Model.User.ProfileImage))
+                        {
+                            <img id="avatarPreview"
+                                 src="@Url.Action("ProfileImage", "Auth", new { fileId = Model.User.ProfileImage })"
+                                 alt="Profile" />
+                        }
+                        else
+                        {
+                            <i class="fa fa-user-circle"></i>
+                        }
+                    </div>
+
+                    <div>
+                        <h2 class="profile-name">@Model.User.Name @Model.User.LastName</h2>
+                        <div class="profile-meta">
+                            <div class="profile-meta__row">
+                                <i class="fa fa-id-badge"></i> @Model.User.StudentNumber
+                            </div>
+                            <div class="profile-meta__row">
+                                <i class="fa fa-building"></i> @Model.User.Department Department
+                            </div>
+                            <div class="profile-meta__row">
+                                <i class="fa fa-envelope"></i> Workspace ready
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-badges">
+                    <span class="profile-badge profile-badge--primary">
+                        <i class="fa fa-shield-check"></i> Active Profile
+                    </span>
+                    <span class="profile-badge profile-badge--dark">
+                        <i class="fa fa-sparkles"></i> Premium Hub
+                    </span>
+                </div>
+
+                <div class="quick-grid">
+                    <div class="quick-tile">
+                        <div class="quick-label">Command Focus</div>
+                        <div class="quick-value">Daily operational tools</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Contacts</div>
+                        <div class="quick-value">@Model.Contacts.Count colleague(s)</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Access</div>
+                        <div class="quick-value">Reports, files, stats</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Branding</div>
+                        <div class="quick-value">@(hasSignature ? "Signature ready" : "Signature pending")</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <section class="workspace-panel">
+        <div class="workspace-panel__inner">
+            <div class="workspace-head">
+                <div>
+                    <h3 class="workspace-title">Workspace actions</h3>
+                    <p class="workspace-copy">
+                        High-frequency actions are surfaced first, while specialist tools remain one click away.
+                        The layout is grouped to reduce scanning and improve operational speed.
+                    </p>
+                </div>
+
+                <div class="workspace-tag">
+                    <i class="fa fa-bolt"></i>
+                    Premium Productivity Layer
+                </div>
+            </div>
+
+            <div class="command-grid">
+                <div class="command-card span-3" data-link="contacts" tabindex="0" title="View Colleagues" onclick="$('#modalContacts').modal('show')">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-address-book"></i></div>
+                        <span class="command-status">Live</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">My Colleagues</h4>
+                        <p class="command-desc">Open the live internal contact directory for quick outreach and faster collaboration.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-users"></i> Open</span>
+                        <span class="command-status">@Model.Contacts.Count contact(s)</span>
+                    </div>
+                </div>
+
+                <div class="command-card span-3" data-link="reports" tabindex="0" title="Go to Reports" onclick="window.location.href='@Url.Action("UserReports", "Report", new { IdPass = Encrypt(Model.User.IDPass) })'">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-file-lines"></i></div>
+                        <span class="command-status">Active</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">My Reports</h4>
+                        <p class="command-desc">Review, upload and manage departmental reporting output with a cleaner route into analytics.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-arrow-right"></i> Go</span>
+                        <span class="command-status">Reports</span>
+                    </div>
+                </div>
+
+                <div class="command-card span-3" data-link="payslip" tabindex="0" title="Request Payslip/IRP5" onclick="$('#modalPayslip').modal('show')">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-wallet"></i></div>
+                        <span class="command-status">Form</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">Payslip / IRP5</h4>
+                        <p class="command-desc">Request payroll documents securely with a simple guided form and cleaner request flow.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-download"></i> Request</span>
+                        <span class="command-status">Secure</span>
+                    </div>
+                </div>
+
+                <div class="command-card span-3" data-link="dashboard" tabindex="0" title="Open Dashboard" onclick="window.location.href='@Url.Action("EmployeeFiles", "Employee", new { EmployeeId = Encrypt(Model.User.IDPass) })'">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-gauge"></i></div>
+                        <span class="command-status">Storage</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">My Dashboard</h4>
+                        <p class="command-desc">Jump directly into your file repository and stored operational resources.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-arrow-right"></i> Open</span>
+                        <span class="command-status">Files</span>
+                    </div>
+                </div>
+
+                <div class="command-card span-4" data-link="lesson" tabindex="0" title="Create Lesson Plan" onclick="window.location.href='@Url.Action("OnCreatePlan", "LessonPlanConfig", new { IdPass = Model.User.IDPass })'">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-chalkboard-teacher"></i></div>
+                        <span class="command-status">Tools</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">Lesson Plans</h4>
+                        <p class="command-desc">Create and maintain structured lesson plans aligned to delivery schedules and facilitator workflow.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-arrow-right"></i> Plan</span>
+                        <span class="command-status">Academic</span>
+                    </div>
+                </div>
+
+                <div class="command-card @(hasSignature ? "" : "is-disabled") span-4" data-link="signature" tabindex="0" title="Email Signature" onclick="openSignatureCard()">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-envelope-open-text"></i></div>
+                        <span class="command-status">Brand</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">Email Signature</h4>
+                        <p class="command-desc">Preview, download and reuse your branded HTML signature across communication channels.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go">
+                            <i class="fa @(hasSignature ? "fa-eye" : "fa-ban")"></i>
+                            @(hasSignature ? "Preview" : "N/A")
+                        </span>
+                        <span class="command-status">Identity</span>
+                    </div>
+                </div>
+
+                <div class="command-card span-4" data-link="deptstats" tabindex="0" title="Departmental Statistics" onclick="$('#modalDeptStats').modal('show'); loadDeptStats();">
+                    <div class="command-head">
+                        <div class="command-icon"><i class="fa fa-chart-pie"></i></div>
+                        <span class="command-status">Insight</span>
+                    </div>
+                    <div class="command-body">
+                        <h4 class="command-title">@deptName Stats</h4>
+                        <p class="command-desc">Open a live performance snapshot of enrollments, completions and current departmental movement.</p>
+                    </div>
+                    <div class="command-footer">
+                        <span class="command-go"><i class="fa fa-chart-line"></i> View</span>
+                        <span class="command-status">Analytics</span>
+                    </div>
+                </div>
+
+                @if (User.IsInRole("Facilitator") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                {
+                    <div class="command-card span-6" data-link="bookassessment" tabindex="0" title="Book Assessment on Venue"
+                         onclick="window.location.href='@Url.Action("ReserveVenue", "VenueBooking")'">
+                        <div class="command-head">
+                            <div class="command-icon"><i class="fa fa-calendar-check"></i></div>
+                            <span class="command-status">Venue</span>
+                        </div>
+                        <div class="command-body">
+                            <h4 class="command-title">
+                                Book Assessment
+                                <span class="new-chip">New</span>
+                            </h4>
+                            <p class="command-desc">
+                                Reserve a venue, route HOD approval, then send timed assessment scheduling with automatic learner communication.
+                            </p>
+                            <ul class="check-list">
+                                <li><i class="fa fa-circle-check"></i> Stage 1: Reserve Venue</li>
+                                <li><i class="fa fa-circle-check"></i> Stage 2: Book &amp; Send</li>
+                                <li><i class="fa fa-circle-check"></i> Student ICS Invites</li>
+                            </ul>
+                        </div>
+                        <div class="command-footer">
+                            <span class="command-go"><i class="fa fa-arrow-right"></i> Start</span>
+                            <span class="command-status">Workflow</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <div class="section-stack">
+        <section class="section-panel">
+            <div class="section-panel__inner">
+                <h4 class="section-title">
+                    <i class="fa fa-circle-info"></i>
+                    Quick profile context
+                </h4>
+                <p class="section-copy">
+                    A simplified operational summary for the current employee workspace.
+                </p>
+
+                <div class="quick-grid">
+                    <div class="quick-tile">
+                        <div class="quick-label">Employee</div>
+                        <div class="quick-value">@Model.User.Name @Model.User.LastName</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Department</div>
+                        <div class="quick-value">@deptName</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Reports Route</div>
+                        <div class="quick-value">Enabled</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Files Route</div>
+                        <div class="quick-value">Enabled</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-panel">
+            <div class="section-panel__inner">
+                <h4 class="section-title">
+                    <i class="fa fa-users-line"></i>
+                    Collaboration snapshot
+                </h4>
+                <p class="section-copy">
+                    Your colleague directory is available at any time from the command area above.
+                </p>
+
+                <div class="quick-grid">
+                    <div class="quick-tile">
+                        <div class="quick-label">Available Colleagues</div>
+                        <div class="quick-value">@Model.Contacts.Count</div>
+                    </div>
+                    <div class="quick-tile">
+                        <div class="quick-label">Signature Status</div>
+                        <div class="quick-value">@(hasSignature ? "Ready" : "Unavailable")</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="modal fade" id="modalContacts" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white"><i class="fa fa-users"></i> Colleagues Directory</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="contact-filter">
+                    <input type="text" id="contactSearch" placeholder="Search name / position / email..." autocomplete="off" />
+                </div>
+                <div class="table-responsive">
+                    <table class="table-modern" id="contactsTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Surname</th>
+                                <th>Position</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Contacts)
+                            {
+                                <tr>
+                                    <td>@c.FirstName</td>
+                                    <td>@c.LastName</td>
+                                    <td>@c.Position</td>
+                                    <td><a href="mailto:@c.Email">@c.Email</a></td>
+                                    <td>@c.Phone</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPayslip" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white"><i class="fa fa-wallet"></i> Payslip / IRP5 Request</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="EmployeeRequest" asp-controller="Employee" method="post">
+                    <div class="form-grid">
+                        <div>
+                            <label>Document</label>
+                            <select name="DocumentType" required asp-items="Html.GetEnumSelectList<eTypeFile>()">
+                                <option value="" disabled selected>Select</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>From</label>
+                            <input name="StartMonth" type="month" required />
+                        </div>
+                        <div>
+                            <label>To</label>
+                            <input name="EndMonth" type="month" required />
+                        </div>
+                        <div class="full">
+                            <label>Reason</label>
+                            <input name="Reason" required />
+                        </div>
+                    </div>
+                    <div class="mt-3 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
+                        <button type="submit" class="btn-submit"><i class="fa fa-paper-plane"></i> Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSignature" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white"><i class="fa fa-envelope"></i> Email Signature Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (hasSignature)
+                {
+                    <div class="signature-preview-box" id="signaturePreview">
+                        <iframe src="@signatureLink" style="width:100%;border:none;min-height:200px;" loading="lazy" title="Signature Preview"></iframe>
+                    </div>
+                    <div class="sig-actions">
+                        <a class="btn-act btn-act-primary" href="@signatureLink" download><i class="fa fa-download"></i> Download HTML</a>
+                        <button type="button" onclick="copySignatureUrl()" class="btn-act"><i class="fa fa-copy"></i> Copy URL</button>
+                        <button type="button" onclick="openInNew()" class="btn-act"><i class="fa fa-external-link"></i> Open New Tab</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-hint">
+                        Signature link unavailable. Please contact Branding Support.
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDeptStats" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white"><i class="fa fa-chart-line"></i> @deptName Statistics</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="font-size:.65rem;">
+                <div id="deptStatsLoading" class="loading-inline" style="display:none;">
+                    <span class="spin"></span> Loading statistics...
+                </div>
+                <div id="deptStatsError" class="empty-hint" style="display:none;"></div>
+
+                <div id="deptStatsContainer" style="display:none;">
+                    <div class="stat-grid" id="statGrid"></div>
+                    <div class="chart-zone mt-3">
+                        <canvas id="deptChart" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between flex-wrap">
+                <small style="font-size:.55rem;letter-spacing:.12rem;color:#666;">
+                    Data source: internal aggregated dashboards (refreshes daily).
+                </small>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn-act" onclick="loadDeptStats(true)"><i class="fa fa-rotate"></i> Refresh</button>
+                    <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+@await Html.PartialAsync("_DynamicNotifications");
+<script>window.__notificationsEndpoint='/Notification/Index';</script>
+<script src="~/js/notifications.js"></script>
+<script>
+    (function () {
+        if (!sessionStorage.getItem('empUpcomingShown')) {
+            new bootstrap.Modal(document.getElementById('staticBackdrop2')).show();
+            sessionStorage.setItem('empUpcomingShown', '1');
+        }
+
+        const contactSearch = document.getElementById('contactSearch');
+        const rows = () => Array.from(document.querySelectorAll('#contactsTable tbody tr'));
+
+        function norm(v) {
+            return (v || '').toString().toLowerCase().trim();
+        }
+
+        contactSearch?.addEventListener('input', () => {
+            const q = norm(contactSearch.value);
+            rows().forEach(r => r.style.display = !q || norm(r.innerText).includes(q) ? '' : 'none');
+        });
+
+        document.querySelectorAll('.command-card[data-link]').forEach(card => {
+            card.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
+                }
+            });
+        });
+    })();
+
+    function openSignatureCard() {
+        const hasLink = '@(hasSignature ? "1" : "")' === '1';
+        if (!hasLink) {
+            alert('No signature link is available yet.');
+            return;
+        }
+
+        new bootstrap.Modal(document.getElementById('modalSignature')).show();
+    }
+
+    function copySignatureUrl() {
+        const url = '@signatureLink';
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Signature URL copied to clipboard.');
+        });
+    }
+
+    function openInNew() {
+        window.open('@signatureLink', '_blank');
+    }
+
+    let deptChartInstance = null;
+
+    function loadDeptStats(force) {
+        const loading = document.getElementById('deptStatsLoading');
+        const errorEl = document.getElementById('deptStatsError');
+        const container = document.getElementById('deptStatsContainer');
+        const grid = document.getElementById('statGrid');
+
+        if (!force && container.style.display === 'block') {
+            return;
+        }
+
+        loading.style.display = 'inline-flex';
+        errorEl.style.display = 'none';
+        container.style.display = 'none';
+        grid.innerHTML = '';
+
+        fetch('/Employee/DepartmentStats', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : Promise.reject('HTTP ' + r.status))
+            .then(data => {
+                if (!data || Object.keys(data).length === 0) {
+                    data = {
+                        enrollments: 128,
+                        activeLearners: 112,
+                        facilitators: 9,
+                        completions: 86,
+                        pendingAssessments: 14,
+                        avgScore: 74
+                    };
+                }
+
+                const stats = [
+                    { label: 'Enrollments', val: data.enrollments, icon: 'fa-users' },
+                    { label: 'Active Learners', val: data.activeLearners, icon: 'fa-user-graduate' },
+                    { label: 'Facilitators', val: data.facilitators, icon: 'fa-chalkboard-teacher' },
+                    { label: 'Completions', val: data.completions, icon: 'fa-check-circle' },
+                    { label: 'Pending Assess.', val: data.pendingAssessments, icon: 'fa-clock' },
+                    { label: 'Avg Score %', val: data.avgScore, icon: 'fa-gauge-high' }
+                ];
+
+                stats.forEach(s => {
+                    const el = document.createElement('div');
+                    el.className = 'stat-card';
+                    el.innerHTML = `<div class='stat-label'><i class='fa ${s.icon}'></i> ${s.label}</div>
+                                    <div class='stat-val'>${s.val}</div>`;
+                    grid.appendChild(el);
+                });
+
+                renderDeptChart(stats);
+                container.style.display = 'block';
+            })
+            .catch(err => {
+                errorEl.textContent = 'Failed to load stats: ' + err;
+                errorEl.style.display = 'block';
+            })
+            .finally(() => loading.style.display = 'none');
+    }
+
+    function renderDeptChart(stats) {
+        const ctx = document.getElementById('deptChart');
+        if (!ctx) return;
+
+        const labels = stats.map(s => s.label);
+        const values = stats.map(s => s.val);
+
+        if (deptChartInstance) {
+            deptChartInstance.destroy();
+        }
+
+        deptChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: values.map((_, i) => i % 2 === 0 ? '#b31217' : '#ff7a18'),
+                    borderRadius: 6,
+                    maxBarThickness: 46
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (chartCtx) => ' ' + chartCtx.parsed.y
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+</script>

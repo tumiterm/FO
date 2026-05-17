@@ -1,0 +1,1056 @@
+﻿@model ForekOnline.Domain.Entities.Report
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Domain.Entities
+@{
+    var compliance = ViewBag.Compliance as UserReportCompliance;
+    var idPass = ViewData["IDPass"]?.ToString() ?? "";
+    var userName = ViewData["IName"]?.ToString() ?? "User";
+    var facilitatorId = ViewData["userData"];
+
+    var compStatus = compliance?.Status ?? eComplianceStatus.Compliant;
+    var compPct = compliance?.CompliancePercentage ?? 100;
+    var compClass = compStatus switch
+    {
+        eComplianceStatus.Compliant => "comp-ok",
+        eComplianceStatus.PartiallyCompliant => "comp-warn",
+        eComplianceStatus.NonCompliant => "comp-bad",
+        _ => "comp-ok"
+    };
+    var compLabel = compStatus switch
+    {
+        eComplianceStatus.Compliant => "Fully Compliant",
+        eComplianceStatus.PartiallyCompliant => "Partially Compliant",
+        eComplianceStatus.NonCompliant => "Non-Compliant",
+        _ => "Unknown"
+    };
+    var compIcon = compStatus switch
+    {
+        eComplianceStatus.Compliant => "fa-shield-check",
+        eComplianceStatus.PartiallyCompliant => "fa-triangle-exclamation",
+        eComplianceStatus.NonCompliant => "fa-circle-xmark",
+        _ => "fa-question"
+    };
+    var lateCount = compliance?.LateCount ?? 0;
+    var missedCount = compliance?.MissedCount ?? 0;
+    var onTimeCount = compliance?.OnTimeCount ?? 0;
+
+    var lateCheckJson = TempData["lateCheck"]?.ToString();
+}
+
+<style>
+    :root {
+        --d-bg: #0c0e14;
+        --d-bg-2: #12151e;
+        --d-bg-3: #181c28;
+        --d-surface: rgba(255,255,255,.04);
+        --d-surface-2: rgba(255,255,255,.06);
+        --d-surface-3: rgba(255,255,255,.08);
+        --d-glass: rgba(24,28,40,.72);
+        --d-glass-border: rgba(255,255,255,.08);
+        --d-glass-border-2: rgba(255,255,255,.12);
+        --d-text: #e8eaf0;
+        --d-text-2: #9ba1b0;
+        --d-text-3: #6b7186;
+        --d-accent: #ff7a18;
+        --d-red: #ef4444;
+        --d-green: #22c55e;
+        --d-blue: #3b82f6;
+        --d-grad: linear-gradient(135deg, #ff7a18 0%, #b31217 50%, #320606 100%);
+        --d-shadow: 0 4px 24px rgba(0,0,0,.4);
+        --d-shadow-lg: 0 12px 48px rgba(0,0,0,.5);
+        --d-radius: 16px;
+        --d-radius-sm: 10px;
+        --d-radius-lg: 24px;
+        --d-transition: .25s cubic-bezier(.4,0,.2,1);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .cr-shell {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3rem;
+    }
+
+    /* ── hero ───────────────────────────────────── */
+    .cr-hero {
+        position: relative;
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius-lg);
+        padding: 1.35rem 1.4rem 1.2rem;
+        overflow: hidden;
+        box-shadow: var(--d-shadow);
+        margin-bottom: 1.15rem;
+    }
+
+        .cr-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 18% 12%, rgba(255,122,24,.2), transparent 55%), radial-gradient(circle at 88% 18%, rgba(179,18,23,.16), transparent 50%);
+            pointer-events: none;
+        }
+
+    .cr-hero-inner {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .cr-hero-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: var(--d-grad);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 1.35rem;
+        box-shadow: 0 8px 24px rgba(255,122,24,.25);
+    }
+
+    .cr-hero h1 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 800;
+        letter-spacing: -.2px;
+        color: var(--d-text);
+    }
+
+    .cr-hero-sub {
+        margin: .2rem 0 0;
+        font-size: .78rem;
+        color: var(--d-text-2);
+    }
+
+    .cr-hero-user {
+        margin-left: auto;
+        font-size: .6rem;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        padding: .4rem .7rem;
+        border-radius: 999px;
+        color: var(--d-accent);
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    /* ── compliance banner ──────────────────────── */
+    .comp-banner {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius-lg);
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.15rem;
+        box-shadow: var(--d-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .comp-banner::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 3px;
+        }
+
+    .comp-ok::before {
+        background: linear-gradient(90deg, #22c55e, #4ade80);
+    }
+
+    .comp-warn::before {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .comp-bad::before {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .comp-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .85rem;
+    }
+
+    .comp-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+    }
+
+    .comp-ok .comp-icon {
+        background: rgba(34,197,94,.12);
+        color: #4ade80;
+    }
+
+    .comp-warn .comp-icon {
+        background: rgba(245,158,11,.12);
+        color: #fbbf24;
+    }
+
+    .comp-bad .comp-icon {
+        background: rgba(239,68,68,.12);
+        color: #f87171;
+    }
+
+    .comp-info {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .comp-label {
+        font-size: .55rem;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: var(--d-text-3);
+        margin-bottom: .2rem;
+    }
+
+    .comp-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--d-text);
+    }
+
+    .comp-pct {
+        font-size: .72rem;
+        color: var(--d-text-2);
+        margin-top: .15rem;
+    }
+
+    .comp-bar {
+        width: 100%;
+        max-width: 280px;
+        height: 8px;
+        border-radius: 8px;
+        background: var(--d-surface-2);
+        overflow: hidden;
+        border: 1px solid var(--d-glass-border);
+    }
+
+    .comp-bar-fill {
+        height: 100%;
+        border-radius: 8px;
+        transition: width .6s ease;
+    }
+
+    .comp-ok .comp-bar-fill {
+        background: linear-gradient(90deg, #22c55e, #4ade80);
+    }
+
+    .comp-warn .comp-bar-fill {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .comp-bad .comp-bar-fill {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .comp-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        margin-left: auto;
+    }
+
+    .comp-chip {
+        font-size: .55rem;
+        letter-spacing: .1rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        color: var(--d-text-2);
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+        .comp-chip.late {
+            background: rgba(239,68,68,.1);
+            color: #ffd2d2;
+            border-color: rgba(239,68,68,.2);
+        }
+
+        .comp-chip.missed {
+            background: rgba(245,158,11,.1);
+            color: #ffd9bf;
+            border-color: rgba(245,158,11,.2);
+        }
+
+        .comp-chip.ontime {
+            background: rgba(34,197,94,.1);
+            color: #9ff7c7;
+            border-color: rgba(34,197,94,.2);
+        }
+
+    /* ── form card ──────────────────────────────── */
+    .cr-card {
+        background: var(--d-glass);
+        border: 1px solid var(--d-glass-border);
+        border-radius: var(--d-radius-lg);
+        padding: 1.2rem;
+        box-shadow: var(--d-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .cr-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 10%, rgba(255,122,24,.08), transparent 50%);
+            pointer-events: none;
+        }
+
+    .cr-card-title {
+        font-size: .6rem;
+        letter-spacing: .18rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: var(--d-accent);
+        margin-bottom: .85rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .cr-grid {
+        display: grid;
+        grid-template-columns: 1.3fr .7fr;
+        gap: 1rem;
+    }
+
+    /* ── form fields ───────────────────────────── */
+    .ff {
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+        margin-bottom: .75rem;
+    }
+
+    .ff-lbl {
+        font-size: .52rem;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--d-text-3);
+        transition: color var(--d-transition);
+    }
+
+    .ff:focus-within .ff-lbl {
+        color: var(--d-accent);
+    }
+
+    .ff-wrap {
+        position: relative;
+    }
+
+    .ff-ico {
+        position: absolute;
+        left: .7rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: .85rem;
+        color: var(--d-text-3);
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .ff-sel, .ff-in {
+        width: 100%;
+        min-height: 42px;
+        border-radius: 14px;
+        border: 1px solid var(--d-glass-border);
+        background: var(--d-surface-2);
+        padding: .5rem .7rem .5rem 2.3rem;
+        font-size: .82rem;
+        color: var(--d-text);
+        transition: border-color var(--d-transition), box-shadow var(--d-transition);
+    }
+
+        .ff-sel:focus, .ff-in:focus {
+            outline: none;
+            border-color: var(--d-accent);
+            box-shadow: 0 0 0 3px rgba(255,122,24,.12);
+        }
+
+    .ff-hint {
+        font-size: .6rem;
+        color: var(--d-text-3);
+    }
+
+    /* ── dropzone ───────────────────────────────── */
+    .dz {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .6rem;
+        border: 2px dashed var(--d-glass-border-2);
+        border-radius: 20px;
+        background: var(--d-surface);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--d-transition);
+    }
+
+        .dz::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 75% 20%, rgba(255,122,24,.18), transparent 55%);
+            opacity: .35;
+            pointer-events: none;
+        }
+
+        .dz:hover, .dz.drag-over {
+            border-color: var(--d-accent);
+            background: rgba(255,122,24,.06);
+            box-shadow: 0 12px 34px -14px rgba(255,122,24,.3);
+        }
+
+        .dz input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+    .dz-cloud {
+        font-size: 2.8rem;
+        background: var(--d-grad);
+        -webkit-background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 8px 16px rgba(255,122,24,.25));
+    }
+
+    .dz-title {
+        font-size: .82rem;
+        font-weight: 800;
+        color: var(--d-text);
+    }
+
+    .dz-sub {
+        font-size: .55rem;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--d-text-3);
+    }
+
+    .dz-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        font-size: .6rem;
+        font-weight: 800;
+        color: var(--d-text-2);
+    }
+
+        .dz-pill.ok {
+            background: rgba(34,197,94,.1);
+            color: #9ff7c7;
+            border-color: rgba(34,197,94,.2);
+        }
+
+        .dz-pill.err {
+            background: rgba(239,68,68,.1);
+            color: #ffd2d2;
+            border-color: rgba(239,68,68,.2);
+        }
+
+    /* ── buttons ────────────────────────────────── */
+    .btn-grad {
+        background: var(--d-grad);
+        color: #fff;
+        border: none;
+        padding: .55rem .95rem;
+        border-radius: 14px;
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .12rem;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        box-shadow: 0 4px 16px rgba(255,122,24,.25);
+        transition: all var(--d-transition);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .btn-grad:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 24px rgba(255,122,24,.35);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .btn-glass {
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        color: var(--d-text);
+        padding: .5rem .85rem;
+        border-radius: 14px;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        transition: all var(--d-transition);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .btn-glass:hover {
+            background: var(--d-surface-3);
+            border-color: var(--d-glass-border-2);
+            color: var(--d-text);
+        }
+
+    /* ── late submission modal ──────────────────── */
+    .late-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(12,14,20,.75);
+        backdrop-filter: blur(6px);
+        z-index: 1060;
+        place-items: center;
+    }
+
+        .late-overlay.show {
+            display: grid;
+        }
+
+    .late-modal {
+        background: var(--d-bg-3);
+        border: 1px solid var(--d-glass-border-2);
+        border-radius: var(--d-radius-lg);
+        box-shadow: var(--d-shadow-lg);
+        width: 95%;
+        max-width: 520px;
+        padding: 1.5rem;
+        animation: lm-pop .3s ease;
+    }
+
+    @@keyframes lm-pop {
+        from {
+            opacity: 0;
+            transform: scale(.95) translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .late-modal-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: rgba(239,68,68,.12);
+        color: var(--d-red);
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        margin: 0 auto .85rem;
+    }
+
+    .late-modal h3 {
+        text-align: center;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--d-text);
+        margin: 0 0 .45rem;
+    }
+
+    .late-modal-msg {
+        text-align: center;
+        font-size: .78rem;
+        color: var(--d-text-2);
+        line-height: 1.45;
+        margin-bottom: 1rem;
+        padding: 0 .5rem;
+    }
+
+    .late-modal-period {
+        text-align: center;
+        font-size: .82rem;
+        font-weight: 800;
+        color: var(--d-accent);
+        padding: .55rem .85rem;
+        border-radius: 14px;
+        background: rgba(255,122,24,.08);
+        border: 1px solid rgba(255,122,24,.2);
+        margin-bottom: .85rem;
+    }
+
+    .late-modal-warning {
+        font-size: .68rem;
+        color: var(--d-text-3);
+        line-height: 1.4;
+        padding: .7rem .8rem;
+        border-radius: 14px;
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        margin-bottom: 1rem;
+    }
+
+        .late-modal-warning i {
+            color: var(--d-red);
+            margin-right: .3rem;
+        }
+
+    .late-modal-actions {
+        display: flex;
+        gap: .55rem;
+        justify-content: center;
+    }
+
+    /* ── period selector (for missed periods) ──── */
+    .period-select-wrap {
+        margin-bottom: .85rem;
+    }
+
+    .period-opt {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .55rem .7rem;
+        border-radius: 14px;
+        background: var(--d-surface-2);
+        border: 1px solid var(--d-glass-border);
+        cursor: pointer;
+        transition: all var(--d-transition);
+        margin-bottom: .4rem;
+    }
+
+        .period-opt:hover {
+            border-color: var(--d-accent);
+            background: rgba(255,122,24,.06);
+        }
+
+        .period-opt input {
+            accent-color: var(--d-accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+    .period-opt-label {
+        font-size: .78rem;
+        font-weight: 700;
+        color: var(--d-text);
+    }
+
+    .period-opt-sub {
+        font-size: .6rem;
+        color: var(--d-text-3);
+    }
+
+    /* ── guidelines modal ──────────────────────── */
+    .modal-content {
+        background: var(--d-bg-3) !important;
+        border: 1px solid var(--d-glass-border-2) !important;
+        border-radius: var(--d-radius-lg) !important;
+        box-shadow: var(--d-shadow-lg);
+    }
+
+    .modal-header {
+        background: var(--d-grad) !important;
+        border: none !important;
+        border-radius: var(--d-radius-lg) var(--d-radius-lg) 0 0 !important;
+        padding: 1rem 1.2rem;
+    }
+
+    .modal-title {
+        font-size: .68rem;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        font-weight: 900;
+    }
+
+    .modal-body {
+        color: var(--d-text-2);
+        font-size: .82rem;
+        line-height: 1.55;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--d-glass-border) !important;
+    }
+
+    /* ── responsive ─────────────────────────────── */
+    @@media (max-width: 768px) {
+        .cr-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .comp-chips {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .cr-hero h1 {
+            font-size: 1.1rem;
+        }
+
+        .cr-shell {
+            padding-inline: .75rem;
+        }
+    }
+</style>
+
+<div class="cr-shell">
+
+    <!-- ═══ Hero ═══ -->
+    <div class="cr-hero">
+        <div class="cr-hero-inner">
+            <div class="cr-hero-icon"><i class="fa fa-cloud-arrow-up"></i></div>
+            <div>
+                <h1>Upload Report</h1>
+                <p class="cr-hero-sub">Select type, attach your PDF, and submit. Late submissions are tracked automatically.</p>
+            </div>
+            <span class="cr-hero-user"><i class="fa fa-user-circle"></i> @userName</span>
+        </div>
+    </div>
+
+    <!-- ═══ Compliance Banner ═══ -->
+    @if (compliance is not null)
+    {
+        <div class="comp-banner @compClass">
+            <div class="comp-row">
+                <div class="comp-icon"><i class="fa @compIcon"></i></div>
+                <div class="comp-info">
+                    <div class="comp-label">Reporting Compliance</div>
+                    <div class="comp-title">@compLabel</div>
+                    <div class="comp-pct">@compPct% on-time rate</div>
+                    <div class="comp-bar" style="margin-top:.4rem;">
+                        <div class="comp-bar-fill" style="width:@(compPct)%;"></div>
+                    </div>
+                </div>
+                <div class="comp-chips">
+                    <span class="comp-chip ontime"><i class="fa fa-check-circle"></i> @onTimeCount On Time</span>
+                    <span class="comp-chip late"><i class="fa fa-clock-rotate-left"></i> @lateCount Late</span>
+                    <span class="comp-chip missed"><i class="fa fa-circle-xmark"></i> @missedCount Missed</span>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ═══ Form Card ═══ -->
+    <div class="cr-card">
+        <div class="cr-card-title"><i class="fa fa-pen-to-square"></i> Report Submission</div>
+
+        <form asp-action="CreateReport" enctype="multipart/form-data" id="reportForm" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="FacilitatorId" value="@facilitatorId" />
+            <input type="hidden" name="IdPass" value="@idPass" />
+            <input type="hidden" name="Operation" value="@eOperation.Upload" />
+            <input type="hidden" name="acknowledgeLate" id="hidAckLate" value="false" />
+            <input type="hidden" name="intendedPeriodStart" id="hidPeriodStart" value="" />
+
+            <div class="cr-grid">
+                <!-- Left: fields -->
+                <div>
+                    <div class="ff">
+                        <label class="ff-lbl">Report Type</label>
+                        <div class="ff-wrap">
+                            <span class="ff-ico"><i class="fa fa-list-check"></i></span>
+                            <select name="ReportType" required class="ff-sel" id="selReportType">
+                                <option value="">Select report type</option>
+                                @foreach (var val in Enum.GetValues(typeof(ReportType)).Cast<ReportType>())
+                                {
+                                    <option value="@val">@val</option>
+                                }
+                            </select>
+                        </div>
+                        <span class="ff-hint" id="typeHint">Choose weekly, monthly or annual.</span>
+                    </div>
+
+                    <div class="ff">
+                        <label class="ff-lbl">Period</label>
+                        <div id="periodIndicator" style="display:none;">
+                            <div style="display:flex;align-items:center;gap:.45rem;padding:.5rem .7rem;border-radius:14px;background:var(--d-surface-2);border:1px solid var(--d-glass-border);font-size:.78rem;font-weight:700;color:var(--d-text);">
+                                <i class="fa fa-calendar-day" style="color:var(--d-accent);"></i>
+                                <span id="periodLabel">—</span>
+                            </div>
+                        </div>
+                        <span class="ff-hint">Auto-detected based on report type.</span>
+                    </div>
+                </div>
+
+                <!-- Right: dropzone -->
+                <div>
+                    <div class="ff">
+                        <label class="ff-lbl">Attach PDF</label>
+                        <label class="dz" id="dropZone" for="docFile">
+                            <input asp-for="DocumentFile" type="file" accept="application/pdf" id="docFile" />
+                            <i class="fa fa-cloud-arrow-up dz-cloud"></i>
+                            <span class="dz-title">Drop your PDF here</span>
+                            <span class="dz-sub">or click to browse</span>
+                            <span class="dz-pill" id="dzStatus"><i class="fa fa-file-pdf"></i> Max 1 MB · PDF only</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin-top:.75rem;">
+                <button type="submit" class="btn-grad" id="btnSubmit"><i class="fa fa-paper-plane"></i> Submit Report</button>
+                <button type="reset" class="btn-glass" id="btnReset"><i class="fa fa-rotate-left"></i> Reset</button>
+                <a asp-action="UserReports" asp-controller="Report" asp-route-idPass="@idPass" class="btn-glass">
+                    <i class="fa fa-arrow-left"></i> My Reports
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ Late Submission Modal ═══ -->
+<div class="late-overlay" id="lateOverlay">
+    <div class="late-modal">
+        <div class="late-modal-icon"><i class="fa fa-exclamation-triangle"></i></div>
+        <h3>Late Submission Detected</h3>
+        <p class="late-modal-msg" id="lateMsg">
+            You have already submitted a report for the current period.
+            By proceeding, this report will be flagged as a <strong>late submission</strong>.
+        </p>
+        <div class="late-modal-period" id="latePeriodLabel">—</div>
+
+        <div class="period-select-wrap" id="missedPeriodsWrap" style="display:none;">
+            <div style="font-size:.6rem;letter-spacing:.14rem;text-transform:uppercase;font-weight:800;color:var(--d-text-3);margin-bottom:.45rem;">
+                <i class="fa fa-calendar-xmark"></i> Select which missed period this report covers:
+            </div>
+            <div id="missedPeriodsList"></div>
+        </div>
+
+        <div class="late-modal-warning">
+            <i class="fa fa-shield-halved"></i>
+            By proceeding, you acknowledge that this report will be <strong>flagged as a late submission</strong>
+            and will be rendered <strong>non-compliant</strong> in terms of reporting on time.
+            Your compliance score will be affected.
+        </div>
+        <div class="late-modal-actions">
+            <button type="button" class="btn-grad" id="btnConfirmLate"><i class="fa fa-check"></i> I Acknowledge — Submit</button>
+            <button type="button" class="btn-glass" id="btnCancelLate"><i class="fa fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Guidelines Modal ═══ -->
+<div class="modal fade" id="guidelinesModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white"><i class="fa fa-info-circle me-1"></i> Document Upload Guidelines</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Chomie please — before uploading any documents to the system, ensure that they open without any issues.
+                    We've encountered several instances where documents appear corrupted and cannot be accessed after download.
+                    Common causes include scanning from a printer with low toner or using a faulty USB drive.
+                </p>
+                <p style="margin-top:.5rem;">
+                    <strong style="color:var(--d-accent);">Late submissions</strong> are now tracked automatically.
+                    If you've already submitted for the current period, the system will detect it and ask you to confirm
+                    the late submission before saving.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-glass" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn-grad" data-bs-dismiss="modal"><i class="fa fa-check"></i> Understood</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        'use strict';
+
+        var idPass = '@Html.Raw(idPass)';
+        var checkUrl = '@Url.Action("CheckSubmission", "Report")';
+        var form = document.getElementById('reportForm');
+        var selType = document.getElementById('selReportType');
+        var periodInd = document.getElementById('periodIndicator');
+        var periodLabel = document.getElementById('periodLabel');
+        var typeHint = document.getElementById('typeHint');
+        var hidAck = document.getElementById('hidAckLate');
+        var hidPeriod = document.getElementById('hidPeriodStart');
+
+        // late modal
+        var overlay = document.getElementById('lateOverlay');
+        var lateMsg = document.getElementById('lateMsg');
+        var latePeriodLbl = document.getElementById('latePeriodLabel');
+        var missedWrap = document.getElementById('missedPeriodsWrap');
+        var missedList = document.getElementById('missedPeriodsList');
+        var btnConfirm = document.getElementById('btnConfirmLate');
+        var btnCancel = document.getElementById('btnCancelLate');
+
+        var lastCheck = null;
+        var pendingSubmit = false;
+
+        // ── check on type change ────────────────
+        selType.addEventListener('change', function () {
+            var t = selType.value;
+            if (!t) { periodInd.style.display = 'none'; typeHint.textContent = 'Choose weekly, monthly or annual.'; lastCheck = null; return; }
+
+            typeHint.textContent = 'Checking…';
+            periodInd.style.display = 'none';
+
+            fetch(checkUrl + '?idPass=' + encodeURIComponent(idPass) + '&reportType=' + encodeURIComponent(t))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    lastCheck = d;
+                    periodInd.style.display = '';
+                    periodLabel.textContent = d.intendedPeriodLabel;
+
+                    if (d.wouldBeLate) {
+                        typeHint.innerHTML = '<span style="color:var(--d-red);font-weight:700;"><i class="fa fa-exclamation-triangle"></i> Late — ' + d.intendedPeriodLabel + '</span>';
+                    } else {
+                        typeHint.innerHTML = '<span style="color:var(--d-green);"><i class="fa fa-check-circle"></i> On time — ' + d.intendedPeriodLabel + '</span>';
+                    }
+                })
+                .catch(function () {
+                    typeHint.textContent = 'Unable to check. You may still submit.';
+                    lastCheck = null;
+                });
+        });
+
+        // ── intercept form submit ───────────────
+        form.addEventListener('submit', function (e) {
+            if (hidAck.value === 'true') return; // already acknowledged
+
+            if (lastCheck && lastCheck.wouldBeLate) {
+                e.preventDefault();
+                showLateModal(lastCheck);
+            }
+        });
+
+        function showLateModal(check) {
+            lateMsg.innerHTML = check.message;
+            latePeriodLbl.textContent = check.intendedPeriodLabel;
+            hidPeriod.value = check.intendedPeriodStart;
+
+            // populate missed periods if > 1
+            if (check.missedPeriods && check.missedPeriods.length > 1) {
+                missedWrap.style.display = '';
+                missedList.innerHTML = '';
+                check.missedPeriods.forEach(function (m, i) {
+                    var div = document.createElement('label');
+                    div.className = 'period-opt';
+                    div.innerHTML =
+                        '<input type="radio" name="missedPeriodChoice" value="' + m.periodStart + '"' + (i === 0 ? ' checked' : '') + ' />' +
+                        '<div><div class="period-opt-label">' + m.label + '</div></div>';
+                    missedList.appendChild(div);
+                });
+            } else {
+                missedWrap.style.display = 'none';
+            }
+
+            overlay.classList.add('show');
+        }
+
+        btnConfirm.addEventListener('click', function () {
+            hidAck.value = 'true';
+
+            // pick selected missed period
+            var selected = document.querySelector('input[name="missedPeriodChoice"]:checked');
+            if (selected) hidPeriod.value = selected.value;
+
+            overlay.classList.remove('show');
+            form.submit();
+        });
+
+        btnCancel.addEventListener('click', function () {
+            overlay.classList.remove('show');
+        });
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) overlay.classList.remove('show');
+        });
+
+        // ── dropzone ────────────────────────────
+        var dz = document.getElementById('dropZone');
+        var fi = document.getElementById('docFile');
+        var dzSt = document.getElementById('dzStatus');
+        var MAX = 1048576;
+
+        function showDzStatus(ok, msg) {
+            dzSt.className = 'dz-pill ' + (ok ? 'ok' : 'err');
+            dzSt.innerHTML = '<i class="fa ' + (ok ? 'fa-check-circle' : 'fa-circle-xmark') + '"></i> ' + msg;
+        }
+
+        fi.addEventListener('change', function () {
+            var f = fi.files && fi.files[0];
+            if (!f) { dzSt.className = 'dz-pill'; dzSt.innerHTML = '<i class="fa fa-file-pdf"></i> Max 1 MB · PDF only'; return; }
+            if (f.type !== 'application/pdf') { showDzStatus(false, 'PDF only'); fi.value = ''; return; }
+            if (f.size > MAX) { showDzStatus(false, 'Exceeds 1 MB'); fi.value = ''; return; }
+            showDzStatus(true, f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)');
+        });
+
+        ['dragenter', 'dragover'].forEach(function (e) { dz.addEventListener(e, function (ev) { ev.preventDefault(); dz.classList.add('drag-over'); }); });
+        ['dragleave', 'drop'].forEach(function (e) { dz.addEventListener(e, function (ev) { ev.preventDefault(); dz.classList.remove('drag-over'); }); });
+        dz.addEventListener('drop', function (ev) {
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            if (!f) return;
+            if (f.type !== 'application/pdf') { showDzStatus(false, 'PDF only'); return; }
+            if (f.size > MAX) { showDzStatus(false, 'Exceeds 1 MB'); return; }
+            fi.files = ev.dataTransfer.files;
+            showDzStatus(true, f.name + ' (' + (f.size / 1024).toFixed(0) + ' KB)');
+        });
+
+        document.getElementById('btnReset').addEventListener('click', function () {
+            setTimeout(function () {
+                dzSt.className = 'dz-pill';
+                dzSt.innerHTML = '<i class="fa fa-file-pdf"></i> Max 1 MB · PDF only';
+                periodInd.style.display = 'none';
+                typeHint.textContent = 'Choose weekly, monthly or annual.';
+                hidAck.value = 'false';
+                hidPeriod.value = '';
+                lastCheck = null;
+            }, 0);
+        });
+
+        // ── show guidelines on first visit ──────
+        var guideKey = 'fo-report-guide-seen';
+        if (!sessionStorage.getItem(guideKey)) {
+            var m = new bootstrap.Modal(document.getElementById('guidelinesModal'));
+            m.show();
+            sessionStorage.setItem(guideKey, '1');
+        }
+
+        // ── auto-show late modal from TempData ──
+        var lateCheckData = @Html.Raw(string.IsNullOrEmpty(lateCheckJson) ? "null" : lateCheckJson);
+        if (lateCheckData && lateCheckData.wouldBeLate) {
+            showLateModal(lateCheckData);
+        }
+    })();
+</script>

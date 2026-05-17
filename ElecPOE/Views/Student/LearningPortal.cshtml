@@ -1,0 +1,2008 @@
+﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script type="module" src="https://unpkg.com/mathlive@0.101.1/dist/mathlive.min.mjs"></script>
+
+@{
+    ViewData["Title"] = "e-Learning Portal";
+    bool isFacilitator = User.IsInRole("Facilitator") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    string displayName = User?.Identity?.Name ?? "Guest";
+}
+
+<style>
+    :root {
+        --lp-red: #b31217;
+        --lp-red-alt: #9d1117;
+        --lp-orange: #ff7a18;
+        --lp-bg: #fff;
+        --lp-bg-alt: #f6f8fa;
+        --lp-border: #e1e4e8;
+        --lp-border-alt: #d0d4d9;
+        --lp-muted: #6d7480;
+        --lp-focus: 0 0 0 .18rem #b3121730;
+        --lp-grad: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+    }
+
+        :root[data-theme="dark"] {
+            --lp-bg: #1f242c;
+            --lp-bg-alt: #14191f;
+            --lp-border: #2f3742;
+            --lp-border-alt: #3a4552;
+            --lp-muted: #97a3b4;
+        }
+
+            :root[data-theme="dark"] body {
+                background: #14191f;
+            }
+
+            :root[data-theme="dark"] .stat-pill {
+                background: #232b34;
+                color: #ffb3b3;
+                border-color: #3a4552;
+            }
+
+            :root[data-theme="dark"] .action-card {
+                background: #232b34;
+                border-color: #3a4552;
+            }
+
+            :root[data-theme="dark"] .btn-el {
+                background: #232b34;
+                border-color: #3a4552;
+                color: #ffb3b3;
+            }
+
+                :root[data-theme="dark"] .btn-el.primary {
+                    background: var(--lp-grad);
+                    color: #fff;
+                    border-color: var(--lp-red);
+                }
+
+            :root[data-theme="dark"] .input-wrap {
+                background: #232b34;
+                border-color: #3a4552;
+            }
+
+            :root[data-theme="dark"] .field input,
+            :root[data-theme="dark"] .field textarea,
+            :root[data-theme="dark"] .field select {
+                color: #e6ebf1;
+            }
+
+            :root[data-theme="dark"] .q-card,
+            :root[data-theme="dark"] .resource-item,
+            :root[data-theme="dark"] .jitsi-stage {
+                background: #232b34;
+                border-color: #3a4552;
+            }
+
+            :root[data-theme="dark"] .empty-box {
+                border-color: #3a4552;
+                color: #97a3b4;
+            }
+
+    #assessmentBuilder input[name="Title"],
+    #assessmentBuilder textarea[name="Instructions"],
+    #questionHost .q-card input[name$=".Prompt"],
+    #questionHost .q-card textarea[name$=".Explanation"] {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        #assessmentBuilder input[name="Title"] ~ *,
+        #assessmentBuilder textarea[name="Instructions"] ~ * {
+            box-sizing: border-box;
+        }
+
+    #assessmentBuilder .field-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    #questionHost .q-card .input-wrap,
+    #questionHost .q-card input,
+    #questionHost .q-card textarea,
+    #questionHost .q-card select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+
+    .lp-shell {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3.4rem;
+    }
+
+    .hero {
+        position: relative;
+        background: var(--lp-bg);
+        border: 1px solid var(--lp-border);
+        border-radius: 36px;
+        padding: 2.05rem 2rem 1.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.3rem;
+        overflow: hidden;
+        box-shadow: 0 14px 42px -18px rgba(50,6,6,.32),0 6px 20px -10px rgba(50,6,6,.18);
+    }
+
+        .hero:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(115deg,#320606 0%,#b31217 55%,#ff7a18 105%);
+            opacity: .12;
+        }
+
+    .hero-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.6rem;
+    }
+
+    .hero-icon {
+        width: 96px;
+        height: 96px;
+        border-radius: 30px;
+        background: var(--lp-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.55rem;
+        color: #fff;
+        box-shadow: 0 18px 46px -18px rgba(179,18,23,.55);
+    }
+
+    .hero h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        letter-spacing: .8px;
+        background: linear-gradient(90deg,#320606,#b31217,#ff7a18);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .hero-sub {
+        margin: .35rem 0 0;
+        font-size: .9rem;
+        line-height: 1.35rem;
+        color: var(--lp-muted);
+        max-width: 760px;
+        font-weight: 500;
+    }
+
+    .role-chip {
+        font-size: .58rem;
+        letter-spacing: .22rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: linear-gradient(135deg,#32060610,#b3121712,#ff7a1818);
+        color: var(--lp-red);
+        padding: .55rem 1.05rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .quick-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        margin-top: .4rem;
+    }
+
+    .stat-pill {
+        font-size: .52rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #fff;
+        color: var(--lp-red);
+        padding: .45rem .8rem;
+        border-radius: 40px;
+        border: 1px solid var(--lp-border);
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .section-intro {
+        margin: 2.2rem 0 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: .55rem;
+    }
+
+        .section-intro h2 {
+            margin: 0;
+            font-size: .85rem;
+            letter-spacing: .28rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--lp-red);
+            display: flex;
+            gap: .55rem;
+            align-items: center;
+        }
+
+        .section-intro p {
+            margin: 0;
+            font-size: .68rem;
+            letter-spacing: .02rem;
+            color: var(--lp-muted);
+            max-width: 940px;
+            font-weight: 600;
+        }
+
+    .card-grid {
+        display: grid;
+        gap: 1.2rem;
+        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    }
+
+    .action-card {
+        background: var(--lp-bg);
+        border: 1px solid var(--lp-border);
+        border-radius: 30px;
+        padding: 1.15rem 1.15rem .95rem;
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 34px -18px rgba(50,6,6,.15);
+        transition: .35s;
+        min-height: 240px;
+    }
+
+        .action-card:hover {
+            box-shadow: 0 10px 40px -16px rgba(179,18,23,.35);
+            transform: translateY(-4px);
+        }
+
+    .action-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 18px;
+        background: var(--lp-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: #fff;
+        box-shadow: 0 8px 22px -12px rgba(179,18,23,.55);
+    }
+
+    .action-card h3 {
+        margin: 0;
+        font-size: .78rem;
+        letter-spacing: .22rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: var(--lp-red);
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .action-card p {
+        margin: 0;
+        font-size: .62rem;
+        color: var(--lp-muted);
+        font-weight: 600;
+        line-height: 1.05rem;
+    }
+
+    .action-actions {
+        margin-top: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .55rem;
+    }
+
+    .btn-el {
+        font-size: .55rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .55rem 1rem;
+        border-radius: 16px;
+        border: 1px solid var(--lp-border);
+        background: #fff;
+        color: var(--lp-red);
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        cursor: pointer;
+        transition: .3s;
+        text-decoration: none;
+    }
+
+        .btn-el:hover {
+            background: var(--lp-grad);
+            color: #fff;
+            border-color: var(--lp-red);
+        }
+
+        .btn-el.primary {
+            background: var(--lp-grad);
+            color: #fff;
+            border-color: var(--lp-red);
+        }
+
+            .btn-el.primary:hover {
+                filter: brightness(.95);
+            }
+
+    .hidden-pane {
+        display: none;
+        margin-top: 2rem;
+    }
+
+        .hidden-pane.active {
+            display: block;
+            animation: fade .55s ease;
+        }
+
+    .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+
+        .drawer-header h4 {
+            margin: 0;
+            font-size: .7rem;
+            letter-spacing: .2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--lp-red);
+            display: flex;
+            gap: .45rem;
+            align-items: center;
+        }
+
+    .close-drawer {
+        background: none;
+        border: none;
+        color: var(--lp-red);
+        font-size: .8rem;
+        cursor: pointer;
+    }
+
+    .lp-check span {
+        display: inline-block;
+    }
+
+    .field-grid {
+        display: grid;
+        gap: .85rem;
+        grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+        margin-top: .25rem;
+    }
+
+    .field label {
+        font-size: .52rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #4d545c;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .required:after {
+        content: '*';
+        color: var(--lp-red);
+        margin-left: .22rem;
+        font-weight: 800;
+    }
+
+    .input-wrap {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        background: #fff;
+        border: 1px solid var(--lp-border);
+        padding: .6rem .75rem;
+        border-radius: 16px;
+        transition: .25s;
+    }
+
+        .input-wrap:focus-within {
+            border-color: var(--lp-red);
+            box-shadow: var(--lp-focus);
+        }
+
+        .input-wrap i {
+            font-size: .7rem;
+            color: #888;
+        }
+
+    .field input[type=text], .field input[type=url], .field input[type=datetime-local], .field input[type=number], .field textarea, .field select {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: .7rem;
+        width: 100%;
+        color: #222;
+    }
+
+    .field textarea {
+        resize: vertical;
+        min-height: 72px;
+    }
+
+    .jitsi-stage {
+        display: none;
+        margin-top: 1rem;
+        border: 1px solid var(--lp-border);
+        border-radius: 22px;
+        overflow: hidden;
+        background: #0e1113;
+        min-height: 520px;
+        position: relative;
+    }
+
+        .jitsi-stage iframe {
+            border: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+    .resource-list {
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+        margin-top: .55rem;
+    }
+
+    .resource-item {
+        background: #fff;
+        border: 1px solid var(--lp-border);
+        border-radius: 16px;
+        padding: .55rem .75rem;
+        display: flex;
+        justify-content: space-between;
+        gap: .7rem;
+        font-size: .62rem;
+    }
+
+        .resource-item .meta {
+            max-width: 380px;
+            overflow: hidden;
+        }
+
+            .resource-item .meta strong {
+                display: block;
+                font-size: .65rem;
+                margin-bottom: .2rem;
+            }
+
+            .resource-item .meta a {
+                text-decoration: none;
+                color: var(--lp-red-alt);
+                font-weight: 600;
+                word-break: break-all;
+            }
+
+                .resource-item .meta a:hover {
+                    text-decoration: underline;
+                }
+
+    .empty-box {
+        border: 2px dashed var(--lp-border-alt);
+        border-radius: 18px;
+        padding: 1.15rem;
+        text-align: center;
+        font-size: .62rem;
+        font-weight: 600;
+        color: var(--lp-muted);
+    }
+
+    .question-set {
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+        margin-top: .6rem;
+    }
+
+    .q-card {
+        background: #fff;
+        border: 1px solid var(--lp-border);
+        border-radius: 18px;
+        padding: .75rem .8rem .7rem;
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+        position: relative;
+    }
+
+        .q-card h4 {
+            margin: 0;
+            font-size: .6rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--lp-red);
+        }
+
+    .answer-row {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        margin-bottom: .4rem;
+    }
+
+        .answer-row input[type=text] {
+            flex: 1;
+        }
+
+    .correct-indicator {
+        font-size: .55rem;
+        font-weight: 700;
+        color: #167846;
+        display: none;
+    }
+
+    .q-card.correct-marked .correct-indicator {
+        display: inline-flex;
+    }
+
+    .lp-check {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        cursor: pointer;
+        font-size: .62rem;
+        font-weight: 700;
+        color: var(--lp-muted);
+        line-height: 1.1;
+        user-select: none;
+    }
+
+        .lp-check > input[type="checkbox"] {
+            margin: 0;
+            width: 16px;
+            height: 16px;
+            flex: 0 0 auto;
+            accent-color: var(--lp-red);
+        }
+
+    @@keyframes fade {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .math-toolbar {
+        display: flex;
+        gap: .35rem;
+        flex-wrap: wrap;
+        margin-bottom: .4rem;
+    }
+
+        .math-toolbar button {
+            font-size: .5rem;
+            letter-spacing: .1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: .35rem .6rem;
+            border-radius: 12px;
+            border: 1px solid var(--lp-border);
+            background: #fff;
+            color: var(--lp-red);
+            cursor: pointer;
+            transition: .25s;
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+        }
+
+            .math-toolbar button:hover {
+                background: var(--lp-grad);
+                color: #fff;
+                border-color: var(--lp-red);
+            }
+
+    .math-editor-wrap {
+        display: none;
+        border: 1px solid var(--lp-border);
+        border-radius: 14px;
+        padding: .6rem;
+        margin-top: .4rem;
+        background: var(--lp-bg);
+    }
+
+        .math-editor-wrap.active {
+            display: block;
+        }
+
+        .math-editor-wrap math-field {
+            display: block;
+            width: 100%;
+            font-size: 1.1rem;
+            min-height: 48px;
+            border: 1px solid var(--lp-border);
+            border-radius: 10px;
+            padding: .4rem .6rem;
+            --hue: 0;
+            --caret-color: var(--lp-red);
+        }
+
+    .math-preview-inline {
+        display: inline-block;
+        background: #fff5f5;
+        border: 1px solid var(--lp-border);
+        border-radius: 8px;
+        padding: .2rem .5rem;
+        margin: .15rem .1rem;
+        font-size: .75rem;
+        vertical-align: middle;
+    }
+</style>
+
+<section class="lp-shell">
+    <header class="hero">
+        <button type="button" id="themeToggle" class="btn-el" style="position:absolute;top:18px;right:18px;">
+            <i class="fa fa-moon"></i> Theme
+        </button>
+
+        <div class="hero-grid">
+            <div class="hero-icon"><i class="fa @(isFacilitator ? "fa-chalkboard-teacher" : "fa-user-graduate")"></i></div>
+            <div style="flex:1;">
+                <h1>@(isFacilitator ? "Facilitator Portal" : "Learning Portal")</h1>
+                <p class="hero-sub">
+                    Guided digital learning: live virtual classes, curated multimedia resources, and structured assessments.
+                    Select an area below to view its tools.
+                </p>
+                <div class="role-chip">
+                    <i class="fa @(isFacilitator ? "fa-chalkboard" : "fa-book")"></i>
+                    @(isFacilitator ? "Facilitator Mode" : "Learner Mode")
+                </div>
+                <div class="quick-stats">
+                    <span class="stat-pill"><i class="fa fa-user"></i>@displayName</span>
+                    <span class="stat-pill"><i class="fa fa-video"></i>Classes</span>
+                    <span class="stat-pill"><i class="fa fa-box-archive"></i>Resources</span>
+                    <span class="stat-pill"><i class="fa fa-list-check"></i>Assessments</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="section-intro">
+        <h2><i class="fa fa-compass"></i> LEARNING HUB OVERVIEW</h2>
+        <p>
+            Navigate by clicking an action card. Each card reveals its workspace (live video session, resource manager,
+            or assessment builder). This progressive layout keeps the portal clean while surfacing only what you need.
+        </p>
+    </div>
+
+    <div class="card-grid">
+
+        <div class="action-card">
+            <div class="action-icon"><i class="fa fa-video"></i></div>
+            <h3>Virtual Classes</h3>
+            <p>
+                Schedule and host live sessions. Invite students and capture attendance via join/leave tracking.
+            </p>
+            <ul style="padding-left:1rem;margin:0;font-size:.6rem;line-height:.9rem;color:var(--lp-muted);">
+                <li>Schedule + invite</li>
+                <li>Join link</li>
+                <li>Attendance (Option B)</li>
+            </ul>
+            <div class="action-actions">
+                <button type="button" class="btn-el primary" data-open="drawer-classes"><i class="fa fa-cog"></i> Configure / Launch</button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-icon"><i class="fa fa-link"></i></div>
+            <h3>Resource Library</h3>
+            <p>
+                Curate external learning assets: videos, docs, URLs.
+                Maintain a structured list learners can access asynchronously.
+            </p>
+            <ul style="padding-left:1rem;margin:0;font-size:.6rem;line-height:.9rem;color:var(--lp-muted);">
+                <li>Title & description</li>
+                <li>Link validation</li>
+                <li>Future: tagging / search</li>
+            </ul>
+            <div class="action-actions">
+                <button type="button" class="btn-el primary" data-open="drawer-resources"><i class="fa fa-folder-open"></i> Manage Resources</button>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div class="action-icon"><i class="fa fa-tasks"></i></div>
+            <h3>Assessments</h3>
+            <p>
+                Build multiple-choice and short-answer assessments with shuffling, timing, and retry policy (roadmap security).
+            </p>
+            <ul style="padding-left:1rem;margin:0;font-size:.6rem;line-height:.9rem;color:var(--lp-muted);">
+                <li>Dynamic question builder</li>
+                <li>Option marking</li>
+                <li>Preview state</li>
+            </ul>
+            <div class="action-actions">
+                <button type="button" class="btn-el primary" data-open="drawer-assessments" @(isFacilitator ? "" : "disabled")>
+                    <i class="fa fa-plus-circle"></i> Build Assessment
+                </button>
+                <a class="btn-el" href="@Url.Action("List", "Assessment")"><i class="fa fa-list"></i> View All</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="drawer-classes" class="hidden-pane" aria-labelledby="drawer-classes-label">
+        <div class="drawer-header">
+            <h4 id="drawer-classes-label"><i class="fa fa-video"></i> Virtual Class Workspace</h4>
+            <button class="close-drawer" data-close="drawer-classes" title="Close"><i class="fa fa-times"></i></button>
+        </div>
+
+        <p style="font-size:.63rem;color:var(--lp-muted);font-weight:600;max-width:840px;">
+            Schedule a lesson, invite students, then launch the meeting. Attendance is captured when students join/leave.
+        </p>
+
+        <form id="jitsiConfigForm" autocomplete="off">
+            @Html.AntiForgeryToken()
+
+            <div class="field-grid">
+                <div class="field">
+                    <label class="required">Room Name</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-hashtag"></i>
+                        <input name="roomName" placeholder="Elec_L2_Mod3_Intro" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="required">Topic</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-comment-alt"></i>
+                        <input name="subject" maxlength="120" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="required">Start (Local)</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-clock"></i>
+                        <input name="startLocal" type="datetime-local" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="required">End (Local)</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-clock"></i>
+                        <input name="endLocal" type="datetime-local" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Password (Optional)</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-key"></i>
+                        <input name="password" maxlength="30" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Display Name</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-user"></i>
+                        <input name="displayName" value="@displayName" />
+                    </div>
+                </div>
+
+                <div class="field" style="grid-column: 1 / -1;">
+                    <label class="required">Invite Students</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-magnifying-glass"></i>
+                        <input id="attendeeSearch" type="text" placeholder="Search by name, email or student number..." />
+                    </div>
+
+                    <div id="attendeeResults" class="resource-list" style="margin-top:.6rem;"></div>
+
+                    <div style="margin-top:.6rem;">
+                        <div style="font-size:.58rem;letter-spacing:.18rem;text-transform:uppercase;font-weight:800;color:var(--lp-red);">
+                            Selected
+                        </div>
+                        <div id="attendeeSelected" class="resource-list" style="margin-top:.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-actions" style="margin-top:.75rem;">
+                <button type="button" id="btnScheduleInvite" class="btn-el primary" @(isFacilitator ? "" : "disabled")>
+                    <i class="fa fa-paper-plane"></i> Schedule & Send Invites
+                </button>
+
+                <a id="joinLinkBtn" class="btn-el" href="#" target="_blank" style="pointer-events:none;opacity:.6;">
+                    <i class="fa fa-link"></i> Join Link
+                </a>
+
+                <button type="button" id="btnStartMeeting" class="btn-el" @(isFacilitator ? "" : "disabled") disabled>
+                    <i class="fa fa-play-circle"></i> Start (Embed)
+                </button>
+
+                <button type="button" id="btnEndMeeting" class="btn-el" disabled>
+                    <i class="fa fa-stop-circle"></i> End
+                </button>
+
+                <span id="meetingStatus" class="stat-pill" style="background:#fff5f5;">
+                    <i class="fa fa-circle"></i> Not scheduled
+                </span>
+            </div>
+        </form>
+
+        <div id="jitsiStage" class="jitsi-stage"></div>
+
+        <p style="font-size:.54rem;color:var(--lp-muted);margin-top:.7rem;">
+            Attendance capture mode: client join/leave events (Option B). Later upgrade to server webhooks if needed.
+        </p>
+    </div>
+
+    <div id="drawer-resources" class="hidden-pane" aria-labelledby="drawer-resources-label">
+        <div class="drawer-header">
+            <h4 id="drawer-resources-label"><i class="fa fa-link"></i> Resource Library Manager</h4>
+            <button class="close-drawer" data-close="drawer-resources" title="Close"><i class="fa fa-times"></i></button>
+        </div>
+        <p style="font-size:.63rem;color:var(--lp-muted);font-weight:600;max-width:840px;">
+            Add external lesson links and supporting descriptions. Future enhancements include tagging, bulk import and analytics.
+        </p>
+        <form id="resourceForm" method="post" action="@Url.Action("SaveLessonUrl","Student")" autocomplete="off">
+            @Html.AntiForgeryToken()
+            <div class="field-grid">
+                <div class="field">
+                    <label class="required">Title</label>
+                    <div class="input-wrap"><i class="fa fa-tag"></i><input name="Title" maxlength="120" required /></div>
+                </div>
+                <div class="field">
+                    <label class="required">Resource URL</label>
+                    <div class="input-wrap"><i class="fa fa-link"></i><input type="url" name="Url" placeholder="https://youtu.be/..." required /></div>
+                </div>
+                <div class="field" style="grid-column:1/-1;">
+                    <label>Description</label>
+                    <div class="input-wrap" style="align-items:flex-start;">
+                        <i class="fa fa-align-left" style="margin-top:.3rem;"></i>
+                        <textarea name="Description" rows="2" maxlength="300"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="action-actions" style="margin-top:.75rem;">
+                <button type="submit" class="btn-el primary"><i class="fa fa-save"></i> Save Resource</button>
+                <button type="reset" class="btn-el"><i class="fa fa-undo"></i> Reset</button>
+            </div>
+        </form>
+
+        <h5 style="font-size:.58rem;letter-spacing:.22rem;text-transform:uppercase;font-weight:800;color:var(--lp-red);margin:1.1rem 0 .55rem;display:flex;gap:.45rem;align-items:center;">
+            <i class="fa fa-folder-open"></i> Saved Resources
+        </h5>
+        <div id="resourceList" class="resource-list">
+            <div class="empty-box"><i class="fa fa-box-open"></i> Nothing saved yet.</div>
+        </div>
+    </div>
+
+    <div id="drawer-assessments" class="hidden-pane" aria-labelledby="drawer-assessments-label">
+        <div class="drawer-header">
+            <h4 id="drawer-assessments-label"><i class="fa fa-tasks"></i> Assessment Builder</h4>
+            <button class="close-drawer" data-close="drawer-assessments" title="Close"><i class="fa fa-times"></i></button>
+        </div>
+        <p style="font-size:.63rem;color:var(--lp-muted);font-weight:600;max-width:840px;">
+            Create structured multiple‑choice or short‑answer questions. Mark correct options and preview readiness.
+            Advanced configuration (timer, shuffle, password, retries) will be integrated once back‑end wiring is finalized.
+        </p>
+
+        <form id="assessmentBuilder" method="post" action="@Url.Action("CreateAssessment","Assessment")" autocomplete="off">
+            @Html.AntiForgeryToken()
+            <div class="field-grid">
+                <div class="field">
+                    <div class="field">
+                        <label class="required">Timer (Minutes)</label>
+                        <div class="input-wrap"><i class="fa fa-stopwatch"></i><input type="number" name="TimerMinutes" min="0" max="600" value="30" required /></div>
+                    </div>
+
+                    <label class="required">Assessment Title</label>
+                    <div class="input-wrap"><i class="fa fa-book"></i><input name="Title" maxlength="140" required /></div>
+                </div>
+
+                <div class="field">
+                    <label class="required">Assessment Date</label>
+                    <div class="input-wrap"><i class="fa fa-clock"></i><input type="datetime-local" name="ScheduledDate" required /></div>
+                </div>
+
+                <div class="field">
+                    <label class="required">Max Score</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-star"></i>
+                        <input type="number" name="MaxScore" min="1" max="1000" value="100" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="required">Assessment Type</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-clipboard-check"></i>
+                        <select name="AssessmentType" required>
+                            <option value="1" selected>Informal (Classwork / Homework / Quiz)</option>
+                            <option value="2">Formal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="hidden" name="EnableMathRendering" value="false" />
+
+                <div class="field">
+                    <label>Supporting Link</label>
+                    <div class="input-wrap"><i class="fa fa-link"></i><input type="url" name="SupportUrl" /></div>
+                </div>
+
+                <div class="field" style="grid-column:1/-1;">
+                    <label>Instructions</label>
+                    <div class="input-wrap" style="align-items:flex-start;">
+                        <i class="fa fa-align-left" style="margin-top:.3rem;"></i>
+                        <textarea name="Instructions" rows="2" maxlength="500"></textarea>
+                    </div>
+                </div>
+
+                <div class="field" style="grid-column:1/-1;">
+                    <div class="stat-pill" id="marksSummary" style="margin-top:.25rem;background:#fff5f5;">
+                        <i class="fa fa-calculator"></i> Marks: <strong id="marksSum">0</strong> / <strong id="marksTarget">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-actions" style="margin-top:.75rem;">
+                <button type="button" id="btnAddQuestion" class="btn-el primary" @(isFacilitator ? "" : "disabled")><i class="fa fa-plus-circle"></i> Add Question</button>
+                <button type="submit" class="btn-el" @(isFacilitator ? "" : "disabled")><i class="fa fa-save"></i> Save Assessment</button>
+                <button type="reset" class="btn-el"><i class="fa fa-undo"></i> Reset</button>
+                <a class="btn-el" href="@Url.Action("List", "Assessment")"><i class="fa fa-list"></i> All Assessments</a>
+            </div>
+
+            <div id="questionHost" class="question-set">
+                <div class="empty-box"><i class="fa fa-circle-info"></i> No questions added.</div>
+            </div>
+        </form>
+
+        <h5 style="font-size:.58rem;letter-spacing:.22rem;text-transform:uppercase;font-weight:800;color:var(--lp-red);margin:1.1rem 0 .55rem;display:flex;gap:.45rem;align-items:center;">
+            <i class="fa fa-list-check"></i> Preview
+        </h5>
+        <div id="assessmentPreview" class="resource-list">
+            <div class="empty-box"><i class="fa fa-eye"></i> Nothing to preview.</div>
+        </div>
+
+        <p style="font-size:.54rem;color:var(--lp-muted);margin-top:.65rem;">
+            Roadmap: timer, password protection, retries, question shuffling, attempt analytics & anti‑cheat tooling.
+        </p>
+    </div>
+
+</section>
+
+<script src="https://8x8.vc/external_api.js"></script>
+<script>
+    (function () {
+      const themeToggle = document.getElementById('themeToggle');
+      const storedTheme = window.localStorage.getItem('lp.theme');
+      if (storedTheme === 'dark') document.documentElement.dataset.theme = 'dark';
+
+      themeToggle?.addEventListener('click', function () {
+        const isDark = document.documentElement.dataset.theme === 'dark';
+        if (isDark) {
+          delete document.documentElement.dataset.theme;
+          window.localStorage.setItem('lp.theme', 'light');
+        } else {
+          document.documentElement.dataset.theme = 'dark';
+          window.localStorage.setItem('lp.theme', 'dark');
+        }
+      });
+
+      const openers = [...document.querySelectorAll('[data-open]')];
+      const closers = [...document.querySelectorAll('[data-close]')];
+
+      function openDrawer(id) {
+        document.querySelectorAll('.hidden-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById(id)?.classList.add('active');
+        window.scrollTo({ top: document.getElementById(id).offsetTop - 20, behavior: 'smooth' });
+      }
+
+      openers.forEach(btn => btn.addEventListener('click', () => openDrawer(btn.getAttribute('data-open'))));
+      closers.forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-close');
+        document.getElementById(id)?.classList.remove('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }));
+
+      const form = document.getElementById('jitsiConfigForm');
+      const scheduleBtn = document.getElementById('btnScheduleInvite');
+      const joinLinkBtn = document.getElementById('joinLinkBtn');
+      const startBtn = document.getElementById('btnStartMeeting');
+      const endBtn = document.getElementById('btnEndMeeting');
+      const statusEl = document.getElementById('meetingStatus');
+      const stage = document.getElementById('jitsiStage');
+
+      const attendeeSearch = document.getElementById('attendeeSearch');
+      const attendeeResults = document.getElementById('attendeeResults');
+      const attendeeSelected = document.getElementById('attendeeSelected');
+
+      const assessmentForm = document.getElementById('assessmentBuilder');
+      const btnAddQuestion = document.getElementById('btnAddQuestion');
+      const questionHost = document.getElementById('questionHost');
+
+      let selected = new Map();
+      let searchTimer = null;
+      let api = null;
+      let currentLessonId = null;
+
+      let heartbeatTimer = null;
+
+      const setStatus = (txt) => {
+        statusEl.innerHTML = '<i class="fa fa-circle"></i> ' + txt;
+      };
+
+      const esc = (s) => (s || '').toString()
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+      const validateRoom = (r) => /^[A-Za-z0-9_.\-]{4,60}$/.test(r || '');
+
+      function renderSelected() {
+        attendeeSelected.innerHTML = '';
+        if (selected.size === 0) {
+          attendeeSelected.innerHTML = "<div class='empty-box'><i class='fa fa-users'></i> No students selected.</div>";
+          return;
+        }
+
+        for (const item of selected.values()) {
+          const el = document.createElement('div');
+          el.className = 'resource-item';
+          el.innerHTML = `
+            <div class="meta">
+              <strong>${esc(item.fullName)}</strong>
+              <div style="font-size:.58rem;color:var(--lp-muted);font-weight:600;">
+                ${esc(item.studentNumber)} • ${esc(item.email)}
+              </div>
+            </div>
+            <button type="button" class="btn-el" style="font-size:.48rem;padding:.4rem .6rem;">
+              <i class="fa fa-times"></i>
+            </button>`;
+
+          el.querySelector('button').addEventListener('click', function () {
+            selected.delete(item.email.toLowerCase());
+            renderSelected();
+          });
+
+          attendeeSelected.appendChild(el);
+        }
+      }
+
+      async function searchStudents(q) {
+        attendeeResults.innerHTML = "<div class='empty-box'><i class='fa fa-spinner'></i> Searching...</div>";
+        const url = new URL('@Url.Action("LessonAttendees", "Student")', window.location.origin);
+        if (q && q.trim().length > 0) url.searchParams.set('q', q.trim());
+        url.searchParams.set('page', '1');
+        url.searchParams.set('pageSize', '20');
+
+        const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Search failed: HTTP ' + res.status);
+        return await res.json();
+      }
+
+      function renderResults(data) {
+        attendeeResults.innerHTML = '';
+        const items = data.items || [];
+        if (items.length === 0) {
+          attendeeResults.innerHTML = "<div class='empty-box'><i class='fa fa-user-slash'></i> No matches.</div>";
+          return;
+        }
+
+        for (const s of items) {
+          const emailKey = (s.email || '').toLowerCase();
+          const isAdded = selected.has(emailKey);
+
+          const el = document.createElement('div');
+          el.className = 'resource-item';
+          el.innerHTML = `
+            <div class="meta">
+              <strong>${esc(s.fullName)}</strong>
+              <div style="font-size:.58rem;color:var(--lp-muted);font-weight:600;">
+                ${esc(s.studentNumber)} • ${esc(s.email)}
+              </div>
+            </div>
+            <button type="button" class="btn-el ${isAdded ? 'primary' : ''}" style="font-size:.48rem;padding:.4rem .6rem;">
+              <i class="fa ${isAdded ? 'fa-check' : 'fa-plus'}"></i> ${isAdded ? 'Added' : 'Add'}
+            </button>`;
+
+          el.querySelector('button').addEventListener('click', function () {
+            if (!emailKey) return;
+            if (selected.has(emailKey)) selected.delete(emailKey);
+            else selected.set(emailKey, { fullName: s.fullName, email: s.email, studentNumber: s.studentNumber });
+
+            renderSelected();
+            renderResults(data);
+          });
+
+          attendeeResults.appendChild(el);
+        }
+      }
+
+      attendeeSearch?.addEventListener('input', function () {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(async function () {
+          try {
+            const data = await searchStudents(attendeeSearch.value);
+            renderResults(data);
+          } catch (e) {
+            attendeeResults.innerHTML = "<div class='empty-box'><i class='fa fa-triangle-exclamation'></i> " + esc(e.message) + "</div>";
+          }
+        }, 250);
+      });
+
+      scheduleBtn?.addEventListener('click', async function () {
+        if (!form) return;
+
+        const fd = new FormData(form);
+        const roomName = (fd.get('roomName') || '').toString().trim();
+        const topic = (fd.get('subject') || '').toString().trim();
+        const startLocal = (fd.get('startLocal') || '').toString();
+        const endLocal = (fd.get('endLocal') || '').toString();
+        const password = (fd.get('password') || '').toString().trim();
+
+        if (!validateRoom(roomName)) { setStatus('Invalid room name'); return; }
+        if (!topic || !startLocal || !endLocal) { setStatus('Missing required fields'); return; }
+        if (selected.size === 0) { setStatus('Select at least one student'); return; }
+
+        const startUtc = new Date(startLocal);
+        const endUtc = new Date(endLocal);
+        if (isNaN(startUtc) || isNaN(endUtc)) { setStatus('Invalid start/end date'); return; }
+
+        const payload = {
+          roomName,
+          topic,
+          startUtc: startUtc.toISOString(),
+          endUtc: endUtc.toISOString(),
+          password: password || null,
+          attendeeEmails: Array.from(selected.values()).map(x => x.email)
+        };
+
+        const antiforgery = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        try {
+          setStatus('Scheduling...');
+          scheduleBtn.disabled = true;
+
+          const res = await fetch('@Url.Action("ScheduleLesson", "Student")', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              ...(antiforgery ? { 'RequestVerificationToken': antiforgery } : {})
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) throw new Error(await res.text());
+
+          const data = await res.json();
+          currentLessonId = data.lessonId;
+
+          const joinUrl = data.joinUrl || `https://meet.jit.si/${encodeURIComponent(roomName)}`;
+          joinLinkBtn.href = joinUrl;
+          joinLinkBtn.style.pointerEvents = '';
+          joinLinkBtn.style.opacity = '1';
+
+          startBtn.disabled = false;
+          setStatus('Invites sent & lesson saved');
+        } catch (e) {
+          setStatus('Error: ' + e.message);
+        } finally {
+          scheduleBtn.disabled = false;
+        }
+      });
+
+      async function postLessonEvent(eventType) {
+        if (!currentLessonId) return;
+        if (!eventType) return;
+        if (!form) return;
+
+        const antiforgery = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        try {
+          await fetch('@Url.Action("LessonEvent", "Student")', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              ...(antiforgery ? { 'RequestVerificationToken': antiforgery } : {})
+            },
+            body: JSON.stringify({ lessonId: currentLessonId, eventType: eventType })
+          });
+        } catch {
+        }
+      }
+
+      function startHeartbeat() {
+        if (heartbeatTimer) return;
+        heartbeatTimer = window.setInterval(() => postLessonEvent('Heartbeat'), 60000);
+      }
+
+      function stopHeartbeat() {
+        if (!heartbeatTimer) return;
+        window.clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+
+      window.addEventListener('beforeunload', function () {
+        if (!currentLessonId) return;
+
+        const payload = JSON.stringify({ lessonId: currentLessonId, eventType: 'Left' });
+        const url = '@Url.Action("LessonEvent", "Student")';
+
+        try {
+          navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+        } catch {
+        }
+      });
+
+      startBtn?.addEventListener('click', function () {
+        if (api || !form) return;
+
+        const fd = new FormData(form);
+        const roomRaw = (fd.get('roomName') || '').toString().trim();
+
+        stage.style.display = 'block';
+
+        try {
+          api = new JitsiMeetExternalAPI('meet.jit.si', {
+            roomName: roomRaw,
+            parentNode: stage,
+            userInfo: { displayName: (fd.get('displayName') || '').toString() || 'Participant' }
+          });
+
+          endBtn.disabled = false;
+          startBtn.disabled = true;
+          setStatus('Live (embedded)');
+
+          api.addEventListener('videoConferenceJoined', function () {
+            postLessonEvent('Joined');
+            startHeartbeat();
+          });
+
+          api.addEventListener('readyToClose', teardown);
+        } catch {
+          setStatus('Embed failed. Use Join Link.');
+        }
+      });
+
+      function teardown() {
+        stopHeartbeat();
+
+        if (api) { api.dispose(); api = null; }
+        stage.innerHTML = '';
+        stage.style.display = 'none';
+        startBtn.disabled = false;
+        endBtn.disabled = true;
+        setStatus('Ended');
+
+        postLessonEvent('Left');
+      }
+
+      endBtn?.addEventListener('click', teardown);
+
+      if (assessmentForm && btnAddQuestion && questionHost) {
+        let questionIndex = questionHost.querySelectorAll('.q-card').length;
+
+        function ensureHostNotEmpty() {
+          const empty = questionHost.querySelector('.empty-box');
+          if (empty) empty.remove();
+        }
+
+        function getTargetMarks() {
+          const raw = document.querySelector('#assessmentBuilder input[name="MaxScore"]')?.value;
+          const n = parseInt(raw || '0', 10);
+          return Number.isFinite(n) ? n : 0;
+        }
+
+        function getSumMarks() {
+          const inputs = [...questionHost.querySelectorAll('input[data-qmarks]')];
+          return inputs.reduce((sum, el) => {
+            const n = parseInt(el.value || '0', 10);
+            return sum + (Number.isFinite(n) && n > 0 ? n : 0);
+          }, 0);
+        }
+
+        function updateMarksSummary() {
+          const sum = getSumMarks();
+          const target = getTargetMarks();
+
+          const sumEl = document.getElementById('marksSum');
+          const targetEl = document.getElementById('marksTarget');
+          const summary = document.getElementById('marksSummary');
+
+          if (sumEl) sumEl.textContent = sum.toString();
+          if (targetEl) targetEl.textContent = target.toString();
+
+          if (summary) {
+            const ok = target > 0 && sum === target;
+            summary.style.background = ok ? 'rgba(13,142,102,.08)' : '#fff5f5';
+          }
+        }
+
+        questionHost.addEventListener('input', function (e) {
+          if (e.target && e.target.matches('input[data-qmarks]')) {
+            updateMarksSummary();
+          }
+        });
+
+        document.querySelector('#assessmentBuilder input[name="MaxScore"]')?.addEventListener('input', updateMarksSummary);
+
+        async function uploadQuestionImage(file) {
+          const antiforgery = assessmentForm.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+          const fd = new FormData();
+          fd.append('file', file);
+
+          const res = await fetch('@Url.Action("UploadQuestionImage", "Assessment")', {
+            method: 'POST',
+            headers: {
+              ...(antiforgery ? { 'RequestVerificationToken': antiforgery } : {})
+            },
+            body: fd
+          });
+
+          if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt || `Upload failed (HTTP ${res.status})`);
+          }
+
+          return await res.json();
+        }
+
+      function wireQuestionImageHandlers(card) {
+      const fileInput = card.querySelector('input[type="file"][data-qimage]');
+      const idInput = card.querySelector('input[type="hidden"][data-qimage-id]');
+      const previewWrap = card.querySelector('[data-qimage-preview]');
+      const previewImg = previewWrap?.querySelector('img');
+      const clearBtn = card.querySelector('[data-qimage-clear]');
+      const annotateChk = card.querySelector('input[type="checkbox"][data-enable-annotation]');
+
+      let objectUrl = null;
+
+      function clearImage() {
+        if (objectUrl) {
+          URL.revokeObjectURL(objectUrl);
+          objectUrl = null;
+        }
+
+        if (fileInput) fileInput.value = '';
+        if (idInput) idInput.value = '';
+        if (previewWrap) previewWrap.style.display = 'none';
+        if (previewImg) previewImg.src = '';
+
+        if (annotateChk) annotateChk.checked = false;
+      }
+
+      clearBtn?.addEventListener('click', clearImage);
+
+      fileInput?.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
+        if (!file) return;
+
+        try {
+          if (previewImg) {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            objectUrl = URL.createObjectURL(file);
+            previewImg.src = objectUrl;
+          }
+          if (previewWrap) previewWrap.style.display = '';
+
+          const data = await uploadQuestionImage(file);
+          if (!data?.fileId) throw new Error('Upload did not return fileId.');
+
+          if (idInput) idInput.value = data.fileId.toString();
+        } catch (e) {
+          alert(`Image upload failed: ${e.message || e}`);
+          clearImage();
+        }
+      });
+    }
+
+      function setQuestionType(card, type) {
+          const mcqPane = card.querySelector('[data-pane="mcq"]');
+          const saPane = card.querySelector('[data-pane="short"]');
+          const mathPane = card.querySelector('[data-pane="math"]');
+          const typeInput = card.querySelector('input[data-question-type]');
+
+          if (typeInput) typeInput.value = type;
+
+          card.querySelectorAll('[data-type-btn]').forEach(b => b.classList.remove('primary'));
+          card.querySelector(`[data-type-btn="${type}"]`)?.classList.add('primary');
+
+          const isMcq = type === 'MultipleChoice';
+          const isShort = type === 'ShortAnswer';
+          const isMath = type === 'MathInput';
+
+          if (mcqPane) mcqPane.style.display = isMcq ? '' : 'none';
+          if (saPane) saPane.style.display = isShort ? '' : 'none';
+          if (mathPane) mathPane.style.display = isMath ? '' : 'none';
+
+          if (mcqPane) {
+            mcqPane.querySelectorAll('input, textarea, select').forEach((el) => {
+              el.disabled = !isMcq;
+              if (el.tagName === 'INPUT' && el.type === 'text' && el.name && el.name.includes('.Options[') && el.name.endsWith('].Text')) {
+                el.required = isMcq;
+              }
+            });
+          }
+          if (saPane) {
+            saPane.querySelectorAll('input, textarea, select').forEach((el) => { el.disabled = !isShort; });
+          }
+          if (mathPane) {
+            mathPane.querySelectorAll('input, textarea, select').forEach((el) => { el.disabled = !isMath; });
+          }
+        }
+      function reindexQuestions() {
+      const cards = [...questionHost.querySelectorAll('.q-card')];
+
+      cards.forEach((card, i) => {
+        card.dataset.qindex = i.toString();
+
+        const title = card.querySelector('[data-qtitle]');
+        if (title) title.textContent = `Question ${i + 1}`;
+
+        card.querySelectorAll('input[name], textarea[name], select[name]').forEach((el) => {
+          const name = el.getAttribute('name');
+          if (!name) return;
+          el.setAttribute('name', name.replace(/Questions\[\d+\]/g, `Questions[${i}]`));
+        });
+
+        card.querySelectorAll('input[name$=".EnableAnnotation"]').forEach((el) => {
+          const name = el.getAttribute('name');
+          if (!name) return;
+          el.setAttribute('name', `Questions[${i}].EnableAnnotation`);
+        });
+      });
+
+      questionIndex = cards.length;
+    }
+        function reindexOptions(card) {
+          const optionsHost = card.querySelector('[data-options-host]');
+          if (!optionsHost) return;
+
+          const qIdx = parseInt(card.dataset.qindex || '0', 10);
+          const rows = [...optionsHost.querySelectorAll('.answer-row')];
+
+          rows.forEach((row, optIdx) => {
+            row.querySelectorAll('input[name]').forEach((el) => {
+              const name = el.getAttribute('name');
+              if (!name) return;
+              el.setAttribute('name', name.replace(/Options\[\d+\]/g, `Options[${optIdx}]`));
+            });
+
+            const radio = row.querySelector('input[type="radio"][data-correct-radio]');
+            const hidden = row.querySelector('input[type="hidden"][data-correct-hidden]');
+            if (radio) {
+              radio.name = `Questions[${qIdx}].__CorrectOption`;
+              radio.value = optIdx.toString();
+            }
+            if (hidden) {
+              hidden.name = `Questions[${qIdx}].Options[${optIdx}].IsCorrect`;
+            }
+          });
+        }
+
+        function syncCorrectFlags(card) {
+          const qIdx = parseInt(card.dataset.qindex || '0', 10);
+          const selectedRadio = card.querySelector(`input[type="radio"][name="Questions[${qIdx}].__CorrectOption"]:checked`);
+          const selectedIndex = selectedRadio ? parseInt(selectedRadio.value, 10) : -1;
+
+          const optionsHost = card.querySelector('[data-options-host]');
+          if (!optionsHost) return;
+
+          const rows = [...optionsHost.querySelectorAll('.answer-row')];
+          rows.forEach((row, idx) => {
+            const hidden = row.querySelector('input[type="hidden"][data-correct-hidden]');
+            if (hidden) hidden.value = (idx === selectedIndex).toString().toLowerCase();
+          });
+        }
+
+        function addOptionRow(card) {
+          const optionsHost = card.querySelector('[data-options-host]');
+          if (!optionsHost) return;
+
+          const qIdx = parseInt(card.dataset.qindex || '0', 10);
+          const optIdx = optionsHost.querySelectorAll('.answer-row').length;
+
+          const row = document.createElement('div');
+          row.className = 'answer-row';
+          row.innerHTML = `
+            <div class="input-wrap" style="flex:1;">
+              <i class="fa fa-circle-dot"></i>
+              <input type="text" name="Questions[${qIdx}].Options[${optIdx}].Text" placeholder="Option text..." required />
+            </div>
+            <label class="btn-el" style="font-size:.48rem;padding:.45rem .6rem;">
+              <input type="radio" data-correct-radio style="margin-right:.35rem;" />
+              Correct
+            </label>
+
+            <input type="hidden" data-correct-hidden name="Questions[${qIdx}].Options[${optIdx}].IsCorrect" value="false" />
+
+            <button type="button" class="btn-el" data-remove-option style="font-size:.48rem;padding:.45rem .6rem;">
+              <i class="fa fa-trash"></i>
+            </button>
+          `;
+
+          row.querySelector('[data-remove-option]')?.addEventListener('click', () => {
+            row.remove();
+            reindexOptions(card);
+            syncCorrectFlags(card);
+          });
+
+          row.querySelector('input[type="radio"][data-correct-radio]')?.addEventListener('change', () => {
+            syncCorrectFlags(card);
+          });
+
+          optionsHost.appendChild(row);
+
+          reindexOptions(card);
+        }
+
+        function addQuestionCard() {
+          ensureHostNotEmpty();
+
+          const qIdx = questionIndex;
+
+          const card = document.createElement('div');
+          card.className = 'q-card';
+          card.dataset.qindex = qIdx.toString();
+
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;">
+              <h4 data-qtitle>Question ${qIdx + 1}</h4>
+              <div style="display:flex;gap:.45rem;flex-wrap:wrap;">
+                  <button type="button" class="btn-el primary" data-type-btn="MultipleChoice" style="font-size:.48rem;padding:.4rem .6rem;">
+                  <i class="fa fa-list"></i> MCQ
+                </button>
+                <button type="button" class="btn-el" data-type-btn="ShortAnswer" style="font-size:.48rem;padding:.4rem .6rem;">
+                  <i class="fa fa-i-cursor"></i> Text
+                </button>
+                <button type="button" class="btn-el" data-type-btn="MathInput" style="font-size:.48rem;padding:.4rem .6rem;">
+                  <i class="fa fa-square-root-variable"></i> Math
+                </button>
+                    <button type="button" class="btn-el" data-toggle-image style="font-size:.48rem;padding:.4rem .6rem;">
+                      <i class="fa fa-image"></i>
+                     </button>
+                <button type="button" class="btn-el" data-remove-question style="font-size:.48rem;padding:.4rem .6rem;">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <input type="hidden" data-question-type name="Questions[${qIdx}].QuestionType" value="MultipleChoice" />
+
+            <div class="input-wrap" style="max-width:220px;">
+              <i class="fa fa-star"></i>
+              <input type="number"
+                     name="Questions[${qIdx}].Marks"
+                     min="1"
+                     max="1000"
+                     value="1"
+                     data-qmarks
+                     required />
+            </div>
+
+            <div data-image-pane style="display:none;">
+              <div class="input-wrap" style="align-items:flex-start;">
+                <i class="fa fa-image" style="margin-top:.25rem;"></i>
+                <div style="width:100%;">
+                  <input type="hidden" name="Questions[${qIdx}].ImagePath" data-qimage-id value="" />
+                  <input type="file" accept="image/*" data-qimage style="font-size:.62rem;" />
+
+                    <div style="margin-top:.5rem;">
+                  <label class="lp-check">
+                    <input type="checkbox"
+                           data-enable-annotation
+                           name="Questions[${qIdx}].EnableAnnotation"
+                           value="true" />
+                    <span>Allow learners to draw on this image (diagram question)</span>
+                  </label>
+                  <input type="hidden" name="Questions[${qIdx}].EnableAnnotation" value="false" />
+                </div>
+
+                  <div data-qimage-preview style="margin-top:.5rem;display:none;">
+                    <img alt="Question image preview" style="max-height:180px;width:auto;border-radius:12px;border:1px solid var(--lp-border);" />
+                    <div style="margin-top:.35rem;">
+                      <button type="button" class="btn-el" data-qimage-clear style="font-size:.48rem;padding:.4rem .6rem;">
+                        <i class="fa fa-trash"></i> Remove Image
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-wrap">
+              <i class="fa fa-pen"></i>
+              <input type="text" name="Questions[${qIdx}].Prompt" placeholder="Question prompt..." required />
+            </div>
+
+            <div class="input-wrap" style="align-items:flex-start;">
+              <i class="fa fa-circle-info" style="margin-top:.3rem;"></i>
+              <textarea name="Questions[${qIdx}].Explanation" rows="2" placeholder="Optional explanation shown after submission..."></textarea>
+            </div>
+
+            <div data-pane="mcq">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.2rem;">
+                <div style="font-size:.52rem;letter-spacing:.14rem;font-weight:800;text-transform:uppercase;color:var(--lp-muted);">
+                  Options
+                </div>
+                <button type="button" class="btn-el" data-add-option style="font-size:.48rem;padding:.4rem .6rem;">
+                  <i class="fa fa-plus"></i> Add Option
+                </button>
+              </div>
+
+              <div data-options-host style="margin-top:.5rem;"></div>
+
+              <div style="margin-top:.35rem;font-size:.54rem;color:var(--lp-muted);font-weight:600;">
+                Mark exactly one option as correct.
+              </div>
+            </div>
+
+            <div data-pane="short" style="display:none;">
+              <div style="margin-top:.25rem;font-size:.54rem;color:var(--lp-muted);font-weight:600;">
+                Learners will type an answer. Marking rules are handled by the back-end (recommended: manual review or normalization rules).
+              </div>
+            </div>
+
+               <div data-pane="math" style="display:none;">
+              <div style="margin-top:.25rem;font-size:.54rem;color:var(--lp-muted);font-weight:600;">
+                Learners will use an equation editor (MathLive) to enter their answer as LaTeX. Use $...$ in the prompt for inline math.
+              </div>
+            </div>
+          `;
+
+          card.querySelector('[data-remove-question]')?.addEventListener('click', () => {
+            card.remove();
+            if (questionHost.querySelectorAll('.q-card').length === 0) {
+              questionHost.innerHTML = `<div class="empty-box"><i class="fa fa-circle-info"></i> No questions added.</div>`;
+            }
+            reindexQuestions();
+            updateMarksSummary();
+          });
+
+          card.querySelector('[data-type-btn="MathInput"]')?.addEventListener('click', () => setQuestionType(card, 'MathInput'));
+
+          card.querySelector('[data-type-btn="MultipleChoice"]')?.addEventListener('click', () => setQuestionType(card, 'MultipleChoice'));
+          card.querySelector('[data-type-btn="ShortAnswer"]')?.addEventListener('click', () => setQuestionType(card, 'ShortAnswer'));
+
+          card.querySelector('[data-add-option]')?.addEventListener('click', () => addOptionRow(card));
+          card.querySelector('[data-toggle-image]')?.addEventListener('click', () => {
+            const pane = card.querySelector('[data-image-pane]');
+            if (!pane) return;
+            pane.style.display = pane.style.display === 'none' ? '' : 'none';
+          });
+
+          questionHost.appendChild(card);
+
+          addOptionRow(card);
+          addOptionRow(card);
+
+          const firstRadio = card.querySelector('input[type="radio"][data-correct-radio]');
+          if (firstRadio) {
+            firstRadio.checked = true;
+            syncCorrectFlags(card);
+          }
+
+          wireQuestionImageHandlers(card);
+
+          questionIndex++;
+          updateMarksSummary();
+        }
+
+        btnAddQuestion.addEventListener('click', addQuestionCard);
+
+        assessmentForm.addEventListener('submit', function (e) {
+          const count = questionHost.querySelectorAll('.q-card').length;
+          if (count === 0) {
+            e.preventDefault();
+            alert('Please add at least one question before saving the assessment.');
+            return;
+          }
+
+          questionHost.querySelectorAll('.q-card').forEach(syncCorrectFlags);
+
+          const target = getTargetMarks();
+          const sum = getSumMarks();
+
+          if (target > 0 && sum !== target) {
+            e.preventDefault();
+            alert(`Total question marks must equal Max Score.\n\nSum of question marks: ${sum}\nMax Score: ${target}`);
+          }
+        });
+
+        updateMarksSummary();
+      }
+
+    function renderMathInElement(el) {
+        if (!window.katex || !el) return;
+
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        for (const node of textNodes) {
+            const text = node.nodeValue;
+            if (!text) continue;
+
+            const regex = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;
+            if (!regex.test(text)) continue;
+
+            regex.lastIndex = 0;
+            const frag = document.createDocumentFragment();
+            let lastIndex = 0;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    frag.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+                }
+
+                const raw = match[0];
+                const isBlock = raw.startsWith('$$');
+                const latex = isBlock ? raw.slice(2, -2) : raw.slice(1, -1);
+
+                const span = document.createElement(isBlock ? 'div' : 'span');
+                try {
+                    katex.render(latex, span, { displayMode: isBlock, throwOnError: false });
+                } catch {
+                    span.textContent = raw;
+                }
+                frag.appendChild(span);
+                lastIndex = regex.lastIndex;
+            }
+
+            if (lastIndex < text.length) {
+                frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+            }
+
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+
+    function updateMathPreview() {
+        const chk = document.getElementById('chkEnableMath');
+        if (!chk || !chk.checked) return;
+
+        const previewEl = document.getElementById('assessmentPreview');
+        if (!previewEl) return;
+
+        // Build preview HTML from current questions
+        const cards = [...document.querySelectorAll('#questionHost .q-card')];
+        if (cards.length === 0) {
+            previewEl.innerHTML = "<div class='empty-box'><i class='fa fa-eye'></i> Nothing to preview.</div>";
+            return;
+        }
+
+        let html = '';
+        cards.forEach((card, i) => {
+            const prompt = card.querySelector('input[name$=".Prompt"]')?.value || '';
+            const explanation = card.querySelector('textarea[name$=".Explanation"]')?.value || '';
+            const marks = card.querySelector('input[data-qmarks]')?.value || '1';
+
+            const options = [...card.querySelectorAll('[data-options-host] .answer-row')];
+            let optionsHtml = '';
+            options.forEach((row, oi) => {
+                const text = row.querySelector('input[type="text"]')?.value || '';
+                const isCorrect = row.querySelector('input[type="hidden"][data-correct-hidden]')?.value === 'true';
+                optionsHtml += `<div class="resource-item" style="padding:.4rem .6rem;">
+                    <span>${esc(String.fromCharCode(65 + oi))}. <span class="math-render">${esc(text)}</span></span>
+                    ${isCorrect ? '<span style="color:#167846;font-weight:700;font-size:.55rem;">✓ Correct</span>' : ''}
+                </div>`;
+            });
+
+            html += `<div class="q-card" style="margin-bottom:.6rem;">
+                <h4 style="display:flex;justify-content:space-between;">
+                    <span>Q${i + 1}</span>
+                    <span class="stat-pill" style="font-size:.48rem;">${esc(marks)} mark(s)</span>
+                </h4>
+                <div class="math-render" style="font-size:.7rem;font-weight:600;">${esc(prompt)}</div>
+                ${explanation ? `<div class="math-render" style="font-size:.6rem;color:var(--lp-muted);font-style:italic;">${esc(explanation)}</div>` : ''}
+                ${optionsHtml}
+            </div>`;
+        });
+
+        previewEl.innerHTML = html;
+
+        // Render LaTeX in all .math-render spans
+        previewEl.querySelectorAll('.math-render').forEach(el => {
+            // Unescape the text first (we escaped it with esc())
+            el.textContent = el.textContent; // already text
+            renderMathInElement(el);
+        });
+    }
+
+    const mathChk = document.getElementById('chkEnableMath');
+    if (mathChk) {
+        // Debounced preview update
+        let mathPreviewTimer = null;
+        function scheduleMathPreview() {
+            clearTimeout(mathPreviewTimer);
+            mathPreviewTimer = setTimeout(updateMathPreview, 400);
+        }
+
+        mathChk.addEventListener('change', scheduleMathPreview);
+
+        // Listen for input changes in the question host
+        document.getElementById('questionHost')?.addEventListener('input', scheduleMathPreview);
+    }
+
+    (function initMathSupport() {
+    const esc = (s) => (s || '').toString()
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    function renderLatexInElement(el) {
+        if (!window.katex || !el) return;
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        for (const node of nodes) {
+            const text = node.nodeValue;
+            if (!text) continue;
+            const regex = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;
+            if (!regex.test(text)) continue;
+            regex.lastIndex = 0;
+            const frag = document.createDocumentFragment();
+            let last = 0, match;
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+                const raw = match[0];
+                const isBlock = raw.startsWith('$$');
+                const latex = isBlock ? raw.slice(2, -2) : raw.slice(1, -1);
+                const span = document.createElement(isBlock ? 'div' : 'span');
+                span.className = 'math-preview-inline';
+                try { katex.render(latex, span, { displayMode: isBlock, throwOnError: false }); }
+                catch { span.textContent = raw; }
+                frag.appendChild(span);
+                last = regex.lastIndex;
+            }
+           if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+           node.parentNode.replaceChild(frag, node);
+        }
+    }
+
+    function createMathToolbar(targetInput) {
+        const wrap = document.createElement('div');
+        wrap.className = 'math-editor-wrap';
+        wrap.innerHTML = `
+            <div class="math-toolbar">
+                <button type="button" data-tpl="\\frac{▢}{▢}"><i class="fa fa-divide"></i> Fraction</button>
+                <button type="button" data-tpl="\\sqrt{▢}"><i class="fa fa-square-root-variable"></i> √</button>
+                <button type="button" data-tpl="x^{▢}"><i class="fa fa-superscript"></i> Power</button>
+                <button type="button" data-tpl="x_{▢}"><i class="fa fa-subscript"></i> Subscript</button>
+                <button type="button" data-tpl="\\sum_{i=▢}^{▢}"><i class="fa fa-sigma"></i> Sum</button>
+                <button type="button" data-tpl="\\int_{▢}^{▢}"><i class="fa fa-integral"></i> Integral</button>
+                <button type="button" data-tpl="\\pi">π</button>
+                <button type="button" data-tpl="\\theta">θ</button>
+                <button type="button" data-tpl="\\infty">∞</button>
+                <button type="button" data-tpl="\\pm">±</button>
+                <button type="button" data-tpl="\\leq">≤</button>
+                <button type="button" data-tpl="\\geq">≥</button>
+                <button type="button" data-tpl="\\neq">≠</button>
+            </div>
+            <math-field></math-field>
+            <div style="display:flex;gap:.4rem;margin-top:.4rem;">
+                <button type="button" class="btn-el primary" data-insert-math style="font-size:.48rem;padding:.4rem .6rem;">
+                    <i class="fa fa-check"></i> Insert Equation
+                </button>
+                <button type="button" class="btn-el" data-cancel-math style="font-size:.48rem;padding:.4rem .6rem;">
+                    <i class="fa fa-times"></i> Cancel
+                </button>
+            </div>
+        `;
+
+        const mathField = wrap.querySelector('math-field');
+         wrap.querySelectorAll('[data-tpl]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tpl = btn.getAttribute('data-tpl');
+                if (mathField) {
+                    mathField.executeCommand(['insert', tpl]);
+                    mathField.focus();
+                }
+            });
+        });
+
+        wrap.querySelector('[data-insert-math]').addEventListener('click', (e) => {
+            e.preventDefault();
+            const latex = mathField.getValue('latex');
+            if (!latex || !latex.trim()) return;
+
+            const insertion = ` $${latex}$ `;
+            const pos = targetInput.selectionStart ?? targetInput.value.length;
+            const before = targetInput.value.substring(0, pos);
+            const after = targetInput.value.substring(pos);
+            targetInput.value = before + insertion + after;
+            targetInput.selectionStart = targetInput.selectionEnd = pos + insertion.length;
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+            mathField.setValue('');
+            wrap.classList.remove('active');
+        });
+        wrap.querySelector('[data-cancel-math]').addEventListener('click', (e) => {
+            e.preventDefault();
+            mathField.setValue('');
+            wrap.classList.remove('active');
+        });
+
+        return wrap;
+    }
+
+    function wireMathEditors(card) {
+        const mathEnabled = document.getElementById('chkEnableMath');
+        if (!mathEnabled || !mathEnabled.checked) return;
+
+        const targets = [
+            ...card.querySelectorAll('input[name$=".Prompt"]'),
+            ...card.querySelectorAll('textarea[name$=".Explanation"]'),
+            ...card.querySelectorAll('[data-options-host] input[type="text"]')
+        ];
+
+        targets.forEach(input => {
+            if (input.dataset.mathWired) return;
+            input.dataset.mathWired = 'true';
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'btn-el';
+            toggleBtn.style.cssText = 'font-size:.44rem;padding:.3rem .5rem;margin-top:.25rem;';
+            toggleBtn.innerHTML = '<i class="fa fa-square-root-variable"></i> Math';
+            toggleBtn.title = 'Open math equation editor';
+
+            const editorWrap = createMathToolbar(input);
+
+            toggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                editorWrap.classList.toggle('active');
+                const mf = editorWrap.querySelector('math-field');
+                if (mf && editorWrap.classList.contains('active')) mf.focus();
+            });
+            const inputWrap = input.closest('.input-wrap') || input.closest('.answer-row') || input.parentElement;
+            inputWrap.after(editorWrap);
+            inputWrap.after(toggleBtn);
+        });
+    }
+
+    const questionHost = document.getElementById('questionHost');
+    if (questionHost) {
+        const observer = new MutationObserver(() => {
+            const mathEnabled = document.getElementById('chkEnableMath');
+            if (!mathEnabled || !mathEnabled.checked) return;
+            questionHost.querySelectorAll('.q-card').forEach(wireMathEditors);
+        });
+        observer.observe(questionHost, { childList: true, subtree: true });
+
+        document.getElementById('chkEnableMath')?.addEventListener('change', function () {
+            if (this.checked) {
+                questionHost.querySelectorAll('.q-card').forEach(wireMathEditors);
+            }
+        });
+    }
+
+    window.__renderLatexInElement = renderLatexInElement;
+    })();
+      renderSelected();
+    })();
+</script>

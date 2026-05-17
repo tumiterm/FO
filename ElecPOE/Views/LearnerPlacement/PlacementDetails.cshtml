@@ -1,0 +1,208 @@
+﻿@using ForekOnline.Domain.Entities
+@{
+    var student = ViewData["student"] as Student;
+    var company = (string?)ViewData["company"] ?? "—";
+    var placementId = (string?)ViewData["PlacementId"] ?? "";
+    var primaryEnrollment = student?.EnrollmentHistory?.FirstOrDefault();
+    string courseTitle = primaryEnrollment?.CourseTitle ?? "No Course";
+    string courseType  = primaryEnrollment?.CourseType ?? "N/A";
+    int modulesCount   = student?.EnrollmentHistory?.Count ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Learner Workplace Details</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+:root{
+  --pd-dr:#320606;--pd-red:#b31217;--pd-orange:#ff7a18;
+  --pd-bg:#ffffff;--pd-bg-alt:#f5f7fa;--pd-soft:#fff5f3;
+  --pd-border:#e3e6ea;--pd-border-alt:#d4d6db;
+  --pd-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  --pd-text:#1f262e;--pd-muted:#6b7280;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+@@media (prefers-color-scheme:dark){
+ :root{--pd-bg:#1f242d;--pd-bg-alt:#141a21;--pd-soft:#2c3137;--pd-border:#2f3741;--pd-border-alt:#3a4551;--pd-text:#e7ebf0;--pd-muted:#99a5b4;}
+ body{background:radial-gradient(at 70% 18%,#ff7a1820,#141a21 70%)!important;}
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--pd-bg-alt);color:var(--pd-text);-webkit-font-smoothing:antialiased;}
+.page-shell{max-width:1400px;margin:0 auto;padding:2.1rem 1.4rem 3.2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:1.6rem;}
+.header-block{grid-column:1/-1;background:var(--pd-bg);border:1px solid var(--pd-border);border-radius:42px;padding:1.55rem 1.6rem 1.4rem;display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;position:relative;overflow:hidden;}
+.header-block:before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,#32060610,#b3121710,#ff7a1812);}
+.icon-pill{width:90px;height:90px;border-radius:30px;background:var(--pd-grad);display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#fff;box-shadow:0 14px 40px -16px rgba(179,18,23,.55);}
+.header-block h1{margin:0;font-size:1.65rem;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:.7rem;}
+.meta-chip{font-size:.6rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;background:var(--pd-soft);color:var(--pd-red);padding:.55rem .95rem;border-radius:40px;margin-top:.3rem;display:inline-flex;gap:.45rem;align-items:center;}
+.actions{margin-left:auto;display:flex;gap:.65rem;flex-wrap:wrap;}
+.btn{font-size:.6rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.65rem 1.05rem;border-radius:16px;border:1px solid var(--pd-border);background:#fff;color:var(--pd-red);display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;text-decoration:none;transition:.35s;}
+.btn:hover{background:var(--pd-grad);color:#fff;border-color:var(--pd-red);box-shadow:0 6px 16px -8px rgba(179,18,23,.5);}
+.btn-accent{background:var(--pd-grad);color:#fff;border:1px solid var(--pd-red);} .btn-accent:hover{filter:brightness(.94);}
+.panel{background:var(--pd-bg);border:1px solid var(--pd-border);border-radius:34px;padding:1.3rem 1.3rem 1.15rem;display:flex;flex-direction:column;gap:1.15rem;position:relative;overflow:hidden;}
+.panel:before{content:'';position:absolute;inset:0;background:linear-gradient(140deg,#32060608,#b3121708,#ff7a180a);pointer-events:none;}
+.panel-title{margin:0;font-size:.75rem;letter-spacing:.22rem;font-weight:700;color:var(--pd-red);text-transform:uppercase;display:flex;gap:.5rem;align-items:center;}
+.avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;}
+.avatar{width:150px;height:150px;border-radius:50%;object-fit:cover;border:4px solid var(--pd-soft);background:#fff;box-shadow:0 8px 22px -12px rgba(50,6,6,.3);}
+.badge-row{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;}
+.badge{font-size:.55rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;padding:.4rem .7rem;border-radius:30px;background:var(--pd-soft);color:var(--pd-red);border:1px solid var(--pd-border);}
+.badge.alt{background:#eef3f7;color:#173b53;}
+.badge.dark{background:#222d38;color:#fff;border:1px solid #394452;}
+@@media (prefers-color-scheme:dark){.badge.alt{background:#2b3541;color:#cfd6dd;}}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.9rem .8rem;}
+.info-block{display:flex;flex-direction:column;gap:.3rem;padding:.65rem .75rem;border:1px solid var(--pd-border);background:#fff;border-radius:18px;position:relative;transition:.35s;}
+.info-block:hover{border-color:var(--pd-border-alt);box-shadow:0 6px 16px -10px rgba(50,6,6,.15);}
+@@media (prefers-color-scheme:dark){.info-block{background:#222b35;}}
+.info-label{font-size:.52rem;font-weight:700;letter-spacing:.15rem;text-transform:uppercase;color:var(--pd-muted);}
+.info-value{font-size:.72rem;font-weight:600;letter-spacing:.4px;word-break:break-word;}
+.divider{height:1px;background:linear-gradient(to right,transparent,#d9dde0,transparent);margin:.35rem 0;}
+.module-link{font-size:.62rem;font-weight:600;letter-spacing:.1rem;display:inline-flex;align-items:center;gap:.45rem;color:var(--pd-red);text-decoration:none;padding:.55rem .85rem;border:1px solid var(--pd-border);border-radius:14px;background:#fff;transition:.35s;}
+.module-link:hover{background:var(--pd-grad);color:#fff;border-color:var(--pd-red);}
+.timeline{display:flex;flex-direction:column;gap:.75rem;margin-top:.25rem;}
+.tl-item{padding:.65rem .75rem;border:1px solid var(--pd-border);border-radius:16px;background:#fff;display:flex;flex-direction:column;gap:.35rem;position:relative;}
+@@media (prefers-color-scheme:dark){.tl-item{background:#222b35;}}
+.tl-item:before{content:'';position:absolute;left:-8px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--pd-grad);box-shadow:0 0 0 4px #fff;}
+@@media (prefers-color-scheme:dark){.tl-item:before{box-shadow:0 0 0 4px #222b35;}}
+.tl-title{font-size:.6rem;font-weight:700;letter-spacing:.16rem;text-transform:uppercase;color:var(--pd-red);}
+.tl-meta{font-size:.55rem;color:var(--pd-muted);display:flex;gap:.6rem;flex-wrap:wrap;}
+.empty-note{font-size:.58rem;font-weight:600;color:var(--pd-muted);padding:.75rem 1rem;border:1px dashed var(--pd-border);border-radius:14px;text-align:center;}
+.fade-in{animation:fade .55s ease;}@@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:640px){
+  .header-block{padding:1.2rem 1.15rem 1.05rem;border-radius:34px;}
+  .icon-pill{width:70px;height:70px;font-size:1.8rem;}
+  .page-shell{padding:1.6rem 1rem 2.4rem;}
+}
+</style>
+</head>
+<body>
+<div class="page-shell fade-in">
+
+  <!-- HEADER -->
+  <div class="header-block">
+    <div class="icon-pill"><i class="fa fa-id-card"></i></div>
+    <div style="flex:1 1 300px;min-width:260px;">
+      <h1>Learner Workplace Profile</h1>
+      <div class="meta-chip">
+        <i class="fa fa-user-graduate"></i> @student?.FirstName @student?.LastName • @courseTitle
+      </div>
+      <small style="display:block;margin-top:.4rem;font-size:.55rem;letter-spacing:.12rem;color:var(--pd-muted);">
+        Real‑time overview of placement & academic context
+      </small>
+    </div>
+    <div class="actions">
+      <a asp-action="WorkplaceModules" asp-controller="WorplaceModules" asp-route-PlacementId="@placementId" class="btn">
+        <i class="fa fa-layer-group"></i> Modules
+      </a>
+      <button type="button" onclick="history.back()" class="btn">
+        <i class="fa fa-arrow-left"></i> Back
+      </button>
+      <button type="button" onclick="window.print()" class="btn-accent">
+        <i class="fa fa-print"></i> Print
+      </button>
+    </div>
+  </div>
+
+  <!-- LEFT: PROFILE -->
+  <div class="panel">
+    <h2 class="panel-title"><i class="fa fa-user"></i> Learner</h2>
+    <div class="avatar-wrap">
+      <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
+           alt="Learner avatar" class="avatar" />
+      <div class="badge-row">
+        <span class="badge">@courseType</span>
+        <span class="badge alt">Grade @student?.HighestGrade</span>
+        <span class="badge">@student?.Gender</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="info-grid">
+      <div class="info-block">
+        <span class="info-label">Full Name</span>
+        <span class="info-value">@student?.FirstName @student?.LastName</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Student #</span>
+        <span class="info-value">@student?.StudentNumber</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Email</span>
+        <span class="info-value">@student?.Email</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Mobile</span>
+        <span class="info-value">@student?.Cellphone</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">ID Number</span>
+        <span class="info-value">@student?.IDNumber</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Admission Type</span>
+        <span class="info-value">@student?.AdmissionCategory</span>
+      </div>
+      <div class="info-block" style="grid-column:1/-1;">
+        <span class="info-label">Address</span>
+        <span class="info-value">
+          @student?.StreetAddressLine1 @student?.StreetAddressLine2
+        </span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <a class="module-link"
+       asp-controller="WorplaceModules"
+       asp-action="WorkplaceModules"
+       asp-route-PlacementId="@placementId">
+       <i class="fa fa-diagram-project"></i> View Workplace Modules
+    </a>
+  </div>
+
+  <!-- RIGHT: WORKPLACE / LEARNING CONTEXT -->
+  <div class="panel">
+    <h2 class="panel-title"><i class="fa fa-briefcase"></i> Workplace & Course</h2>
+    <div class="info-grid">
+      <div class="info-block">
+        <span class="info-label">Host Company</span>
+        <span class="info-value">@company</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Primary Course</span>
+        <span class="info-value">@courseTitle</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Type</span>
+        <span class="info-value">@courseType</span>
+      </div>
+      <div class="info-block">
+        <span class="info-label">Modules (History)</span>
+        <span class="info-value">@modulesCount</span>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <h2 class="panel-title" style="margin-top:.2rem;"><i class="fa fa-clock"></i> Enrollment Timeline</h2>
+    <div class="timeline">
+      @if (student?.EnrollmentHistory == null || !student.EnrollmentHistory.Any())
+      {
+        <div class="empty-note">No enrollment history recorded.</div>
+      }
+      else
+      {
+        foreach(var e in student.EnrollmentHistory.OrderByDescending(x=>x.StartDate).Take(6))
+        {
+          <div class="tl-item">
+            <span class="tl-title">@e.CourseTitle</span>
+            <div class="tl-meta">
+              <span><i class="fa fa-tag"></i> @e.CourseType</span>
+              <span><i class="fa fa-calendar"></i> @(e.StartDate.ToString("yyyy-MM-dd") ?? "—")</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

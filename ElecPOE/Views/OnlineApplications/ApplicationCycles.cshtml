@@ -1,0 +1,369 @@
+﻿@using ForekOnline.Domain.Entities
+@model IReadOnlyList<ApplicationCycle>
+
+@{
+    ViewData["Title"] = "Application Cycles";
+
+    var success = TempData["success"] as string;
+    var error = TempData["error"] as string;
+}
+
+<style>
+    :root {
+        --cy-text: #1e2430;
+        --cy-muted: #6b7484;
+        --cy-border: #e4e8ef;
+        --cy-bg: #ffffff;
+        --cy-bg2: #f6f8fb;
+        --cy-accent: #b31217;
+        --cy-accent2: #ff7a18;
+        --cy-grad: linear-gradient(95deg,#320606 0%,#b31217 55%,#ff7a18 105%);
+        --cy-shadow: 0 18px 45px -28px rgba(16,24,40,.35);
+        --cy-shadow2: 0 10px 30px -22px rgba(16,24,40,.28);
+        --cy-radius: 22px;
+    }
+
+    .cy-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2.2rem 1.2rem 3.5rem;
+    }
+
+    .cy-hero {
+        position: relative;
+        border: 1px solid var(--cy-border);
+        border-radius: calc(var(--cy-radius) + 10px);
+        background: var(--cy-bg);
+        box-shadow: var(--cy-shadow);
+        padding: 1.6rem 1.7rem 1.35rem;
+        overflow: hidden;
+    }
+
+        .cy-hero:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--cy-grad);
+            opacity: .12;
+            pointer-events: none;
+        }
+
+    .cy-hero-grid {
+        display: flex;
+        gap: 1.1rem;
+        align-items: flex-start;
+        position: relative;
+    }
+
+    .cy-hero-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+        background: var(--cy-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.45rem;
+        box-shadow: 0 14px 30px -18px rgba(179,18,23,.55);
+    }
+
+    .cy-hero h1 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 900;
+        letter-spacing: .06rem;
+        color: var(--cy-text);
+    }
+
+    .cy-hero p {
+        margin: .4rem 0 0;
+        color: var(--cy-muted);
+        font-weight: 600;
+        font-size: .78rem;
+        max-width: 860px;
+        line-height: 1.25rem;
+    }
+
+    .cy-actions {
+        margin-top: .9rem;
+        position: relative;
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+    }
+
+    .cy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        text-decoration: none;
+        border-radius: 16px;
+        padding: .65rem 1rem;
+        border: 1px solid var(--cy-border);
+        background: #fff;
+        color: var(--cy-accent);
+        font-weight: 900;
+        font-size: .62rem;
+        letter-spacing: .14rem;
+        text-transform: uppercase;
+        transition: .2s;
+    }
+
+        .cy-btn:hover {
+            background: var(--cy-grad);
+            color: #fff;
+            border-color: var(--cy-accent);
+        }
+
+    .cy-msg {
+        margin-top: 1rem;
+        border: 1px solid var(--cy-border);
+        border-radius: 18px;
+        padding: .75rem .85rem;
+        background: var(--cy-bg);
+        display: flex;
+        gap: .75rem;
+        align-items: flex-start;
+    }
+
+        .cy-msg .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            margin-top: .25rem;
+            background: #c9d2df;
+        }
+
+        .cy-msg.ok .dot {
+            background: #22c55e;
+        }
+
+        .cy-msg.err .dot {
+            background: #ef4444;
+        }
+
+        .cy-msg strong {
+            display: block;
+            font-size: .72rem;
+            font-weight: 900;
+            color: var(--cy-text);
+            letter-spacing: .04rem;
+        }
+
+        .cy-msg span {
+            display: block;
+            color: var(--cy-muted);
+            font-size: .68rem;
+            font-weight: 600;
+            margin-top: .15rem;
+            line-height: 1.05rem;
+        }
+
+    .cy-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.2rem;
+        grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+    }
+
+    .cy-card {
+        background: var(--cy-bg);
+        border: 1px solid var(--cy-border);
+        border-radius: var(--cy-radius);
+        box-shadow: var(--cy-shadow2);
+        padding: 1rem 1.05rem;
+        transition: .2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .cy-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 35px -26px rgba(16,24,40,.38);
+        }
+
+    .cy-top {
+        display: flex;
+        justify-content: space-between;
+        gap: .8rem;
+        align-items: flex-start;
+    }
+
+    .cy-title {
+        margin: 0;
+        font-weight: 900;
+        color: var(--cy-text);
+        font-size: .9rem;
+        line-height: 1.15rem;
+    }
+
+    .cy-sub {
+        margin: .25rem 0 0;
+        color: var(--cy-muted);
+        font-weight: 600;
+        font-size: .7rem;
+        line-height: 1.05rem;
+    }
+
+    .cy-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .42rem .6rem;
+        border-radius: 999px;
+        border: 1px solid var(--cy-border);
+        font-weight: 900;
+        font-size: .56rem;
+        letter-spacing: .12rem;
+        text-transform: uppercase;
+        color: var(--cy-accent);
+        background: linear-gradient(135deg, rgba(179,18,23,.04), rgba(255,122,24,.06));
+        white-space: nowrap;
+    }
+
+        .cy-chip.active {
+            color: #0f7a3f;
+            border-color: #bfe9cf;
+            background: linear-gradient(135deg, rgba(34,197,94,.08), rgba(34,197,94,.04));
+        }
+
+    .cy-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .7rem;
+        margin-top: .85rem;
+    }
+
+    .cy-k {
+        font-size: .56rem;
+        letter-spacing: .16rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: #465062;
+    }
+
+    .cy-v {
+        margin-top: .22rem;
+        font-weight: 900;
+        color: var(--cy-text);
+        font-size: .78rem;
+    }
+
+    .cy-note {
+        margin-top: .75rem;
+        color: var(--cy-muted);
+        font-weight: 600;
+        font-size: .68rem;
+        line-height: 1.05rem;
+    }
+
+    .cy-empty {
+        border: 2px dashed var(--cy-border);
+        border-radius: 18px;
+        padding: 1.2rem;
+        text-align: center;
+        color: var(--cy-muted);
+        font-weight: 700;
+        font-size: .72rem;
+    }
+</style>
+
+<section class="cy-shell">
+    <header class="cy-hero">
+        <div class="cy-hero-grid">
+            <div class="cy-hero-icon"><i class="fa fa-calendar-days"></i></div>
+            <div style="flex:1;">
+                <h1>Application Cycles</h1>
+                <p>
+                    View configured cycles and their application windows. The current active cycle is highlighted, and constraints prevent
+                    multiple active cycles per year and period.
+                </p>
+
+                <div class="cy-actions">
+                    <a class="cy-btn" href="@Url.Action("ConfigureApplicationCycle", "OnlineApplications")"><i class="fa fa-plus"></i> New Cycle</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="cy-msg err">
+            <div class="dot"></div>
+            <div>
+                <strong>Unable to load</strong>
+                <span>@error</span>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(success))
+    {
+        <div class="cy-msg ok">
+            <div class="dot"></div>
+            <div>
+                <strong>Success</strong>
+                <span>@success</span>
+            </div>
+        </div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="cy-empty" style="margin-top:1.2rem;">
+            <i class="fa fa-circle-info"></i> No application cycles configured yet.
+        </div>
+    }
+    else
+    {
+        <div class="cy-grid">
+            @foreach (var c in Model)
+            {
+                var title = !string.IsNullOrWhiteSpace(c.Name) ? c.Name : $"{c.AcademicYear} {c.ApplicationPeriod}";
+                <div class="cy-card">
+                    <div class="cy-top">
+                        <div>
+                            <div class="cy-title">@title</div>
+                            <div class="cy-sub">
+                                <span class="cy-chip @(c.IsActive ? "active" : "")">
+                                    <i class="fa @(c.IsActive ? "fa-bolt" : "fa-circle-pause")"></i>
+                                    @(c.IsActive ? "Active" : "Inactive")
+                                </span>
+                                <span class="cy-chip">
+                                    <i class="fa fa-layer-group"></i>
+                                    @(string.IsNullOrWhiteSpace(c.ApplicationPeriod) ? "—" : c.ApplicationPeriod)
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="cy-chip"><i class="fa fa-hashtag"></i>@c.AcademicYear</span>
+                    </div>
+
+                    <div class="cy-meta">
+                        <div>
+                            <div class="cy-k">Opens</div>
+                            <div class="cy-v">@c.OpensAt.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                        <div>
+                            <div class="cy-k">Closes</div>
+                            <div class="cy-v">@c.Closes.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                        <div>
+                            <div class="cy-k">TAT</div>
+                            <div class="cy-v">@($"{c.TurnaroundDays} days")</div>
+                        </div>
+                        <div>
+                            <div class="cy-k">Code</div>
+                            <div class="cy-v">@(!string.IsNullOrWhiteSpace(c.Code) ? c.Code : "—")</div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(c.Description))
+                    {
+                        <div class="cy-note">@c.Description</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</section>

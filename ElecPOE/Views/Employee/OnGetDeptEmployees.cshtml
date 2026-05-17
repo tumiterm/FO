@@ -1,0 +1,543 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.User>
+@using static ForekOnline.Application.Common.Utility.EncryptionHelper
+
+@{
+    ViewData["Title"] = "Department Employees";
+
+    var users = Model?.ToList() ?? new List<ForekOnline.Domain.Entities.User>();
+    int total = users.Count;
+    int loggedToday = users.Count(u => u.LastLoginDate?.Date == DateTime.Today);
+    int neverLogged = users.Count(u => u.LastLoginDate == null);
+    int withImage = users.Count(u => !string.IsNullOrWhiteSpace(u.ProfileImage));
+
+    var hod = users.FirstOrDefault(u => (bool?)u.GetType().GetProperty("IsHeadOfDepartment")?.GetValue(u) == true);
+    var groups = users
+        .Where(u => !Equals(u, hod))
+        .GroupBy(u => u.Role?.ToString() ?? "Unassigned")
+        .OrderByDescending(g => g.Count())
+        .ToList();
+
+    string GetInitials(ForekOnline.Domain.Entities.User u)
+    {
+        var fn = (u.Name ?? "").Trim();
+        var ln = (u.LastName ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(fn) && string.IsNullOrWhiteSpace(ln)) return "?";
+        return (fn.FirstOrDefault().ToString() + (ln.FirstOrDefault().ToString())).ToUpperInvariant();
+    }
+}
+
+<style>
+:root {
+    --clr-dr:#320606;--clr-red:#991016;--clr-red-strong:#b31217;--clr-orange:#e86116;--clr-grad-strong:linear-gradient(90deg,#3f0a0a,#b31217 50%,#ff7a18);
+    --clr-soft-grad:linear-gradient(90deg,#3f0a0a22,#99101620 55%,#e8611620);
+    --clr-border:#d9dbdf;--clr-border-dark:#c9cbce;--clr-muted:#6e7276;--clr-heading:#1f1f1f;
+    --shadow-soft:0 4px 14px -4px rgba(40,10,8,.25);--shadow-strong:0 6px 20px -6px rgba(40,10,8,.35);
+}
+
+.metrics-row{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1.1rem;}
+.metric{position:relative;background:#fff;border:1px solid var(--clr-border);border-radius:14px;padding:.85rem .9rem .9rem;transition:.3s;}
+.metric:before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--clr-grad-strong);}
+.metric:hover{border-color:var(--clr-border-dark);box-shadow:var(--shadow-strong);}
+.metric .label{font-size:.62rem;text-transform:uppercase;letter-spacing:.14rem;font-weight:600;color:var(--clr-muted);display:flex;align-items:center;gap:.4rem;}
+.metric .value{font-size:1.42rem;font-weight:600;line-height:1.05;background:var(--clr-grad-strong);-webkit-background-clip:text;color:transparent;margin:.35rem 0 .25rem;}
+.metric .desc{font-size:.53rem;color:var(--clr-muted);letter-spacing:.09rem;text-transform:uppercase;font-weight:600;}
+.metric .right-icon{position:absolute;top:50%;right:.6rem;transform:translateY(-50%);font-size:2.5rem;color:#99101610;transition:.35s;}
+.metric:hover .right-icon{color:#b3121722;transform:translateY(-50%) scale(1.08);}
+
+.view-toggle-bar{
+    display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+    margin:0 0 1.1rem; background:#fff; border:1px solid var(--clr-border);
+    padding:.65rem .8rem; border-radius:14px; box-shadow:var(--shadow-soft);
+}
+.view-toggle-bar h5{
+    margin:0;font-size:.7rem;letter-spacing:.2rem;text-transform:uppercase;font-weight:700;
+    color:var(--clr-red-strong);display:flex;align-items:center;gap:.45rem;
+}
+.view-toggle-bar .spacer{flex:1;}
+.view-toggle-bar button{
+    font-size:.58rem;letter-spacing:.14rem;font-weight:700;text-transform:uppercase;
+    padding:.55rem .85rem;border-radius:12px;border:1px solid var(--clr-border);
+    background:#fff;color:var(--clr-red-strong);cursor:pointer;transition:.25s;
+}
+.view-toggle-bar button.active,
+.view-toggle-bar button:hover{
+    background:var(--clr-grad-strong);color:#fff;border-color:var(--clr-red-strong);
+    box-shadow:0 4px 12px -6px rgba(153,16,22,.35);
+}
+
+.avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #eee;box-shadow:0 0 0 2px #fff;background:#fafafa;}
+.avatar-placeholder{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;letter-spacing:.5px;color:#fff;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.25),transparent 65%),linear-gradient(135deg,#320606,#991016 65%,#e86116);box-shadow:0 0 0 2px #fff;border:1px solid #e5e5e5;}
+
+.card-minimal{background:#fff;border:1px solid var(--clr-border);border-radius:14px;overflow:hidden;box-shadow:0 3px 10px -4px rgba(50,6,6,.08);}
+.card-minimal .card-header{background:#fff;border-bottom:1px solid var(--clr-border);padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;}
+.card-minimal .card-header h6{margin:0;font-size:.78rem;letter-spacing:.18rem;text-transform:uppercase;font-weight:650;color:var(--clr-dr);display:flex;align-items:center;gap:.55rem;}
+.card-minimal .card-header h6:before{content:"";width:18px;height:3px;border-radius:2px;background:var(--clr-grad-strong);}
+.card-minimal .card-body{padding:1rem 1rem .8rem;}
+.table-modern tbody tr:hover{background:linear-gradient(90deg,#32060610,#99101613 55%,#e8611612);}
+.table-modern td{padding:.48rem .55rem;}
+
+.expand-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--clr-border);background:#fff;font-size:.7rem;transition:.25s;}
+.expand-btn:hover{border-color:var(--clr-red-strong);color:var(--clr-red-strong);}
+.expand-btn[aria-expanded="true"]{background:var(--clr-grad-strong);color:#fff;border-color:var(--clr-red-strong);box-shadow:0 3px 10px -3px rgba(153,16,22,.4);}
+.expand-btn[aria-expanded="true"] .fa-chevron-down{transform:rotate(180deg);transition:.35s;}
+.expand-btn .fa-chevron-down{transition:.35s;}
+.action-panel-row td{background:#fff;padding:0;border-top:0;}
+.action-panel{padding:.65rem .75rem .8rem;border-top:1px dashed var(--clr-border);display:flex;flex-wrap:wrap;gap:.55rem .7rem;}
+.act-btn{display:inline-flex;align-items:center;gap:.5rem;font-size:.62rem;text-transform:uppercase;letter-spacing:.12rem;font-weight:600;border:1px solid var(--clr-border);border-radius:9px;padding:.55rem .85rem;background:#fff;color:var(--clr-dr);transition:.28s;text-decoration:none;}
+.act-btn:hover{background:var(--clr-grad-strong);color:#fff;border-color:var(--clr-red-strong);box-shadow:0 4px 14px -4px rgba(153,16,22,.45);}
+.act-btn.outline{background:linear-gradient(#fff,#fff) padding-box,var(--clr-grad-strong) border-box;border:1px solid transparent;}
+.act-btn.min{padding:.45rem .55rem;letter-spacing:.08rem;}
+.login-pill{background:#f5f5f5;}
+
+.no-results{text-align:center;padding:1.5rem 1rem;font-size:.7rem;color:var(--clr-muted);}
+.muted-divider{height:1px;background:linear-gradient(90deg,transparent,#bbb,transparent);margin:1rem 0;}
+
+.org-wrapper{background:#fff;border:1px solid var(--clr-border);border-radius:18px;padding:1.1rem 1rem 1.3rem;box-shadow:0 4px 14px -6px rgba(50,6,6,.12);margin-bottom:1.25rem;}
+.org-chart{display:flex;flex-direction:column;align-items:center;gap:1.9rem;}
+.org-head{display:flex;flex-direction:column;align-items:center;gap:.55rem;position:relative;}
+.org-node{background:#fff;border:1px solid var(--clr-border);border-radius:16px;padding:.65rem .75rem .7rem;min-width:160px;display:flex;flex-direction:column;gap:.4rem;text-align:center;box-shadow:0 6px 16px -8px rgba(50,6,6,.18);transition:.35s;}
+.org-node:hover{transform:translateY(-4px);border-color:var(--clr-border-dark);box-shadow:0 10px 24px -12px rgba(40,10,8,.35);}
+.org-node.hod{background:linear-gradient(135deg,#320606,#991016 55%,#e86116);color:#fff;border-color:#991016;}
+.org-node.hod .role{color:#ffe4d0;}
+.org-avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #fff;border:2px solid #fff;background:#fafafa;margin:0 auto;}
+.org-avatar.fallback{display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,#320606,#991016 60%,#e86116);}
+.org-node .name{font-size:.6rem;font-weight:700;letter-spacing:.14rem;color:var(--clr-heading);}
+.org-node.hod .name{color:#fff;}
+.org-node .role{font-size:.5rem;font-weight:700;letter-spacing:.12rem;text-transform:uppercase;color:var(--clr-muted);}
+.org-branch{width:100%;display:flex;flex-direction:column;gap:.75rem;}
+.org-group{display:flex;flex-direction:column;gap:.45rem;position:relative;}
+.org-group:before{content:"";position:absolute;top:-1.1rem;left:50%;width:2px;height:1.1rem;background:#d1d3d6;}
+.org-group-label{font-size:.5rem;font-weight:700;letter-spacing:.14rem;text-transform:uppercase;color:#991016;background:var(--clr-soft-grad);padding:.35rem .65rem;border-radius:24px;margin:0 auto .25rem;display:inline-flex;align-items:center;gap:.35rem;}
+.org-members{display:flex;flex-wrap:wrap;justify-content:center;gap:.9rem;position:relative;padding:1.1rem .4rem .4rem;}
+.org-members:before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:1.1rem;background:#c9cbce;}
+.org-connector{position:absolute;top:calc(54px + .65rem);left:50%;transform:translateX(-50%);width:2px;height:28px;background:#d0d2d6;}
+.org-node.hod .org-connector{background:#ffb088;}
+.org-empty{font-size:.6rem;font-weight:600;color:#666;padding:1.1rem .75rem;border:1px dashed #d7dadd;border-radius:12px;background:#fff;}
+
+.hidden{display:none!important;}
+
+@@media (max-width:780px){
+    .org-members{justify-content:flex-start;}
+    .org-node{min-width:140px;}
+}
+@@media (prefers-color-scheme:dark){
+    .view-toggle-bar, .org-wrapper, .card-minimal{background:#1f242c;border-color:#39424c;}
+    .metric, .org-node{background:#232b34;border-color:#39424c;color:#e6ebf1;}
+    .org-node .name{color:#e6ebf1;}
+    .org-node .role{color:#9aa5b1;}
+    .org-group-label{background:#2d343d;color:#ffb3b3;}
+    .org-empty{background:#232b34;border-color:#39424c;color:#9aa5b1;}
+    .org-members:before,.org-group:before,.org-connector{background:#485562;}
+    .view-toggle-bar button{background:#232b34;border-color:#39424c;color:#ffb3b3;}
+    .view-toggle-bar button.active{color:#fff;}
+}
+</style>
+
+<div class="container-fluid py-1">
+
+    <div class="subtext">
+        Departmental • <strong>High level info</strong>
+    </div>
+
+    <div id="metricsAnchor" class="metrics-row">
+        <div class="metric">
+            <small class="label"><i class="fa fa-layer-group text-danger"></i> Total</small>
+            <div class="value">@total</div>
+            <span class="desc">registered</span>
+            <i class="fa fa-database right-icon"></i>
+        </div>
+        <div class="metric accent-alt">
+            <small class="label"><i class="fa fa-bolt text-warning"></i> Active Today</small>
+            <div class="value">@loggedToday</div>
+            <span class="desc">logins</span>
+            <i class="fa fa-bolt-lightning right-icon"></i>
+        </div>
+        <div class="metric">
+            <small class="label"><i class="fa fa-hourglass-half text-danger"></i> Never Logged</small>
+            <div class="value">@neverLogged</div>
+            <span class="desc">pending</span>
+            <i class="fa fa-hourglass-end right-icon"></i>
+        </div>
+        <div class="metric accent-alt">
+            <small class="label"><i class="fa fa-image text-warning"></i> With Images</small>
+            <div class="value">@withImage</div>
+            <span class="desc">avatars</span>
+            <i class="fa fa-image right-icon"></i>
+        </div>
+    </div>
+
+    <div class="view-toggle-bar">
+        <h5><i class="fa fa-sitemap"></i> View Mode</h5>
+        <div class="spacer"></div>
+        <button type="button" id="btnOrg" class="active">Organogram</button>
+        <button type="button" id="btnTable">Table</button>
+    </div>
+
+    <div id="orgContainer" class="org-wrapper">
+        @if (hod == null && !groups.Any())
+        {
+            <div class="org-empty"><i class="fa fa-info-circle me-1"></i>No employees available.</div>
+        }
+        else
+        {
+            <div class="org-chart">
+                @if (hod != null)
+                {
+                    var hodInitials = GetInitials(hod);
+                    <div class="org-head">
+                        <div class="org-node hod">
+                            @if (string.IsNullOrWhiteSpace(hod.ProfileImage))
+                            {
+                                <div class="org-avatar fallback" aria-label="Initials">@hodInitials</div>
+                            }
+                            else
+                            {
+@*                                 <img class="org-avatar" src="@hod.ProfileImage" alt="HOD" onerror="this.outerHTML='<div class=&quot;org-avatar fallback&quot;>@hodInitials</div>';" />
+ *@                                <img class="org-avatar"
+                                     src="@Url.Action("ProfileImage", "Auth", new { fileId = hod.ProfileImage })"
+                                    alt="HOD" onerror="this.outerHTML='<div class=&quot;org-avatar fallback&quot;>@hodInitials</div>';" />
+                            }
+                            <div class="name">@hod.Name @hod.LastName</div>
+                            <div class="role">Head of Department</div>
+                            <div class="org-connector"></div>
+                        </div>
+                    </div>
+                }
+                <div class="org-branch">
+                    @foreach (var g in groups)
+                    {
+                        <div class="org-group">
+                            <div class="org-group-label"><i class="fa fa-users"></i> @g.Key (@g.Count())</div>
+                            <div class="org-members">
+                                @foreach (var m in g)
+                                {
+                                    var init = GetInitials(m);
+                                    <div class="org-node">
+                                        @if (string.IsNullOrWhiteSpace(m.ProfileImage))
+                                        {
+                                            <div class="org-avatar fallback" aria-label="Initials">@init</div>
+                                        }
+                                        else
+                                        { 
+                                            <img class="org-avatar"
+                                                 src="@Url.Action("ProfileImage", "Auth", new { fileId = m.ProfileImage })"
+                                                 alt="HOD" alt="@m.Name" onerror="this.outerHTML='<div class=&quot;org-avatar fallback&quot;>@init</div>';" />
+                                        }
+                                        <div class="name">@m.Name @m.LastName</div>
+                                        <div class="role">@m.Role</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="tableContainer" class="hidden">
+        <div class="card-minimal">
+            <div class="card-header">
+                <h6><i class="fa fa-briefcase text-danger"></i> Employees</h6>
+                <div class="ms-auto toolbar">
+                    <div class="search-wrapper">
+                        <i class="fa fa-search"></i>
+                        <input id="employeeSearch" type="text" class="form-control form-control-sm" placeholder="Search name or number..." />
+                    </div>
+                    <button class="btn btn-soft" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterPanel">
+                        <i class="fa fa-filter me-1"></i> Filter
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:42px;"></th>
+                            <th>Employee</th>
+                            <th>Number</th>
+                            <th>Last Login</th>
+                            <th class="text-end" style="width:60px;">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                        @{
+                            var ordered = users.OrderByDescending(u => u.LastLoginDate).ToList();
+                            for (var i = 0; i < ordered.Count; i++)
+                            {
+                                var item = ordered[i];
+                                var lastLogin = item.LastLoginDate?.ToString("yyyy-MM-dd HH:mm") ?? "—";
+                                var state = item.LastLoginDate == null ? "never" :
+                                    (item.LastLoginDate?.Date == DateTime.Today ? "today" : "other");
+                                var panelId = "act-" + (item.IDPass ?? item.StudentNumber ?? i.ToString())
+                                    .Replace(" ", "")
+                                    .Replace("@", "_")
+                                    .Replace(".", "_")
+                                    .Replace(":", "_");
+
+                                var first = (item.Name ?? "").Trim();
+                                var last = (item.LastName ?? "").Trim();
+                                var initials = (string.IsNullOrWhiteSpace(first) && string.IsNullOrWhiteSpace(last))
+                                    ? "?"
+                                    : ((first.Length > 0 ? first[0].ToString() : "") + (last.Length > 0 ? last[0].ToString() : "")).ToUpperInvariant();
+                                <tr data-login="@state">
+                                    <td>
+                                        @if (string.IsNullOrWhiteSpace(item.ProfileImage))
+                                        {
+                                            <div class="avatar-placeholder" aria-label="Initials">@initials</div>
+                                        }
+                                        else
+                                        {
+                                                <img class="avatar"
+                                                     src="@Url.Action("ProfileImage", "Auth", new { fileId = @item.ProfileImage })"
+                                                     alt="@($"{item.Name} {item.LastName}")"
+                                                     loading="lazy"
+                                                     onerror="this.outerHTML='<div class=&quot;avatar-placeholder&quot; aria-label=&quot;Initials&quot;>@initials</div>';" />
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="emp-name">@((item.Name + " " + item.LastName).ToUpper())</div>
+                                        <div class="emp-meta">
+                                            <i class="fa fa-id-card me-1 text-danger"></i>ID: @item.IDPass
+                                        </div>
+                                    </td>
+                                    <td><span><i class="fa fa-hashtag text-muted me-1"></i>@item.StudentNumber</span></td>
+                                    <td>
+                                        <span class="login-pill @(state)"><i class="fa fa-clock me-1"></i>@lastLogin</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="expand-btn"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#@panelId"
+                                                aria-expanded="false"
+                                                aria-controls="@panelId"
+                                                title="Show actions">
+                                            <i class="fa fa-chevron-down"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="collapse action-panel-row" id="@panelId">
+                                    <td colspan="5">
+                                        <div class="action-panel">
+                                            <a class="act-btn outline"
+                                               href="@Url.Action("UserReports","Report", new { IdPass = Encrypt(item.IDPass) })">
+                                                <i class="fa fa-file-pdf text-danger"></i> Reports
+                                            </a>
+                                            <a class="act-btn outline"
+                                               href="@Url.Action("OnCreatePlan","LessonPlanConfig", new { IdPass = item.IDPass })">
+                                                <i class="fa fa-file-alt text-warning"></i> Lesson Plan
+                                            </a>
+                                            <a class="act-btn outline"
+                                               href="@Url.Action("EmployeeFiles","Employee", new { EmployeeId = Encrypt(item.IDPass) })">
+                                                <i class="fa fa-folder-open" style="color:var(--clr-orange);"></i> Files
+                                            </a>
+                                            <button class="act-btn min"
+                                                    data-auth-modal
+                                                    data-label="Plan Access"
+                                                    data-action="@Url.Action("OnCreatePlan","LessonPlanConfig")"
+                                                    data-param="@item.IDPass"
+                                                    title="Authenticate for plan">
+                                                <i class="fa fa-shield-halved text-danger"></i>
+                                            </button>
+                                            <button class="act-btn min"
+                                                    data-auth-modal
+                                                    data-label="Reports Access"
+                                                    data-action="@Url.Action("UserReports","Report")"
+                                                    data-param="@item.IDPass"
+                                                    title="Authenticate for reports">
+                                                <i class="fa fa-lock text-danger"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noResults" class="no-results d-none">
+                    <i class="fa fa-circle-exclamation text-danger me-1"></i>No matching employees found.
+                </div>
+                <div class="muted-divider"></div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small><i class="fa fa-rotate me-1 text-danger"></i>Refreshed: @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") UTC</small>
+                    <small><i class="fa fa-database me-1 text-danger"></i>Total: @total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade modal-auth" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 id="authModalLabel"><i class="fa fa-lock text-danger"></i> Authentication</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="authForm" method="get" novalidate>
+                <div class="gradient-line" style="background:var(--clr-grad-strong);height:3px;border-radius:2px;margin:-.35rem 0 .75rem;"></div>
+                <div class="px-3 pt-1 pb-2">
+                    <div class="mb-2">
+                        <label class="form-label form-text-small mb-1">ID / Passport Number</label>
+                        <input id="authParamInput" name="IdPass" type="password" autocomplete="off" class="form-control form-control-sm" required />
+                        <div class="invalid-feedback">Value required.</div>
+                    </div>
+                    <div class="form-text-small">Secure validation required before access is granted.</div>
+                </div>
+                <div class="px-3 pb-3 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-accent btn-soft text-white">Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="filterPanel" aria-labelledby="filterPanelLabel" style="width:320px;">
+    <div class="offcanvas-header">
+        <h6 class="mb-0" id="filterPanelLabel" style="font-size:.7rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;color:var(--clr-dr);">
+            <i class="fa fa-filter me-1"></i> Filters
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body small">
+        <div class="mb-3">
+            <label class="form-label form-text-small">Login State</label>
+            <select id="offLoginFilter" class="form-select form-select-sm">
+                <option value="">All</option>
+                <option value="today">Logged Today</option>
+                <option value="never">Never Logged</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label form-text-small">Quick Search</label>
+            <input id="offSearch" type="text" class="form-control form-control-sm" placeholder="Name / Number">
+        </div>
+        <div class="d-grid gap-2">
+            <button id="applyFilters" class="btn btn-accent btn-soft text-white">Apply</button>
+            <button id="resetFilters" class="btn btn-soft">Reset</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const orgBtn = document.getElementById('btnOrg');
+    const tableBtn = document.getElementById('btnTable');
+    const orgContainer = document.getElementById('orgContainer');
+    const tableContainer = document.getElementById('tableContainer');
+    const MODE_KEY = 'deptViewMode';
+
+    function setMode(mode, persist=true){
+        if(mode === 'table'){
+            orgContainer.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            orgBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }else{
+            tableContainer.classList.add('hidden');
+            orgContainer.classList.remove('hidden');
+            tableBtn.classList.remove('active');
+            orgBtn.classList.add('active');
+        }
+        if(persist) localStorage.setItem(MODE_KEY, mode);
+    }
+
+    orgBtn?.addEventListener('click', ()=> setMode('org'));
+    tableBtn?.addEventListener('click', ()=> setMode('table'));
+    setMode(localStorage.getItem(MODE_KEY) || 'org', false);
+
+    const employeeSearch = document.getElementById('employeeSearch');
+    const loginFilter = document.getElementById('loginFilter'); 
+    const tbody = document.getElementById('employeeTableBody');
+    const noResults = document.getElementById('noResults');
+    const rows = () => Array.from(tbody.querySelectorAll('tr[data-login]'));
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+
+    function filter(){
+        const q = norm(employeeSearch?.value);
+        const lf = loginFilter?.value || '';
+        let visible = 0;
+        rows().forEach(r=>{
+            const name = r.querySelector('td:nth-child(2)')?.innerText || '';
+            const number = r.querySelector('td:nth-child(3)')?.innerText || '';
+            const composite = norm(name + ' ' + number);
+            const state = r.getAttribute('data-login');
+            const show = (!q || composite.includes(q)) && (!lf || state === lf);
+            r.style.display = show ? '' : 'none';
+            const panel = r.nextElementSibling;
+            if(panel && panel.classList.contains('action-panel-row') && !show){
+                panel.classList.remove('show');
+                panel.style.display='none';
+            }
+            if(show) visible++;
+        });
+        if(noResults) noResults.classList.toggle('hidden', visible !== 0);
+    }
+    employeeSearch?.addEventListener('input', filter);
+    loginFilter?.addEventListener('change', filter);
+
+    const offLogin = document.getElementById('offLoginFilter');
+    const offSearch = document.getElementById('offSearch');
+    document.getElementById('applyFilters')?.addEventListener('click', ()=>{
+        if(offSearch && employeeSearch) employeeSearch.value = offSearch.value;
+        if(offLogin && loginFilter) loginFilter.value = offLogin.value;
+        filter();
+    });
+    document.getElementById('resetFilters')?.addEventListener('click', ()=>{
+        if(offSearch) offSearch.value = '';
+        if(offLogin) offLogin.value = '';
+        if(employeeSearch) employeeSearch.value = '';
+        if(loginFilter) loginFilter.value = '';
+        filter();
+    });
+
+    document.addEventListener('shown.bs.collapse', e => {
+        const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"]');
+        btn?.setAttribute('aria-expanded','true');
+    });
+    document.addEventListener('hidden.bs.collapse', e => {
+        const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"]');
+        btn?.setAttribute('aria-expanded','false');
+    });
+
+    const authModalEl = document.getElementById('authModal');
+    const authForm = document.getElementById('authForm');
+    const authInput = document.getElementById('authParamInput');
+    const authLabel = document.getElementById('authModalLabel');
+    let bsModal = authModalEl ? new bootstrap.Modal(authModalEl) : null;
+    document.querySelectorAll('[data-auth-modal]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+            const action = btn.getAttribute('data-action');
+            const param = btn.getAttribute('data-param');
+            const label = btn.getAttribute('data-label') || 'Authentication';
+            if(authForm && action){
+                authForm.setAttribute('action', action);
+                authInput.value = param || '';
+                authLabel.innerHTML = '<i class="fa fa-lock text-danger"></i> ' + label;
+                bsModal?.show();
+            }
+        });
+    });
+    authForm?.addEventListener('submit', e=>{
+        if(!authInput.value){
+            authInput.classList.add('is-invalid'); e.preventDefault();
+        } else authInput.classList.remove('is-invalid');
+    });
+
+    filter();
+})();
+</script>
+}
+
+
+
+
+
+
+
+

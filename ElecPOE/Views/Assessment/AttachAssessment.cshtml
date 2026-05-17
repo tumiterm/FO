@@ -1,0 +1,1121 @@
+﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Application.Common.Utility
+@using ForekOnline.Domain.Entities
+@model dynamic
+@{
+    ViewData["Title"] = "Assessment Administration";
+    string course = (string?)ViewData["course"] ?? "Course";
+    string studentName = (string?)ViewData["name"] ?? "Student";
+    var studentNumber = ViewData["StudentNumber"];
+    var studentId = ViewData["StudentId"];
+    var items = (IEnumerable<AssessmentAttachment>?)Model?.FileModel ?? Enumerable.Empty<AssessmentAttachment>();
+
+    int total = items.Count();
+    int passed = items.Count(a => a.Percentage >= 50);
+    double passRate = total == 0 ? 0 : (double)passed / total * 100;
+    // double avgPerc = total == 0 ? 0 : items.Average(a => a.Percentage);
+    var last = items.OrderByDescending(a => a.CreatedOn).FirstOrDefault();
+    bool canUpload = User.IsInRole("Admin") || User.IsInRole("Facilitator") || User.IsInRole("SuperAdmin");
+    bool canRemove = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    bool canEdit = canUpload;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+<style>
+    :root {
+        --as-bg: #ffffff;
+        --as-bg-alt: #f6f8fa;
+        --as-border: #e2e6ea;
+        --as-border-strong: #c9d1d8;
+        --as-accent: #7d0e11;
+        --as-accent-grad: linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+        --as-soft: #fff5f3;
+        --as-text: #1f252c;
+        --as-green: #147a40;
+        --as-red: #b31217;
+        --as-gold: #b87400;
+        --as-radius-xl: 34px;
+        --as-radius: 22px;
+        --as-radius-sm: 14px;
+        --as-focus: 0 0 0 .15rem #b3121725;
+        --as-shadow: 0 18px 50px -20px rgba(125,14,17,.28),0 8px 26px -14px rgba(125,14,17,.16);
+        font-family: 'Segoe UI',system-ui,sans-serif;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 8px;
+        background: #000;
+        color: #fff;
+        padding: .5rem .75rem;
+        z-index: 200;
+        border-radius: 6px;
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .1rem;
+    }
+
+        .skip-link:focus {
+            top: 8px;
+            outline: 2px solid #fff;
+        }
+
+    .page-shell {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 1.85rem 1.1rem 3rem;
+    }
+
+    .header-band {
+        background: var(--as-bg);
+        border: 1px solid var(--as-border);
+        border-radius: var(--as-radius-xl);
+        padding: 1.35rem 1.6rem 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.35rem;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .header-band:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(140deg,#7d0e1116,#b3121717,#ff7a1819);
+            pointer-events: none;
+        }
+
+    .icon-pill {
+        width: 86px;
+        height: 86px;
+        border-radius: 30px;
+        background: var(--as-accent-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.3rem;
+        color: #fff;
+        box-shadow: 0 14px 42px -18px rgba(179,18,23,.55);
+    }
+
+    .header-band h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        letter-spacing: .55px;
+        color: #222;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .tagline {
+        font-size: .6rem;
+        letter-spacing: .2rem;
+        font-weight: 700;
+        background: var(--as-soft);
+        color: var(--as-accent);
+        padding: .55rem .95rem;
+        border-radius: 50px;
+        display: inline-flex;
+        gap: .5rem;
+        align-items: center;
+        text-transform: uppercase;
+    }
+
+    .toolbar {
+        margin-left: auto;
+        display: flex;
+        gap: .65rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-base, .btn-accent, .btn-outline, .btn-danger-soft {
+        font-size: .6rem;
+        letter-spacing: .12rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: .66rem 1.15rem;
+        border-radius: 18px;
+        border: 1px solid var(--as-border);
+        background: #fff;
+        color: var(--as-accent);
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: .35s;
+    }
+
+        .btn-base:hover, .btn-outline:hover {
+            background: var(--as-accent-grad);
+            color: #fff;
+            border-color: var(--as-accent);
+            box-shadow: var(--as-shadow);
+        }
+
+    .btn-accent {
+        background: var(--as-accent-grad);
+        color: #fff;
+        border: 1px solid var(--as-accent);
+    }
+
+        .btn-accent:hover {
+            filter: brightness(.94);
+        }
+
+    .btn-danger-soft {
+        background: #ffe8ea;
+        color: var(--as-red);
+        border: 1px solid #f3c4c6;
+    }
+
+        .btn-danger-soft:hover {
+            background: var(--as-accent-grad);
+            color: #fff;
+            border-color: var(--as-accent);
+        }
+
+    .layout {
+        margin-top: 1.5rem;
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: 300px 1fr;
+    }
+
+    @@media (max-width:1100px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .side-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.15rem;
+    }
+
+    .panel-card {
+        background: var(--as-bg);
+        border: 1px solid var(--as-border);
+        border-radius: 26px;
+        padding: 1.05rem 1.05rem .95rem;
+        display: flex;
+        flex-direction: column;
+        gap: .9rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .panel-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(140deg,#7d0e110d,#b312170f,#ff7a1810);
+            pointer-events: none;
+        }
+
+    .panel-head {
+        margin: 0;
+        font-size: .72rem;
+        letter-spacing: .2rem;
+        font-weight: 700;
+        color: var(--as-accent);
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+    }
+
+    .metrics-grid {
+        display: grid;
+        gap: .55rem;
+    }
+
+    .metric-chip {
+        background: #f6f8fa;
+        border: 1px solid var(--as-border);
+        border-radius: 18px;
+        padding: .55rem .65rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .8rem;
+        font-size: .55rem;
+        font-weight: 600;
+        letter-spacing: .08rem;
+        color: #444;
+    }
+
+        .metric-chip strong {
+            font-size: .7rem;
+            background: var(--as-accent-grad);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+    .progress-ring {
+        --size: 72px;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 50%;
+        background: conic-gradient(var(--as-accent) calc(var(--p)*1%),#e5e9ed 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .65rem;
+        font-weight: 700;
+        color: #222;
+        position: relative;
+    }
+
+        .progress-ring:after {
+            content: "";
+            position: absolute;
+            inset: 7px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+    .filter-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .55rem;
+        margin-top: .2rem;
+    }
+
+        .filter-box select, .filter-box input[type="text"] {
+            flex: 1 1 120px;
+            min-width: 120px;
+            padding: .5rem .65rem;
+            border: 1px solid var(--as-border);
+            border-radius: 14px;
+            font-size: .65rem;
+            background: #fff;
+            transition: .25s;
+        }
+
+            .filter-box input:focus, .filter-box select:focus {
+                outline: none;
+                border-color: var(--as-accent);
+                box-shadow: var(--as-focus);
+            }
+
+    .main-card {
+        background: var(--as-bg);
+        border: 1px solid var(--as-border);
+        border-radius: 30px;
+        padding: 1.15rem 1.15rem 1.05rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .main-card:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(145deg,#7d0e110c,#b312170d,#ff7a180e);
+            pointer-events: none;
+        }
+
+    .section-tabs {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+        margin-bottom: .4rem;
+    }
+
+    .tab-btn {
+        background: #fff;
+        border: 1px solid var(--as-border);
+        color: var(--as-accent);
+        padding: .55rem 1rem;
+        font-size: .55rem;
+        font-weight: 700;
+        letter-spacing: .14rem;
+        border-radius: 16px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: .3s;
+    }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--as-accent-grad);
+            color: #fff;
+            border-color: var(--as-accent);
+            box-shadow: 0 6px 18px -8px rgba(179,18,23,.4);
+        }
+
+    .form-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+        margin-top: .4rem;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+    }
+
+        .field label {
+            font-size: .5rem;
+            letter-spacing: .15rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #4d5660;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+    .required:after {
+        content: "*";
+        color: var(--as-red);
+        margin-left: .25rem;
+        font-weight: 800;
+    }
+
+    .input-wrap {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        background: #fff;
+        border: 1px solid var(--as-border);
+        padding: .55rem .65rem;
+        border-radius: 14px;
+        transition: .25s;
+    }
+
+        .input-wrap:focus-within {
+            border-color: var(--as-accent);
+            box-shadow: var(--as-focus);
+        }
+
+        .input-wrap i {
+            font-size: .75rem;
+            color: #888;
+        }
+
+    .field input, .field select, .field textarea {
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        font-size: .7rem;
+        color: #222;
+    }
+
+    small.note {
+        font-size: .48rem;
+        color: #777;
+        font-weight: 600;
+    }
+
+    .table-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        align-items: center;
+        justify-content: space-between;
+        font-size: .5rem;
+        letter-spacing: .14rem;
+        font-weight: 700;
+        color: #666;
+        margin-bottom: .35rem;
+    }
+
+    .action-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .action-chip {
+        font-size: .48rem;
+        font-weight: 600;
+        letter-spacing: .08rem;
+        padding: .4rem .6rem;
+        border: 1px solid var(--as-border);
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        color: var(--as-accent);
+        transition: .3s;
+        text-decoration: none;
+    }
+
+        .action-chip:hover {
+            background: var(--as-accent-grad);
+            color: #fff;
+            border-color: var(--as-accent);
+            box-shadow: 0 4px 12px -6px rgba(179,18,23,.45);
+        }
+
+    .assess-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .64rem;
+    }
+
+        .assess-table thead th {
+            background: var(--as-accent-grad);
+            color: #fff;
+            font-size: .52rem;
+            letter-spacing: .16rem;
+            padding: .55rem .55rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+        }
+
+        .assess-table tbody tr {
+            transition: .2s;
+        }
+
+            .assess-table tbody tr:nth-child(even) {
+                background: #fff;
+            }
+
+            .assess-table tbody tr:nth-child(odd) {
+                background: #fffdfd;
+            }
+
+            .assess-table tbody tr:hover {
+                background: #fff4ef;
+            }
+
+        .assess-table td {
+            padding: .5rem .55rem;
+            border-bottom: 1px solid var(--as-border);
+            vertical-align: middle;
+            color: #333;
+        }
+
+    .inline-badge {
+        background: #eef3f7;
+        color: #173a51;
+        border: 1px solid #d3dde4;
+        padding: .3rem .55rem;
+        border-radius: 30px;
+        font-size: .46rem;
+        font-weight: 700;
+        letter-spacing: .08rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    .score-pass {
+        background: #e6f9ed;
+        color: var(--as-green);
+        border: 1px solid #b9e6c8;
+    }
+
+    .score-fail {
+        background: #ffe9ed;
+        color: var(--as-red);
+        border: 1px solid #f3b4ba;
+    }
+
+    .no-file {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+    .hidden-row {
+        display: none !important;
+    }
+
+    .empty-row {
+        font-style: italic;
+        color: #777;
+        text-align: center;
+    }
+
+    .edit-link, .del-link {
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .del-link {
+        color: var(--as-red);
+    }
+
+        .del-link:hover {
+            text-decoration: underline;
+        }
+
+    .select2-container .select2-selection--single,
+    .select2-container--default .select2-selection--multiple {
+        min-height: 42px;
+        border: 1px solid var(--as-border) !important;
+        border-radius: 14px !important;
+    }
+
+    .select2-selection__rendered {
+        line-height: 40px !important;
+        font-size: .68rem !important;
+        padding-left: .55rem !important;
+    }
+
+    .select2-selection__arrow {
+        height: 42px !important;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        font-size: .5rem;
+    }
+
+    .fade-in {
+        animation: fade .55s ease;
+    }
+
+    @@keyframes fade {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width:860px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+
+        .icon-pill {
+            width: 72px;
+            height: 72px;
+            font-size: 1.9rem;
+        }
+
+        .header-band h1 {
+            font-size: 1.45rem;
+        }
+    }
+
+    @@media (max-width:620px) {
+        .assess-table thead th:nth-child(6), .assess-table td:nth-child(6) {
+            display: none;
+        }
+    }
+</style>
+
+<div class="page-shell fade-in" id="mainContent">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-file-pen"></i></div>
+        <div>
+            <h1>Assessments</h1>
+            <div class="tagline"><i class="fa fa-graduation-cap"></i> @studentName • @course</div>
+        </div>
+        <div class="toolbar">
+            <a class="btn-base" asp-action="StudentDetail" asp-controller="Student" asp-route-StudentNumber="@studentNumber"><i class="fa fa-arrow-left"></i> Back</a>
+            <button id="btnExport" type="button" class="btn-outline"><i class="fa fa-file-export"></i> Export</button>
+            <a class="btn-base" asp-action="List" asp-controller="Assessment" class="btn-outline"><i class="fa fa-pencil"></i> Online Assessments</a>
+            <a class="btn-base" asp-action="ProgressReport" asp-controller="Assessment" asp-route-studentNumber="@studentNumber"><i class="fa fa-list-alt"></i> Progress Report</a>
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="side-panel">
+            <div class="panel-card">
+                <h2 class="panel-head"><i class="fa fa-chart-simple"></i> Overview</h2>
+                <div class="metrics-grid">
+                    <div class="metric-chip"><span>Total</span><strong>@total</strong></div>
+                    <div class="metric-chip"><span>Passed</span><strong>@passed</strong></div>
+                    <div class="metric-chip"><span>Pass Rate</span><strong>@passRate.ToString("0.#")%</strong></div>
+                    @*           <div class="metric-chip"><span>Average %</span><strong>@avgPerc.ToString("0.#")%</strong></div>
+ *@          <div class="metric-chip"><span>Last Added</span><strong>@(last?.CreatedOn ?? "-")</strong></div>
+                </div>
+                <div style="display:flex;justify-content:center;margin-top:.9rem;">
+                    <div class="progress-ring" style="--p:@passRate">@passRate.ToString("0")%</div>
+                </div>
+                <small style="font-size:.48rem;color:#666;display:block;text-align:center;margin-top:.45rem;">
+                    Pass ring = percentage of assessments >= 50%
+                </small>
+            </div>
+
+            <div class="panel-card">
+                <h2 class="panel-head"><i class="fa fa-filter"></i> Filters</h2>
+                <div class="filter-box">
+                    <input type="text" id="searchBox" placeholder="Search type/module..." aria-label="Search" />
+                    <select id="typeFilter" aria-label="Type Filter">
+                        <option value="">Type</option>
+                        @foreach (var t in Enum.GetValues(typeof(eAssessmentAdministration)).Cast<eAssessmentAdministration>())
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                    <select id="attemptFilter" aria-label="Attempt Filter">
+                        <option value="">Attempt</option>
+                        @foreach (var a in Enum.GetValues(typeof(eAttempts)).Cast<eAttempts>())
+                        {
+                            <option value="@a">@a</option>
+                        }
+                    </select>
+                    <select id="passFilter" aria-label="Pass Filter">
+                        <option value="">Result</option>
+                        <option value="pass">Pass (>=50)</option>
+                        <option value="fail">Fail (&lt;50)</option>
+                    </select>
+                </div>
+                <div class="filter-box" style="margin-top:.4rem;">
+                    <select id="moduleFilter" aria-label="Module Filter">
+                        <option value="">Module</option>
+                        @foreach (var m in items.Select(i => Helper.GetDisplayName(i.Module)).Distinct().OrderBy(x => x))
+                        {
+                            <option value="@m">@m</option>
+                        }
+                    </select>
+                    <select id="sortFilter" aria-label="Sort Filter">
+                        <option value="new">Newest</option>
+                        <option value="old">Oldest</option>
+                        <option value="perc-desc">% High → Low</option>
+                        <option value="perc-asc">% Low → High</option>
+                        <option value="type">Type</option>
+                        <option value="module">Module</option>
+                    </select>
+                </div>
+                <small style="font-size:.48rem;color:#666;">Filters + export apply to currently visible rows.</small>
+            </div>
+
+            @if (canUpload)
+            {
+                <div class="panel-card">
+                    <h2 class="panel-head"><i class="fa fa-circle-info"></i> Guidance</h2>
+                    <small style="font-size:.5rem;line-height:1.3;color:#555;">
+                        1. Select correct module descriptor.<br />
+                        2. Only PDF file accepted (1MB limit).<br />
+                        3. Percentage must be 0–100.<br />
+                        4. Use Edit to adjust module or score.<br />
+                        5. Remove only if necessary – irreversible.
+                    </small>
+                </div>
+            }
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-card">
+            <div class="section-tabs">
+                @if (canUpload)
+                {
+                    <button type="button" class="tab-btn active" data-tab="uploadTab"><i class="fa fa-upload"></i> Upload</button>
+                }
+                <button type="button" class="tab-btn @(canUpload ? "" : "active")" data-tab="listTab"><i class="fa fa-table-list"></i> List</button>
+            </div>
+
+            @if (canUpload)
+            {
+                <!-- UPLOAD TAB -->
+                <div id="uploadTab" class="tab-pane" style="display:block;">
+                    <form id="AssessmentForm" asp-action="AttachAssessment" method="post" enctype="multipart/form-data" novalidate autocomplete="off">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="StudentNumber" value="@studentNumber" />
+                        <input type="hidden" name="StudentId" value="@studentId" />
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label class="required">Assessment Type</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-question-circle"></i>
+                                    <select name="Type" required asp-items="Html.GetEnumSelectList<eAssessmentAdministration>()">
+                                        <option value="">Select type...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label>Module Enum</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-book"></i>
+                                    <select name="Module" asp-items="Html.GetEnumSelectList<eModule>()">
+                                        <option value="">Select category...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Module Description</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-layer-group"></i>
+                                    <select name="ModuleId" class="Modules" asp-items="ViewBag.ModuleId" required>
+                                        <option value="">Select module...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Attempt</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-sort"></i>
+                                    <select name="Attempts" required asp-items="Html.GetEnumSelectList<eAttempts>()">
+                                        <option value="">Select attempt...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Document (PDF)</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-file-pdf"></i>
+                                    <input id="documentFileInput" name="AttachmentFile" type="file" required accept="application/pdf" />
+                                </div>
+                                <small class="note" id="fileInfo">Max 1MB • PDF only</small>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Percentage</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-percent"></i>
+                                    <input name="Percentage" type="number" min="0" max="100" required placeholder="0 - 100" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-line" style="margin-top:.6rem;">
+                            <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                            <button type="reset" class="btn-outline" id="resetUpload"><i class="fa fa-undo"></i> Reset</button>
+                            <a asp-action="StudentDetail" asp-controller="Student" asp-route-StudentNumber="@studentNumber" class="btn-danger-soft"><i class="fa fa-window-close"></i> Exit</a>
+                        </div>
+                    </form>
+                </div>
+            }
+
+            <!-- LIST TAB -->
+            <div id="listTab" class="tab-pane" style="display:@(canUpload ? "none" : "block")">
+                <div class="table-meta">
+                    <span id="rowsInfo" class="inline-badge"><i class="fa fa-database"></i> Loading...</span>
+                    <span id="perfInfo" class="inline-badge" style="background:#fff7f6;"></span>
+                </div>
+                <div style="overflow:auto;">
+                    <table class="assess-table" id="assessTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width:110px;">Actions</th>
+                                <th>Type</th>
+                                <th>Attempt</th>
+                                <th>Module</th>
+                                <th>Score</th>
+                                <th>By</th>
+                                <th>Date</th>
+                                <th>File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assessBody">
+                            @if (!items.Any())
+                            {
+                                <tr><td colspan="8" class="empty-row">No assessments uploaded.</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var a in items)
+                                {
+                                    var pass = a.Percentage >= 50;
+                                    var mName = Helper.GetDisplayName(a.Module);
+                                    var tName = Helper.GetDisplayName(a.Type);
+                                    <tr data-type="@a.Type"
+                                        data-attempt="@a.Attempts"
+                                        data-pass="@(pass ? "pass" : "fail")"
+                                        data-module="@mName"
+                                        data-perc="@a.Percentage"
+                                        data-text="@($"{tName} {a.Attempts} {mName} {a.Percentage} {a.CreatedBy}".ToLower())">
+                                        <td style="white-space:nowrap;">
+                                            @if (canRemove)
+                                            {
+                                                <a class="action-chip del-link act-remove" data-id="@a.AttachmentId" title="Remove"><i class="fa fa-trash"></i></a>
+                                                @if (canEdit)
+                                                {
+                                                    <a class="action-chip edit-link edit-btn"
+                                                       title="Edit"
+                                                       data-id="@a.AttachmentId"
+                                                       data-moduleid="@a.ModuleId"
+                                                       data-percentage="@a.Percentage"
+                                                       data-bs-toggle="modal"
+                                                       data-bs-target="#editModal"><i class="fa fa-pen"></i></a>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="action-chip" style="opacity:.4;cursor:not-allowed;"><i class="fa fa-ban"></i> N/A</span>
+                                            }
+                                        </td>
+                                        <td><span class="inline-badge"><i class="fa fa-file-alt"></i> @tName</span></td>
+                                        <td><span class="inline-badge">@a.Attempts</span></td>
+                                        <td>
+                                            @if (a.ModuleId == Guid.Empty)
+                                            {
+                                                <span class="inline-badge" style="opacity:.55"><i class="fa fa-thumbs-down"></i> None</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="inline-badge"><i class="fa fa-thumbs-up text-success"></i> @mName</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="inline-badge @(pass ? "score-pass" : "score-fail")">
+                                                <i class="fa @(pass ? "fa-check-circle" : "fa-times-circle")"></i> @a.Percentage %
+                                            </span>
+                                        </td>
+                                        <td>@a.CreatedBy</td>
+                                        <td>@a.CreatedOn</td>
+                                        <td>
+                                            <a asp-action="DownloadAssessment"
+                                               asp-controller="Assessment"
+                                               asp-route-fileId="@a.Document"
+                                               class="action-chip"
+                                               title="Download">
+                                                <i class="fa fa-download"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal fade" id="editModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--as-accent-grad);color:#fff;">
+                <h5 class="modal-title" id="editModalLabel"><i class="fa fa-pen-to-square"></i> Edit Record</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editForm" asp-action="UpdateAssessment" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="AttachmentId" id="AttachmentId" />
+                <input type="hidden" name="StudentNumber" value="@studentNumber" />
+                <input type="hidden" name="StudentId" value="@studentId" />
+                <div class="modal-body" style="display:flex;flex-direction:column;gap:.8rem;">
+                    <div class="field">
+                        <label class="required">Module Description</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-layer-group"></i>
+                            <select name="ModuleId" id="ModuleId" asp-items="ViewBag.ModuleId" required>
+                                <option value="">Select module...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="required">Percentage</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-percent"></i>
+                            <input type="number" name="Percentage" id="Percentage" min="0" max="100" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background:#fff5f4;">
+                    <button type="button" class="btn-outline btn-base" data-bs-dismiss="modal"><i class="fa fa-xmark"></i> Close</button>
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    (function($){
+      // Tabs
+      $('.tab-btn').on('click', function(){
+         const tab = $(this).data('tab');
+         $('.tab-btn').removeClass('active');
+         $(this).addClass('active');
+         $('.tab-pane').hide();
+         $('#'+tab).show();
+      });
+
+      // Init selects
+      $('.Modules').select2({ width:'100%' });
+
+      // File validation
+      const fileInput = document.getElementById('documentFileInput');
+      const fileInfo  = document.getElementById('fileInfo');
+      const MAX = 1 * 1024 * 1024;
+      fileInput?.addEventListener('change', function(){
+         const f = this.files[0];
+         if(!f){ fileInfo.textContent='Max 1MB • PDF only'; return;}
+         if(f.type !== 'application/pdf'){ alert('Only PDF allowed'); this.value=''; fileInfo.textContent='Max 1MB • PDF only'; return;}
+         if(f.size > MAX){ alert('File > 1MB limit'); this.value=''; fileInfo.textContent='Max 1MB • PDF only'; return;}
+         fileInfo.textContent = f.name + ' ('+(f.size/1024).toFixed(0)+' KB)';
+      });
+      $('#resetUpload').on('click', ()=> setTimeout(()=> fileInfo.textContent='Max 1MB • PDF only', 0));
+
+      // Filtering + sorting
+      const body = document.getElementById('assessBody');
+      const rowsInfo = document.getElementById('rowsInfo');
+      const perfInfo = document.getElementById('perfInfo');
+      const searchBox = document.getElementById('searchBox');
+      const typeFilter = document.getElementById('typeFilter');
+      const attemptFilter = document.getElementById('attemptFilter');
+      const passFilter = document.getElementById('passFilter');
+      const moduleFilter = document.getElementById('moduleFilter');
+      const sortFilter = document.getElementById('sortFilter');
+
+      function norm(v){return (v||'').toString().toLowerCase().trim();}
+
+      function applyFilters(){
+         if(!body) return;
+         const t0 = performance.now();
+         const q  = norm(searchBox?.value);
+         const tp = typeFilter?.value;
+         const at = attemptFilter?.value;
+         const ps = passFilter?.value;
+         const md = moduleFilter?.value;
+         const sf = sortFilter?.value;
+         const rows = [...body.querySelectorAll('tr')];
+         let visible = [];
+         let total=0;
+         rows.forEach(r=>{
+            if(r.classList.contains('empty-row')) return;
+            total++;
+            let show = true;
+            const txt = r.getAttribute('data-text')||'';
+            const dType = r.getAttribute('data-type')||'';
+            const dAttempt = r.getAttribute('data-attempt')||'';
+            const dPass = r.getAttribute('data-pass')||'';
+            const dModule = r.getAttribute('data-module')||'';
+            if(q && !txt.includes(q)) show=false;
+            if(tp && dType!==tp) show=false;
+            if(at && dAttempt!==at) show=false;
+            if(ps && dPass!==ps) show=false;
+            if(md && dModule!==md) show=false;
+            r.classList.toggle('hidden-row', !show);
+            if(show) visible.push(r);
+         });
+
+         // Sorting (only visible)
+         const comp = {
+           'new': (a,b)=> b.rowIndex - a.rowIndex,
+           'old': (a,b)=> a.rowIndex - b.rowIndex,
+           'perc-desc': (a,b)=> (+b.getAttribute('data-perc')) - (+a.getAttribute('data-perc')),
+           'perc-asc': (a,b)=> (+a.getAttribute('data-perc')) - (+b.getAttribute('data-perc')),
+           'type': (a,b)=> (a.getAttribute('data-type')||'').localeCompare(b.getAttribute('data-type')||''),
+           'module': (a,b)=> (a.getAttribute('data-module')||'').localeCompare(b.getAttribute('data-module')||'')
+         }[sf] || (()=>0);
+         visible.sort(comp);
+         // re-append
+         visible.forEach(v=> body.appendChild(v));
+
+         rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${visible.length} of ${total} record(s)` + ((q||tp||at||ps||md||sf!=='new')?' (filtered)':'');
+         perfInfo.textContent = 'Render '+(performance.now()-t0).toFixed(1)+'ms';
+      }
+
+      [searchBox,typeFilter,attemptFilter,passFilter,moduleFilter,sortFilter].forEach(el=>{
+         el && el.addEventListener(el.tagName==='INPUT'?'input':'change', applyFilters);
+      });
+
+      applyFilters();
+
+      // Export CSV
+      $('#btnExport').on('click', ()=>{
+         if(!body) return;
+         const visible = [...body.querySelectorAll('tr:not(.hidden-row)')].filter(r=>!r.classList.contains('empty-row'));
+         if(!visible.length){ alert('No rows to export.'); return; }
+         const lines = ['Type,Attempt,Module,Percentage,By,Date,File'];
+         visible.forEach(r=>{
+            const c = r.querySelectorAll('td');
+            const t = c[1].innerText.trim();
+            const a = c[2].innerText.trim();
+            const m = c[3].innerText.replace(/\s+/g,' ').trim();
+            const s = c[4].innerText.replace(/\s+/g,' ').trim();
+            const by= c[5].innerText.trim();
+            const d = c[6].innerText.trim();
+            const f = c[7].innerText.trim();
+            lines.push([t,a,m,s,by,d,f].map(v=>'"'+v.replace(/"/g,'""')+'"').join(','));
+         });
+         const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+         const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+         a.download='assessments-'+new Date().toISOString().slice(0,10)+'.csv';
+         document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      });
+
+      $('#btnRefresh').on('click', ()=> location.reload());
+
+      // Remove
+      $(document).on('click','.act-remove', function(e){
+         e.preventDefault();
+         const id = $(this).data('id');
+         const studNum = '@studentNumber';
+         Swal.fire({
+            title:'Remove assessment?',
+            text:'This action cannot be undone.',
+            icon:'warning',
+            showCancelButton:true,
+            confirmButtonColor:'#3085d6',
+            cancelButtonColor:'#d33',
+            confirmButtonText:'Yes, delete it'
+         }).then(res=>{
+            if(res.isConfirmed){
+               $.ajax({
+                 type:'POST',
+                 url:'/Assessment/RemoveDocument/'+id,
+                 data:'',
+                 success: function(){
+                    Swal.fire('Removed','Assessment deleted','success')
+                        .then(()=>location.href='/Assessment/AttachAssessment?StudentNumber='+studNum);
+                 },
+                 error: function(){
+                    Swal.fire('Error','Unable to delete item','error');
+                 }
+               });
+            }
+         });
+      });
+
+      // Edit fill
+      $(document).on('click','.edit-btn', function(){
+         $('#AttachmentId').val($(this).data('id'));
+         $('#Percentage').val($(this).data('percentage'));
+         $('#ModuleId').val($(this).data('moduleid'));
+      });
+
+      // Focus search when opening filter usage
+      document.addEventListener('keydown', e=>{
+         if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
+            e.preventDefault();
+            searchBox?.focus();
+         }
+      });
+
+    })(jQuery);
+</script>
+
+

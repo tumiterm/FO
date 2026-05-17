@@ -1,0 +1,569 @@
+﻿<div class="fo-notification-shell position-relative d-inline-block" id="notificationBellContainer">
+    <button type="button"
+            class="fo-notification-trigger btn p-0"
+            id="notificationBellBtn"
+            title="Notifications"
+            aria-label="Notifications"
+            aria-expanded="false"
+            aria-controls="notificationDropdown">
+        <span class="fo-notification-trigger__glow"></span>
+        <span class="fo-notification-trigger__surface">
+            <i class="fa fa-bell"></i>
+        </span>
+        <span id="notificationBadge" class="fo-notification-badge" aria-live="polite">
+            0
+        </span>
+    </button>
+
+    <div id="notificationDropdown" class="fo-notification-dropdown" aria-hidden="true">
+        <div class="fo-notification-dropdown__header">
+            <div>
+                <div class="fo-notification-dropdown__eyebrow">Activity Center</div>
+                <strong class="fo-notification-dropdown__title">Notifications</strong>
+            </div>
+
+            <button type="button"
+                    class="fo-notification-markall"
+                    id="markAllReadBtn">
+                Mark all as read
+            </button>
+        </div>
+
+        <div id="notificationList" class="fo-notification-list">
+            <div class="fo-notification-empty">
+                <div class="fo-notification-empty__icon">
+                    <i class="fa fa-check"></i>
+                </div>
+                <div class="fo-notification-empty__title">All caught up</div>
+                <div class="fo-notification-empty__text">No new notifications right now.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fo-notification-shell {
+        --fo-notification-ring: rgba(230, 81, 0, 0.18);
+        --fo-notification-glass: rgba(255, 255, 255, 0.72);
+        --fo-notification-glass-strong: rgba(255, 255, 255, 0.92);
+        --fo-notification-shadow: 0 10px 24px rgba(17, 24, 39, 0.10), 0 4px 10px rgba(17, 24, 39, 0.06);
+        --fo-notification-shadow-hover: 0 16px 32px rgba(230, 81, 0, 0.16), 0 10px 18px rgba(17, 24, 39, 0.08);
+    }
+
+    .fo-notification-trigger {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        border: 0;
+        background: transparent;
+    }
+
+        .fo-notification-trigger:focus-visible {
+            outline: none;
+        }
+
+    .fo-notification-trigger__glow {
+        position: absolute;
+        inset: 6px;
+        border-radius: 18px;
+        background: radial-gradient(circle at 30% 20%, rgba(255, 138, 80, 0.32), transparent 55%), linear-gradient(135deg, rgba(230, 81, 0, 0.20), rgba(172, 25, 0, 0.14));
+        filter: blur(10px);
+        opacity: .75;
+        transition: opacity .25s ease, transform .25s ease;
+    }
+
+    .fo-notification-trigger__surface {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 10px 22px rgba(17, 24, 39, 0.08);
+        color: var(--fo-text);
+        font-size: 1.05rem;
+        transition: transform .22s ease, box-shadow .22s ease, color .22s ease, border-color .22s ease;
+    }
+
+    .fo-notification-trigger:hover .fo-notification-trigger__surface,
+    .fo-notification-trigger[aria-expanded="true"] .fo-notification-trigger__surface {
+        transform: translateY(-1px);
+        color: var(--fo-orange);
+        border-color: rgba(230, 81, 0, 0.22);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 14px 28px rgba(230, 81, 0, 0.12);
+    }
+
+    .fo-notification-trigger:hover .fo-notification-trigger__glow,
+    .fo-notification-trigger[aria-expanded="true"] .fo-notification-trigger__glow {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+
+    .fo-notification-trigger:focus-visible .fo-notification-trigger__surface {
+        box-shadow: 0 0 0 4px var(--fo-notification-ring), inset 0 1px 0 rgba(255, 255, 255, 0.90), 0 14px 28px rgba(230, 81, 0, 0.12);
+    }
+
+    .fo-notification-badge {
+        position: absolute;
+        top: 2px;
+        right: 0;
+        z-index: 2;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 2px solid #fff;
+        background: linear-gradient(135deg, var(--fo-orange-light), var(--fo-orange-dark));
+        color: #fff;
+        font-size: .67rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        line-height: 1;
+        box-shadow: 0 10px 18px rgba(230, 81, 0, 0.30);
+        animation: foNotificationPulse 2.2s infinite;
+    }
+
+    @@keyframes foNotificationPulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 10px 18px rgba(230, 81, 0, 0.30);
+        }
+
+        50% {
+            transform: scale(1.08);
+            box-shadow: 0 14px 24px rgba(230, 81, 0, 0.42);
+        }
+    }
+
+    .fo-notification-dropdown {
+        position: absolute;
+        top: calc(100% + 14px);
+        right: 0;
+        width: min(390px, calc(100vw - 24px));
+        max-height: 470px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.88));
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 24px 50px rgba(17, 24, 39, 0.16), 0 8px 20px rgba(17, 24, 39, 0.08);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px) scale(.98);
+        transition: opacity .22s ease, transform .22s ease, visibility .22s ease;
+        z-index: 1060;
+    }
+
+        .fo-notification-dropdown::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 16px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid rgba(255, 255, 255, 0.60);
+            border-left: 1px solid rgba(255, 255, 255, 0.60);
+            transform: rotate(45deg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .fo-notification-dropdown.is-open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+    .fo-notification-dropdown__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1rem .9rem 1rem;
+        border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+        background: linear-gradient(135deg, rgba(230, 81, 0, 0.06), rgba(255, 255, 255, 0.42));
+    }
+
+    .fo-notification-dropdown__eyebrow {
+        font-size: .68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+        color: var(--fo-orange);
+        margin-bottom: .15rem;
+    }
+
+    .fo-notification-dropdown__title {
+        font-size: .98rem;
+        font-weight: 800;
+        color: var(--fo-text);
+    }
+
+    .fo-notification-markall {
+        border: 0;
+        background: rgba(230, 81, 0, 0.08);
+        color: var(--fo-orange-dark);
+        border-radius: 999px;
+        padding: .48rem .8rem;
+        font-size: .74rem;
+        font-weight: 800;
+        letter-spacing: .01em;
+        transition: background .18s ease, transform .18s ease, color .18s ease;
+        white-space: nowrap;
+    }
+
+        .fo-notification-markall:hover {
+            background: rgba(230, 81, 0, 0.14);
+            color: var(--fo-orange);
+            transform: translateY(-1px);
+        }
+
+    .fo-notification-list {
+        max-height: 392px;
+        overflow-y: auto;
+        padding: .35rem;
+    }
+
+    .fo-notification-item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: .85rem;
+        padding: .9rem;
+        margin-bottom: .35rem;
+        text-decoration: none;
+        color: var(--fo-text);
+        border: 1px solid transparent;
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(250, 250, 250, 0.96));
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+        .fo-notification-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .fo-notification-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(230, 81, 0, 0.12);
+            background: linear-gradient(180deg, rgba(255, 250, 247, 0.98), rgba(255, 255, 255, 0.98));
+            box-shadow: var(--fo-notification-shadow-hover);
+        }
+
+    .fo-notification-item__icon {
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fo-orange);
+        background: linear-gradient(135deg, rgba(230, 81, 0, 0.12), rgba(255, 138, 80, 0.08));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        font-size: .95rem;
+    }
+
+    .fo-notification-item__body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .fo-notification-item__message {
+        margin: 0 0 .35rem 0;
+        font-size: .83rem;
+        font-weight: 600;
+        line-height: 1.45;
+        color: var(--fo-text);
+        word-break: break-word;
+    }
+
+    .fo-notification-item__meta {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        color: var(--fo-muted);
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    .fo-notification-item__meta-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(107, 114, 128, 0.45);
+    }
+
+    .fo-notification-item__chevron {
+        flex-shrink: 0;
+        color: rgba(230, 81, 0, 0.55);
+        font-size: .8rem;
+        margin-top: .25rem;
+        transition: transform .18s ease, color .18s ease;
+    }
+
+    .fo-notification-item:hover .fo-notification-item__chevron {
+        transform: translateX(2px);
+        color: var(--fo-orange);
+    }
+
+    .fo-notification-empty {
+        padding: 2rem 1.25rem 2.1rem;
+        text-align: center;
+    }
+
+    .fo-notification-empty__icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto .8rem;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(230, 81, 0, 0.10), rgba(255, 138, 80, 0.08));
+        color: var(--fo-orange);
+        font-size: 1.1rem;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .fo-notification-empty__title {
+        font-size: .94rem;
+        font-weight: 800;
+        color: var(--fo-text);
+        margin-bottom: .2rem;
+    }
+
+    .fo-notification-empty__text {
+        font-size: .8rem;
+        color: var(--fo-muted);
+    }
+
+    .fo-notification-loading {
+        padding: .5rem;
+    }
+
+    .fo-notification-skeleton {
+        height: 72px;
+        border-radius: 16px;
+        margin-bottom: .45rem;
+        background: linear-gradient(90deg, rgba(243, 244, 246, 0.90) 25%, rgba(255, 247, 237, 0.95) 50%, rgba(243, 244, 246, 0.90) 75%);
+        background-size: 200% 100%;
+        animation: foNotificationShimmer 1.2s infinite linear;
+    }
+
+        .fo-notification-skeleton:last-child {
+            margin-bottom: 0;
+        }
+
+    @@keyframes foNotificationShimmer {
+        from {
+            background-position: 200% 0;
+        }
+
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .fo-notification-trigger {
+            width: 48px;
+            height: 48px;
+        }
+
+        .fo-notification-dropdown {
+            right: -10px;
+            width: min(360px, calc(100vw - 18px));
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const bellBtn = document.getElementById('notificationBellBtn');
+        const dropdown = document.getElementById('notificationDropdown');
+        const badge = document.getElementById('notificationBadge');
+        const list = document.getElementById('notificationList');
+        const markAllBtn = document.getElementById('markAllReadBtn');
+
+        if (!bellBtn || !dropdown || !badge || !list || !markAllBtn) {
+            return;
+        }
+
+        let isOpen = false;
+
+        function setOpenState(open) {
+            isOpen = open;
+            dropdown.classList.toggle('is-open', open);
+            dropdown.setAttribute('aria-hidden', (!open).toString());
+            bellBtn.setAttribute('aria-expanded', open.toString());
+        }
+
+        function toggleDropdown() {
+            setOpenState(!isOpen);
+            if (isOpen) {
+                loadNotifications(true);
+            }
+        }
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderLoading() {
+            list.innerHTML = `
+                <div class="fo-notification-loading">
+                    <div class="fo-notification-skeleton"></div>
+                    <div class="fo-notification-skeleton"></div>
+                    <div class="fo-notification-skeleton"></div>
+                </div>`;
+        }
+
+        function renderEmpty() {
+            list.innerHTML = `
+                <div class="fo-notification-empty">
+                    <div class="fo-notification-empty__icon">
+                        <i class="fa fa-check"></i>
+                    </div>
+                    <div class="fo-notification-empty__title">All caught up</div>
+                    <div class="fo-notification-empty__text">No new notifications right now.</div>
+                </div>`;
+        }
+
+        bellBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (isOpen && !dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
+                setOpenState(false);
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) {
+                setOpenState(false);
+            }
+        });
+
+        async function loadNotifications(showLoader) {
+            try {
+                if (showLoader) {
+                    renderLoading();
+                }
+
+                const resp = await fetch('@Url.Action("GetNotifications", "NotificationBell")');
+                const data = await resp.json();
+
+                updateBadge(data.count);
+                renderNotifications(data.notifications);
+            } catch {
+                renderEmpty();
+            }
+        }
+
+        function updateBadge(count) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function renderNotifications(notifications) {
+            if (!notifications || notifications.length === 0) {
+                renderEmpty();
+                return;
+            }
+
+            list.innerHTML = notifications.map(n => `
+                <a href="javascript:void(0)"
+                   class="fo-notification-item"
+                   data-id="${escapeHtml(n.id)}"
+                   data-url="${escapeHtml(n.actionUrl || '')}">
+                    <span class="fo-notification-item__icon">
+                        <i class="${escapeHtml(n.iconCss || 'fa fa-bell')}"></i>
+                    </span>
+                    <div class="fo-notification-item__body">
+                        <div class="fo-notification-item__message">${escapeHtml(n.message)}</div>
+                        <div class="fo-notification-item__meta">
+                            <span>${escapeHtml(n.timeAgo || '')}</span>
+                            <span class="fo-notification-item__meta-dot"></span>
+                            <span>Click to open</span>
+                        </div>
+                    </div>
+                    <span class="fo-notification-item__chevron">
+                        <i class="fa fa-chevron-right"></i>
+                    </span>
+                </a>
+            `).join('');
+
+            list.querySelectorAll('.fo-notification-item').forEach(item => {
+                item.addEventListener('click', async function () {
+                    const id = this.dataset.id;
+                    const url = this.dataset.url;
+
+                    const formData = new URLSearchParams();
+                    formData.append('id', id);
+
+                    if (url) {
+                        formData.append('redirectUrl', url);
+                    }
+
+                    try {
+                        const resp = await fetch('@Url.Action("MarkAsRead", "NotificationBell")', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData
+                        });
+
+                        if (url && resp.redirected) {
+                            window.location.href = resp.url;
+                        } else if (url) {
+                            window.location.href = url;
+                        } else {
+                            this.remove();
+                            loadNotifications(false);
+                        }
+                    } catch {
+                    }
+                });
+            });
+        }
+
+        markAllBtn.addEventListener('click', async function () {
+            try {
+                await fetch('@Url.Action("MarkAllAsRead", "NotificationBell")', { method: 'POST' });
+                loadNotifications(false);
+            } catch {
+            }
+        });
+
+        loadNotifications(false);
+        setInterval(function () {
+            loadNotifications(false);
+        }, 60000);
+    })();
+</script>

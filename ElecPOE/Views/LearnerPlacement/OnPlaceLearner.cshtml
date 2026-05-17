@@ -1,0 +1,468 @@
+﻿@model ForekOnline.Domain.ViewModels.PlacementViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Learner Placement";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
+
+<style>
+:root{
+    --pl-bg:#ffffff;--pl-bg-alt:#f6f8fa;--pl-border:#e2e5ea;--pl-border-strong:#cdd2d8;
+    --pl-accent:#7d0e11;--pl-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --pl-soft:#fff5f3;--pl-text:#1f262e;--pl-radius-xl:34px;--pl-radius:22px;--pl-radius:14px;
+    --pl-focus:0 0 0 .15rem #b3121725;--pl-shadow:0 14px 40px -18px rgba(125,14,17,.28),0 6px 20px -10px rgba(125,14,17,.12);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1250px;margin:0 auto;padding:1.85rem 1.15rem 3rem;}
+.header-band{
+    background:var(--pl-bg);border:1px solid var(--pl-border);border-radius:var(--pl-radius-xl);
+    padding:1.25rem 1.55rem 1.2rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121714,#ff7a1816);pointer-events:none;}
+.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--pl-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.05rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.6rem;}
+.tagline{font-size:.58rem;letter-spacing:.2rem;font-weight:700;background:var(--pl-soft);color:var(--pl-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.45rem;align-items:center;}
+
+.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
+.btn-base,.btn-accent,.btn-outline{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--pl-border);
+    background:#fff;color:var(--pl-accent);display:inline-flex;align-items:center;gap:.5rem;
+    cursor:pointer;text-decoration:none;transition:.35s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--pl-accent-grad);color:#fff;border-color:var(--pl-accent);box-shadow:var(--pl-shadow);}
+.btn-accent{background:var(--pl-accent-grad);color:#fff;border:1px solid var(--pl-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+
+.layout-grid{margin-top:1.65rem;display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));align-items:start;}
+.section-card{
+    background:var(--pl-bg);border:1px solid var(--pl-border);border-radius:28px;
+    padding:1.2rem 1.2rem 1.15rem;display:flex;flex-direction:column;gap:1.15rem;position:relative;overflow:hidden;
+}
+.section-card:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e110e,#b312170e,#ff7a1810);pointer-events:none;}
+.section-head{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;}
+.section-head h2{margin:.1rem 0;font-size:.8rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;color:var(--pl-accent);display:flex;gap:.5rem;align-items:center;}
+
+.field-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));}
+.field{display:flex;flex-direction:column;gap:.45rem;}
+.field label{
+    font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;color:#4d5660;display:flex;align-items:center;gap:.4rem;
+}
+.required:after{content:"*";color:#b31217;margin-left:.25rem;font-weight:800;}
+.input-wrap{
+    display:flex;align-items:center;gap:.5rem;background:#fff;border:1px solid var(--pl-border);
+    padding:.55rem .65rem;border-radius:14px;transition:.25s;
+}
+.input-wrap:focus-within{border-color:var(--pl-accent);box-shadow:var(--pl-focus);}
+.input-wrap i{font-size:.75rem;color:#888;}
+.field select,.field input[type='text'],.field input[type='date'],.field input[type='number']{
+    width:100%;border:none;background:transparent;font-size:.72rem;color:#222;outline:none;
+}
+.badge-inline{
+    background:#eef3f7;color:#173b53;border:1px solid #d3dde4;
+    padding:.34rem .65rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.08rem;display:inline-flex;gap:.35rem;align-items:center;
+}
+.status-pill{
+    font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.32rem .6rem;border-radius:30px;display:inline-flex;align-items:center;gap:.35rem;
+    background:#f0f1f3;color:#555;
+}
+
+.actions-row{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:.2rem;}
+.note{font-size:.5rem;letter-spacing:.14rem;color:#666;font-weight:600;margin-top:.4rem;}
+.divider{height:1px;background:linear-gradient(to right,transparent,#d8dde1,transparent);margin:.4rem 0;}
+
+.preview-box{
+    background:#f6f8fa;border:1px solid var(--pl-border);border-radius:24px;
+    min-height:320px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;
+}
+.preview-box img{width:100%;height:100%;object-fit:cover;opacity:.95;transition:.5s;}
+.preview-box img:hover{transform:scale(1.03);}
+
+.inline-toggle{display:flex;align-items:center;gap:.55rem;font-size:.58rem;font-weight:600;margin-top:.3rem;}
+.inline-toggle input{transform:scale(1.15);cursor:pointer;}
+
+.modal-header-modern{
+    background:var(--pl-accent-grad);color:#fff;
+}
+.modal-footer-modern{background:#fff5f4;border-top:1px solid var(--pl-border);}
+
+.helper-inline{display:flex;flex-wrap:wrap;gap:.45rem;}
+
+    .modal.show .select2-container {
+        z-index: 2000;
+    }
+    /* above modal (1055) & backdrop (1050) */
+    .select2-container--open .select2-dropdown {
+        z-index: 2100;
+    }
+
+.calc-pill{
+    background:#fff5f3;color:#b31217;border:1px solid #f3c9cc;
+    font-size:.48rem;font-weight:700;letter-spacing:.08rem;padding:.3rem .55rem;border-radius:24px;display:inline-flex;align-items:center;gap:.3rem;
+}
+
+.select2-container .select2-selection--single{
+    height:42px!important;border:1px solid var(--pl-border)!important;border-radius:14px!important;
+}
+.select2-selection__rendered{line-height:40px!important;font-size:.72rem!important;padding-left:.55rem!important;}
+.select2-selection__arrow{height:40px!important;}
+.fade-in{animation:fade .55s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:640px){
+    .header-band{padding:1.1rem 1.15rem 1rem;}
+    .icon-pill{width:64px;height:64px;font-size:1.7rem;}
+    .header-band h1{font-size:1.35rem;}
+}
+</style>
+
+<div class="page-shell fade-in">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-briefcase"></i></div>
+        <div>
+            <h1>Learner Placement</h1>
+            <div class="tagline"><i class="fa fa-user-graduate"></i> Manage Assignment</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="PlacedLearners" asp-controller="LearnerPlacement" class="btn-base"><i class="fa fa-list"></i> Placement List</a>
+        </div>
+    </div>
+
+    <form asp-action="OnPlaceLearner" method="post" autocomplete="off" novalidate>
+        @Html.AntiForgeryToken()
+        <input asp-for="PlacementId" type="hidden"/>
+
+        <div class="layout-grid">
+            <!-- Placement Form -->
+            <div class="section-card">
+                <div class="section-head">
+                    <h2><i class="fa fa-user-check"></i> Details</h2>
+                    <span class="badge-inline"><i class="fa fa-hashtag"></i>@Model.PlacementId</span>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Learner</label>
+                        <div class="input-wrap" style="background:#fff9ed;">
+                            <i class="fa fa-graduation-cap"></i>
+                            <input asp-for="Student" readonly />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Host Company</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-building"></i>
+                            <select asp-for="CompanyId" class="company" asp-items="ViewBag.CompanyId">
+                                <option value="">Select company...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="CompanyId" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Status</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-spinner"></i>
+                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<eStatus>()">
+                                <option value="">Select status...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Status" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Campus Mentor</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-users"></i>
+                            <select asp-for="PlacedBy" asp-items="ViewBag.UserId">
+                                <option value="">Select mentor...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="PlacedBy" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Start Date</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-calendar-plus"></i>
+                            <input asp-for="StartDate" type="date" id="startDate" />
+                        </div>
+                        <span asp-validation-for="StartDate" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">End Date</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-calendar-xmark"></i>
+                            <input asp-for="EndDate" type="date" id="endDate" />
+                        </div>
+                        <span asp-validation-for="EndDate" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label>Duration (Days)</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-clock"></i>
+                            <input type="number" id="durationDays" min="1" placeholder="Auto" />
+                        </div>
+                        <small style="font-size:.5rem;color:#666;">Auto recalculates from dates (editable).</small>
+                    </div>
+
+                    <div class="field">
+                        <label>Active</label>
+                        <div class="inline-toggle">
+                            <input asp-for="IsActive" type="checkbox" />
+                            <span class="status-pill" id="activeLabel">@((Model.IsActive)?"ACTIVE":"INACTIVE")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                    <a asp-action="WorkplaceModules" asp-controller="WorplaceModules" asp-route-PlacementId="@Model.PlacementId" class="btn-outline">
+                        <i class="fa fa-eye"></i> Workplace Modules
+                    </a>
+                    <button type="button" class="btn-base" data-bs-toggle="modal" data-bs-target="#modulesModal">
+                        <i class="fa fa-plus-circle"></i> Add Workplace Modules
+                    </button>
+                </div>
+                <div class="note"><strong>Note:</strong> Dates drive duration. Adjust duration directly to shift end date.</div>
+            </div>
+
+            <!-- Visual / Illustration -->
+            <div class="section-card" style="min-height:100%;">
+                <div class="section-head">
+                    <h2><i class="fa fa-image"></i> Preview</h2>
+                </div>
+                <div class="preview-box">
+                    <img src="~/Images/6308.jpg" alt="Placement Illustration"/>
+                </div>
+                <div class="helper-inline" style="margin-top:.8rem;">
+                    <span class="calc-pill" id="calcInfo"><i class="fa fa-circle-info"></i> Awaiting date selection</span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal: Add Workplace Modules -->
+<div class="modal fade" id="modulesModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header modal-header-modern">
+                <h5 class="modal-title"><i class="fa fa-layer-group"></i> Add Workplace Modules</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="RegisterModule"
+                  asp-controller="WorplaceModules"
+                  asp-route-PlacementId="@ViewData["PlacementId"]"
+                  asp-route-CompanyId="@ViewData["CompanyId"]"
+                  method="post" autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="PlacementId" value="@ViewData["PlacementId"]" />
+                    <input type="hidden" name="CompanyId" value="@ViewData["CompanyId"]" />
+
+                    <div class="section-card" style="box-shadow:none;border:none;padding:0;background:transparent;">
+                        <div class="section-head" style="margin-bottom:.8rem;">
+                            <h2 style="font-size:.7rem;"><i class="fa fa-cogs"></i> Module Allocation</h2>
+                        </div>
+
+                        <div class="field-grid">
+                            <div class="field">
+                                <label class="required">Course</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-book"></i>
+                                    <select name="CourseId" class="course" asp-items="ViewBag.CourseId">
+                                        <option value="">Select course...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Module</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-book-open"></i>
+                                    <select name="ModuleId" class="module" asp-items="ViewBag.ModuleId">
+                                        <option value="">Select module...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Start Day</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-calendar-plus"></i>
+                                    <input type="date" name="StartDate" id="mStart" required />
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">End Day</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-calendar-xmark"></i>
+                                    <input type="date" name="EndDate" id="mEnd" required />
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Duration (Days)</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-clock"></i>
+                                    <input type="number" name="Days" id="mDays" min="1" required />
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="required">Progress</label>
+                                <div class="input-wrap">
+                                    <i class="fa fa-spinner"></i>
+                                    <select name="Progress" asp-items="Html.GetEnumSelectList<eStatus>()">
+                                        <option value="">Select progress...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="note" id="modCalcInfo"><i class="fa fa-info-circle"></i> Fill start/end to auto-calc days.</div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-modern">
+                    <button type="button" class="btn-outline btn-base" data-bs-dismiss="modal"><i class="fa fa-xmark"></i> Close</button>
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save Module</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    (function($){
+        // Select2 init
+        $('.company,.course,.module').select2({ width:'100%' });
+
+            function initModalSelects() {
+                const $modal = $('#modulesModal');
+                const opts = { width: '100%', dropdownParent: $modal };
+
+                // Destroy previous instances if any (prevents duplicate containers)
+                $modal.find('.course.select2-hidden-accessible').select2('destroy');
+                $modal.find('.module.select2-hidden-accessible').select2('destroy');
+
+                $modal.find('.course').select2(opts);
+                $modal.find('.module').select2(opts);
+            }
+
+            // Initialize when modal becomes visible (ensures correct stacking)
+            $('#modulesModal').on('shown.bs.modal', function () {
+                initModalSelects();
+                // Force repaint (rare Safari quirks)
+                window.requestAnimationFrame(()=> $('.course').trigger('blur').trigger('focus'));
+            });
+
+            // If modal opened programmatically before this code runs
+            if ($('#modulesModal').hasClass('show')) {
+                initModalSelects();
+            }
+
+            // Dependent module load
+            function loadModules() {
+                const courseId = $('#modulesModal .course').val();
+                if (!courseId) {
+                    $('#modulesModal .module').empty().append('<option value="">Select module...</option>').trigger('change');
+                    return;
+                }
+                $.get('@Url.Action("GetCourseModuleId", "LearnerPlacement")', { CourseId: courseId })
+                    .done(data => {
+                        const $m = $('#modulesModal .module');
+                        $m.empty().append('<option value="">Select module...</option>');
+                        (data || []).forEach(x => $m.append(`<option value="${x.moduleId}">${x.moduleName}</option>`));
+                        $m.trigger('change');
+                    })
+                    .fail(() => console.warn('Module load failed'));
+            }
+
+            // Delegate change (reliable after re-init)
+            $(document).on('change', '#modulesModal .course', loadModules);
+
+            // Active label toggle
+            const activeCb = document.querySelector('input[name="IsActive"]');
+            const activeLabel = document.getElementById('activeLabel');
+            activeCb?.addEventListener('change', () => {
+                activeLabel.textContent = activeCb.checked ? 'ACTIVE' : 'INACTIVE';
+            });
+
+            // Duration calc (main form)
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const durationDays = document.getElementById('durationDays');
+            const calcInfo = document.getElementById('calcInfo');
+
+            function parse(d) { return d ? new Date(d + 'T00:00:00') : null; }
+            function daysDiff(a, b) { return Math.round((b - a) / 86400000) + 1; }
+
+            function updateFromDates() {
+                const s = parse(startDate.value), e = parse(endDate.value);
+                if (s && e && e >= s) {
+                    const diff = daysDiff(s, e);
+                    durationDays.value = diff;
+                    calcInfo.innerHTML = '<i class="fa fa-clock"></i> ' + diff + ' day(s)';
+                } else {
+                    calcInfo.innerHTML = (startDate.value || endDate.value)
+                        ? '<i class="fa fa-warning"></i> Invalid range'
+                        : '<i class="fa fa-circle-info"></i> Awaiting date selection';
+                }
+            }
+            function updateFromDuration() {
+                const s = parse(startDate.value);
+                const days = parseInt(durationDays.value, 10);
+                if (s && days > 0) {
+                    const e = new Date(s);
+                    e.setDate(e.getDate() + days - 1);
+                    endDate.value = e.toISOString().slice(0, 10);
+                    updateFromDates();
+                }
+            }
+            startDate?.addEventListener('change', updateFromDates);
+            endDate?.addEventListener('change', updateFromDates);
+            durationDays?.addEventListener('input', updateFromDuration);
+
+            // Modal module duration
+            const mStart = document.getElementById('mStart');
+            const mEnd = document.getElementById('mEnd');
+            const mDays = document.getElementById('mDays');
+            const modCalcInfo = document.getElementById('modCalcInfo');
+
+            function modFromDates() {
+                const s = parse(mStart.value), e = parse(mEnd.value);
+                if (s && e && e >= s) {
+                    const diff = daysDiff(s, e);
+                    mDays.value = diff;
+                    modCalcInfo.innerHTML = '<i class="fa fa-clock"></i> ' + diff + ' day(s)';
+                } else {
+                    modCalcInfo.innerHTML = '<i class="fa fa-info-circle"></i> Fill dates to calculate duration.';
+                }
+            }
+            function modFromDays() {
+                const s = parse(mStart.value); const d = parseInt(mDays.value, 10);
+                if (s && d > 0) {
+                    const e = new Date(s); e.setDate(e.getDate() + d - 1);
+                    mEnd.value = e.toISOString().slice(0, 10);
+                    modFromDates();
+                }
+            }
+            mStart?.addEventListener('change', modFromDates);
+            mEnd?.addEventListener('change', modFromDates);
+            mDays?.addEventListener('input', modFromDays);
+
+        })(jQuery);
+
+    </script>
+}
+
+

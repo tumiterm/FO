@@ -1,0 +1,463 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Identity Check • Forek Online";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        :root {
+            --accent: #0d8e66;
+            --accent2: #0aa377;
+            --danger: #dc2626;
+            --warn: #f59e0b;
+            --bg: #f6f8f7;
+            --card: #ffffff;
+            --ink: #14211b;
+            --muted: #5a6b63;
+            --radius: 16px;
+            --shadow: 0 14px 40px -20px rgba(0,0,0,.25);
+            --case: 1; /* 1=not found, 2=under limit, 3=at limit (UI demo only) */
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 15%, #ffffff 0, #eef4f2 55%, #dbe7e2 100%);
+            min-height: 100vh;
+            font-family: "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+            color: var(--ink);
+        }
+
+        .shell {
+            max-width: 1100px;
+            margin-inline: auto;
+            padding: 1.25rem;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+            .topbar a {
+                color: #0b5d46;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+                .topbar a:hover {
+                    text-decoration: underline;
+                }
+
+        .hero {
+            border-radius: 24px;
+            background: linear-gradient(135deg, #0b5d46, var(--accent) 60%, var(--accent2));
+            color: #fff;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+        }
+
+            .hero:before {
+                content: "";
+                position: absolute;
+                inset: -40% -20%;
+                background: radial-gradient(circle at 30% 35%, rgba(255,255,255,.25) 0, rgba(255,255,255,0) 60%);
+                pointer-events: none;
+            }
+
+        .hero-inner {
+            position: relative;
+            padding: 1.6rem 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 1.35rem;
+            margin: 0 0 .25rem;
+            font-weight: 800;
+        }
+
+        .hero p {
+            margin: 0;
+            color: rgba(255,255,255,.9);
+            max-width: 70ch;
+            font-size: .92rem;
+        }
+
+        .grid {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        @@media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid #e2e8e4;
+            border-radius: var(--radius);
+            box-shadow: 0 12px 26px -22px rgba(0,0,0,.35);
+            overflow: hidden;
+        }
+
+            .cardx .hdr {
+                padding: 1rem 1.1rem;
+                border-bottom: 1px solid #eef2ef;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .6rem;
+                background: linear-gradient(180deg,#ffffff,#fbfcfb);
+            }
+
+                .cardx .hdr h2 {
+                    margin: 0;
+                    font-size: .85rem;
+                    letter-spacing: .18rem;
+                    text-transform: uppercase;
+                    font-weight: 800;
+                    color: #365447;
+                }
+
+                .cardx .hdr i {
+                    color: var(--accent);
+                }
+
+            .cardx .body {
+                padding: 1.05rem 1.1rem;
+            }
+
+        .hint {
+            color: var(--muted);
+            font-size: .88rem;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: .68rem .75rem;
+            border: 1px solid #cfd7d4;
+        }
+
+            .form-control:focus {
+                border-color: rgba(13,142,102,.85);
+                box-shadow: 0 0 0 3px rgba(13,142,102,.18);
+            }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #0b5d46, var(--accent) 60%, var(--accent2));
+            border: 0;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: .2px;
+            border-radius: 12px;
+            padding: .7rem .9rem;
+        }
+
+        .btn-outline-accent {
+            border: 1px solid #0d8e6650;
+            color: #0b5d46;
+            background: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: .7rem .9rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .25px;
+            border: 1px solid transparent;
+        }
+
+        .ok {
+            background: #0d8e6612;
+            border-color: #0d8e6628;
+            color: #0b5d46;
+        }
+
+        .warn {
+            background: #f59e0b12;
+            border-color: #f59e0b40;
+            color: #7a4b00;
+        }
+
+        .bad {
+            background: #dc262612;
+            border-color: #dc262640;
+            color: #7a2525;
+        }
+
+        .mini-table {
+            width: 100%;
+            font-size: .9rem;
+        }
+
+            .mini-table th {
+                font-size: .7rem;
+                text-transform: uppercase;
+                letter-spacing: .12rem;
+                color: #5d6f66;
+                font-weight: 800;
+                border-bottom: 1px solid #edf2ee;
+                padding: .6rem 0;
+            }
+
+            .mini-table td {
+                padding: .65rem 0;
+                border-bottom: 1px dashed #edf2ee;
+                vertical-align: top;
+            }
+
+        .k {
+            color: #5a6b63;
+            font-size: .78rem;
+        }
+
+        .v {
+            font-weight: 700;
+            color: #1b2a23;
+        }
+
+        /* Demo case switching (UI only) */
+        .case1 {
+            display: none;
+        }
+
+        .case2 {
+            display: none;
+        }
+
+        .case3 {
+            display: none;
+        }
+
+        body[data-case="1"] .case1 {
+            display: block;
+        }
+
+        body[data-case="2"] .case2 {
+            display: block;
+        }
+
+        body[data-case="3"] .case3 {
+            display: block;
+        }
+    </style>
+</head>
+<body data-case="1">
+    <div class="shell">
+        <div class="topbar">
+            <a asp-controller="Applications" asp-action="Start">
+                <i class="fa fa-arrow-left me-1"></i> Back to info
+            </a>
+
+            <!-- UI demo only: pick a case visually until logic is implemented -->
+            <div class="d-flex align-items-center gap-2 small">
+                <span class="text-muted fw-semibold">Demo case:</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-case="1">1</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-case="2">2</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-case="3">3</button>
+            </div>
+        </div>
+
+        <section class="hero">
+            <div class="hero-inner">
+                <h1>Identity check</h1>
+                <p>
+                    Enter your ID number or Passport number. We’ll show your existing applications and whether you can start a new one.
+                </p>
+            </div>
+        </section>
+
+        <section class="grid">
+            <!-- Gatekeeper input -->
+            <div class="cardx">
+                <div class="hdr">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-id-card"></i>
+                        <h2>Lookup</h2>
+                    </div>
+                </div>
+                <div class="body">
+                    <form method="get" autocomplete="off" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase" style="letter-spacing:.12rem;">ID Number</label>
+                            <input class="form-control" name="idNumber" maxlength="13" inputmode="numeric" placeholder="e.g. 990101..." />
+                            <div class="hint mt-1">If you enter an ID number, leave passport blank.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase" style="letter-spacing:.12rem;">Passport Number</label>
+                            <input class="form-control" name="passportNumber" placeholder="e.g. A1234567" />
+                            <div class="hint mt-1">If you enter a passport number, leave ID blank.</div>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn-accent">
+                                <i class="fa fa-magnifying-glass me-1"></i> Check My Applications
+                            </button>
+                            <a class="btn-outline-accent" asp-controller="Applications" asp-action="Start">
+                                <i class="fa fa-circle-info me-1"></i> Requirements
+                            </a>
+                        </div>
+
+                        <div class="hint mt-3">
+                            What happens here: we validate input, locate applicant, count applications for the current year, and show your application history.
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mini dashboard / outcomes -->
+            <div class="cardx">
+                <div class="hdr">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-chart-simple"></i>
+                        <h2>Results</h2>
+                    </div>
+
+                    <!-- Example overall status pill -->
+                    <span class="status-pill ok case1"><i class="fa fa-circle-check"></i> Eligible</span>
+                    <span class="status-pill ok case2"><i class="fa fa-circle-check"></i> Eligible</span>
+                    <span class="status-pill bad case3"><i class="fa fa-triangle-exclamation"></i> Limit reached</span>
+                </div>
+
+                <div class="body">
+                    <!-- Case 1: Applicant not found -->
+                    <div class="case1">
+                        <div class="mb-2">
+                            <div class="v">No applications found.</div>
+                            <div class="hint">You may apply <strong>(0 / 3 used)</strong>.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <a class="btn-accent text-center" asp-controller="Applications" asp-action="Apply">
+                                <i class="fa fa-plus me-1"></i> Start New Application
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Case 2: Found, under limit -->
+                    <div class="case2">
+                        <div class="mb-2">
+                            <div class="v">We found your existing applications.</div>
+                            <div class="hint">You have <strong>1 application left</strong> (2 / 3 used).</div>
+                        </div>
+
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="v">FOR2026/01/ABC</div>
+                                        <div class="k">Course: Plumbing (Example)</div>
+                                    </td>
+                                    <td><span class="status-pill warn"><i class="fa fa-hourglass-half"></i> Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="v">FOR2026/01/XYZ</div>
+                                        <div class="k">Course: SHE Rep (Example)</div>
+                                    </td>
+                                    <td><span class="status-pill ok"><i class="fa fa-circle-check"></i> Submitted</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="d-grid mt-3">
+                            <a class="btn-accent text-center" asp-controller="Applications" asp-action="Apply">
+                                <i class="fa fa-plus me-1"></i> Start New Application
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Case 3: At limit -->
+                    <div class="case3">
+                        <div class="mb-2">
+                            <div class="v">Maximum applications reached.</div>
+                            <div class="hint">You’ve used <strong>3 / 3</strong> applications for this year.</div>
+                        </div>
+
+                        <table class="mini-table">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="v">FOR2026/01/AAA</div>
+                                        <div class="k">Course: Bricklaying (Example)</div>
+                                    </td>
+                                    <td><span class="status-pill ok"><i class="fa fa-circle-check"></i> Submitted</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="v">FOR2026/01/BBB</div>
+                                        <div class="k">Course: Conflict Mgmt (Example)</div>
+                                    </td>
+                                    <td><span class="status-pill warn"><i class="fa fa-hourglass-half"></i> Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="v">FOR2026/01/CCC</div>
+                                        <div class="k">Course: Hot & Cold Water (Example)</div>
+                                    </td>
+                                    <td><span class="status-pill bad"><i class="fa fa-circle-xmark"></i> Rejected</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="alert alert-warning mt-3 mb-0" role="alert">
+                            <strong>Note:</strong> You can’t start a new application right now. If you believe this is incorrect,
+                            contact support.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function(){
+            // UI demo only - remove once backend drives this state.
+            const buttons = document.querySelectorAll('[data-case]');
+            buttons.forEach(b=>{
+                b.addEventListener('click', ()=>{
+                    document.body.setAttribute('data-case', b.getAttribute('data-case'));
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

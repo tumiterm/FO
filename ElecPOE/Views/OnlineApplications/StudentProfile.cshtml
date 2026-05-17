@@ -1,0 +1,445 @@
+﻿@{
+    Layout = "_OnlineApplications";
+    ViewData["Title"] = "Student Profile";
+}
+
+@section Styles {
+    <style>
+        .profile-card {
+            border-radius: 18px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.70));
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
+        }
+
+        .profile-card-accent {
+            height: 6px;
+            background: linear-gradient(90deg, var(--forek-orange), var(--forek-red));
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+        }
+
+        .guide-strip {
+            border-radius: 14px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: rgba(255, 255, 255, 0.65);
+            padding: .65rem .75rem;
+        }
+
+        .tab-nav {
+            border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+        }
+
+        .tab-nav .nav-link {
+            border: 0;
+            color: rgba(15, 23, 42, 0.70);
+            font-weight: 600;
+            border-radius: 12px;
+            background: transparent;
+        }
+
+        .tab-nav .nav-link.active {
+            color: var(--forek-ink);
+            background: rgba(255, 106, 0, 0.10);
+            border: 1px solid rgba(255, 106, 0, 0.22);
+        }
+
+        .field-hint {
+            color: #64748b;
+            font-size: .85rem;
+        }
+
+        .upload-card {
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: rgba(255, 255, 255, 0.70);
+            border-radius: 16px;
+            padding: .85rem;
+        }
+
+        .upload-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(255, 106, 0, 0.18), rgba(215, 38, 61, 0.18));
+            border: 1px solid rgba(255, 106, 0, 0.22);
+            flex: 0 0 auto;
+        }
+
+        .upload-meta {
+            min-width: 0;
+        }
+
+        .upload-meta .name {
+            font-weight: 700;
+            margin-bottom: .15rem;
+        }
+
+        .upload-meta .desc {
+            color: #64748b;
+            font-size: .85rem;
+        }
+
+        .sticky-actions {
+            position: sticky;
+            bottom: .75rem;
+            z-index: 4;
+        }
+
+        .sticky-actions .bar {
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: rgba(255, 255, 255, 0.86);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            padding: .65rem;
+        }
+
+        @@media (max-width: 575.98px) {
+            .tab-nav {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .tab-nav .nav-link {
+                display: inline-flex;
+                align-items: center;
+                gap: .45rem;
+            }
+        }
+    </style>
+}
+
+@{
+    var fullName = "Itumeleng Oliphant";
+    var studentNumber = "FO-2025-001234";
+}
+
+<div class="profile-card overflow-hidden">
+    <div class="profile-card-accent"></div>
+
+    <div class="p-3 p-md-4">
+        <div class="d-flex flex-wrap align-items-start align-items-md-center justify-content-between gap-2">
+            <div class="min-w-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="upload-icon" aria-hidden="true">
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    </span>
+                    <div class="min-w-0">
+                        <h2 class="h5 fw-bold mb-0 text-truncate">Student Profile</h2>
+                        <div class="text-muted small text-truncate">@fullName • Ref: @studentNumber</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge badge-soft rounded-pill px-3 py-2">
+                    <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i>
+                    Complete your details to proceed
+                </span>
+            </div>
+        </div>
+
+        <div class="guide-strip mt-3">
+            <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
+                <div class="text-muted small">
+                    <i class="fa-solid fa-route me-2" aria-hidden="true"></i>
+                    Step guide: <strong>Biographic</strong> → <strong>Contact</strong> → <strong>Scholastic</strong> → <strong>Documents</strong>
+                </div>
+                <div class="text-muted small">
+                    <i class="fa-regular fa-circle-check me-2" aria-hidden="true"></i>
+                    Tip: Save at any time. Uploads can be done last.
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav nav-pills tab-nav gap-2 mt-3" id="studentProfileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="bio-tab" data-bs-toggle="tab" data-bs-target="#bio" type="button" role="tab" aria-controls="bio" aria-selected="true">
+                    <i class="fa-solid fa-id-card me-1" aria-hidden="true"></i> Biographic
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">
+                    <i class="fa-solid fa-phone me-1" aria-hidden="true"></i> Contact
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="school-tab" data-bs-toggle="tab" data-bs-target="#school" type="button" role="tab" aria-controls="school" aria-selected="false">
+                    <i class="fa-solid fa-graduation-cap me-1" aria-hidden="true"></i> Scholastic
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs" type="button" role="tab" aria-controls="docs" aria-selected="false">
+                    <i class="fa-solid fa-cloud-arrow-up me-1" aria-hidden="true"></i> Documents
+                </button>
+            </li>
+        </ul>
+
+        <form id="studentProfileForm" class="mt-3" novalidate>
+            <div class="tab-content" id="studentProfileTabContent">
+
+                <!-- BIOGRAPHIC -->
+                <div class="tab-pane fade show active" id="bio" role="tabpanel" aria-labelledby="bio-tab" tabindex="0">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="title">Title</label>
+                            <select class="form-select" id="title" name="title">
+                                <option value="">Select...</option>
+                                <option>Mr</option>
+                                <option>Ms</option>
+                                <option>Mrs</option>
+                                <option>Dr</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="firstName">First Name</label>
+                            <input class="form-control" id="firstName" name="firstName" value="Itumeleng" required />
+                            <div class="invalid-feedback">First name is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="lastName">Surname</label>
+                            <input class="form-control" id="lastName" name="lastName" value="Oliphant" required />
+                            <div class="invalid-feedback">Surname is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="idPassport">ID / Passport Number</label>
+                            <input class="form-control" id="idPassport" name="idPassport" placeholder="Enter ID or Passport..." required />
+                            <div class="field-hint mt-1">Used for verification. Do not share with anyone.</div>
+                            <div class="invalid-feedback">ID/Passport number is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold" for="gender">Gender</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="">Select...</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                            <div class="invalid-feedback">Gender is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold" for="dob">Date of Birth</label>
+                            <input class="form-control" id="dob" name="dob" type="date" required />
+                            <div class="invalid-feedback">Date of birth is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="nationality">Nationality</label>
+                            <input class="form-control" id="nationality" name="nationality" placeholder="e.g., South African" />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="language">Home Language</label>
+                            <input class="form-control" id="language" name="language" placeholder="e.g., Setswana" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTACT -->
+                <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="cell">Cellphone</label>
+                            <input class="form-control" id="cell" name="cell" inputmode="tel" placeholder="e.g., 0712345678" required />
+                            <div class="invalid-feedback">Cellphone is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="email">Email</label>
+                            <input class="form-control" id="email" name="email" type="email" placeholder="name@example.com" required />
+                            <div class="invalid-feedback">Valid email is required.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="address1">Residential Address</label>
+                            <input class="form-control" id="address1" name="address1" placeholder="Street address..." required />
+                            <div class="invalid-feedback">Address is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="city">City</label>
+                            <input class="form-control" id="city" name="city" required />
+                            <div class="invalid-feedback">City is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="province">Province</label>
+                            <select class="form-select" id="province" name="province" required>
+                                <option value="">Select...</option>
+                                <option>Gauteng</option>
+                                <option>KwaZulu-Natal</option>
+                                <option>Western Cape</option>
+                                <option>Eastern Cape</option>
+                                <option>Free State</option>
+                                <option>Limpopo</option>
+                                <option>Mpumalanga</option>
+                                <option>North West</option>
+                                <option>Northern Cape</option>
+                            </select>
+                            <div class="invalid-feedback">Province is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold" for="postal">Postal Code</label>
+                            <input class="form-control" id="postal" name="postal" inputmode="numeric" required />
+                            <div class="invalid-feedback">Postal code is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="guardianName">Guardian / Next of Kin</label>
+                            <input class="form-control" id="guardianName" name="guardianName" placeholder="Full name..." />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="guardianCell">Guardian Contact</label>
+                            <input class="form-control" id="guardianCell" name="guardianCell" inputmode="tel" placeholder="e.g., 0712345678" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCHOLASTIC -->
+                <div class="tab-pane fade" id="school" role="tabpanel" aria-labelledby="school-tab" tabindex="0">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="highestQualification">Highest Qualification</label>
+                            <select class="form-select" id="highestQualification" name="highestQualification" required>
+                                <option value="">Select...</option>
+                                <option>Grade 9</option>
+                                <option>Grade 10</option>
+                                <option>Grade 11</option>
+                                <option>Matric (Grade 12)</option>
+                                <option>Certificate</option>
+                                <option>Diploma</option>
+                                <option>Degree</option>
+                            </select>
+                            <div class="invalid-feedback">Highest qualification is required.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="lastSchool">Last School / Institution</label>
+                            <input class="form-control" id="lastSchool" name="lastSchool" placeholder="e.g., ABC Secondary School" />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="yearCompleted">Year Completed</label>
+                            <input class="form-control" id="yearCompleted" name="yearCompleted" inputmode="numeric" placeholder="e.g., 2023" />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold" for="subjects">Key Subjects (optional)</label>
+                            <input class="form-control" id="subjects" name="subjects" placeholder="e.g., Maths, English, CAT" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="disability">Disability / Support Needs (optional)</label>
+                            <textarea class="form-control" id="disability" name="disability" rows="3" placeholder="If you need support accommodations, mention them here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOCUMENTS -->
+                <div class="tab-pane fade" id="docs" role="tabpanel" aria-labelledby="docs-tab" tabindex="0">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="text-muted small">
+                                <i class="fa-solid fa-lock me-2" aria-hidden="true"></i>
+                                Upload clear images/PDFs. Accepted formats can be enforced later.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="upload-card">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="upload-icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></span>
+                                    <div class="upload-meta">
+                                        <div class="name">ID / Passport</div>
+                                        <div class="desc">Required for identity verification.</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <input class="form-control" type="file" id="docIdPassport" name="docIdPassport" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="upload-card">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="upload-icon" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+                                    <div class="upload-meta">
+                                        <div class="name">Highest Qualification</div>
+                                        <div class="desc">Matric / certificate / transcript.</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <input class="form-control" type="file" id="docHighestQualification" name="docHighestQualification" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="upload-card">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="upload-icon" aria-hidden="true"><i class="fa-solid fa-house"></i></span>
+                                    <div class="upload-meta">
+                                        <div class="name">Proof of Residence</div>
+                                        <div class="desc">Utility bill / affidavit.</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <input class="form-control" type="file" id="docResidence" name="docResidence" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="upload-card">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <span class="upload-icon" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span>
+                                    <div class="upload-meta">
+                                        <div class="name">Guardian ID</div>
+                                        <div class="desc">Required if applicant is a minor.</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <input class="form-control" type="file" id="docGuardianId" name="docGuardianId" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+        <!-- Sticky actions -->
+        <div class="sticky-actions mt-3">
+            <div class="bar d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="text-muted small">
+                    <i class="fa-regular fa-floppy-disk me-2" aria-hidden="true"></i>
+                    Your changes are not saved yet (demo).
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-forek">
+                        <i class="fa-solid fa-xmark me-2" aria-hidden="true"></i>
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-forek">
+                        <i class="fa-solid fa-floppy-disk me-2" aria-hidden="true"></i>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,1116 @@
+﻿@model ForekOnline.Domain.ViewModels.AssessmentAttemptViewModel
+@{
+    Layout = "_Layout";
+    var timerEnabled = Model.TimerMinutes > 0;
+
+    if (Model.EnableMathRendering)
+    {
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+        <script type="module" src="https://unpkg.com/mathlive@0.101.1/dist/mathlive.min.mjs"></script>
+
+        <style>
+            .math-answer-wrap {
+                margin-top: .5rem;
+            }
+
+                .math-answer-wrap math-field {
+                    display: block;
+                    width: 100%;
+                    font-size: 1.1rem;
+                    min-height: 48px;
+                    border: 1px solid #e1e4e8;
+                    border-radius: 10px;
+                    padding: .4rem .6rem;
+                }
+
+            .math-quick-toolbar {
+                display: flex;
+                gap: .3rem;
+                flex-wrap: wrap;
+                margin-bottom: .3rem;
+            }
+
+                .math-quick-toolbar button {
+                    font-size: .55rem;
+                    padding: .3rem .5rem;
+                    border-radius: 8px;
+                    border: 1px solid #e1e4e8;
+                    background: #fff;
+                    cursor: pointer;
+                }
+
+                    .math-quick-toolbar button:hover {
+                        background: #b31217;
+                        color: #fff;
+                    }
+
+            .math-preview-inline {
+                display: inline-block;
+                background: #fff5f5;
+                border: 1px solid #e1e4e8;
+                border-radius: 8px;
+                padding: .2rem .5rem;
+                margin: .15rem .1rem;
+                font-size: .75rem;
+            }
+        </style>
+
+        <script type="module">
+            // Wait for DOM + MathLive to load
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initMathAttempt, 300);
+            });
+
+            function initMathAttempt() {
+                // 1) Render LaTeX in all question prompts and option text
+                document.querySelectorAll('[data-question-prompt], [data-option-text]').forEach(el => {
+                    renderLatex(el);
+                });
+
+                // 2) Replace short-answer text inputs with MathLive editors
+                document.querySelectorAll('[data-short-answer-input]').forEach(input => {
+                    const container = document.createElement('div');
+                    container.className = 'math-answer-wrap';
+
+                    // Quick-insert toolbar
+                    const toolbar = document.createElement('div');
+                    toolbar.className = 'math-quick-toolbar';
+                    const symbols = [
+                        { label: 'x/y', cmd: '\\frac{▢}{▢}' },
+                        { label: '√', cmd: '\\sqrt{▢}' },
+                        { label: 'x²', cmd: 'x^{▢}' },
+                        { label: 'π', cmd: '\\pi' },
+                        { label: '±', cmd: '\\pm' },
+                        { label: '≤', cmd: '\\leq' },
+                        { label: '≥', cmd: '\\geq' },
+                        { label: '∞', cmd: '\\infty' },
+                        { label: '∑', cmd: '\\sum_{▢}^{▢}' },
+                        { label: '∫', cmd: '\\int_{▢}^{▢}' },
+                    ];
+                    symbols.forEach(s => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.textContent = s.label;
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const mf = container.querySelector('math-field');
+                            if (mf) { mf.executeCommand(['insert', s.cmd]); mf.focus(); }
+                        });
+                        toolbar.appendChild(btn);
+                    });
+
+                    // The MathLive field
+                    const mathField = document.createElement('math-field');
+                    mathField.setAttribute('virtual-keyboard-mode', 'manual');
+
+                    // If there's already a value (e.g. re-render), pre-populate
+                    const existing = input.value || '';
+                    if (existing.includes('$')) {
+                        const match = existing.match(/\$([^$]+)\$/);
+                        if (match) mathField.setValue(match[1]);
+                    } else if (existing.trim()) {
+                        mathField.setValue(existing);
+                    }
+
+                    // Sync MathLive → hidden input on every keystroke
+                    mathField.addEventListener('input', () => {
+                        const latex = mathField.getValue('latex');
+                        input.value = latex ? `$${latex}$` : '';
+                    });
+
+                    // Also allow plain text toggle
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'math-quick-toolbar';
+                    toggleBtn.style.cssText = 'font-size:.5rem;padding:.25rem .5rem;margin-top:.3rem;border:1px solid #e1e4e8;border-radius:8px;background:#fff;cursor:pointer;';
+                    toggleBtn.textContent = '⌨ Switch to plain text';
+                    let isMathMode = true;
+                    toggleBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        isMathMode = !isMathMode;
+                        if (isMathMode) {
+                            mathField.style.display = '';
+                            toolbar.style.display = '';
+                            input.style.display = 'none';
+                            toggleBtn.textContent = '⌨ Switch to plain text';
+                        } else {
+                            mathField.style.display = 'none';
+                            toolbar.style.display = 'none';
+                            input.style.display = '';
+                            input.focus();
+                            toggleBtn.textContent = 'ƒ Switch to math editor';
+                        }
+                    });
+
+                    container.appendChild(toolbar);
+                    container.appendChild(mathField);
+                    container.appendChild(toggleBtn);
+
+                    input.style.display = 'none';
+                    input.parentNode.insertBefore(container, input.nextSibling);
+                });
+            }
+
+            function renderLatex(el) {
+                if (!window.katex || !el) return;
+                const html = el.innerHTML;
+                el.innerHTML = html.replace(/\$\$([^$]+)\$\$|\$([^$]+)\$/g, (match, block, inline) => {
+                    const latex = block || inline;
+                    const isBlock = !!block;
+                    const span = document.createElement(isBlock ? 'div' : 'span');
+                    span.className = 'math-preview-inline';
+                    try { katex.render(latex, span, { displayMode: isBlock, throwOnError: false }); }
+                    catch { span.textContent = match; }
+                    return span.outerHTML;
+                });
+            }
+        </script>
+    }
+}
+
+<style>
+
+    .complete-wrap {
+        max-width: 780px;
+        margin: 1.2rem auto 0;
+    }
+
+    .complete-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 28px;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.08);
+        box-shadow: 0 14px 40px -18px rgba(50,6,6,.25), 0 6px 22px -10px rgba(50,6,6,.14);
+        padding: 1.8rem 1.7rem 1.5rem;
+    }
+
+        .complete-card:before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(50,6,6,.06), rgba(179,18,23,.08), rgba(255,122,24,.10));
+            pointer-events: none;
+        }
+
+    .complete-badge {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: .62rem;
+        letter-spacing: .22rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: rgba(179,18,23,.08);
+        color: #b31217;
+        padding: .45rem .75rem;
+        border-radius: 999px;
+        border: 1px solid rgba(179,18,23,.16);
+    }
+
+    .complete-icon {
+        width: 86px;
+        height: 86px;
+        border-radius: 26px;
+        background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 2.05rem;
+        margin: 0 auto 1rem;
+        box-shadow: 0 12px 32px -18px rgba(179,18,23,.55);
+        position: relative;
+    }
+
+    .complete-title {
+        margin: .25rem 0 .55rem;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.35rem;
+        background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .complete-lead {
+        margin: 0 auto 1rem;
+        text-align: center;
+        max-width: 620px;
+        color: #4d545c;
+        font-size: .95rem;
+        line-height: 1.35rem;
+    }
+
+    .complete-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .65rem;
+        justify-content: center;
+        margin-top: .25rem;
+    }
+
+        .complete-actions .btn {
+            border-radius: 14px;
+            font-weight: 800;
+            letter-spacing: .02rem;
+        }
+
+    @@media (max-width: 576px) {
+        .complete-card
+
+    {
+        padding: 1.45rem 1.1rem 1.2rem;
+        border-radius: 24px;
+    }
+
+    .complete-title {
+        font-size: 1.2rem;
+    }
+
+    }
+
+    .attempt-shell {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 1rem 1rem 3rem;
+    }
+
+    .attempt-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--bs-body-bg, #fff);
+        border-bottom: 1px solid rgba(0,0,0,.08);
+        padding: .75rem 0;
+        margin-bottom: .85rem;
+    }
+
+        .attempt-topbar .row {
+            --bs-gutter-x: .75rem;
+            align-items: center;
+        }
+
+    .attempt-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2rem;
+    }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        border-radius: 999px;
+        padding: .35rem .7rem;
+        border: 1px solid rgba(0,0,0,.12);
+        background: rgba(0,0,0,.02);
+        font-size: .72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .pill.danger {
+            border-color: rgba(179,18,23,.35);
+            background: rgba(179,18,23,.08);
+            color: #b31217;
+        }
+
+    .q-card {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 8px 24px -16px rgba(0,0,0,.18);
+        overflow: hidden;
+    }
+
+        .q-card .q-body {
+            padding: 1rem 1rem .9rem;
+        }
+
+    .q-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .75rem;
+    }
+
+    .q-prompt {
+        font-weight: 800;
+        margin: 0 0 .75rem;
+        font-size: .98rem;
+    }
+
+    .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+        gap: .45rem;
+        margin-top: .85rem;
+    }
+
+    .qnav-btn {
+        border: 1px solid rgba(0,0,0,.14);
+        background: #fff;
+        border-radius: 12px;
+        padding: .45rem .25rem;
+        font-size: .72rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+        .qnav-btn:hover {
+            border-color: rgba(179,18,23,.55);
+        }
+
+        .qnav-btn.active {
+            background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            border-color: #b31217;
+            color: #fff;
+        }
+
+        .qnav-btn.answered {
+            border-color: rgba(13,142,102,.55);
+            background: rgba(13,142,102,.06);
+        }
+
+    .attempt-actions {
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: .85rem;
+    }
+
+        .attempt-actions .btn {
+            border-radius: 14px;
+            font-weight: 800;
+            letter-spacing: .02rem;
+        }
+
+    .instructions {
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 16px;
+        padding: .85rem .9rem;
+        background: rgba(0,0,0,.02);
+        margin-bottom: .85rem;
+        font-size: .9rem;
+    }
+
+    @@media (max-width: 576px) {
+        .attempt-shell {
+            padding: .85rem .75rem 3rem;
+        }
+
+        .attempt-title {
+            font-size: .98rem;
+        }
+
+        .q-card .q-body {
+            padding: .9rem .85rem .8rem;
+        }
+
+        .attempt-actions {
+            flex-direction: column;
+        }
+
+            .attempt-actions .btn {
+                width: 100%;
+            }
+    }
+</style>
+
+<section class="attempt-shell">
+    <div class="attempt-topbar">
+        <div class="row">
+            <div class="col-12 col-md-7">
+                <h1 class="attempt-title">@Model.Title</h1>
+                <div class="text-muted small" id="progressText"></div>
+            </div>
+
+            <div class="col-12 col-md-5 d-flex gap-2 justify-content-md-end mt-2 mt-md-0">
+                @if (timerEnabled)
+                {
+                    <span class="pill danger">
+                        <i class="fa fa-clock"></i>
+                        <span>Time:</span>
+                        <strong id="timeRemain">--:--</strong>
+                    </span>
+                }
+                <button type="button" id="btnSubmitTop" class="btn btn-danger btn-sm">
+                    <i class="fa fa-paper-plane"></i> Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (ViewData["Instructions"] is string instructions && !string.IsNullOrWhiteSpace(instructions))
+    {
+        <div class="instructions">
+            <div class="fw-bold mb-1"><i class="fa fa-circle-info"></i> Instructions</div>
+            <div>@Html.Raw(instructions)</div>
+        </div>
+    }
+
+    <form id="assessmentForm" autocomplete="off">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="AttemptId" value="@Model.AttemptId" />
+        <input type="hidden" name="AssessmentId" value="@Model.AssessmentId" />
+
+        @for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var q = Model.Questions[i];
+
+            <div class="q-card mb-3" data-qcard data-index="@i" style="display:none;">
+                <div class="q-body">
+                    <div class="q-meta">
+                        <span class="pill"><i class="fa fa-hashtag"></i> Q@(i + 1)</span>
+                        <span class="pill"><i class="fa fa-list-check"></i> @Model.Questions.Count</span>
+                    </div>
+
+                    <p class="q-prompt">@q.Prompt</p>
+
+                    @if (!string.IsNullOrWhiteSpace(q.ImagePath))
+                    {
+
+                        <img src="@Url.Action("QuestionImage", "Assessment", new { fileId = q.ImagePath })"
+                             alt="Question image"
+                             class="img-fluid rounded mb-3"
+                        style="max-height:260px;" />
+
+                        if (q.EnableAnnotation)
+                        {
+                            var canvasId = $"annCanvas_{q.QuestionId:D}";
+                            var jsonId = $"annJson_{q.QuestionId:D}";
+                            var snapId = $"annSnap_{q.QuestionId:D}";
+
+                            <div class="mb-3" data-annotate-host data-question-id="@q.QuestionId" data-image-file-id="@q.ImagePath">
+                                <div class="d-flex gap-2 flex-wrap mb-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-ann-tool="pen">
+                                        <i class="fa fa-pen"></i> Draw
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-ann-tool="eraser">
+                                        <i class="fa fa-eraser"></i> Erase
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-ann-clear>
+                                        <i class="fa fa-trash"></i> Clear
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" data-ann-save>
+                                        <i class="fa fa-cloud-arrow-up"></i> Save Snapshot
+                                    </button>
+
+                                    <span class="text-muted small align-self-center" data-ann-status></span>
+                                </div>
+
+                                <div style="border:1px solid rgba(0,0,0,.12);border-radius:12px;overflow:hidden;max-width:100%;">
+                                    <canvas id="@canvasId" width="900" height="420" style="width:100%;height:auto;display:block;"></canvas>
+                                </div>
+
+                                <input type="hidden" id="@jsonId" name="annJson_@q.QuestionId" value="" />
+                                <input type="hidden" id="@snapId" name="annSnap_@q.QuestionId" value="" />
+                            </div>
+
+                        }
+                    }
+
+                    @if (q.IsMultipleChoice)
+                    {
+                        foreach (var opt in q.Options)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q_@q.QuestionId" value="@opt.OptionId" />
+                                <label class="form-check-label">@opt.Text</label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <textarea name="q_@q.QuestionId" rows="3" class="form-control" placeholder="Type your answer..."></textarea>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="attempt-actions">
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" id="btnPrev" class="btn btn-outline-secondary">
+                    <i class="fa fa-chevron-left"></i> Previous
+                </button>
+                <button type="button" id="btnNext" class="btn btn-outline-secondary">
+                    Next <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" id="btnSubmit" class="btn btn-danger">
+                    <i class="fa fa-paper-plane"></i> Submit
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="small text-muted fw-bold mb-2"><i class="fa fa-grip"></i> Jump to question</div>
+            <div id="navGrid" class="nav-grid"></div>
+        </div>
+    </form>
+
+    <div id="completeBlock" class="complete-wrap d-none">
+        <div class="complete-card">
+            <span class="complete-badge">Completed</span>
+
+            <div class="complete-icon" aria-hidden="true">
+                <i class="fa fa-circle-check"></i>
+            </div>
+
+            <h2 class="complete-title">Thanks for completing the assessment</h2>
+
+            <p class="complete-lead">
+                Your submission was received successfully.
+                You’ll be notified when grading is done.
+            </p>
+
+            <div class="complete-actions">
+                <a class="btn btn-danger" href="@Url.Action("List", "Assessment")">
+                    <i class="fa fa-list-check me-1"></i> Back to Assessments
+                </a>
+
+                <a class="btn btn-outline-secondary" href="@Url.Action("Index", "Home")">
+                    <i class="fa fa-house me-1"></i> Home
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+@section Scripts {
+    <script>
+        (function () {
+            const attemptId = '@Model.AttemptId';
+            const assessmentId = '@Model.AssessmentId';
+            const timerMinutes = @Model.TimerMinutes;
+
+            const startedUtcMs = Date.parse('@Model.StartedUtc.ToString("O")');
+            const deadlineUtcMs = startedUtcMs + (timerMinutes * 60 * 1000);
+
+            let interval = null;
+            let focusLoss = 0;
+            const maxFocus = @Model.MaxFocusLossAllowed;
+            const enforceFullscreen = @Model.EnforceFullscreen.ToString().ToLowerInvariant();
+            let autoSubmitted = false;
+
+            const cards = [...document.querySelectorAll('[data-qcard]')];
+            const navGrid = document.getElementById('navGrid');
+            const progressText = document.getElementById('progressText');
+
+            let index = 0;
+
+          const annotationByQuestionId = new Map();
+          const fabricCanvasByQuestionId = new Map();
+
+        function getQuestionIdFromName(name) {
+            return name.substring(2);
+        }
+
+        function getAntiForgeryToken() {
+            return document.querySelector('#assessmentForm input[name="__RequestVerificationToken"]')?.value;
+        }
+
+        async function uploadAnnotationSnapshot(blob) {
+            const fd = new FormData();
+            fd.append('file', blob, 'annotation.png');
+
+            const antiforgery = getAntiForgeryToken();
+
+            const res = await fetch('@Url.Action("UploadAnnotationSnapshot", "Assessment")', {
+                method: 'POST',
+                headers: {
+                    ...(antiforgery ? { 'RequestVerificationToken': antiforgery } : {})
+                },
+                body: fd
+            });
+
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(txt || `Snapshot upload failed (HTTP ${res.status})`);
+            }
+
+            return await res.json();
+        }
+
+        function setAnnStatus(host, text) {
+            host?.querySelector('[data-ann-status]')?.replaceChildren(document.createTextNode(text || ''));
+        }
+
+            function formatTime(ms) {
+                if (ms <= 0) return '00:00';
+                const s = Math.floor(ms / 1000);
+                const m = Math.floor(s / 60);
+                const r = s % 60;
+                return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+            }
+
+            function tick() {
+                const remainingMs = Math.max(0, deadlineUtcMs - Date.now());
+                const el = document.getElementById('timeRemain');
+                if (el) el.textContent = formatTime(remainingMs);
+
+                if (remainingMs <= 0) {
+                    clearInterval(interval);
+                    autoSubmit(true);
+                }
+            }
+
+            if (timerMinutes > 0) {
+                tick();
+                interval = setInterval(tick, 1000);
+            }
+
+            function showCard(i) {
+                if (i < 0 || i >= cards.length) return;
+                cards.forEach((c, idx) => c.style.display = idx === i ? '' : 'none');
+                index = i;
+                updateProgress();
+                updateNavActive();
+                updatePrevNextState();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function updatePrevNextState() {
+                document.getElementById('btnPrev').disabled = index === 0;
+                document.getElementById('btnNext').disabled = index === cards.length - 1;
+            }
+
+            function isAnswered(i) {
+                const card = cards[i];
+                if (!card) return false;
+
+                const radios = [...card.querySelectorAll('input[type="radio"]')];
+                if (radios.length > 0) return radios.some(r => r.checked);
+
+                const ta = card.querySelector('textarea');
+                if (ta) return (ta.value || '').trim().length > 0;
+
+                return false;
+            }
+
+            function updateProgress() {
+                const answered = cards.filter((_, i) => isAnswered(i)).length;
+                if (progressText) progressText.textContent = `Answered ${answered}/${cards.length}`;
+            }
+
+            function buildNav() {
+                if (!navGrid) return;
+                navGrid.innerHTML = '';
+                for (let i = 0; i < cards.length; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'qnav-btn';
+                    btn.textContent = (i + 1).toString();
+                    btn.addEventListener('click', () => showCard(i));
+                    navGrid.appendChild(btn);
+                }
+            }
+
+            function updateNavActive() {
+                if (!navGrid) return;
+                const navBtns = [...navGrid.querySelectorAll('.qnav-btn')];
+                navBtns.forEach((b, i) => {
+                    b.classList.toggle('active', i === index);
+                    b.classList.toggle('answered', isAnswered(i));
+                });
+            }
+
+            document.getElementById('assessmentForm')?.addEventListener('change', () => {
+                updateProgress();
+                updateNavActive();
+            });
+            document.getElementById('assessmentForm')?.addEventListener('input', () => {
+                updateProgress();
+                updateNavActive();
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    focusLoss++;
+                    if (focusLoss >= maxFocus) {
+                        autoSubmit(true);
+                    }
+                }
+            });
+
+            if (enforceFullscreen) {
+                requestFS();
+                document.addEventListener('fullscreenchange', () => {
+                    if (!document.fullscreenElement) {
+                        focusLoss++;
+                        if (focusLoss >= maxFocus) {
+                            autoSubmit(true);
+                        } else {
+                            alert('Return to fullscreen. Further exits will end your attempt.');
+                            requestFS();
+                        }
+                    }
+                });
+            }
+
+            function requestFS() {
+                const el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen();
+            }
+
+            function collectAnswers() {
+            const form = document.getElementById('assessmentForm');
+            if (!form) return [];
+
+            const names = new Set();
+            form.querySelectorAll('input[name^="q_"], textarea[name^="q_"]').forEach(el => {
+                if (el?.name) names.add(el.name);
+            });
+
+            const answers = [];
+            for (const name of names) {
+                const questionId = getQuestionIdFromName(name);
+
+                const checkedRadio = form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+                if (checkedRadio) {
+                    answers.push({
+                        questionId: questionId,
+                        selectedOptionId: checkedRadio.value,
+                        shortAnswerValue: null,
+                        diagramAnnotationJson: null,
+                        diagramAnnotationSnapshotFileId: null
+                    });
+                    continue;
+                }
+
+                const textArea = form.querySelector(`textarea[name="${CSS.escape(name)}"]`);
+                if (textArea) {
+                    const ann = annotationByQuestionId.get(questionId) || null;
+
+                    answers.push({
+                        questionId: questionId,
+                        selectedOptionId: null,
+                        shortAnswerValue: textArea.value || '',
+                        diagramAnnotationJson: ann?.json || null,
+                        diagramAnnotationSnapshotFileId: ann?.snapshotFileId || null
+                    });
+                    continue;
+                }
+
+                answers.push({
+                    questionId: questionId,
+                    selectedOptionId: null,
+                    shortAnswerValue: null,
+                    diagramAnnotationJson: null,
+                    diagramAnnotationSnapshotFileId: null
+                });
+            }
+
+            return answers;
+        }
+
+            async function autoSubmit(forced) {
+                if (autoSubmitted) return;
+                autoSubmitted = true;
+                await submit(forced);
+            }
+
+                    function canvasHasUserDrawing(canvas) {
+            if (!canvas) return false;
+
+            const objects = canvas.getObjects() || [];
+            return objects.length > 0;
+        }
+
+        function writeJsonForCanvas(questionId) {
+            const canvas = fabricCanvasByQuestionId.get(questionId);
+            if (!canvas) return;
+
+            const host = document.querySelector(`[data-annotate-host][data-question-id="${CSS.escape(questionId)}"]`);
+            const json = JSON.stringify(canvas.toJSON());
+
+            annotationByQuestionId.set(questionId, annotationByQuestionId.get(questionId) || {});
+            annotationByQuestionId.get(questionId).json = json;
+
+            const jsonInput = host?.querySelector(`input[id^="annJson_"]`);
+            if (jsonInput) jsonInput.value = json;
+        }
+
+        async function ensureSnapshotsUploadedBeforeSubmit() {
+            const hosts = [...document.querySelectorAll('[data-annotate-host]')];
+
+            for (const host of hosts) {
+                const qid = host.getAttribute('data-question-id');
+                if (!qid) continue;
+
+                const canvas = fabricCanvasByQuestionId.get(qid);
+                if (!canvas) continue;
+
+                if (!canvasHasUserDrawing(canvas)) continue;
+
+                writeJsonForCanvas(qid);
+
+                const existing = annotationByQuestionId.get(qid);
+                if (existing?.snapshotFileId) continue;
+
+                setAnnStatus(host, 'Auto-saving snapshot...');
+
+                const blob = await new Promise((resolve) => {
+                    canvas.getElement().toBlob((b) => resolve(b), 'image/png');
+                });
+
+                if (!blob) {
+                    setAnnStatus(host, 'Snapshot failed');
+                    continue;
+                }
+
+                const data = await uploadAnnotationSnapshot(blob);
+                if (!data?.fileId) throw new Error('Upload did not return fileId.');
+
+                annotationByQuestionId.set(qid, annotationByQuestionId.get(qid) || {});
+                annotationByQuestionId.get(qid).snapshotFileId = data.fileId.toString();
+
+                const snapInput = host.querySelector(`input[id^="annSnap_"]`);
+                if (snapInput) snapInput.value = data.fileId.toString();
+
+                setAnnStatus(host, 'Snapshot saved');
+            }
+        }
+
+
+                   async function submit(forced = false) {
+            if (autoSubmitted) return;
+            autoSubmitted = true;
+
+            const antiforgery = document.querySelector('#assessmentForm input[name="__RequestVerificationToken"]')?.value;
+
+            disableUI();
+
+            try {
+                await ensureSnapshotsUploadedBeforeSubmit();
+
+                const payload = {
+                    attemptId: attemptId,
+                    assessmentId: assessmentId,
+                    answers: collectAnswers(),
+                    forcedAutoSubmit: forced
+                };
+
+                const res = await fetch('@Url.Action("Submit", "Assessment")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(antiforgery ? { 'RequestVerificationToken': antiforgery } : {})
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const bodyText = await res.text();
+
+                if (!res.ok) {
+                    autoSubmitted = false;
+                    alert(`Submit failed (HTTP ${res.status}).\n\n${bodyText || '(empty response)'}`);
+                    enableUI();
+                    return;
+                }
+
+                let data;
+                try { data = bodyText ? JSON.parse(bodyText) : null; } catch { data = null; }
+
+                if (!data) {
+                    alert(`Submit succeeded but response was not JSON. First 300 chars:\n\n${(bodyText || '').slice(0, 300)}`);
+                    return;
+                }
+
+                showResult(data);
+            } catch (err) {
+                autoSubmitted = false;
+                console.error(err);
+                alert(`Error submitting attempt: ${err?.message || err}`);
+                enableUI();
+            }
+        }
+
+            function disableUI() {
+                document.getElementById('btnSubmit').disabled = true;
+                document.getElementById('btnSubmitTop').disabled = true;
+                document.getElementById('btnPrev').disabled = true;
+                document.getElementById('btnNext').disabled = true;
+
+                document.querySelectorAll('#assessmentForm input, #assessmentForm textarea, #assessmentForm button')
+                    .forEach(e => e.disabled = true);
+
+                clearInterval(interval);
+            }
+
+            function enableUI() {
+                document.getElementById('btnSubmit').disabled = false;
+                document.getElementById('btnSubmitTop').disabled = false;
+                updatePrevNextState();
+
+                document.querySelectorAll('#assessmentForm input, #assessmentForm textarea, #assessmentForm button')
+                    .forEach(e => e.disabled = false);
+            }
+
+           function showResult(data) {
+            document.getElementById('assessmentForm')?.classList.add('d-none');
+            document.querySelector('.attempt-topbar')?.classList.add('d-none');
+
+            const block = document.getElementById('completeBlock');
+            block?.classList.remove('d-none');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+           }
+
+           function initAnnotations() {
+            const hosts = [...document.querySelectorAll('[data-annotate-host]')];
+            if (hosts.length === 0) return;
+
+            for (const host of hosts) {
+                const qid = host.getAttribute('data-question-id');
+                const canvasEl = host.querySelector('canvas');
+                if (!qid || !canvasEl) continue;
+
+                const canvas = new fabric.Canvas(canvasEl, {
+                    isDrawingMode: true,
+                    selection: false
+                });
+
+                fabricCanvasByQuestionId.set(qid, canvas);
+
+                canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+                canvas.freeDrawingBrush.color = '#b31217';
+                canvas.freeDrawingBrush.width = 3;
+
+                host.querySelector('[data-ann-tool="pen"]')?.addEventListener('click', () => {
+                    canvas.isDrawingMode = true;
+                    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+                    canvas.freeDrawingBrush.color = '#b31217';
+                    canvas.freeDrawingBrush.width = 3;
+                });
+
+                host.querySelector('[data-ann-tool="eraser"]')?.addEventListener('click', () => {
+                    canvas.isDrawingMode = true;
+                    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+                    canvas.freeDrawingBrush.color = '#ffffff';
+                    canvas.freeDrawingBrush.width = 18;
+                });
+
+                host.querySelector('[data-ann-clear]')?.addEventListener('click', () => {
+                    const bg = canvas.backgroundImage;
+                    canvas.clear();
+                    canvas.backgroundImage = bg;
+                    canvas.renderAll();
+
+                    annotationByQuestionId.delete(qid);
+                    const jsonInput = host.querySelector(`input[id^="annJson_"]`);
+                    const snapInput = host.querySelector(`input[id^="annSnap_"]`);
+                    if (jsonInput) jsonInput.value = '';
+                    if (snapInput) snapInput.value = '';
+                    setAnnStatus(host, 'Cleared');
+                });
+
+                const imgUrl = host.getAttribute('data-image-file-id')
+                    ? '@Url.Action("QuestionImage", "Assessment")' + '?fileId=' + encodeURIComponent(host.getAttribute('data-image-file-id'))
+                    : null;
+
+                if (imgUrl) {
+                    setAnnStatus(host, 'Loading image...');
+                    fabric.Image.fromURL(imgUrl, function (img) {
+                        if (!img) {
+                            setAnnStatus(host, 'Failed to load image');
+                            return;
+                        }
+
+                        const cw = canvas.getWidth();
+                        const ch = canvas.getHeight();
+
+                        const scale = Math.min(cw / img.width, ch / img.height);
+                        img.set({
+                            originX: 'center',
+                            originY: 'center',
+                            left: cw / 2,
+                            top: ch / 2,
+                            selectable: false,
+                            evented: false,
+                            scaleX: scale,
+                            scaleY: scale
+                        });
+
+                        canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+                        setAnnStatus(host, 'Ready');
+                    });
+                }
+
+                function writeJson() {
+                    const json = JSON.stringify(canvas.toJSON());
+                    annotationByQuestionId.set(qid, annotationByQuestionId.get(qid) || {});
+                    annotationByQuestionId.get(qid).json = json;
+
+                    const jsonInput = host.querySelector(`input[id^="annJson_"]`);
+                    if (jsonInput) jsonInput.value = json;
+                }
+
+                canvas.on('path:created', writeJson);
+                canvas.on('object:modified', writeJson);
+                canvas.on('object:added', writeJson);
+
+                host.querySelector('[data-ann-save]')?.addEventListener('click', async () => {
+                    try {
+                        setAnnStatus(host, 'Uploading snapshot...');
+
+                        writeJson();
+
+                        canvas.getElement().toBlob(async (blob) => {
+                            if (!blob) {
+                                setAnnStatus(host, 'Snapshot failed');
+                                return;
+                            }
+
+                            try {
+                                const data = await uploadAnnotationSnapshot(blob);
+                                if (!data?.fileId) throw new Error('Upload did not return fileId.');
+
+                                annotationByQuestionId.set(qid, annotationByQuestionId.get(qid) || {});
+                                annotationByQuestionId.get(qid).snapshotFileId = data.fileId.toString();
+
+                                const snapInput = host.querySelector(`input[id^="annSnap_"]`);
+                                if (snapInput) snapInput.value = data.fileId.toString();
+
+                                setAnnStatus(host, 'Saved');
+                            } catch (e) {
+                                setAnnStatus(host, `Upload failed: ${e.message || e}`);
+                            }
+                        }, 'image/png');
+                    } catch (e) {
+                        setAnnStatus(host, `Error: ${e.message || e}`);
+                    }
+                });
+            }
+        }
+
+            document.getElementById('btnPrev')?.addEventListener('click', () => showCard(index - 1));
+            document.getElementById('btnNext')?.addEventListener('click', () => showCard(index + 1));
+
+            document.getElementById('btnSubmit')?.addEventListener('click', () => {
+                const ok = confirm('Submit your assessment now?');
+                if (ok) submit(false);
+            });
+
+            document.getElementById('btnSubmitTop')?.addEventListener('click', () => {
+                const ok = confirm('Submit your assessment now?');
+                if (ok) submit(false);
+            });
+
+        buildNav();
+        showCard(0);
+        initAnnotations();
+
+        })();
+    </script>
+}

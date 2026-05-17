@@ -1,0 +1,73 @@
+﻿@using ForekOnline.Domain.ViewModels
+@model AssessmentResultsViewModel
+@{
+    ViewData["Title"] = "Assessment Results";
+}
+
+<style>
+    .res-shell { max-width: 1260px; margin: 0 auto; padding: 1.5rem 1.25rem 2.5rem; }
+    .res-header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
+    .res-header h1 { margin:0; font-size:1.1rem; font-weight:800; letter-spacing:.04rem; }
+    .res-sub { font-size:.75rem; color:#5d6670; }
+    .tbl { width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid #e2e5e9; border-radius:16px; background:#fff; }
+    .tbl th, .tbl td { padding:.75rem .8rem; border-bottom:1px solid #eef1f4; font-size:.72rem; vertical-align:middle; }
+    .tbl th { font-size:.58rem; letter-spacing:.14rem; text-transform:uppercase; color:#b31217; background:#fafbfc; }
+    .tbl tr:last-child td { border-bottom:none; }
+    .btn-sm { font-size:.58rem; letter-spacing:.12rem; font-weight:800; text-transform:uppercase; padding:.5rem .75rem; border-radius:14px; border:1px solid #d4d7db; background:#fff; color:#b31217; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; }
+    .btn-sm.primary { background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18); color:#fff; border-color:#b31217; }
+</style>
+
+<section class="res-shell">
+    <div class="res-header">
+        <div>
+            <h1><i class="fa fa-chart-line text-danger"></i> Results • @Model.Title</h1>
+            <div class="res-sub">Attempts submitted: @Model.Rows.Count</div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn-sm" asp-action="List" asp-controller="Assessment">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="alert alert-info">No submitted attempts yet.</div>
+    }
+    else
+    {
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Submitted (UTC)</th>
+                    <th>Score</th>
+                    <th>Percent</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td>
+                            <div style="font-weight:800;">@r.StudentDisplayName</div>
+                            <div style="font-size:.62rem;color:#5d6670;">@r.LearnerIdPass</div>
+                        </td>
+                        <td>@r.Status</td>
+                        <td>@(r.SubmittedUtc?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td>@(r.FinalScore?.ToString() ?? "-")</td>
+                        <td>@(r.Percentage?.ToString("0.##") ?? "-")%</td>
+                        <td style="text-align:right;">
+                            <a class="btn-sm primary" asp-action="Grade" asp-route-attemptId="@r.AttemptId">
+                                <i class="fa fa-pen-to-square"></i> Grade
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>

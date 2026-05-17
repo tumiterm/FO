@@ -1,0 +1,105 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.Evidence>
+
+<style>
+    .form-control, .accordion-item {
+        border-color: black;
+    }
+
+    .acchead {
+        background-color: #2774F1
+    }
+
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-color: black;
+    }
+
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+
+    .card-border, .table {
+        border-color: black;
+    }
+
+    .ref {
+        background-color: darkblue;
+    }
+
+    .vs {
+        margin-left: 240px;
+    }
+</style>
+
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-futbol me-1 text-white"></i>
+            <span class="text-white">@ViewData["StudData"]'s Gallery<span class="text-bold"></span></span>
+        </div>
+
+        <div class="card-body">
+            <table class="table" id="datatablesSimple">
+                <thead style="background-color:darkred">
+                    <tr>
+                        <th>
+                            Action
+                        </th>
+                        <th class="text-white">Module</th>
+                        <th class="text-white">Added By</th>
+                        <th class="text-white">Added On</th>
+                        <th class="text-white">Active ?</th>
+                        <th class="text-white">Action</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <a class="text-primary" asp-action="ViewStudentFile" asp-route-EvidenceId="@item.EvidenceId" asp-route-StudentNumber="@item.StudentNumber"><i class="fa fa-eye"></i> View</a>
+                            </td>
+                            <td>@item.Module</td>
+                            <td>@item.CreatedBy</td>
+                            <td>@item.CreatedOn</td>
+                            <td>@item.IsActive</td>
+
+                           @if (User.IsInRole("Admin") || User.IsInRole("Facilitator")){
+                            <td>
+                                <a class="text-danger" asp-action="StudentDetail" asp-route-StudentNumber="@item.StudentNumber"><i class="fa fa-trash"></i> Remove</a>
+                            </td>
+                           }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<br />
+
+
+
+
+

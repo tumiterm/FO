@@ -1,0 +1,343 @@
+﻿@model ForekOnline.Domain.Entities.Venue
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Edit Venue";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --cv-red: #b31217;
+            --cv-orange: #ff7a18;
+            --cv-border: #e6e9f0;
+            --cv-muted: #64748b;
+            --cv-text: #0f172a;
+            --cv-grad: linear-gradient(135deg,#320606,#b31217 55%,#ff7a18);
+            --cv-shadow: 0 14px 42px -18px rgba(50,6,6,.28);
+            --cv-r-lg: 26px;
+            --cv-t: 250ms cubic-bezier(.2,.75,.2,1);
+            --cv-focus: 0 0 0 4px rgba(179,18,23,.14);
+        }
+
+        .cv-shell {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1.25rem 1rem 3.5rem;
+        }
+
+        .cv-hero {
+            position: relative;
+            border-radius: var(--cv-r-lg);
+            background: var(--cv-grad);
+            color: #fff;
+            padding: 1.5rem 1.5rem 1.25rem;
+            overflow: hidden;
+            box-shadow: var(--cv-shadow);
+        }
+
+            .cv-hero::before {
+                content: "";
+                position: absolute;
+                inset: -140px -140px auto auto;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle,rgba(255,255,255,.18),transparent 60%);
+                transform: rotate(20deg);
+                pointer-events: none;
+            }
+
+        .cv-hero-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: .95rem;
+        }
+
+        .cv-hero-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.22);
+            backdrop-filter: blur(10px);
+            display: grid;
+            place-items: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,.18);
+            font-size: 1.25rem;
+        }
+
+        .cv-hero h1 {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .cv-hero p {
+            margin: .25rem 0 0;
+            opacity: .92;
+            font-size: .85rem;
+            font-weight: 500;
+        }
+
+        .cv-card {
+            background: rgba(255,255,255,.88);
+            border: 1px solid var(--cv-border);
+            border-radius: var(--cv-r-lg);
+            box-shadow: 0 10px 30px rgba(15,23,42,.06);
+            overflow: hidden;
+            margin-top: 1.15rem;
+        }
+
+        .cv-card-head {
+            padding: 1.1rem 1.25rem .95rem;
+            background: linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.7));
+        }
+
+            .cv-card-head h2 {
+                margin: 0;
+                font-size: .82rem;
+                font-weight: 900;
+                letter-spacing: .16rem;
+                text-transform: uppercase;
+                color: var(--cv-red);
+                display: flex;
+                gap: .5rem;
+                align-items: center;
+            }
+
+            .cv-card-head p {
+                margin: .2rem 0 0;
+                color: var(--cv-muted);
+                font-size: .78rem;
+                font-weight: 600;
+            }
+
+        .cv-card-body {
+            padding: 1.15rem 1.25rem 1.35rem;
+        }
+
+        .cv-field-grid {
+            display: grid;
+            gap: .9rem;
+            grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+        }
+
+        .cv-field {
+            display: grid;
+            gap: .3rem;
+        }
+
+            .cv-field label {
+                font-size: .6rem;
+                font-weight: 800;
+                letter-spacing: .14rem;
+                text-transform: uppercase;
+                color: var(--cv-muted);
+                display: inline-flex;
+                gap: .4rem;
+                align-items: center;
+            }
+
+                .cv-field label.required::after {
+                    content: '*';
+                    color: var(--cv-red);
+                    font-weight: 900;
+                }
+
+        .cv-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            background: #fff;
+            border: 1px solid var(--cv-border);
+            padding: .65rem .8rem;
+            border-radius: 14px;
+            transition: var(--cv-t);
+        }
+
+            .cv-input-wrap:focus-within {
+                border-color: var(--cv-red);
+                box-shadow: var(--cv-focus);
+            }
+
+            .cv-input-wrap i {
+                font-size: .72rem;
+                color: #94a3b8;
+                flex: 0 0 auto;
+            }
+
+            .cv-input-wrap input, .cv-input-wrap select, .cv-input-wrap textarea {
+                border: none;
+                outline: none;
+                background: transparent;
+                font-size: .78rem;
+                font-weight: 650;
+                color: var(--cv-text);
+                width: 100%;
+            }
+
+            .cv-input-wrap textarea {
+                resize: vertical;
+                min-height: 60px;
+            }
+
+        .cv-btn {
+            font-size: .58rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .6rem 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--cv-border);
+            background: #fff;
+            color: var(--cv-red);
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            transition: var(--cv-t);
+            text-decoration: none;
+        }
+
+            .cv-btn:hover {
+                background: var(--cv-grad);
+                color: #fff;
+                border-color: var(--cv-red);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(15,23,42,.1);
+            }
+
+            .cv-btn.primary {
+                background: var(--cv-grad);
+                color: #fff;
+                border-color: var(--cv-red);
+            }
+
+                .cv-btn.primary:hover {
+                    filter: brightness(.96);
+                }
+
+        .cv-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-top: 1rem;
+        }
+
+        .cv-validation {
+            color: #dc2626;
+            font-size: .62rem;
+            font-weight: 700;
+            margin-top: .2rem;
+        }
+    </style>
+}
+
+<section class="cv-shell">
+    <header class="cv-hero">
+        <div class="cv-hero-row">
+            <div class="cv-hero-icon"><i class="fa fa-pen-to-square"></i></div>
+            <div>
+                <h1>Edit Venue</h1>
+                <p>Update <strong>@Model.Name</strong> on <strong>@Model.Campus</strong> campus. Changes will notify users with pending reservations.</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="cv-card">
+        <div class="cv-card-head">
+            <h2><i class="fa fa-building"></i> Venue Details</h2>
+            <p>Modify any field and save. Duplicate venue names per campus are blocked.</p>
+        </div>
+        <div class="cv-card-body">
+            <form method="post" asp-action="EditVenue" asp-controller="VenueBooking">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="DateCreated" />
+                <input type="hidden" asp-for="UserCreated" />
+                <input type="hidden" asp-for="IsDeleted" />
+
+                <div asp-validation-summary="ModelOnly" class="cv-validation"></div>
+
+                <div class="cv-field-grid">
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-tag"></i> Venue Name</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-building"></i>
+                            <input asp-for="Name" />
+                        </div>
+                        <span asp-validation-for="Name" class="cv-validation"></span>
+                    </div>
+
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-building-columns"></i> Campus</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-map-marker-alt"></i>
+                            <select asp-for="Campus">
+                                <option value="">— Select Campus —</option>
+                                <option value="Kabokweni">Kabokweni</option>
+                                <option value="Malelane">Malelane</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Campus" class="cv-validation"></span>
+                    </div>
+
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-sitemap"></i> Department</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-users"></i>
+                            <select asp-for="Departments" asp-items="Html.GetEnumSelectList<eDepartment>()"></select>
+                        </div>
+                    </div>
+
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-users"></i> Max Capacity</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-hashtag"></i>
+                            <input asp-for="MaxCapacity" type="number" min="1" />
+                        </div>
+                        <span asp-validation-for="MaxCapacity" class="cv-validation"></span>
+                    </div>
+
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-layer-group"></i> Venue Type</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-th-large"></i>
+                            <select asp-for="VenueType" asp-items="Html.GetEnumSelectList<eVenueType>()"></select>
+                        </div>
+                    </div>
+
+                    <div class="cv-field">
+                        <label class="required"><i class="fa fa-toggle-on"></i> Status</label>
+                        <div class="cv-input-wrap">
+                            <i class="fa fa-circle"></i>
+                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<eVenueStatus>()"></select>
+                        </div>
+                    </div>
+
+                    <div class="cv-field" style="grid-column:1/-1;">
+                        <label><i class="fa fa-toolbox"></i> Equipment Checklist</label>
+                        <div class="cv-input-wrap" style="align-items:flex-start;">
+                            <i class="fa fa-list-check" style="margin-top:.3rem;"></i>
+                            <textarea asp-for="EquipmentChecklist" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="cv-field" style="grid-column:1/-1;">
+                        <label><i class="fa fa-gavel"></i> Default Booking Rules</label>
+                        <div class="cv-input-wrap" style="align-items:flex-start;">
+                            <i class="fa fa-info-circle" style="margin-top:.3rem;"></i>
+                            <textarea asp-for="DefaultBookingRules" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cv-actions">
+                    <button type="submit" class="cv-btn primary"><i class="fa fa-save"></i> Save Changes</button>
+                    <a class="cv-btn" href="@Url.Action("ManageVenues", "VenueBooking")"><i class="fa fa-arrow-left"></i> Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

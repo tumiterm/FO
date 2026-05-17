@@ -1,0 +1,157 @@
+﻿@model ForekOnline.Domain.ViewModels.CourseModuleViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+<style>
+:root {
+    --c-darkred: #320606;
+    --c-red: #b31217;
+    --c-orange: #ff7a18;
+    --c-soft: #fff6f5;
+    --c-bg: #fff;
+    --c-bg-alt: #f5f7fa;
+    --c-border: #e4e6e9;
+    --c-radius: 22px;
+    --c-shadow: 0 8px 32px -8px #b31217a0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+body { background: var(--c-bg-alt); }
+.course-shell { max-width: 1100px; margin: 0 auto; padding: 2.2rem 1.5rem 3.5rem; }
+.header-band {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    padding: 1.5rem 2rem 1.2rem;
+    display: flex; gap: 1.5rem; align-items: center; position: relative; overflow: hidden;
+    box-shadow: var(--c-shadow);
+}
+.header-band:before {
+    content: ""; position: absolute; inset: 0; background: linear-gradient(120deg,#32060611,#b3121716,#ff7a1822); pointer-events: none;
+}
+.header-icon {
+    width: 70px; height: 70px; border-radius: 24px; background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+    display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #fff; box-shadow: 0 10px 22px -10px #b31217a0;
+}
+.header-band h1 {
+    margin: 0; font-size: 1.5rem; font-weight: 700; color: #320606; letter-spacing: .7px; display: flex; align-items: center; gap: .7rem;
+}
+.header-band .subtitle {
+    font-size: .7rem; letter-spacing: .18rem; font-weight: 700; color: var(--c-red); background: var(--c-soft); padding: .5rem 1.1rem; border-radius: 40px; margin-top: .5rem;
+}
+.course-card {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    box-shadow: var(--c-shadow);
+    padding: 2rem 2.2rem 1.5rem;
+    margin-top: 2.2rem;
+}
+.course-title {
+    font-size: 1.15rem; font-weight: 600; color: var(--c-red); margin-bottom: 1.2rem; display: flex; align-items: center; gap: .7rem;
+}
+.form-row { display: flex; flex-wrap: wrap; gap: 1.2rem; }
+.form-group { flex: 1 1 220px; display: flex; flex-direction: column; gap: .4rem; }
+.form-group label { font-size: .7rem; font-weight: 700; color: #320606; letter-spacing: .12rem; }
+.form-control, select {
+    border: 1px solid var(--c-border); border-radius: 10px; font-size: .95rem; padding: .6rem .8rem; background: #fff; transition: .2s;
+}
+.form-control:focus, select:focus { border-color: var(--c-red); box-shadow: 0 0 0 .15rem #b3121718; }
+.course-actions { margin-top: 1.5rem; display: flex; gap: 1.1rem; }
+.btn-accent {
+    background: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18); color: #fff; font-weight: 700; letter-spacing: .14rem; border: none; border-radius: 12px; padding: .7rem 1.3rem; font-size: .95rem; box-shadow: 0 4px 14px -6px #b31217a0; transition: .2s; cursor: pointer;
+}
+.btn-accent:hover { filter: brightness(.96); }
+.btn-outline {
+    background: #fff; color: var(--c-red); border: 1px solid var(--c-red); border-radius: 12px; padding: .7rem 1.3rem; font-size: .95rem; font-weight: 700; letter-spacing: .14rem; cursor: pointer; transition: .2s;
+}
+.btn-outline:hover { background: var(--c-red); color: #fff; }
+@@media (max-width: 900px) {
+    .form-row { flex-direction: column; gap: .7rem; }
+    .course-card { padding: 1.2rem .7rem; }
+}
+</style>
+
+<div class="course-shell">
+    <div class="header-band">
+        <div class="header-icon"><i class="fa fa-book"></i></div>
+        <div>
+            <h1>Course Registration & Management</h1>
+            <div class="subtitle"><i class="fa fa-layer-group"></i> Admin Portal</div>
+        </div>
+    </div>
+    <div class="course-card">
+        <div class="course-title"><i class="fa fa-plus"></i> Add New Course</div>
+        <form asp-action="Course">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Course Type</label>
+                    <select asp-for="Type" class="form-control CType" asp-items="Html.GetEnumSelectList<eCourseType>()">
+                        <option selected value="">Select Course Type</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input asp-for="Name" required class="form-control" />
+                </div>
+                <div class="form-group Level">
+                    <label>NQF Level</label>
+                    <select asp-for="CourseNQFLevel" class="form-control" asp-items="Html.GetEnumSelectList<eNQF>()">
+                        <option selected value="">Select NQF Level</option>
+                    </select>
+                </div>
+                <div class="form-group NType">
+                    <label>N Type</label>
+                    <select asp-for="NType" class="form-control" asp-items="Html.GetEnumSelectList<eNType>()">
+                        <option selected value="">Select Option</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Course Credit</label>
+                    <input asp-for="CourseCredit" required class="form-control" type="number" />
+                </div>
+                <div class="form-group">
+                    <label>Minimum Requirements</label>
+                    <select asp-for="MinimumRequirement" class="form-control" asp-items="Html.GetEnumSelectList<eMinimumRequirement>()">
+                        <option selected value="">Select Minimum Requirement</option>
+                    </select>
+                </div>
+
+                <div class="form-group form-check" style="margin-top: 20px; margin-bottom: 20px;">
+                    <input asp-for="IsEligibleForOnlineApplications" type="checkbox" class="form-check-input" id="eligibilityCheck" />
+                    <label class="form-check-label" for="eligibilityCheck" style="margin-left: 10px;">
+                        Eligible for Online Applications
+                    </label>
+                </div>
+            </div>
+            <div class="course-actions">
+                <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                <button type="reset" class="btn-outline"><i class="fa fa-undo"></i> Reset</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $(document).ready(function () {
+        $(".NType").hide();
+        $('.CType').on('change', function () {
+            var selectedItem = $(".CType").find('option:selected').text();
+            if (selectedItem == "Select Course Type") {
+                $(".Level").show();
+                $(".NType").hide();
+            } else if (selectedItem == "Occupational") {
+                $(".Level").show();
+                $(".NType").hide();
+            } else if (selectedItem == "Nated") {
+                $(".NType").show();
+                $(".Level").hide();
+            } else {
+            }
+        });
+    });
+    $(document).on("select2:open", () => {
+        document.querySelector(".select2-container--open .select2-search__field").focus()
+    });
+</script>

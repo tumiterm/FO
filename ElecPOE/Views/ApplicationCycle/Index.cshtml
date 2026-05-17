@@ -1,0 +1,345 @@
+@using ForekOnline.Domain.Entities
+@model IReadOnlyList<ApplicationCycle>
+
+@{
+    ViewData["Title"] = "Application Cycles";
+
+    var includeDeleted = (ViewData["includeDeleted"] as bool?) ?? false;
+    var onlyActive = (ViewData["onlyActive"] as bool?) ?? false;
+
+    int total = Model?.Count ?? 0;
+    int active = Model?.Count(c => c.IsActive && !c.IsDeleted) ?? 0;
+    int deleted = Model?.Count(c => c.IsDeleted) ?? 0;
+    int inactive = Math.Max(0, total - active - deleted);
+}
+
+<style>
+:root{
+    --cy-bg: var(--fo-bg, #f3f4f8);
+    --cy-card: var(--fo-bg-card, #ffffff);
+    --cy-text: var(--fo-text, #1a1a2e);
+    --cy-text2: var(--fo-text-2, #4a4f5e);
+    --cy-muted: var(--fo-muted, #6b7280);
+    --cy-border: var(--fo-border, #e3e5eb);
+    --cy-orange: var(--fo-orange, #e65100);
+    --cy-orange-lt: var(--fo-orange-light, #ff8a50);
+    --cy-orange-dk: var(--fo-orange-dark, #ac1900);
+    --cy-radius: 16px;
+    --cy-radius-lg: 22px;
+    --cy-radius-sm: 10px;
+    --cy-shadow: 0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+    --cy-shadow-hover: 0 6px 28px rgba(0,0,0,.08), 0 16px 48px rgba(0,0,0,.04);
+    --cy-t: .22s cubic-bezier(.4,0,.2,1);
+    --cy-grad: linear-gradient(135deg, var(--cy-orange), var(--cy-orange-dk));
+    --cy-green:#22c55e;
+    --cy-red:#ef4444;
+    --cy-blue:#3b82f6;
+    --cy-indigo:#818cf8;
+    --cy-amber:#f59e0b;
+}
+
+[data-theme="dark"] .cy-shell{
+    --cy-bg:#0e1018;
+    --cy-card:#161a24;
+    --cy-text:#e2e5eb;
+    --cy-text2:#9ca3b4;
+    --cy-muted:#6b7186;
+    --cy-border:rgba(255,255,255,.08);
+    --cy-shadow: 0 1px 3px rgba(0,0,0,.2), 0 12px 30px rgba(0,0,0,.18);
+    --cy-shadow-hover: 0 8px 30px rgba(0,0,0,.28), 0 18px 54px rgba(0,0,0,.18);
+}
+
+.cy-shell{ max-width: 1400px; margin: 0 auto; padding: .25rem 0 3rem; }
+
+/* Header */
+.cy-header{ display:flex; flex-wrap:wrap; align-items:center; gap: .85rem; margin-bottom: 1.1rem; }
+.cy-title{
+    margin:0;
+    font-size:1.4rem;
+    font-weight:800;
+    letter-spacing:-.3px;
+    color:var(--cy-text);
+    display:flex; align-items:center; gap:.65rem;
+}
+.cy-title-icon{
+    width:48px;height:48px;border-radius:14px;background:var(--cy-grad);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;
+    box-shadow:0 8px 24px rgba(230,81,0,.22);
+}
+.cy-sub{ font-size:.6rem; letter-spacing:.14rem; text-transform:uppercase; font-weight:700; color:var(--cy-muted); margin-top:.15rem; }
+.cy-actions{ margin-left:auto; display:flex; gap:.4rem; flex-wrap:wrap; }
+.cy-btn{
+    font-size:.62rem; letter-spacing:.1rem; font-weight:800; text-transform:uppercase;
+    padding:.55rem .9rem; border-radius: var(--cy-radius-sm);
+    border:1px solid var(--cy-border); background:var(--cy-card); color:var(--cy-text2);
+    display:inline-flex; align-items:center; gap:.4rem; cursor:pointer; text-decoration:none;
+    transition: all var(--cy-t);
+}
+.cy-btn:hover{ border-color:var(--cy-orange); color:var(--cy-orange); box-shadow: 0 4px 14px rgba(230,81,0,.12); transform: translateY(-1px); }
+.cy-btn-grad{ background:var(--cy-grad)!important; color:#fff!important; border:none!important; box-shadow:0 4px 16px rgba(230,81,0,.22); }
+.cy-btn-grad:hover{ filter:brightness(1.08); box-shadow:0 6px 24px rgba(230,81,0,.3); color:#fff!important; }
+
+/* Stats */
+.cy-stats{ display:grid; grid-template-columns: repeat(4,1fr); gap:.75rem; margin-bottom: 1rem; }
+.cy-stat{
+    background:var(--cy-card); border:1px solid var(--cy-border);
+    border-radius: var(--cy-radius-lg); padding: .9rem 1rem;
+    box-shadow: var(--cy-shadow); transition: all .35s var(--cy-t);
+    position:relative; overflow:hidden;
+}
+.cy-stat:hover{ transform: translateY(-3px); box-shadow: var(--cy-shadow-hover); }
+.cy-stat::before{ content:""; position:absolute; inset:0; opacity:0; transition: opacity .35s; }
+.cy-stat:hover::before{ opacity:1; }
+.cy-stat:nth-child(1)::before{ background: radial-gradient(circle at 25% 40%, rgba(230,81,0,.10), transparent 60%); }
+.cy-stat:nth-child(2)::before{ background: radial-gradient(circle at 25% 40%, rgba(34,197,94,.10), transparent 60%); }
+.cy-stat:nth-child(3)::before{ background: radial-gradient(circle at 25% 40%, rgba(245,158,11,.10), transparent 60%); }
+.cy-stat:nth-child(4)::before{ background: radial-gradient(circle at 25% 40%, rgba(239,68,68,.10), transparent 60%); }
+
+.cy-stat-top{ position:relative; display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:.55rem; }
+.cy-stat-icon{ width:40px;height:40px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:1rem; }
+.cy-stat:nth-child(1) .cy-stat-icon{ background: rgba(230,81,0,.12); color: var(--cy-orange); }
+.cy-stat:nth-child(2) .cy-stat-icon{ background: rgba(34,197,94,.12); color: var(--cy-green); }
+.cy-stat:nth-child(3) .cy-stat-icon{ background: rgba(245,158,11,.12); color: var(--cy-amber); }
+.cy-stat:nth-child(4) .cy-stat-icon{ background: rgba(239,68,68,.12); color: var(--cy-red); }
+
+.cy-stat-val{ position:relative; font-size:1.55rem; font-weight:900; letter-spacing:-.4px; color:var(--cy-text); line-height:1; }
+.cy-stat-lbl{ position:relative; margin-top:.25rem; font-size:.5rem; letter-spacing:.16rem; text-transform:uppercase; font-weight:800; color:var(--cy-muted); }
+
+/* Filters */
+.cy-filters{
+    background:var(--cy-card); border:1px solid var(--cy-border);
+    border-radius: var(--cy-radius-lg); padding: .75rem 1rem;
+    display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;
+    box-shadow: var(--cy-shadow); margin-bottom: 1rem;
+}
+.cy-filter{
+    display:flex; flex-direction:column; gap:.15rem;
+}
+.cy-filter label{
+    font-size:.48rem; letter-spacing:.18rem; text-transform:uppercase;
+    font-weight:800; color:var(--cy-muted);
+}
+.cy-filter input[type="checkbox"]{ transform: translateY(1px); }
+.cy-pill{
+    display:flex; align-items:center; gap:.5rem;
+    padding:.5rem .65rem; border-radius: var(--cy-radius-sm);
+    border:1px solid var(--cy-border); background: var(--cy-bg);
+    color:var(--cy-text2); font-size:.72rem; font-weight:600;
+}
+
+/* Table */
+.cy-table{
+    background:var(--cy-card); border:1px solid var(--cy-border);
+    border-radius: var(--cy-radius-lg); overflow:hidden;
+    box-shadow: var(--cy-shadow);
+}
+.cy-table table{ width:100%; border-collapse: collapse; font-size:.74rem; }
+.cy-table thead th{
+    background: var(--cy-bg);
+    padding:.7rem .75rem;
+    font-size:.5rem; letter-spacing:.18rem; text-transform:uppercase;
+    font-weight:800; color:var(--cy-muted);
+    border-bottom: 1px solid var(--cy-border);
+    position: sticky; top: 0; z-index: 2;
+    white-space: nowrap;
+}
+.cy-table td{
+    padding:.65rem .75rem;
+    border-bottom: 1px solid var(--cy-border);
+    color: var(--cy-text2);
+    vertical-align: middle;
+}
+.cy-table tbody tr{ transition: background var(--cy-t); }
+.cy-table tbody tr:hover{ background: rgba(230,81,0,.03); }
+[data-theme="dark"] .cy-table tbody tr:hover{ background: rgba(255,255,255,.03); }
+
+.cy-name{ font-weight:800; color:var(--cy-text); }
+.cy-mono{ font-family:'SF Mono','Cascadia Code','Consolas',monospace; font-size:.66rem; color: var(--cy-muted); }
+
+.cy-badge{
+    font-size:.5rem; letter-spacing:.12rem; font-weight:900; text-transform:uppercase;
+    padding:.28rem .55rem; border-radius: 999px; display:inline-flex; align-items:center; gap:.3rem;
+}
+.cy-badge-active{ background: rgba(34,197,94,.12); color: var(--cy-green); }
+.cy-badge-inactive{ background: rgba(245,158,11,.12); color: var(--cy-amber); }
+.cy-badge-deleted{ background: rgba(239,68,68,.12); color: var(--cy-red); }
+
+.cy-act{
+    width:32px; height:32px; border-radius: 8px;
+    display:inline-flex; align-items:center; justify-content:center;
+    text-decoration:none !important;
+    transition: all var(--cy-t);
+    font-size:.85rem;
+}
+.cy-act-view{ background: rgba(129,140,248,.10); color: var(--cy-indigo); }
+.cy-act-view:hover{ background: var(--cy-indigo); color:#fff; box-shadow: 0 4px 12px rgba(129,140,248,.25); }
+.cy-act-edit{ background: rgba(59,130,246,.10); color: var(--cy-blue); }
+.cy-act-edit:hover{ background: var(--cy-blue); color:#fff; box-shadow: 0 4px 12px rgba(59,130,246,.25); }
+
+.cy-empty{ padding: 3rem 1rem; text-align:center; color: var(--cy-muted); }
+.cy-empty i{ font-size: 2.2rem; opacity:.35; display:block; margin-bottom:.7rem; }
+.cy-empty .t{ font-weight:700; font-size:.9rem; color: var(--cy-text2); }
+.cy-empty .s{ font-size:.7rem; margin-top:.35rem; }
+
+@@media (max-width: 991.98px){ .cy-stats{ grid-template-columns: repeat(2,1fr); } }
+@@media (max-width: 575.98px){
+    .cy-stats{ grid-template-columns: 1fr; }
+    .cy-header{ flex-direction: column; align-items:flex-start; }
+    .cy-actions{ width:100%; margin-left:0; }
+    .cy-actions .cy-btn{ flex:1; justify-content:center; }
+}
+</style>
+
+<div class="cy-shell">
+    <div class="cy-header">
+        <div>
+            <h1 class="cy-title">
+                <span class="cy-title-icon"><i class="fa fa-calendar-check"></i></span>
+                Application Cycles
+            </h1>
+            <div class="cy-sub">Create, manage and audit intake windows</div>
+        </div>
+        <div class="cy-actions">
+            <a class="cy-btn" asp-action="Index" asp-route-includeDeleted="@includeDeleted" asp-route-onlyActive="@onlyActive">
+                <i class="fa fa-rotate"></i> Refresh
+            </a>
+            <a class="cy-btn cy-btn-grad" asp-action="Create">
+                <i class="fa fa-plus"></i> New Cycle
+            </a>
+        </div>
+    </div>
+
+    <div class="cy-stats">
+        <div class="cy-stat">
+            <div class="cy-stat-top">
+                <div class="cy-stat-icon"><i class="fa fa-layer-group"></i></div>
+            </div>
+            <div class="cy-stat-val" data-count="@total">0</div>
+            <div class="cy-stat-lbl">Total</div>
+        </div>
+        <div class="cy-stat">
+            <div class="cy-stat-top">
+                <div class="cy-stat-icon"><i class="fa fa-bolt"></i></div>
+            </div>
+            <div class="cy-stat-val" data-count="@active">0</div>
+            <div class="cy-stat-lbl">Active</div>
+        </div>
+        <div class="cy-stat">
+            <div class="cy-stat-top">
+                <div class="cy-stat-icon"><i class="fa fa-circle-pause"></i></div>
+            </div>
+            <div class="cy-stat-val" data-count="@inactive">0</div>
+            <div class="cy-stat-lbl">Inactive</div>
+        </div>
+        <div class="cy-stat">
+            <div class="cy-stat-top">
+                <div class="cy-stat-icon"><i class="fa fa-trash"></i></div>
+            </div>
+            <div class="cy-stat-val" data-count="@deleted">0</div>
+            <div class="cy-stat-lbl">Deleted</div>
+        </div>
+    </div>
+
+    <form class="cy-filters" method="get" asp-action="Index">
+        <div class="cy-filter">
+            <label>Include Deleted</label>
+            <div class="cy-pill">
+                <input type="checkbox" name="includeDeleted" value="true" @(includeDeleted ? "checked" : "") />
+                <span>Show deleted cycles</span>
+            </div>
+        </div>
+        <div class="cy-filter">
+            <label>Only Active</label>
+            <div class="cy-pill">
+                <input type="checkbox" name="onlyActive" value="true" @(onlyActive ? "checked" : "") />
+                <span>Only active cycles</span>
+            </div>
+        </div>
+        <div class="cy-filter" style="margin-left:auto;align-self:flex-end;">
+            <button type="submit" class="cy-btn"><i class="fa fa-filter"></i> Apply</button>
+        </div>
+    </form>
+
+    <div class="cy-table">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="cy-empty">
+                <i class="fa fa-calendar-xmark"></i>
+                <div class="t">No application cycles found</div>
+                <div class="s">Create a new cycle to open an application window.</div>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:90px;">Actions</th>
+                            <th>Name</th>
+                            <th>Year</th>
+                            <th>Period</th>
+                            <th>Opens</th>
+                            <th>Closes</th>
+                            <th>TAT</th>
+                            <th>Status</th>
+                            <th>Code</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var c in Model)
+                    {
+                        var badgeClass = c.IsDeleted
+                            ? "cy-badge-deleted"
+                            : (c.IsActive ? "cy-badge-active" : "cy-badge-inactive");
+
+                        var badgeText = c.IsDeleted
+                            ? "Deleted"
+                            : (c.IsActive ? "Active" : "Inactive");
+
+                        <tr>
+                            <td>
+                                <div style="display:flex;gap:.25rem;">
+                                    <a class="cy-act cy-act-view" asp-action="Details" asp-route-id="@c.Id" title="View">
+                                        <i class="fa fa-circle-info"></i>
+                                    </a>
+                                    <a class="cy-act cy-act-edit" asp-action="Edit" asp-route-id="@c.Id" title="Edit">
+                                        <i class="fa fa-pen-to-square"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="cy-name">@(!string.IsNullOrWhiteSpace(c.Name) ? c.Name : $"{c.AcademicYear} {c.ApplicationPeriod}")</td>
+                            <td>@c.AcademicYear</td>
+                            <td>@(c.ApplicationPeriod ?? "—")</td>
+                            <td class="cy-mono">@c.OpensAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="cy-mono">@c.Closes.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@c.TurnaroundDays day(s)</td>
+                            <td><span class="cy-badge @badgeClass"><i class="fa fa-circle"></i> @badgeText</span></td>
+                            <td class="cy-mono">@(!string.IsNullOrWhiteSpace(c.Code) ? c.Code : "—")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+(function(){
+    'use strict';
+    document.querySelectorAll('.cy-stat-val[data-count]').forEach(function(el){
+        var target = parseInt(el.getAttribute('data-count'), 10);
+        if(isNaN(target) || target === 0){ el.textContent = '0'; return; }
+        var dur = 900;
+        var start = performance.now();
+        function tick(now){
+            var p = Math.min((now - start)/dur, 1);
+            var eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(eased * target).toLocaleString();
+            if(p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+})();
+</script>

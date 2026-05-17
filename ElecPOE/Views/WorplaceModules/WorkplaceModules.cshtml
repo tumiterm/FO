@@ -1,0 +1,294 @@
+﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+
+@model IEnumerable<ForekOnline.Domain.ViewModels.WorkplaceModulesViewModel>
+@{
+    var modules = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.WorkplaceModulesViewModel>();
+    int total = modules.Count;
+    int completed = modules.Count(m => (m.Progress == eStatus.Completed));
+    int inProgress = modules.Count(m => (m.Progress == eStatus.Started));
+    int notStarted = modules.Count(m => (m.Progress ?? 0) <= 0);
+    // double avgProgress = total == 0 ? 0 : modules.Average(m => (m.Progress ?? 0));
+    string student = (string?)ViewData["Stud"] ?? "Student";
+    string course = (string?)ViewData["Course"] ?? "Course";
+    var placementId = ViewData["PlacementId"];
+    string currentUser = (string?)ViewData["CurrentUser"] ?? "";
+    string role = (string?)ViewData["role"] ?? "";
+}
+<style>
+:root {
+  --wm-dr:#320606;--wm-red:#b31217;--wm-red-soft:#9d1117;--wm-orange:#ff7a18;--wm-soft:#fff5f3;
+  --wm-bg:#ffffff;--wm-bg-alt:#f5f7fa;--wm-border:#e4e6ea;--wm-border-alt:#d4d6da;
+  --wm-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  --wm-grad-soft:linear-gradient(120deg,#32060611,#b3121714,#ff7a1818);
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+body{background:var(--wm-bg-alt);}
+.page-shell{max-width:1400px;margin:0 auto;padding:1.9rem 1.2rem 3.2rem;}
+.header-band{background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:32px;padding:1.2rem 1.4rem 1.1rem;
+  display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:"";position:absolute;inset:0;background:var(--wm-grad-soft);pointer-events:none;}
+.icon-pill{width:70px;height:70px;border-radius:24px;background:var(--wm-grad);display:flex;align-items:center;justify-content:center;
+  font-size:1.9rem;color:#fff;box-shadow:0 12px 26px -12px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;gap:.6rem;align-items:center;}
+.subtitle{font-size:.58rem;letter-spacing:.24rem;font-weight:700;text-transform:uppercase;background:var(--wm-soft);color:var(--wm-red);
+  padding:.5rem .9rem;border-radius:40px;margin-top:.4rem;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-act,.btn-accent,.btn-mini{font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.55rem .95rem;
+  border-radius:14px;border:1px solid var(--wm-border);background:#fff;color:var(--wm-red);display:inline-flex;align-items:center;gap:.5rem;
+  cursor:pointer;text-decoration:none;transition:.3s;}
+.btn-act:hover{background:var(--wm-grad);color:#fff;border-color:var(--wm-red);box-shadow:0 6px 16px -6px rgba(179,18,23,.45);}
+.btn-accent{background:var(--wm-grad);color:#fff;border:1px solid var(--wm-red);} .btn-accent:hover{filter:brightness(.94);}
+.btn-mini{padding:.45rem .75rem;font-size:.5rem;}
+.summary-grid{margin-top:1.4rem;display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+.sum-card{position:relative;background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:24px;padding:.9rem .9rem .85rem;
+  display:flex;flex-direction:column;gap:.35rem;overflow:hidden;transition:.4s;}
+.sum-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 18%,rgba(255,122,24,.28),transparent 60%);opacity:.5;}
+.sum-card:hover{transform:translateY(-4px);border-color:var(--wm-border-alt);box-shadow:0 8px 22px -12px rgba(50,6,6,.28);}
+.sum-label{font-size:.5rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;color:#666;}
+.sum-value{font-size:1.25rem;font-weight:600;background:var(--wm-grad);-webkit-background-clip:text;color:transparent;line-height:1.05;}
+.sum-chip{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--wm-soft);color:var(--wm-red);padding:.3rem .55rem;border-radius:30px;align-self:flex-start;}
+.filter-bar{margin-top:1.7rem;background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:26px;padding:1rem 1rem .9rem;
+  display:flex;gap:.85rem;flex-wrap:wrap;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;} .filter-group label{font-size:.5rem;letter-spacing:.15rem;font-weight:700;text-transform:uppercase;color:#555;}
+.filter-bar input[type=text],.filter-bar select{background:#fff;border:1px solid var(--wm-border);border-radius:12px;padding:.5rem .65rem;font-size:.7rem;min-width:180px;transition:.25s;}
+.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--wm-red);box-shadow:0 0 0 .15rem #b3121716;}
+.search-wrap{position:relative;flex:1 1 260px;} .search-wrap i{position:absolute;top:50%;left:.75rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding-left:2.1rem;}
+.table-shell{margin-top:1.25rem;background:var(--wm-bg);border:1px solid var(--wm-border);border-radius:30px;padding:1.2rem 1.1rem 1rem;overflow:auto;}
+.table-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.6rem;font-size:.55rem;letter-spacing:.14rem;font-weight:600;color:#666;}
+.table-meta span.badge{background:var(--wm-soft);color:var(--wm-red);padding:.35rem .6rem;border-radius:30px;font-size:.5rem;font-weight:700;letter-spacing:.12rem;}
+.mod-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.68rem;}
+.mod-table thead th{background:var(--wm-grad);color:#fff;font-size:.55rem;letter-spacing:.18rem;text-transform:uppercase;font-weight:700;padding:.58rem .6rem;position:sticky;top:0;z-index:3;}
+.mod-table tbody tr{transition:.18s;} .mod-table tbody tr:nth-child(even){background:#fff;} .mod-table tbody tr:nth-child(odd){background:#fffdfd;} .mod-table tbody tr:hover{background:#fff4ef;}
+.mod-table td{padding:.52rem .6rem;border-bottom:1px solid var(--wm-border);vertical-align:middle;color:#333;}
+.action-link{font-weight:600;font-size:.55rem;letter-spacing:.08rem;text-transform:uppercase;background:#fff;padding:.42rem .6rem;border:1px solid var(--wm-border);
+  border-radius:10px;text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;color:var(--wm-red);transition:.3s;}
+.action-link:hover{background:var(--wm-grad);color:#fff;border-color:var(--wm-red);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+.progress-wrap{display:flex;align-items:center;gap:.45rem;min-width:130px;}
+.progress-bar-shell{flex:1;height:8px;border-radius:5px;background:#eceff1;position:relative;overflow:hidden;}
+.progress-bar-fill{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,#b31217,#ff7a18);transition:width .6s cubic-bezier(.55,.08,.2,.99);}
+.progress-val{font-size:.55rem;font-weight:700;letter-spacing:.08rem;color:#555;min-width:38px;text-align:right;}
+.status-badge{font-size:.48rem;letter-spacing:.14rem;font-weight:700;padding:.32rem .55rem;border-radius:30px;background:#f0f1f3;color:#444;display:inline-flex;align-items:center;gap:.3rem;}
+.status-complete{background:#e8f9ef;color:#167846;border:1px solid #b7e7c7;}
+.status-progress{background:#fff3e0;color:#b45b00;border:1px solid #f1c78d;}
+.status-new{background:#ffe6ea;color:#b31217;border:1px solid #f4b4ba;}
+.footer-bar{display:flex;justify-content:space-between;align-items:center;margin-top:.7rem;font-size:.55rem;letter-spacing:.1rem;color:#666;flex-wrap:wrap;gap:.6rem;}
+.hidden-row{display:none !important;}
+.limit-note{font-size:.48rem;letter-spacing:.14rem;font-weight:700;background:var(--wm-soft);color:var(--wm-red);padding:.3rem .55rem;border-radius:30px;display:inline-flex;gap:.35rem;align-items:center;}
+@@media (max-width:980px){ .mod-table thead th:nth-child(5),.mod-table td:nth-child(5){display:none;} }
+@@media (max-width:760px){ .mod-table thead th:nth-child(8),.mod-table td:nth-child(8){display:none;} }
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-briefcase"></i></div>
+        <div>
+            <h1>Workplace Modules</h1>
+            <div class="subtitle"><i class="fa fa-user-graduate"></i> @student • @course</div>
+        </div>
+        <div class="toolbar">
+            <a class="btn-act" asp-action="OnPlaceLearner" asp-controller="LearnerPlacement" asp-route-PlacementId="@placementId"><i class="fa fa-plus"></i> Add Module</a>
+            <button type="button" class="btn-act" id="btnExportCsv"><i class="fa fa-file-export"></i> CSV</button>
+            <button type="button" class="btn-act" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="sum-card"><div class="sum-label">Total</div><div class="sum-value">@total</div><div class="sum-chip">MODULES</div></div>
+        <div class="sum-card"><div class="sum-label">Completed</div><div class="sum-value">@completed</div><div class="sum-chip">100%</div></div>
+        <div class="sum-card"><div class="sum-label">In Progress</div><div class="sum-value">@inProgress</div><div class="sum-chip">1-99%</div></div>
+        <div class="sum-card"><div class="sum-label">Not Started</div><div class="sum-value">@notStarted</div><div class="sum-chip">0%</div></div>
+@*         <div class="sum-card"><div class="sum-label">Avg Progress</div><div class="sum-value">@avgProgress.ToString("0")%</div><div class="sum-chip">MEAN</div></div>
+ *@    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search module / company / registered by..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter">
+                <option value="">All</option>
+                <option value="complete">Complete</option>
+                <option value="progress">In Progress</option>
+                <option value="new">Not Started</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Min %</label>
+            <select id="minProgress">
+                <option value="0" selected>0</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="75">75</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="limitNote" class="limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED</span>
+        </div>
+    </div>
+
+    <div class="table-shell">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge">Showing @total record(s)</span>
+            <span id="filterInfo"></span>
+        </div>
+        <table class="mod-table" id="modulesTable">
+            <thead>
+            <tr>
+                <th>Action</th>
+                <th>Module</th>
+                <th>Duration (Days)</th>
+                <th>Progress</th>
+                <th>Company</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Registered By</th>
+            </tr>
+            </thead>
+            <tbody id="modulesBody">
+            @foreach (var m in modules)
+            {
+                var prog = m.Progress ?? 0;
+                var statusKey = prog == eStatus.Completed ? "complete" : (prog <= 0 ? "new" : "progress");
+                var statusClass = statusKey switch {
+                    "complete" => "status-badge status-complete",
+                    "progress" => "status-badge status-progress",
+                    _ => "status-badge status-new"
+                };
+                <tr data-progress="@prog" data-status="@statusKey">
+                    <td><a class="action-link" asp-action="OnViewModule" asp-route-LearnerWorkplaceModulesId="@m.LearnerWorkplaceModulesId" asp-route-PlacementId="@m.PlacementId"><i class="fa fa-folder-open"></i> Open</a></td>
+                    <td>@m.Module</td>
+                    <td>@m.Days</td>
+                    <td>
+                        <div class="progress-wrap">
+                            <div class="progress-bar-shell">
+                                <div class="progress-bar-fill" style="width:@prog%;"></div>
+                            </div>
+                            <div class="progress-val">@prog%</div>
+                        </div>
+                        <div class="@statusClass" style="margin-top:.3rem;">@statusKey.ToUpperInvariant()</div>
+                    </td>
+                    <td>@m.Company</td>
+                    <td>@m.StartDate</td>
+                    <td>@m.EndDate</td>
+                    <td>@m.RegisteredBy</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div class="footer-bar">
+            <div style="display:flex;gap:.45rem;align-items:center;">
+                <button id="btnShowAll" class="btn-mini btn-act" style="display:none;" type="button"><i class="fa fa-list"></i> Show All</button>
+                <button id="btnLimit" class="btn-mini btn-act" style="display:none;" type="button"><i class="fa fa-compress"></i> Limit</button>
+            </div>
+            <div id="perfInfo"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const DEFAULT_LIMIT = 300;
+    const body = document.getElementById('modulesBody');
+    const searchBox = document.getElementById('searchBox');
+    const statusFilter = document.getElementById('statusFilter');
+    const minProgress = document.getElementById('minProgress');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const filterInfo = document.getElementById('filterInfo');
+    const limitNote = document.getElementById('limitNote');
+    const btnExport = document.getElementById('btnExportCsv');
+    const btnShowAll = document.getElementById('btnShowAll');
+    const btnLimit = document.getElementById('btnLimit');
+    const perfInfo = document.getElementById('perfInfo');
+    let limitedMode = true;
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+
+    function applyFilters(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const status = statusFilter.value;
+        const minP = parseInt(minProgress.value || '0',10);
+        const rows = Array.from(body.querySelectorAll('tr'));
+        const filtering = !!(q||status||minP>0);
+        let shown=0, matched=0;
+
+        rows.forEach(r=>{
+            const prog = parseInt(r.getAttribute('data-progress')||'0',10);
+            const st = r.getAttribute('data-status');
+            const text = norm(r.innerText);
+            let show = true;
+            if(q && !text.includes(q)) show=false;
+            if(status && st !== status) show=false;
+            if(prog < minP) show=false;
+            if(show){
+                matched++;
+                if(limitedMode && !filtering && shown >= DEFAULT_LIMIT) show=false;
+            }
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+
+        rowsInfo.textContent = `Showing ${shown} record(s)` + (filtering ? ' (matched)' : '');
+        filterInfo.textContent = filtering ? 'FILTERED' : (limitedMode ? 'LIMITED':'');
+        const overLimit = (!filtering && limitedMode && matched > DEFAULT_LIMIT);
+        limitNote.style.display = overLimit ? '' : 'none';
+        btnShowAll.style.display = overLimit ? '' : 'none';
+        btnLimit.style.display = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+        perfInfo.textContent = 'Render: ' + (performance.now()-t0).toFixed(1) + 'ms';
+    }
+
+    function updateModeOnInput(){
+        if(searchBox.value || statusFilter.value || parseInt(minProgress.value||'0',10) > 0){
+            limitedMode = false;
+        }
+        applyFilters();
+    }
+
+    searchBox.addEventListener('input', updateModeOnInput);
+    statusFilter.addEventListener('change', () => { limitedMode=false; applyFilters(); });
+    minProgress.addEventListener('change', () => { limitedMode=false; applyFilters(); });
+    btnShowAll.addEventListener('click', () => { limitedMode=false; applyFilters(); });
+    btnLimit.addEventListener('click', () => { limitedMode=true; applyFilters(); });
+
+    // CSV export (visible rows)
+    btnExport.addEventListener('click', ()=>{
+        const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
+        if(!visible.length){ alert('No rows to export.'); return; }
+        const lines = ['Module,Days,Progress,Company,StartDate,EndDate,RegisteredBy'];
+        visible.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const mod = cells[1]?.innerText.trim()||'';
+            const days = cells[2]?.innerText.trim()||'';
+            const prog = (cells[3]?.innerText.trim()||'').split('\\n')[0].trim();
+            const comp = cells[4]?.innerText.trim()||'';
+            const start = cells[5]?.innerText.trim()||'';
+            const end = cells[6]?.innerText.trim()||'';
+            const reg = cells[7]?.innerText.trim()||'';
+            lines.push([mod,days,prog,comp,start,end,reg].map(v=>'"'+v.replace(/"/g,'""')+'"').join(','));
+        });
+        const blob = new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='workplace-modules-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    });
+
+    applyFilters();
+
+    // Optional welcome toast equivalent simple (no external libs)
+    if('@role' === 'Facilitator' && '@currentUser'){
+        console.log('Welcome', '@currentUser');
+    }
+})();
+</script>
+
+
+
+
+
+
+

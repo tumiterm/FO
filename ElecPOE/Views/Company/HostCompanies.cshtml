@@ -1,0 +1,307 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.Company>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Application.Common.Utility
+@{
+    ViewData["Title"] = "Host Companies";
+    var companies = Model?.ToList() ?? new List<ForekOnline.Domain.Entities.Company>();
+    var specialities = Enum.GetValues(typeof(eSpeciality)).Cast<eSpeciality>().ToList();
+}
+
+<style>
+:root{
+    --c-bg:#ffffff;
+    --c-bg-alt:#f6f8fa;
+    --c-border:#e2e5ea;
+    --c-border-strong:#c5c9d1;
+    --c-accent:#7d0e11;
+    --c-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --c-soft:#fff4f2;
+    --c-text:#222;
+    --c-radius-lg:26px;
+    --c-radius:14px;
+    --c-shadow:0 10px 28px -14px rgba(125,14,17,.35),0 4px 16px -6px rgba(125,14,17,.18);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.company-shell{max-width:1400px;margin:0 auto;padding:1.8rem 1.2rem 3rem;}
+.header-band{
+    background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--c-radius-lg);
+    padding:1.15rem 1.4rem 1rem;display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;
+    position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1112,#b3121714,#ff7a1816);pointer-events:none;}
+.icon-pill{width:70px;height:70px;border-radius:24px;background:var(--c-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;box-shadow:0 12px 26px -10px rgba(179,18,23,.55);}
+.header-band h1{margin:0;font-size:1.5rem;font-weight:600;letter-spacing:.6px;color:var(--c-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--c-soft);color:var(--c-accent);padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-c,.btn-accent,.btn-outline{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.55rem 1rem;border-radius:14px;border:1px solid var(--c-border);
+    background:#fff;color:var(--c-accent);display:inline-flex;align-items:center;gap:.45rem;
+    cursor:pointer;transition:.3s;text-decoration:none;
+}
+.btn-c:hover,.btn-outline:hover{background:var(--c-accent-grad);color:#fff;border-color:var(--c-accent);box-shadow:var(--c-shadow);}
+.btn-accent{background:var(--c-accent-grad);color:#fff;border:1px solid var(--c-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+.filters-bar{
+    margin-top:1.4rem;background:var(--c-bg);border:1px solid var(--c-border);border-radius:var(--c-radius-lg);
+    padding:1rem 1rem .9rem;display:flex;gap:.9rem;flex-wrap:wrap;align-items:flex-end;
+}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:150px;}
+.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap{position:relative;flex:1 1 320px;}
+.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{
+    width:100%;padding:.5rem .65rem .5rem 2.1rem;background:#fff;border:1px solid var(--c-border);
+    border-radius:12px;font-size:.7rem;transition:.25s;
+}
+.search-wrap input:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 .14rem #b3121716;}
+.filters-bar select{
+    background:#fff;border:1px solid var(--c-border);border-radius:12px;font-size:.68rem;
+    padding:.48rem .6rem;transition:.25s;
+}
+.filters-bar select:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 .14rem #b3121716;}
+.table-shell{margin-top:1.25rem;background:var(--c-bg);border:1px solid var(--c-border);border-radius:28px;padding:1.15rem 1.05rem 1rem;overflow:auto;}
+.table-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.55rem;font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;}
+.table-meta .badge{background:var(--c-soft);color:var(--c-accent);padding:.35rem .65rem;border-radius:30px;font-size:.5rem;}
+.companies-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
+.companies-table thead th{
+    background:var(--c-accent-grad);color:#fff;font-size:.53rem;letter-spacing:.16rem;
+    text-transform:uppercase;font-weight:700;padding:.55rem .6rem;position:sticky;top:0;z-index:3;
+}
+.companies-table tbody tr{transition:.18s;}
+.companies-table tbody tr:nth-child(even){background:#fff;}
+.companies-table tbody tr:nth-child(odd){background:#fffdfd;}
+.companies-table tbody tr:hover{background:#fff4ef;}
+.companies-table td{padding:.5rem .65rem;border-bottom:1px solid var(--c-border);vertical-align:middle;color:#333;}
+.action-link{
+    font-weight:600;font-size:.48rem;letter-spacing:.08rem;text-transform:uppercase;
+    background:#fff;padding:.38rem .55rem;border:1px solid var(--c-border);border-radius:10px;
+    text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;color:var(--c-accent);transition:.3s;
+}
+.action-link:hover{background:var(--c-accent-grad);color:#fff;border-color:var(--c-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+.badge-spec{
+    font-size:.48rem;font-weight:700;letter-spacing:.08rem;padding:.3rem .55rem;border-radius:30px;display:inline-flex;gap:.35rem;align-items:center;
+    background:#eef2f7;color:#183046;border:1px solid #d3dae2;
+}
+.pill-small{font-size:.44rem;font-weight:700;letter-spacing:.08rem;padding:.26rem .48rem;border-radius:22px;background:#f0f1f3;color:#555;}
+.badge-addby{background:#e9f4ff;color:#0b4e87;border:1px solid #c3e2fa;}
+.hidden-row{display:none!important;}
+.empty-row{text-align:center;font-style:italic;color:#777;}
+.fade-in{animation:fade .45s ease;}
+@@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+@@media(max-width:1000px){
+    .companies-table thead th:nth-child(6),
+    .companies-table td:nth-child(6){display:none;}
+}
+@@media(max-width:820px){
+    .companies-table thead th:nth-child(5),
+    .companies-table td:nth-child(5){display:none;}
+}
+@@media(max-width:680px){
+    .companies-table thead th:nth-child(4),
+    .companies-table td:nth-child(4){display:none;}
+}
+</style>
+
+<div class="company-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-building"></i></div>
+        <div>
+            <h1>Host Companies</h1>
+            <div class="tagline"><i class="fa fa-network-wired"></i> Partnerships</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="Companies" asp-controller="Company" class="btn-accent">
+                <i class="fa fa-plus-circle"></i> Add Company
+            </a>
+            <button type="button" id="btnRefresh" class="btn-c"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" id="btnExport" class="btn-c"><i class="fa fa-file-export"></i> Export CSV</button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search company / contact / added by..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+            <label>Speciality</label>
+            <select id="specFilter">
+                <option value="">Any</option>
+                @foreach (var s in specialities)
+                {
+                    <option value="@s">@Helper.GetDisplayName(s)</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Added By</label>
+            <select id="addedByFilter">
+                <option value="">Any</option>
+                @foreach(var added in companies.Where(c=> !string.IsNullOrWhiteSpace(c.CreatedBy))
+                                               .Select(c=>c.CreatedBy)
+                                               .Distinct()
+                                               .OrderBy(c=>c))
+                {
+                    <option value="@added">@added</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Has Phone</label>
+            <select id="phoneFilter">
+                <option value="">Any</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="filterState" class="badge" style="display:none;background:var(--c-soft);color:var(--c-accent);padding:.4rem .7rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.1rem;">FILTERED</span>
+        </div>
+    </div>
+
+    <div class="table-shell fade-in">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge">Loading...</span>
+            <span id="perfInfo"></span>
+        </div>
+        <table class="companies-table" id="companiesTable">
+            <thead>
+                <tr>
+                    <th>Open</th>
+                    <th>Name</th>
+                    <th>Speciality</th>
+                    <th>Contact</th>
+                    <th>Added By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="companiesBody">
+            @if (!companies.Any())
+            {
+                <tr><td colspan="6" class="empty-row">No host companies found.</td></tr>
+            }
+            else
+            {
+                foreach (var item in companies)
+                {
+                    var specName = Helper.GetDisplayName(item.Speciality);
+                    var addedBy = item.CreatedBy ?? "";
+                    <tr data-spec="@item.Speciality"
+                        data-addedby="@addedBy"
+                        data-hasphone="@(string.IsNullOrWhiteSpace(item.Phone) ? "no" : "yes")"
+                        data-text="@($"{item.CompanyName} {item.Phone} {addedBy} {specName}".ToLower())">
+                        <td>
+                            <a class="action-link" asp-action="OnModifyHostCompany" asp-route-CompanyId="@item.CompanyId">
+                                <i class="fa fa-folder-open"></i> Open
+                            </a>
+                        </td>
+                        <td title="@item.CompanyName">@((item.CompanyName ?? "-").TruncateWithEllipsisSmart())</td>
+                        <td><span class="badge-spec"><i class="fa fa-bullseye"></i> @specName</span></td>
+                        <td>
+                            @if(!string.IsNullOrWhiteSpace(item.Phone)){
+                                <span class="pill-small"><i class="fa fa-phone"></i> @item.Phone</span>
+                            } else {
+                                <span class="pill-small" style="opacity:.6;"><i class="fa fa-phone-slash"></i> —</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge-spec badge-addby"><i class="fa fa-user"></i> @addedBy.ToUpper()</span>
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <a class="action-link" asp-action="OnGetLearners" asp-route-CompanyId="@item.CompanyId">
+                                <i class="fa fa-graduation-cap"></i> Learners
+                            </a>
+                            <a class="action-link" asp-action="VisitationList" asp-controller="Visit" asp-route-CompanyId="@item.CompanyId" style="margin-left:.4rem;">
+                                <i class="fa fa-clock"></i> Visits
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function(){
+    const body = document.getElementById('companiesBody');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const perfInfo = document.getElementById('perfInfo');
+    const filterState = document.getElementById('filterState');
+
+    const searchBox = document.getElementById('searchBox');
+    const specFilter = document.getElementById('specFilter');
+    const addedByFilter = document.getElementById('addedByFilter');
+    const phoneFilter = document.getElementById('phoneFilter');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnExport = document.getElementById('btnExport');
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+
+    function apply(){
+        const t0 = performance.now();
+        const q = norm(searchBox.value);
+        const spec = specFilter.value;
+        const added = addedByFilter.value;
+        const phone = phoneFilter.value;
+
+        const rows = Array.from(body.querySelectorAll('tr'));
+        let shown = 0, total = 0;
+
+        rows.forEach(r=>{
+            if(r.classList.contains('empty-row')) return;
+            total++;
+            const dsText = r.getAttribute('data-text');
+            const dsSpec = r.getAttribute('data-spec');
+            const dsAdded = r.getAttribute('data-addedby');
+            const dsPhone = r.getAttribute('data-hasphone');
+
+            let show = true;
+            if(q && !dsText.includes(q)) show=false;
+            if(spec && dsSpec !== spec) show=false;
+            if(added && dsAdded !== added) show=false;
+            if(phone && dsPhone !== phone) show=false;
+
+            r.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+
+        const filtering = !!(q||spec||added||phone);
+        rowsInfo.textContent = `Showing ${shown} of ${total} companie(s)` + (filtering? ' (filtered)':'',
+        filterState.style.display = filtering? '' : 'none';
+        perfInfo.textContent = 'Render ' + (performance.now() - t0).toFixed(1) + 'ms';
+    }
+
+    function exportCsv(){
+        const rows = Array.from(body.querySelectorAll('tr:not(.hidden-row)')).filter(r=>!r.classList.contains('empty-row'));
+        if(!rows.length){ alert('No rows to export.'); return; }
+        const lines = ['Company,Speciality,Contact,AddedBy'];
+        rows.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const arr = [
+                cells[1].innerText.trim(),
+                cells[2].innerText.trim(),
+                cells[3].innerText.trim(),
+                cells[4].innerText.trim()
+            ].map(v=>'"'+v.replace(/"/g,'""')+'"');
+            lines.push(arr.join(','));
+        });
+        const blob = new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='host-companies-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }
+
+    [searchBox,specFilter,addedByFilter,phoneFilter].forEach(el=>{
+        el.addEventListener(el.tagName==='INPUT'?'input':'change', apply);
+    });
+
+    btnRefresh.addEventListener('click', ()=>location.reload());
+    btnExport.addEventListener('click', exportCsv);
+
+    apply();
+})();
+</script>

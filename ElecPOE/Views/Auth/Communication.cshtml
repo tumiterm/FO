@@ -1,0 +1,815 @@
+﻿@{
+    ViewData["Title"] = "Communication";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Communication</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --clr-dr: #320606;
+            --clr-red-strong: #b31217;
+            --clr-orange: #ff7a18;
+            --grad-accent: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+            --grad-soft: linear-gradient(120deg,#32060612,#b3121718,#ff7a1824);
+            --border: #e4e6ea;
+            --border-alt: #d4d6da;
+            --bg: #ffffff;
+            --bg-soft: #f7f8fa;
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-soft);
+            color: #222;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.1rem 1.6rem 3.5rem;
+        }
+
+        .header-band {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 1.35rem 1.65rem 1.25rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.35rem;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .header-band:before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: var(--grad-soft);
+                pointer-events: none;
+            }
+
+        .icon-pill {
+            width: 70px;
+            height: 70px;
+            background: var(--grad-accent);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.65rem;
+            box-shadow: 0 10px 24px -10px rgba(179,18,23,.55);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-band h1 {
+            margin: 0;
+            font-size: 1.55rem;
+            font-weight: 600;
+            letter-spacing: .5px;
+            color: #222;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tagline {
+            font-size: .60rem;
+            letter-spacing: .28rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--grad-soft);
+            padding: .55rem .95rem;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--clr-red-strong);
+            margin-top: .4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 1.25rem 1.25rem 1.1rem;
+            box-shadow: 0 4px 14px -10px rgba(50,6,6,.12);
+        }
+
+        .section-title {
+            font-size: .68rem;
+            letter-spacing: .24rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--clr-red-strong);
+            display: flex;
+            gap: .55rem;
+            align-items: center;
+            margin: 0 0 .9rem;
+        }
+
+        .chip {
+            font-size: .55rem;
+            letter-spacing: .14rem;
+            font-weight: 700;
+            padding: .5rem .75rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            display: inline-flex;
+            gap: .45rem;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .chip.active {
+                border-color: var(--clr-red-strong);
+                background: linear-gradient(180deg,#fff7f2,#ffffff);
+                color: var(--clr-red-strong);
+            }
+
+        .field label {
+            display: block;
+            font-size: .55rem;
+            letter-spacing: .18rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #4f5458;
+            margin-bottom: .35rem;
+        }
+
+        .input, .select, .textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: .65rem .8rem;
+            font-size: .72rem;
+            letter-spacing: .3px;
+            background: #fff;
+            transition: .2s;
+        }
+
+        .textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+            .input:focus, .select:focus, .textarea:focus {
+                outline: none;
+                border-color: var(--clr-red-strong);
+                box-shadow: 0 0 0 .15rem #b3121718;
+            }
+
+        .btn-accent {
+            font-size: .62rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .75rem 1.05rem;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            gap: .55rem;
+            align-items: center;
+            background: var(--grad-accent);
+            color: #fff;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+            .btn-accent:hover {
+                filter: brightness(.94);
+            }
+
+        .btn-soft {
+            font-size: .62rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .75rem 1.05rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--clr-red-strong);
+            cursor: pointer;
+            transition: .25s;
+        }
+
+            .btn-soft:hover {
+                background: var(--clr-red-strong);
+                color: #fff;
+                border-color: var(--clr-red-strong);
+            }
+
+        .hint {
+            font-size: .62rem;
+            line-height: 1.05rem;
+            color: #61676d;
+            font-weight: 600;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.05fr .95fr;
+            gap: 1.1rem;
+            margin-top: 1.2rem;
+        }
+
+        .list-box {
+            border: 1px dashed var(--border-alt);
+            background: #fafbfc;
+            border-radius: var(--radius-lg);
+            padding: .9rem;
+            min-height: 220px;
+        }
+
+        .empty {
+            font-size: .62rem;
+            font-weight: 700;
+            color: #71777d;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+        }
+
+        .hr {
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0;
+        }
+
+        .result-row {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: .55rem .65rem;
+            display: flex;
+            justify-content: space-between;
+            gap: .7rem;
+            align-items: center;
+            margin-bottom: .5rem;
+        }
+
+            .result-row strong {
+                display: block;
+                font-size: .68rem;
+            }
+
+            .result-row .meta {
+                font-size: .58rem;
+                color: #6b7280;
+                font-weight: 700;
+                letter-spacing: .02rem;
+            }
+
+        .tiny-btn {
+            font-size: .52rem;
+            letter-spacing: .12rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .45rem .7rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--clr-red-strong);
+            cursor: pointer;
+            transition: .25s;
+            white-space: nowrap;
+        }
+
+            .tiny-btn:hover {
+                background: var(--clr-red-strong);
+                color: #fff;
+                border-color: var(--clr-red-strong);
+            }
+
+        .status-pill {
+            font-size: .55rem;
+            letter-spacing: .14rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .4rem .65rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+            .status-pill.good {
+                border-color: #b7e4c7;
+                background: #f2fbf5;
+                color: #2d6a4f;
+            }
+
+            .status-pill.bad {
+                border-color: #f1b0b7;
+                background: #fff0f2;
+                color: #8a1c2a;
+            }
+
+        @@media (max-width: 980px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <div class="header-band">
+            <div class="icon-pill"><i class="fa fa-comment-dots"></i></div>
+            <div style="position:relative;z-index:1;">
+                <h1>Communication Center</h1>
+                <div class="tagline"><i class="fa fa-bullhorn"></i> BULK MESSAGING</div>
+            </div>
+            <div style="margin-left:auto;position:relative;z-index:1;display:flex;gap:.6rem;flex-wrap:wrap;">
+                <a class="btn-soft" href="@Url.Action("Settings", "Auth")"><i class="fa fa-arrow-left"></i> Settings</a>
+                <button type="button" class="btn-soft" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            </div>
+        </div>
+
+        <form id="commForm" autocomplete="off">
+            @Html.AntiForgeryToken()
+
+            <div class="grid-2">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fa fa-users"></i> Audience & Selection</h2>
+
+                    <div class="field" style="margin-bottom:.9rem;">
+                        <label>Recipient Type</label>
+                        <div class="pill-row" role="group" aria-label="Recipient type" id="recipientTypeGroup">
+                            <span class="chip active" data-recipient="student"><i class="fa fa-user-graduate"></i> Student</span>
+                            <span class="chip" data-recipient="guardian" title="Not wired yet"><i class="fa fa-user-shield"></i> Guardian</span>
+                        </div>
+                        <div class="hint" style="margin-top:.45rem;">
+                            Guardian targets are not wired yet. Select Student for now.
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-bottom:.9rem;">
+                        <label>Selection Mode</label>
+                        <div class="pill-row" role="group" aria-label="Selection mode" id="selectionModeGroup">
+                            <span class="chip active" data-mode="students"><i class="fa fa-list-check"></i> Select Students</span>
+                            <span class="chip" data-mode="course"><i class="fa fa-book"></i> Select Course First</span>
+                        </div>
+                        <div class="hint" style="margin-top:.45rem;">
+                            “Select Course First” filters the search results to students in that course.
+                        </div>
+                    </div>
+
+                    <div id="modeStudents">
+                        <div class="field" style="margin-bottom:.75rem;">
+                            <label>Search Students</label>
+                            <input id="studentSearchGlobal" class="input" placeholder="Search by name, email, student number, cellphone..." />
+                        </div>
+
+                        <div id="globalResults" class="list-box">
+                            <div class="empty"><i class="fa fa-circle-info"></i> Start typing to search students.</div>
+                        </div>
+                    </div>
+
+                    <div id="modeCourse" style="display:none;">
+                        <div class="field" style="margin-bottom:.75rem;">
+                            <label>Select Course</label>
+                            <select id="courseSelect" class="select">
+                                <option selected disabled value="">Loading courses...</option>
+                            </select>
+                            <div class="hint" style="margin-top:.45rem;">
+                                Courses are loaded from the Communication API.
+                            </div>
+                        </div>
+
+                        <div class="field" style="margin-bottom:.75rem;">
+                            <label>Search Students (within course)</label>
+                            <input id="studentSearchCourse" class="input" placeholder="Search within selected course..." />
+                        </div>
+
+                        <div id="courseResults" class="list-box">
+                            <div class="empty"><i class="fa fa-circle-info"></i> Select a course, then search.</div>
+                        </div>
+                    </div>
+
+                    <div class="hr"></div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;">
+                        <h3 class="section-title" style="margin:0;"><i class="fa fa-user-check"></i> Selected Recipients</h3>
+                        <span id="selectedCount" class="status-pill"><i class="fa fa-users"></i> 0 selected</span>
+                    </div>
+
+                    <div id="selectedBox" class="list-box" style="min-height:140px;margin-top:.75rem;">
+                        <div class="empty"><i class="fa fa-users"></i> No recipients selected yet.</div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="section-title"><i class="fa fa-pen-nib"></i> Compose Message</h2>
+
+                    <div class="field" style="margin-bottom:.8rem;">
+                        <label>Channel</label>
+                        <div class="pill-row" role="group" aria-label="Channel" id="channelGroup">
+                            <span class="chip active" data-channel="email"><i class="fa fa-envelope"></i> Email</span>
+                            <span class="chip" data-channel="sms"><i class="fa fa-sms"></i> SMS</span>
+                        </div>
+                        <div class="hint" style="margin-top:.45rem;">
+                            Email requires a subject; SMS uses message only.
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-bottom:.75rem;">
+                        <label>Subject (Email)</label>
+                        <input id="subjectInput" class="input" placeholder="e.g. Important Update" />
+                    </div>
+
+                    <div class="field" style="margin-bottom:.75rem;">
+                        <label>Message</label>
+                        <textarea id="messageInput" class="textarea" placeholder="Type your message here..."></textarea>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.85rem;">
+                        <span id="sendStatus" class="status-pill"><i class="fa fa-circle-info"></i> Ready</span>
+                        <span class="hint">Tip: Pick students or course, then Send.</span>
+                    </div>
+
+                    <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end;">
+                        <button type="button" id="btnClearSelected" class="btn-soft"><i class="fa fa-eraser"></i> Clear Selected</button>
+                        <button type="button" id="btnSend" class="btn-accent"><i class="fa fa-paper-plane"></i> Send</button>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        (function () {
+            const form = document.getElementById('commForm');
+
+            const recipientTypeGroup = document.getElementById('recipientTypeGroup');
+            const selectionModeGroup = document.getElementById('selectionModeGroup');
+            const channelGroup = document.getElementById('channelGroup');
+
+            const modeStudents = document.getElementById('modeStudents');
+            const modeCourse = document.getElementById('modeCourse');
+
+            const courseSelect = document.getElementById('courseSelect');
+            const studentSearchGlobal = document.getElementById('studentSearchGlobal');
+            const studentSearchCourse = document.getElementById('studentSearchCourse');
+
+            const globalResults = document.getElementById('globalResults');
+            const courseResults = document.getElementById('courseResults');
+
+            const selectedBox = document.getElementById('selectedBox');
+            const selectedCount = document.getElementById('selectedCount');
+
+            const subjectInput = document.getElementById('subjectInput');
+            const messageInput = document.getElementById('messageInput');
+
+            const btnSend = document.getElementById('btnSend');
+            const btnClearSelected = document.getElementById('btnClearSelected');
+            const sendStatus = document.getElementById('sendStatus');
+
+            let activeRecipientType = 'student';
+            let activeMode = 'students';
+            let activeChannel = 'email';
+
+            const selected = new Map(); // key: studentNumber lower, value: student
+
+            function setPill(el, kind) {
+                sendStatus.classList.remove('good', 'bad');
+                sendStatus.innerHTML = '<i class="fa fa-circle-info"></i> ' + kind;
+            }
+
+            function setPillGood(text) {
+                sendStatus.classList.remove('bad');
+                sendStatus.classList.add('good');
+                sendStatus.innerHTML = '<i class="fa fa-check-circle"></i> ' + text;
+            }
+
+            function setPillBad(text) {
+                sendStatus.classList.remove('good');
+                sendStatus.classList.add('bad');
+                sendStatus.innerHTML = '<i class="fa fa-triangle-exclamation"></i> ' + text;
+            }
+
+            function setActive(groupEl, selector, activeEl) {
+                groupEl.querySelectorAll(selector).forEach(x => x.classList.remove('active'));
+                activeEl.classList.add('active');
+            }
+
+            function esc(s) {
+                return (s || '').toString()
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function updateSelectedUi() {
+                const count = selected.size;
+                selectedCount.innerHTML = '<i class="fa fa-users"></i> ' + count + ' selected';
+
+                selectedBox.innerHTML = '';
+                if (count === 0) {
+                    selectedBox.innerHTML = "<div class='empty'><i class='fa fa-users'></i> No recipients selected yet.</div>";
+                    return;
+                }
+
+                for (const s of selected.values()) {
+                    const row = document.createElement('div');
+                    row.className = 'result-row';
+                    row.innerHTML = `
+                        <div>
+                            <strong>${esc(s.fullName || s.FullName)}</strong>
+                            <div class="meta">${esc(s.studentNumber || s.StudentNumber)} • ${esc(s.email || s.Email || 'No email')} • ${esc(s.cellphone || s.Cellphone || 'No phone')}</div>
+                        </div>
+                        <button type="button" class="tiny-btn" data-remove="${esc(s.studentNumber || s.StudentNumber)}">
+                            <i class="fa fa-times"></i> Remove
+                        </button>
+                    `;
+
+                    row.querySelector('button').addEventListener('click', function () {
+                        const key = (s.studentNumber || s.StudentNumber || '').toLowerCase();
+                        if (key) selected.delete(key);
+                        updateSelectedUi();
+                    });
+
+                    selectedBox.appendChild(row);
+                }
+            }
+
+            function renderResults(container, items) {
+                container.innerHTML = '';
+
+                if (!items || items.length === 0) {
+                    container.innerHTML = "<div class='empty'><i class='fa fa-user-slash'></i> No matches.</div>";
+                    return;
+                }
+
+                for (const s of items) {
+                    const studentNumber = (s.studentNumber || s.StudentNumber || '').trim();
+                    const key = studentNumber.toLowerCase();
+                    const isAdded = key && selected.has(key);
+
+                    const row = document.createElement('div');
+                    row.className = 'result-row';
+                    row.innerHTML = `
+                        <div>
+                            <strong>${esc(s.fullName || s.FullName)}</strong>
+                            <div class="meta">${esc(studentNumber)} • ${esc(s.email || s.Email || 'No email')} • ${esc(s.cellphone || s.Cellphone || 'No phone')}</div>
+                        </div>
+                        <button type="button" class="tiny-btn">
+                            <i class="fa ${isAdded ? 'fa-check' : 'fa-plus'}"></i> ${isAdded ? 'Added' : 'Add'}
+                        </button>
+                    `;
+
+                    row.querySelector('button').addEventListener('click', function () {
+                        if (!studentNumber) return;
+
+                        if (selected.has(key)) {
+                            selected.delete(key);
+                        } else {
+                            selected.set(key, s);
+                        }
+
+                        updateSelectedUi();
+                        renderResults(container, items);
+                    });
+
+                    container.appendChild(row);
+                }
+            }
+
+            function getAntiForgeryToken() {
+                return form?.querySelector('input[name="__RequestVerificationToken"]')?.value || null;
+            }
+
+            async function loadCourses() {
+                try {
+                    const url = new URL('@Url.Action("CommunicationCourses", "Communication")', window.location.origin);
+                    url.searchParams.set('take', '200');
+
+                    const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) throw new Error('Failed to load courses: HTTP ' + res.status);
+
+                    const items = await res.json();
+
+                    courseSelect.innerHTML = '<option value="">Select a course</option>';
+                    for (const c of items) {
+                        const opt = document.createElement('option');
+                        opt.value = c.courseId || c.CourseId;
+                        opt.textContent = c.courseName || c.CourseName;
+                        courseSelect.appendChild(opt);
+                    }
+                } catch (e) {
+                    courseSelect.innerHTML = '<option value="">Unable to load courses</option>';
+                    setPillBad(e.message);
+                }
+            }
+
+            let globalTimer = null;
+            let courseTimer = null;
+
+            async function searchStudents(term, courseId, container) {
+                const url = new URL('@Url.Action("CommunicationStudents", "Communication")', window.location.origin);
+                url.searchParams.set('page', '1');
+                url.searchParams.set('pageSize', '25');
+                if (term && term.trim().length > 0) url.searchParams.set('q', term.trim());
+                if (courseId) url.searchParams.set('courseId', courseId);
+
+                container.innerHTML = "<div class='empty'><i class='fa fa-spinner'></i> Searching...</div>";
+
+                const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) throw new Error('Search failed: HTTP ' + res.status);
+
+                const data = await res.json();
+                renderResults(container, data.items || []);
+            }
+
+            recipientTypeGroup.querySelectorAll('[data-recipient]').forEach(chip => {
+                chip.addEventListener('click', function () {
+                    const val = chip.getAttribute('data-recipient');
+                    if (val !== 'student') {
+                        setPillBad("Guardian is not wired yet (server rejects). Using Student.");
+                        return;
+                    }
+
+                    activeRecipientType = val;
+                    setActive(recipientTypeGroup, '.chip', chip);
+                    setPill('Ready', 'Ready');
+                });
+            });
+
+            channelGroup.querySelectorAll('[data-channel]').forEach(chip => {
+                chip.addEventListener('click', function () {
+                    activeChannel = chip.getAttribute('data-channel');
+                    setActive(channelGroup, '.chip', chip);
+
+                    if (activeChannel === 'sms') {
+                        subjectInput.value = '';
+                        subjectInput.disabled = true;
+                    } else {
+                        subjectInput.disabled = false;
+                    }
+                });
+            });
+
+            selectionModeGroup.querySelectorAll('[data-mode]').forEach(chip => {
+                chip.addEventListener('click', function () {
+                    activeMode = chip.getAttribute('data-mode');
+                    setActive(selectionModeGroup, '.chip', chip);
+
+                    if (activeMode === 'course') {
+                        modeStudents.style.display = 'none';
+                        modeCourse.style.display = '';
+                        courseResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Select a course, then search.</div>";
+                    } else {
+                        modeCourse.style.display = 'none';
+                        modeStudents.style.display = '';
+                        globalResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Start typing to search students.</div>";
+                    }
+                });
+            });
+
+            studentSearchGlobal.addEventListener('input', function () {
+                window.clearTimeout(globalTimer);
+                globalTimer = window.setTimeout(async function () {
+                    const term = studentSearchGlobal.value || '';
+                    if (term.trim().length < 2) {
+                        globalResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Type at least 2 characters.</div>";
+                        return;
+                    }
+
+                    try {
+                        await searchStudents(term, null, globalResults);
+                    } catch (e) {
+                        globalResults.innerHTML = "<div class='empty'><i class='fa fa-triangle-exclamation'></i> " + esc(e.message) + "</div>";
+                    }
+                }, 250);
+            });
+
+            studentSearchCourse.addEventListener('input', function () {
+                window.clearTimeout(courseTimer);
+                courseTimer = window.setTimeout(async function () {
+                    const courseId = courseSelect.value;
+                    const term = studentSearchCourse.value || '';
+
+                    if (!courseId) {
+                        courseResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Select a course first.</div>";
+                        return;
+                    }
+
+                    if (term.trim().length < 2) {
+                        courseResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Type at least 2 characters.</div>";
+                        return;
+                    }
+
+                    try {
+                        await searchStudents(term, courseId, courseResults);
+                    } catch (e) {
+                        courseResults.innerHTML = "<div class='empty'><i class='fa fa-triangle-exclamation'></i> " + esc(e.message) + "</div>";
+                    }
+                }, 250);
+            });
+
+            courseSelect.addEventListener('change', function () {
+                courseResults.innerHTML = "<div class='empty'><i class='fa fa-circle-info'></i> Course selected. Start typing to search.</div>";
+            });
+
+            btnClearSelected.addEventListener('click', function () {
+                selected.clear();
+                updateSelectedUi();
+                setPillGood('Selection cleared');
+            });
+
+            btnSend.addEventListener('click', async function () {
+                const token = getAntiForgeryToken();
+                if (!token) {
+                    setPillBad('Missing anti-forgery token on page.');
+                    return;
+                }
+
+                const message = (messageInput.value || '').trim();
+                const subject = (subjectInput.value || '').trim();
+                const courseId = (activeMode === 'course' && courseSelect.value) ? courseSelect.value : null;
+
+                if (!message) {
+                    setPillBad('Message is required.');
+                    return;
+                }
+
+                if (activeChannel === 'email' && !subject) {
+                    setPillBad('Subject is required for email.');
+                    return;
+                }
+
+                const payload = {
+                    channel: activeChannel,
+                    recipientType: activeRecipientType,
+                    courseId: courseId || null,
+                    studentNumbers: Array.from(selected.values())
+                        .map(x => (x.studentNumber || x.StudentNumber || '').trim())
+                        .filter(x => x.length > 0),
+                    subject: activeChannel === 'email' ? subject : null,
+                    message: message
+                };
+
+                if ((!payload.studentNumbers || payload.studentNumbers.length === 0) && !payload.courseId) {
+                    setPillBad('Select students or choose a course.');
+                    return;
+                }
+
+                try {
+                    btnSend.disabled = true;
+                    setPill('Sending...', 'Sending...');
+
+                    const res = await fetch('@Url.Action("SendCommunication", "Communication")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        const text = await res.text();
+                        throw new Error(text || ('HTTP ' + res.status));
+                    }
+
+                    const data = await res.json();
+                    setPillGood('Sent: ' + (data.sent ?? 0) + ' • Invalid: ' + (data.invalid ?? 0));
+                } catch (e) {
+                    setPillBad(e.message);
+                } finally {
+                    btnSend.disabled = false;
+                }
+            });
+
+            (async function init() {
+                subjectInput.disabled = false;
+                updateSelectedUi();
+                await loadCourses();
+            })();
+        })();
+    </script>
+</body>
+</html>

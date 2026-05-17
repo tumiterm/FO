@@ -1,0 +1,337 @@
+﻿@model IEnumerable<ForekOnline.Domain.Entities.User>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "System Users";
+    var roles = Enum.GetValues(typeof(eSysRole)).Cast<eSysRole>().ToList();
+}
+
+<style>
+:root {
+    --u-bg:#ffffff;
+    --u-bg-alt:#f5f7fa;
+    --u-border:#e3e6ec;
+    --u-border-strong:#c8ccd3;
+    --u-radius-lg:22px;
+    --u-radius:14px;
+    --u-accent:#7d0e11;
+    --u-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#f9652b);
+    --u-text:#1f242b;
+    --u-soft:#fff5f4;
+    --u-shadow:0 10px 28px -12px rgba(125,14,17,.35),0 4px 14px -6px rgba(125,14,17,.18);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.users-shell {max-width:1400px;margin:0 auto;padding:1.8rem 1.25rem 3rem;}
+.header-band {
+    background:var(--u-bg);
+    border:1px solid var(--u-border);
+    border-radius:var(--u-radius-lg);
+    padding:1.15rem 1.4rem 1rem;
+    display:flex;flex-wrap:wrap;gap:1.2rem;align-items:center;
+    position:relative;overflow:hidden;
+}
+.header-band:before {content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1112,#b3121714,#f9652b14);pointer-events:none;}
+.icon-pill {width:68px;height:68px;border-radius:22px;background:var(--u-accent-grad);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:#fff;box-shadow:0 10px 24px -10px rgba(179,18,23,.55);}
+.header-band h1 {margin:0;font-size:1.45rem;font-weight:600;letter-spacing:.5px;color:var(--u-text);display:flex;align-items:center;gap:.55rem;}
+.tagline {font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--u-soft);color:var(--u-accent);padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar {margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+.btn-u, .btn-accent, .btn-outline {
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.55rem 1rem;border-radius:14px;border:1px solid var(--u-border);
+    background:#fff;color:var(--u-accent);
+    display:inline-flex;align-items:center;gap:.45rem;cursor:pointer;
+    transition:.3s;text-decoration:none;
+}
+.btn-u:hover,.btn-outline:hover{background:var(--u-accent-grad);color:#fff;border-color:var(--u-accent);box-shadow:var(--u-shadow);
+}
+.btn-accent {background:var(--u-accent-grad);color:#fff;border:1px solid var(--u-accent);}
+.btn-accent:hover {filter:brightness(.94);}
+.filters-bar {
+    margin-top:1.4rem;background:var(--u-bg);border:1px solid var(--u-border);
+    border-radius:var(--u-radius-lg);padding:1rem 1rem .9rem;
+    display:flex;gap:.9rem;flex-wrap:wrap;align-items:flex-end;
+}
+.filter-group {display:flex;flex-direction:column;gap:.35rem;min-width:140px;}
+.filter-group label {font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap {position:relative;flex:1 1 280px;}
+.search-wrap i {position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input {
+    width:100%;padding:.5rem .65rem .5rem 2rem;background:#fff;
+    border:1px solid var(--u-border);border-radius:12px;font-size:.7rem;transition:.25s;
+}
+.search-wrap input:focus {outline:none;border-color:var(--u-accent);box-shadow:0 0 0 .14rem #b3121716;}
+.filters-bar select {
+    background:#fff;border:1px solid var(--u-border);border-radius:12px;font-size:.68rem;
+    padding:.48rem .6rem;transition:.25s;
+}
+.filters-bar select:focus {outline:none;border-color:var(--u-accent);box-shadow:0 0 0 .14rem #b3121716;}
+.table-shell {margin-top:1.25rem;background:var(--u-bg);border:1px solid var(--u-border);border-radius:26px;padding:1.1rem 1rem .9rem;overflow:auto;}
+.table-meta {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.55rem;font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;}
+.table-meta .badge {background:var(--u-soft);color:var(--u-accent);padding:.35rem .6rem;border-radius:30px;font-size:.5rem;}
+.users-table {width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
+.users-table thead th {
+    background:var(--u-accent-grad);color:#fff;font-size:.53rem;letter-spacing:.16rem;
+    text-transform:uppercase;font-weight:700;padding:.55rem .55rem;position:sticky;top:0;z-index:3;
+}
+.users-table tbody tr {transition:.18s;}
+.users-table tbody tr:nth-child(even){background:#fff;}
+.users-table tbody tr:nth-child(odd){background:#fffdfd;}
+.users-table tbody tr:hover{background:#fff4ef;}
+.users-table td {padding:.5rem .6rem;border-bottom:1px solid var(--u-border);vertical-align:middle;color:#333;}
+.action-link {
+    font-weight:600;font-size:.48rem;letter-spacing:.08rem;text-transform:uppercase;
+    background:#fff;padding:.38rem .55rem;border:1px solid var(--u-border);border-radius:10px;
+    text-decoration:none;display:inline-flex;gap:.35rem;align-items:center;color:var(--u-accent);
+    transition:.3s;
+}
+.action-link:hover {background:var(--u-accent-grad);color:#fff;border-color:var(--u-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
+.badge-role {font-size:.48rem;font-weight:700;letter-spacing:.08rem;padding:.32rem .55rem;border-radius:30px;display:inline-flex;gap:.3rem;align-items:center;}
+.role-admin {background:#1f2530;color:#fff;}
+.role-student {background:#ffe9b3;color:#7d5400;}
+.role-default {background:#e6eef7;color:#14344f;}
+.pill-status {font-size:.44rem;font-weight:700;letter-spacing:.1rem;padding:.28rem .5rem;border-radius:30px;display:inline-flex;align-items:center;gap:.3rem;}
+.ok {background:#e6f8ed;color:#1f7a3d;border:1px solid #b8e6c5;}
+.bad {background:#ffe9ec;color:#b31217;border:1px solid #f3b4ba;}
+.neutral {background:#f0f1f3;color:#555;border:1px solid #d9dde2;}
+.empty-row {text-align:center;font-style:italic;color:#777;}
+@@media (max-width:900px){
+    .users-table thead th:nth-child(7),
+    .users-table td:nth-child(7){display:none;}
+}
+@@media (max-width:700px){
+    .users-table thead th:nth-child(5),
+    .users-table td:nth-child(5){display:none;}
+}
+.fade-in {animation:fade .45s ease;}
+@@keyframes fade {from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.hidden-row{display:none!important;}
+</style>
+
+<div class="users-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-users"></i></div>
+        <div>
+            <h1>System Users</h1>
+            <div class="tagline"><i class="fa fa-shield-halved"></i> Access & Roles</div>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn-u" id="btnRefresh"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" class="btn-accent" id="btnExport"><i class="fa fa-file-export"></i> Export CSV</button>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search name / surname / number / role ..." autocomplete="off" />
+        </div>
+        <div class="filter-group">
+            <label>Role</label>
+            <select id="roleFilter">
+                <option value="">Any</option>
+                @foreach(var r in roles){ <option value="@r">@r</option> }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Active</label>
+            <select id="activeFilter">
+                <option value="">Any</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Verified</label>
+            <select id="verifiedFilter">
+                <option value="">Any</option>
+                <option value="true">Verified</option>
+                <option value="false">Not Verified</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Login From</label>
+            <input type="date" id="fromDate" />
+        </div>
+        <div class="filter-group">
+            <label>Login To</label>
+            <input type="date" id="toDate" />
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="filterState" class="badge" style="display:none;"></span>
+        </div>
+    </div>
+
+    <div class="table-shell fade-in">
+        <div class="table-meta">
+            <span id="rowsInfo" class="badge">Loading...</span>
+            <span id="perfInfo"></span>
+        </div>
+        <table class="users-table" id="usersTable">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Number</th>
+                    <th>Verified</th>
+                    <th>Role</th>
+                    <th>Last Login</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody id="usersBody">
+            @if (!Model.Any())
+            {
+                <tr><td class="empty-row" colspan="8">No users found.</td></tr>
+            }
+            else
+            {
+                foreach (var item in Model)
+                {
+                    var verified = item.IsEmailVerified;
+                    var roleClass = item.Role == eSysRole.Admin ? "role-admin" :
+                                    item.Role == eSysRole.Student ? "role-student" : "role-default";
+                    <tr data-role="@item.Role"
+                        data-active="@item.IsActive.ToString().ToLower()"
+                        data-verified="@verified.ToString().ToLower()"
+                        data-login="@item.LastLoginDate?.ToString("yyyy-MM-dd")"
+                        data-text="@($"{item.Name} {item.LastName} {item.StudentNumber} {item.Role}".ToLower())">
+                        <td>
+                            <a class="action-link" asp-action="OnViewUserInfo" asp-route-Id="@item.Id">
+                                <i class="fa fa-eye"></i> Open
+                            </a>
+                        </td>
+                        <td>@(item.Name ?? "-")</td>
+                        <td>@(item.LastName ?? "-")</td>
+                        <td>@(item.StudentNumber ?? "-")</td>
+                        <td>
+                            <span class="pill-status @(verified?"ok":"bad")">
+                                <i class="fa @(verified?"fa-check-circle":"fa-circle-xmark")"></i>
+                                @(verified?"Yes":"No")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-role @roleClass">
+                                <i class="fa fa-id-badge"></i> @item.Role
+                            </span>
+                        </td>
+                        <td>
+                            @if(item.LastLoginDate.HasValue){
+                                <span title="@item.LastLoginDate.Value.ToString("O")">
+                                    @item.LastLoginDate.Value.ToString("yyyy-MM-dd HH:mm")
+                                </span>
+                            } else {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="pill-status @(item.IsActive?"ok":"bad")">
+                                <i class="fa @(item.IsActive?"fa-toggle-on":"fa-toggle-off")"></i>
+                                @(item.IsActive?"Active":"Off")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+(function(){
+    const body = document.getElementById('usersBody');
+    const rowsInfo = document.getElementById('rowsInfo');
+    const perfInfo = document.getElementById('perfInfo');
+    const filterState = document.getElementById('filterState');
+
+    const searchBox = document.getElementById('searchBox');
+    const roleFilter = document.getElementById('roleFilter');
+    const activeFilter = document.getElementById('activeFilter');
+    const verifiedFilter = document.getElementById('verifiedFilter');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnExport = document.getElementById('btnExport');
+
+    function norm(v){return (v||'').toString().toLowerCase().trim();}
+    function parseDate(v){ return v? new Date(v): null; }
+
+    function apply(){
+        const t0=performance.now();
+        const q = norm(searchBox.value);
+        const r = roleFilter.value;
+        const a = activeFilter.value;
+        const v = verifiedFilter.value;
+        const f = fromDate.value? parseDate(fromDate.value): null;
+        const t = toDate.value? parseDate(toDate.value): null;
+
+        const rows = Array.from(body.querySelectorAll('tr'));
+        let shown=0, totalData=0;
+        rows.forEach(row=>{
+            if(row.classList.contains('empty-row')) return;
+            totalData++;
+
+            const text = row.getAttribute('data-text');
+            const role = row.getAttribute('data-role');
+            const act = row.getAttribute('data-active');
+            const ver = row.getAttribute('data-verified');
+            const loginStr = row.getAttribute('data-login');
+            const loginDate = loginStr? parseDate(loginStr): null;
+
+            let show = true;
+            if(q && !text.includes(q)) show=false;
+            if(r && role !== r) show=false;
+            if(a && act !== a) show=false;
+            if(v && ver !== v) show=false;
+            if(f && (!loginDate || loginDate < f)) show=false;
+            if(t && (!loginDate || loginDate > t)) show=false;
+
+            row.classList.toggle('hidden-row', !show);
+            if(show) shown++;
+        });
+
+        const filtering = !!(q||r||a||v||f||t);
+        rowsInfo.textContent = `Showing ${shown} of ${totalData} user(s)` + (filtering? ' (filtered)':'');
+        filterState.style.display = filtering? '' : 'none';
+        filterState.textContent = filtering? 'FILTERED' : '';
+        perfInfo.textContent = 'Render ' + (performance.now()-t0).toFixed(1) + 'ms';
+    }
+
+    function exportCsv(){
+        const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)')).filter(r=>!r.classList.contains('empty-row'));
+        if(!visible.length){ alert('No rows to export.'); return; }
+        const lines = ['Name,Surname,Number,Verified,Role,LastLogin,Active'];
+        visible.forEach(r=>{
+            const cells = r.querySelectorAll('td');
+            const arr = [
+                cells[1].innerText.trim(),
+                cells[2].innerText.trim(),
+                cells[3].innerText.trim(),
+                cells[4].innerText.trim(),
+                cells[5].innerText.trim(),
+                cells[6].innerText.trim(),
+                cells[7].innerText.trim()
+            ].map(v=>'"'+v.replace(/"/g,'""')+'"');
+            lines.push(arr.join(','));
+        });
+        const blob = new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='users-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }
+
+    [searchBox,roleFilter,activeFilter,verifiedFilter,fromDate,toDate]
+        .forEach(el=> el.addEventListener(el.tagName==='INPUT'?'input':'change', apply));
+
+    btnRefresh.addEventListener('click', ()=>location.reload());
+    btnExport.addEventListener('click', exportCsv);
+
+    apply();
+})();
+</script>
+
+
+
+
+

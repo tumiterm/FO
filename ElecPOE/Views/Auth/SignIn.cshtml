@@ -1,0 +1,549 @@
+﻿@model ForekOnline.Domain.ViewModels.UserViewModel
+@{
+    Layout = null;
+    const string AppVersion = "v2.0.0"; // Displayed version tag
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sign In • Forek Online @AppVersion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --auth-dr: #320606;
+            --auth-red: #9d1117;
+            --auth-red-strong: #b31217;
+            --auth-orange: #ff7a18;
+            --auth-orange-soft: #ff9c55;
+            --auth-bg: #ffffff;
+            --auth-bg-alt: #f4f6f8;
+            --auth-soft: #fff5f3;
+            --auth-border: #e1e3e6;
+            --auth-border-alt: #cfd2d6;
+            --auth-grad: linear-gradient(92deg, #320606, #b31217 60%, #ff7a18);
+            --auth-radius-xl: 34px;
+            --auth-radius-lg: 22px;
+            --auth-shadow: 0 4px 14px -4px rgba(50, 6, 6, .22), 0 2px 6px -2px rgba(50, 6, 6, .15);
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--auth-bg-alt);
+            color: #222;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.2rem;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 1060px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 1.75rem;
+            align-items: stretch;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--auth-bg);
+            border: 1px solid var(--auth-border);
+            border-radius: var(--auth-radius-xl);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--auth-shadow);
+        }
+
+        /* Brand panel */
+        .brand-panel {
+            padding: 2.1rem 2rem 1.9rem;
+            justify-content: space-between;
+        }
+
+        .brand-head {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .logo-mark {
+            width: 70px;
+            height: 70px;
+            border-radius: 22px;
+            background: var(--auth-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 12px -4px rgba(179, 18, 23, .55);
+        }
+
+        .version-chip {
+            font-size: .58rem;
+            letter-spacing: .23rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--auth-soft);
+            color: var(--auth-red-strong);
+            padding: .5rem .9rem;
+            border-radius: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+        }
+
+        .brand-heading {
+            font-size: 1.65rem;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: .4px;
+        }
+
+        .brand-sub {
+            font-size: .72rem;
+            line-height: 1.25rem;
+            color: #555;
+            max-width: 360px;
+            margin: 0;
+        }
+
+        .brand-ill img {
+            width: 100%;
+            max-width: 360px;
+            display: block;
+            margin-top: .6rem;
+        }
+
+        .meta-footer {
+            font-size: .5rem;
+            letter-spacing: .16rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #777;
+            margin-top: 1.4rem;
+        }
+
+        .version-watermark {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: .5rem;
+            letter-spacing: .18rem;
+            font-weight: 700;
+            color: #b3121795;
+            text-transform: uppercase;
+        }
+
+        /* Form panel */
+        .form-panel {
+            padding: 2.1rem 2rem 1.9rem;
+        }
+
+        .form-head {
+            margin: 0 0 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+            .form-head h1 {
+                font-size: 1.45rem;
+                font-weight: 600;
+                letter-spacing: .5px;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: .55rem;
+            }
+
+                .form-head h1 .ico {
+                    background: var(--auth-grad);
+                    color: #fff;
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.05rem;
+                    box-shadow: 0 4px 11px -3px rgba(179, 18, 23, .45);
+                }
+
+            .form-head p {
+                font-size: .64rem;
+                line-height: 1.05rem;
+                color: #555;
+                margin: 0;
+            }
+
+        .alert {
+            border: 1px solid #f0b7bc;
+            background: #ffecee;
+            color: #7d1418;
+            padding: .7rem .85rem;
+            border-radius: 12px;
+            font-size: .6rem;
+            letter-spacing: .4px;
+            font-weight: 500;
+            display: flex;
+            gap: .55rem;
+            align-items: flex-start;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: .95rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+        }
+
+            .field label {
+                font-size: .52rem;
+                letter-spacing: .17rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                color: #4f5458;
+                display: flex;
+                gap: .4rem;
+                align-items: center;
+            }
+
+        .input-wrap {
+            position: relative;
+        }
+
+            .input-wrap .fa {
+                position: absolute;
+                top: 50%;
+                left: .75rem;
+                transform: translateY(-50%);
+                font-size: .65rem;
+                color: #9aa0a5;
+            }
+
+            .input-wrap input {
+                width: 100%;
+                padding: .7rem .8rem .7rem 2.3rem;
+                font-size: .7rem;
+                letter-spacing: .3px;
+                border: 1px solid var(--auth-border);
+                border-radius: 12px;
+                background: #fff;
+                color: #222;
+                transition: .2s;
+                font-family: inherit;
+            }
+
+                .input-wrap input:focus {
+                    outline: none;
+                    border-color: var(--auth-red-strong);
+                    box-shadow: 0 0 0 .12rem #b3121716;
+                }
+
+        .toggle-pass {
+            position: absolute;
+            top: 50%;
+            right: .6rem;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #8d9398;
+            font-size: .65rem;
+            display: flex;
+            align-items: center;
+            padding: .15rem;
+        }
+
+            .toggle-pass:hover {
+                color: var(--auth-red-strong);
+            }
+
+        .actions-row {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+            margin-top: .4rem;
+        }
+
+        .btn-primary-auth {
+            background: var(--auth-grad);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: .7rem;
+            letter-spacing: .14rem;
+            padding: .75rem .95rem;
+            border-radius: 14px;
+            display: inline-flex;
+            justify-content: center;
+            gap: .5rem;
+            align-items: center;
+            cursor: pointer;
+            transition: .28s;
+        }
+
+            .btn-primary-auth:hover {
+                filter: brightness(.94);
+                box-shadow: 0 6px 16px -6px rgba(179, 18, 23, .5);
+            }
+
+        .alt-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            font-size: .54rem;
+            letter-spacing: .04rem;
+            color: #555;
+        }
+
+            .alt-links a {
+                color: var(--auth-red-strong);
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+                .alt-links a:hover {
+                    text-decoration: underline;
+                }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-size: .5rem;
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+            color: #7a7f83;
+            font-weight: 600;
+            margin: 1.2rem 0 .15rem;
+        }
+
+            .divider:before,
+            .divider:after {
+                content: "";
+                flex: 1;
+                height: 1px;
+                background: #dfe2e5;
+            }
+
+        .inline-btns {
+            display: flex;
+            gap: .45rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-act,
+        .btn-outline {
+            font-size: .55rem;
+            letter-spacing: .12rem;
+            font-weight: 600;
+            padding: .55rem .85rem;
+            border-radius: 11px;
+            border: 1px solid var(--auth-border);
+            background: #fff;
+            color: var(--auth-red-strong);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            transition: .25s;
+        }
+
+            .btn-act:hover,
+            .btn-outline:hover {
+                background: var(--auth-red-strong);
+                color: #fff;
+                border-color: var(--auth-red-strong);
+            }
+
+        .app-callout {
+            margin-top: .25rem;
+            border: 1px solid #ffd6c3;
+            background: linear-gradient(180deg, #fff7f2, #ffffff);
+            border-radius: 16px;
+            padding: .85rem .9rem;
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+        }
+
+            .app-callout .badge {
+                width: 44px;
+                height: 44px;
+                border-radius: 14px;
+                background: var(--auth-grad);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 auto;
+                box-shadow: 0 4px 12px -6px rgba(179, 18, 23, .55);
+            }
+
+            .app-callout h3 {
+                margin: 0 0 .25rem;
+                font-size: .68rem;
+                letter-spacing: .12rem;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: #4f5458;
+            }
+
+            .app-callout p {
+                margin: 0;
+                font-size: .62rem;
+                line-height: 1.05rem;
+                color: #5a5f63;
+                font-weight: 500;
+            }
+
+            .app-callout a {
+                color: var(--auth-red-strong);
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+                .app-callout a:hover {
+                    text-decoration: underline;
+                }
+
+        @@media (max-width: 1020px) {
+            .auth-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 620px) {
+            .panel {
+                border-radius: 26px;
+            }
+
+            .brand-panel,
+            .form-panel {
+                padding: 1.7rem 1.4rem 1.5rem;
+            }
+
+            .brand-ill img {
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="panel brand-panel">
+            <div class="version-watermark">@AppVersion</div>
+            <div class="brand-head">
+                <div class="logo-mark"><i class="fa fa-layer-group"></i></div>
+                <span class="version-chip"><i class="fa fa-circle-up"></i> Forek Online @AppVersion</span>
+                <h2 class="brand-heading">Precise. Fast. Secure.</h2>
+                <p class="brand-sub">Access the Forek Online platform with your student or employee number. This crisp redesign removes visual blur for sharper focus and faster interaction.</p>
+                <div class="brand-ill">
+                    <img src="~/Images/v2Launcher.png" alt="Application Illustration" />
+                </div>
+            </div>
+            <div class="meta-footer">© @DateTime.UtcNow.Year • Forek Institute • @AppVersion</div>
+        </div>
+
+        <div class="panel form-panel">
+            <div class="form-head">
+                <h1><span class="ico"><i class="fa fa-lock"></i></span> Sign In</h1>
+                <p>Enter your credentials to continue.</p>
+            </div>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert" role="alert"><i class="fa fa-triangle-exclamation"></i> @TempData["ErrorMessage"]</div>
+            }
+
+            <form asp-action="SignIn" method="post" class="auth-form" autocomplete="off">
+                <div class="field">
+                    <label for="StudentNumber"><i class="fa fa-id-card"></i> Student / Employee Number</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-user"></i>
+                        <input asp-for="StudentNumber" id="StudentNumber" placeholder="e.g. STU12345" required autofocus />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="Password"><i class="fa fa-key"></i> Password</label>
+                    <div class="input-wrap">
+                        <i class="fa fa-lock"></i>
+                        <input asp-for="Password" id="Password" type="password" placeholder="Your password" required />
+                        <button type="button" class="toggle-pass" aria-label="Toggle password visibility" title="Show/Hide"
+                                id="togglePass">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-primary-auth"><i class="fa fa-right-to-bracket"></i> Login</button>
+
+                    <div class="alt-links">
+                        <span>Need an account? <a asp-action="SignUp">Sign up</a></span>
+                        <span>Forgot password? <a asp-action="Recover" asp-controller="Auth">Recover</a></span>
+                    </div>
+
+                    <div class="app-callout" role="note" aria-label="Online applications">
+                        <div class="badge"><i class="fa fa-file-signature"></i></div>
+                        <div>
+                            <h3>Applying Online?</h3>
+                            <p>
+                                This sign-in page is for registered learners and internal staff.
+                                To submit a new application, use the official application form:
+                                <a href="https://forekonline.co.za/Applications/Apply" target="_blank" rel="noopener">Start an online application</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider">quick</div>
+                <div class="inline-btns">
+                    <button type="button" class="btn-act" onclick="location.href='/'"><i class="fa fa-home"></i> Home</button>
+                    <button type="button" class="btn-outline" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const t = document.getElementById('togglePass');
+            const p = document.getElementById('Password');
+            t?.addEventListener('click', () => {
+                const is = p.type === 'password';
+                p.type = is ? 'text' : 'password';
+                t.innerHTML = '<i class="fa ' + (is ? 'fa-eye-slash' : 'fa-eye') + '"></i>';
+            });
+        })();
+    </script>
+</body>
+</html>

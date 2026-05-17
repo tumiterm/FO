@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="AutoMapper" Version="14.0.0" />
+	  <PackageReference Include="Azure.Storage.Blobs" Version="12.23.0" />
+	  <PackageReference Include="FluentValidation" Version="12.1.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.7" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+	  <PackageReference Include="ReportViewerCore.NETCore" Version="15.1.25" />
+	  <PackageReference Include="Select.HtmlToPdf.NetCore" Version="25.2.0" />
+	  <PackageReference Include="Stimulsoft.Reports.Engine.NetCore" Version="2024.4.4" />
+	  <PackageReference Include="Stimulsoft.Reports.Net" Version="2024.4.4" />
+	  <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="27.2.2" />
+	  <PackageReference Include="Syncfusion.Licensing" Version="27.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\Docs\" />
+    <Folder Include="wwwroot\Assessments\" />
+    <Folder Include="wwwroot\LP\" />
+    <Folder Include="wwwroot\HighestQualification\" />
+    <Folder Include="wwwroot\AppIDPass\" />
+    <Folder Include="wwwroot\GuardianID\" />
+    <Folder Include="wwwroot\EmpFiles\" />
+    <Folder Include="wwwroot\logs\" />
+    <Folder Include="wwwroot\UserProfile\" />
+    <Folder Include="wwwroot\Residence\" />
+    <Folder Include="wwwroot\Uploads\Payslips\" />
+    <Folder Include="wwwroot\Visitation\" />
+    <Folder Include="wwwroot\Reports\" />
+    <Folder Include="wwwroot\Statements\" />
+    <Folder Include="wwwroot\Results\" />
+    <Folder Include="wwwroot\Training\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Views\appsettings.Test.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ForekOnline.Application\ForekOnline.Application.csproj" />
+    <ProjectReference Include="..\ForekOnline.Domain\ForekOnline.Domain.csproj" />
+    <ProjectReference Include="..\ForekOnline.Infrastructure\ForekOnline.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

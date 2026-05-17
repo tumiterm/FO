@@ -1,0 +1,442 @@
+﻿@{
+    ViewData["Title"] = "Access Restricted";
+    var userName = ViewBag.UserName as string ?? "User";
+    var userRole = ViewBag.UserRole as string ?? "Unknown";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --pr-red: #b31217;
+            --pr-orange: #ff7a18;
+            --pr-bg: #f7f8fb;
+            --pr-panel: #fff;
+            --pr-border: #e6e9f0;
+            --pr-muted: #64748b;
+            --pr-text: #0f172a;
+            --pr-grad: linear-gradient(135deg, #320606, #b31217 55%, #ff7a18);
+            --pr-shadow: 0 14px 42px -18px rgba(50,6,6,.28);
+            --pr-r-lg: 26px;
+            --pr-r-md: 18px;
+            --pr-t: 250ms cubic-bezier(.2,.75,.2,1);
+            --pr-focus: 0 0 0 4px rgba(179,18,23,.14);
+        }
+
+        .ad-shell {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 2.5rem 1rem 4rem;
+        }
+
+        .ad-hero {
+            position: relative;
+            border-radius: var(--pr-r-lg);
+            background: var(--pr-grad);
+            color: #fff;
+            padding: 1.5rem 1.5rem 1.35rem;
+            overflow: hidden;
+            box-shadow: var(--pr-shadow);
+            text-align: center;
+        }
+
+            .ad-hero::before {
+                content: "";
+                position: absolute;
+                inset: -140px -140px auto auto;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle, rgba(255,255,255,.18), transparent 60%);
+                transform: rotate(20deg);
+                pointer-events: none;
+            }
+
+        .ad-hero-content {
+            position: relative;
+        }
+
+        .ad-shield {
+            width: 72px;
+            height: 72px;
+            border-radius: 22px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.2);
+            backdrop-filter: blur(10px);
+            display: inline-grid;
+            place-items: center;
+            font-size: 1.75rem;
+            margin-bottom: .85rem;
+            box-shadow: 0 12px 28px rgba(0,0,0,.2);
+            animation: ad-pulse 2.5s ease-in-out infinite;
+        }
+
+        @@keyframes ad-pulse {
+            0%, 100% {
+                box-shadow: 0 12px 28px rgba(0,0,0,.2);
+            }
+
+            50% {
+                box-shadow: 0 12px 36px rgba(0,0,0,.3), 0 0 0 8px rgba(255,255,255,.06);
+            }
+        }
+
+        .ad-hero h1 {
+            font-size: 1.35rem;
+            font-weight: 900;
+            margin: 0 0 .3rem;
+            letter-spacing: -.01em;
+        }
+
+        .ad-hero p {
+            margin: 0;
+            opacity: .92;
+            font-size: .85rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .ad-hero-code {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            margin-top: .75rem;
+            padding: .35rem .7rem;
+            border-radius: 50px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.2);
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .12rem;
+        }
+
+        .ad-card {
+            background: #fff;
+            border: 1px solid var(--pr-border);
+            border-radius: var(--pr-r-lg);
+            box-shadow: 0 10px 30px rgba(15,23,42,.06);
+            margin-top: -1.25rem;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .ad-card-body {
+            padding: 1.5rem 1.4rem 1.35rem;
+        }
+
+        .ad-section-label {
+            font-size: .52rem;
+            letter-spacing: .16rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--pr-muted);
+            margin-bottom: .65rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .ad-roles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .55rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .ad-role {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .6rem .75rem;
+            border-radius: 14px;
+            border: 1px solid var(--pr-border);
+            background: #fafbfd;
+            transition: var(--pr-t);
+        }
+
+            .ad-role:hover {
+                border-color: #d5d9e2;
+                box-shadow: 0 4px 14px rgba(15,23,42,.06);
+                transform: translateY(-1px);
+            }
+
+        .ad-role-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: .95rem;
+            flex-shrink: 0;
+        }
+
+            .ad-role-icon.hod {
+                background: rgba(245,158,11,.1);
+                color: #92400e;
+            }
+
+            .ad-role-icon.sa {
+                background: rgba(139,92,246,.1);
+                color: #5b21b6;
+            }
+
+        .ad-role-name {
+            font-size: .78rem;
+            font-weight: 800;
+            color: var(--pr-text);
+            line-height: 1.2;
+        }
+
+        .ad-role-desc {
+            font-size: .65rem;
+            color: var(--pr-muted);
+            font-weight: 600;
+            margin-top: .1rem;
+        }
+
+        .ad-you {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .7rem .8rem;
+            border-radius: 14px;
+            background: rgba(179,18,23,.04);
+            border: 1px solid rgba(179,18,23,.12);
+            margin-bottom: 1.15rem;
+        }
+
+        .ad-you-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--pr-grad);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: .85rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .ad-you-name {
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--pr-text);
+        }
+
+        .ad-you-role {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            margin-top: .15rem;
+            padding: .2rem .45rem;
+            border-radius: 50px;
+            font-size: .55rem;
+            font-weight: 800;
+            background: rgba(179,18,23,.08);
+            color: var(--pr-red);
+            letter-spacing: .06rem;
+        }
+
+        .ad-steps {
+            margin-bottom: 1.15rem;
+        }
+
+        .ad-step {
+            display: flex;
+            gap: .65rem;
+            padding: .55rem 0;
+        }
+
+            .ad-step + .ad-step {
+                border-top: 1px solid var(--pr-border);
+            }
+
+        .ad-step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(179,18,23,.06);
+            color: var(--pr-red);
+            display: grid;
+            place-items: center;
+            font-size: .65rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .ad-step-text {
+            font-size: .78rem;
+            font-weight: 650;
+            color: var(--pr-text);
+            line-height: 1.45;
+        }
+
+            .ad-step-text strong {
+                color: var(--pr-red);
+            }
+
+        .ad-actions {
+            display: flex;
+            gap: .55rem;
+            flex-wrap: wrap;
+        }
+
+        .ad-btn {
+            font-size: .58rem;
+            letter-spacing: .12rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: .6rem 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--pr-border);
+            background: #fff;
+            color: var(--pr-red);
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            cursor: pointer;
+            transition: var(--pr-t);
+            text-decoration: none;
+        }
+
+            .ad-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(15,23,42,.1);
+            }
+
+            .ad-btn.primary {
+                background: var(--pr-grad);
+                color: #fff;
+                border-color: var(--pr-red);
+            }
+
+                .ad-btn.primary:hover {
+                    filter: brightness(.95);
+                }
+
+        .ad-footer {
+            text-align: center;
+            margin-top: 1.15rem;
+            padding: .75rem 1rem;
+            border-radius: var(--pr-r-md);
+            background: #fafbfd;
+            border: 1px solid var(--pr-border);
+        }
+
+            .ad-footer p {
+                margin: 0;
+                font-size: .72rem;
+                font-weight: 650;
+                color: var(--pr-muted);
+                line-height: 1.5;
+            }
+
+            .ad-footer i {
+                color: var(--pr-red);
+            }
+
+        @@media (max-width: 540px) {
+            .ad-roles {
+                grid-template-columns: 1fr;
+            }
+
+            .ad-hero h1 {
+                font-size: 1.15rem;
+            }
+
+            .ad-shell {
+                padding: 1.5rem .75rem 3rem;
+            }
+        }
+    </style>
+}
+
+<section class="ad-shell">
+    <header class="ad-hero">
+        <div class="ad-hero-content">
+            <div class="ad-shield"><i class="fa fa-shield-halved"></i></div>
+            <h1>Access Restricted</h1>
+            <p>
+                This area is reserved for designated Heads of Department and SuperAdmins
+                who manage venue reservation approvals.
+            </p>
+            <span class="ad-hero-code"><i class="fa fa-lock"></i> HTTP 403 — INSUFFICIENT PRIVILEGES</span>
+        </div>
+    </header>
+
+    <div class="ad-card">
+        <div class="ad-card-body">
+
+            <div class="ad-section-label"><i class="fa fa-key"></i> Who can access this page</div>
+            <div class="ad-roles">
+                <div class="ad-role">
+                    <div class="ad-role-icon hod"><i class="fa fa-user-tie"></i></div>
+                    <div>
+                        <div class="ad-role-name">Head of Department</div>
+                        <div class="ad-role-desc">Approve or reject venue reservations for their department</div>
+                    </div>
+                </div>
+                <div class="ad-role">
+                    <div class="ad-role-icon sa"><i class="fa fa-crown"></i></div>
+                    <div>
+                        <div class="ad-role-name">SuperAdmin</div>
+                        <div class="ad-role-desc">Full oversight across all departments and campuses</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ad-section-label"><i class="fa fa-user-circle"></i> Your current session</div>
+            <div class="ad-you">
+                <div class="ad-you-avatar">
+                    @(userName.Length > 0 ? userName[0].ToString().ToUpper() : "?")
+                </div>
+                <div>
+                    <div class="ad-you-name">@userName</div>
+                    <span class="ad-you-role"><i class="fa fa-tag"></i> @userRole</span>
+                </div>
+            </div>
+
+            <div class="ad-section-label"><i class="fa fa-route"></i> What you can do</div>
+            <div class="ad-steps">
+                <div class="ad-step">
+                    <span class="ad-step-num">1</span>
+                    <div class="ad-step-text">
+                        <strong>Contact your Head of Department</strong> and ask them to review the pending venue
+                        reservations on your behalf.
+                    </div>
+                </div>
+                <div class="ad-step">
+                    <span class="ad-step-num">2</span>
+                    <div class="ad-step-text">
+                        If you believe you <strong>should</strong> have HOD access, reach out to a
+                        <strong>SuperAdmin</strong> to update your profile permissions.
+                    </div>
+                </div>
+                <div class="ad-step">
+                    <span class="ad-step-num">3</span>
+                    <div class="ad-step-text">
+                        You can still <strong>create venue reservations</strong> as a facilitator — your HOD will
+                        receive an email notification to approve them.
+                    </div>
+                </div>
+            </div>
+
+            <div class="ad-actions">
+                <a asp-action="ReserveVenue" asp-controller="VenueBooking" class="ad-btn primary">
+                    <i class="fa fa-calendar-plus"></i> Reserve a Venue
+                </a>
+                <a asp-action="Index" asp-controller="Home" class="ad-btn">
+                    <i class="fa fa-home"></i> Go Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-footer">
+        <p>
+            <i class="fa fa-info-circle"></i>
+            Need help? Contact IT support at <strong>060 728 6757</strong> or email
+            <strong>ifoliphant@forekinstitute.co.za</strong>
+        </p>
+    </div>
+</section>

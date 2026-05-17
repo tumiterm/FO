@@ -1,0 +1,125 @@
+﻿@model ForekOnline.Domain.ViewModels.NotificationEventCreateViewModel
+@{
+    ViewData["Title"] = "Create Notification";
+}
+<style>
+.form-shell{max-width:1250px;margin:1.4rem auto 3rem;padding:1.2rem 1rem 1.6rem;background:#fff;border:1px solid #e1e4e8;border-radius:34px;box-shadow:0 10px 30px -16px rgba(50,6,6,.18);position:relative;overflow:hidden;}
+.form-shell:before{content:'';position:absolute;inset:0;background:linear-gradient(130deg,#32060610,#b3121712,#ff7a1816);pointer-events:none;}
+.fs-head{display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem;}
+.fs-head h2{margin:0;font-size:1.3rem;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:.6rem;}
+.icon-pill{width:64px;height:64px;border-radius:22px;background:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 12px 30px -14px rgba(179,18,23,.5);}
+.section-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.18rem;color:#b31217;margin:1.2rem 0 .6rem;display:flex;align-items:center;gap:.45rem;}
+.divider{height:1px;background:linear-gradient(to right,transparent,#d9dde2,#d9dde2,transparent);margin:1.2rem 0;}
+.block-host{max-height:560px;overflow:auto;padding-right:.4rem;}
+.block-host::-webkit-scrollbar{width:8px;}
+.block-host::-webkit-scrollbar-track{background:#f6f8fa;border-radius:8px;}
+.block-host::-webkit-scrollbar-thumb{background:#b31217;border-radius:8px;}
+.btn-nt{font-size:.58rem;letter-spacing:.14rem;font-weight:600;text-transform:uppercase;padding:.55rem .9rem;border-radius:14px;border:1px solid #e1e4e8;background:#fff;color:#b31217;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;transition:.3s;cursor:pointer;}
+.btn-nt:hover{background:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);color:#fff;border-color:#b31217;}
+.btn-primary-nt{background:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);color:#fff;border:1px solid #b31217;}
+.btn-primary-nt:hover{filter:brightness(.95);}
+.field-note{font-size:.5rem;letter-spacing:.12rem;color:#6b7280;font-weight:600;margin-top:.25rem;}
+</style>
+
+<div class="form-shell">
+    <div class="fs-head">
+        <div class="icon-pill"><i class="fa fa-plus"></i></div>
+        <h2>Create Notification</h2>
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(null, new { @class = "text-danger small" })
+
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="section-title"><i class="fa fa-gear"></i> Core Configuration</div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label small fw-semibold"></label>
+                    <input asp-for="Title" class="form-control form-control-sm" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Header Icon CSS</label>
+                    <input asp-for="HeaderIconCss" class="form-control form-control-sm" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Header Gradient CSS</label>
+                    <input asp-for="HeaderGradientCss" class="form-control form-control-sm" />
+                    <div class="field-note">Inline style e.g. background:linear-gradient(...)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Header Text Color</label>
+                    <input asp-for="HeaderTextColor" class="form-control form-control-sm" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ModalSize" class="form-label small fw-semibold"></label>
+                    <select asp-for="ModalSize" class="form-select form-select-sm" asp-items="Html.GetEnumSelectList<ForekOnline.Domain.Enums.EnumRegistry.eNotificationModalSize>()"></select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ImageUrl" class="form-label small fw-semibold"></label>
+                    <input asp-for="ImageUrl" class="form-control form-control-sm" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StartUtc" class="form-label small fw-semibold"></label>
+                        <input asp-for="StartUtc" class="form-control form-control-sm" type="datetime-local" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="EndUtc" class="form-label small fw-semibold"></label>
+                        <input asp-for="EndUtc" class="form-control form-control-sm" type="datetime-local" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DisplayOrder" class="form-label small fw-semibold"></label>
+                    <input asp-for="DisplayOrder" class="form-control form-control-sm" />
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label small fw-semibold"></label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Audience Role (optional)</label>
+                    <input asp-for="AudienceRole" class="form-control form-control-sm" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Carousel Group Key</label>
+                    <input asp-for="CarouselGroupKey" class="form-control form-control-sm" />
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="section-title"><i class="fa fa-layer-group"></i> Content Blocks</div>
+                <div id="blocks-host" class="block-host">
+                    @for (int i = 0; i < Model.Blocks.Count; i++)
+                    {
+                        @await Html.PartialAsync("_BlockEditor", Model.Blocks[i], new ViewDataDictionary(ViewData){{"index",i}})
+                    }
+                </div>
+                <button type="button" class="btn-nt mt-2" id="add-block-btn"><i class="fa fa-plus-circle"></i> Add Block</button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="d-flex flex-wrap gap-.65rem">
+            <button type="submit" class="btn-primary-nt"><i class="fa fa-save"></i> Create</button>
+            <a asp-action="Index" class="btn-nt"><i class="fa fa-xmark"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ScriptsBlocks")
+}

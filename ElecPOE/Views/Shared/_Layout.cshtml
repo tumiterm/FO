@@ -1,0 +1,739 @@
+﻿@inject ForekOnline.Application.Common.Interfaces.ITenantProfileService TenantService
+
+@using Microsoft.AspNetCore.Identity
+@{
+    var tenant = await TenantService.GetCurrentAsync();
+
+    var isAdmin = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+    var isFacilitator = User.IsInRole("Facilitator");
+    var isStudent = User.IsInRole("Student");
+    var showStudentNav = isAdmin || isFacilitator;
+    var showEmployeeNav = isAdmin || isFacilitator;
+    var showResourceNav = isAdmin || isFacilitator;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " • " + tenant.AppTitle : tenant.AppTitle)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="@ViewData["MetaDescription"]" />
+    <meta name="author" content="@tenant.CopyrightHolder" />
+    <link rel="icon" type="image/png" href="@(tenant.FaviconUrl ?? "~/favicon.png")" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Theme/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Theme/css/bootstrap-icons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Theme/css/templatemo-kind-heart-charity.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/27.1.48/material.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/22bd4fd29b.js" crossorigin="anonymous"></script>
+    @RenderSection("Styles", required: false)
+    @RenderSection("Head", required: false)
+    @await Component.InvokeAsync("TenantBranding")
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--fo-bg);
+            color: var(--fo-text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header.site-header {
+            background: linear-gradient(135deg, var(--fo-orange) 0%, var(--fo-orange-dark) 100%);
+            font-size: .84rem;
+            letter-spacing: .2px;
+        }
+
+            header.site-header a {
+                transition: opacity var(--fo-transition);
+            }
+
+                header.site-header a:hover {
+                    opacity: .8;
+                }
+
+        nav.navbar {
+            background: #fff !important;
+            border-bottom: 1px solid var(--fo-border);
+            box-shadow: 0 1px 8px rgba(0,0,0,.05);
+        }
+
+        .navbar-brand .logo {
+            height: 48px;
+            width: auto !important;
+            max-width: 180px;
+            object-fit: contain;
+            display: block;
+        }
+
+        @@media (min-width: 992px) {
+            .navbar-brand .logo {
+                height: 54px;
+            }
+        }
+
+        nav.navbar .navbar-brand small {
+            display: block;
+            font-size: .62rem;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            color: var(--fo-muted);
+            font-weight: 500;
+        }
+
+        .brand-accent {
+            color: var(--fo-orange) !important;
+            font-weight: 700;
+        }
+
+        .navbar-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: .2rem;
+        }
+
+            .navbar-nav .nav-item {
+                display: block;
+                width: 100%;
+            }
+
+            .navbar-nav .nav-link {
+                display: flex;
+                align-items: center;
+                gap: .45rem;
+                width: 100%;
+                padding: .55rem .85rem;
+                border-radius: 8px;
+                font-size: .87rem;
+                font-weight: 600;
+                color: var(--fo-text);
+                transition: background var(--fo-transition), color var(--fo-transition);
+            }
+
+                .navbar-nav .nav-link i {
+                    color: var(--fo-orange);
+                    font-size: .9rem;
+                    width: 1.1rem;
+                    text-align: center;
+                    transition: transform var(--fo-transition);
+                }
+
+                .navbar-nav .nav-link:hover {
+                    background: rgba(230, 81, 0, .07);
+                    color: var(--fo-orange);
+                }
+
+                    .navbar-nav .nav-link:hover i {
+                        transform: scale(1.1);
+                    }
+
+        .nav-link.active {
+            font-weight: 700;
+            color: var(--fo-orange) !important;
+            background: rgba(230, 81, 0, .06) !important;
+            position: relative;
+        }
+
+            .nav-link.active i {
+                color: var(--fo-orange) !important;
+            }
+
+            .nav-link.active::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60%;
+                height: 2.5px;
+                border-radius: 2px;
+                background: linear-gradient(90deg, var(--fo-orange), var(--fo-orange-light));
+            }
+
+        @@media (max-width: 991.98px) {
+            .nav-link.active::after {
+                top: 15%;
+                bottom: 15%;
+                left: 0;
+                width: 3px;
+                height: auto;
+                transform: none;
+                border-radius: 0 3px 3px 0;
+            }
+        }
+
+        @@media (min-width: 992px) {
+            .navbar-nav {
+                flex-direction: row;
+                align-items: center;
+                gap: .35rem;
+            }
+
+                .navbar-nav .nav-item {
+                    width: auto;
+                }
+
+                .navbar-nav .nav-link {
+                    width: auto;
+                    padding: .45rem .7rem;
+                    border-radius: 8px;
+                    font-size: .84rem;
+                }
+
+            nav.navbar .nav-link i {
+                margin-right: .15rem;
+            }
+        }
+
+        .btn-fo-logout {
+            border: 2px solid var(--fo-orange);
+            color: var(--fo-orange);
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: .82rem;
+            padding: .4rem .85rem;
+            transition: all var(--fo-transition);
+            white-space: nowrap;
+        }
+
+            .btn-fo-logout:hover {
+                background: linear-gradient(135deg, var(--fo-orange), var(--fo-orange-dark));
+                border-color: transparent;
+                color: #fff;
+                box-shadow: 0 3px 10px rgba(230, 81, 0, .25);
+            }
+
+        .fo-nav-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .65rem;
+            padding: .3rem .4rem .3rem .65rem;
+            border-radius: 20px;
+            border: 1px solid rgba(230, 81, 0, .10);
+            background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
+            box-shadow: 0 10px 24px rgba(17, 24, 39, .06), inset 0 1px 0 rgba(255,255,255,.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+            .fo-nav-actions .btn-fo-logout {
+                border-width: 1px;
+                padding: .5rem .95rem;
+                border-radius: 14px;
+                box-shadow: none;
+            }
+
+            .fo-nav-actions form {
+                margin: 0;
+            }
+
+        .fo-nav-bell-host {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @@media (max-width: 991.98px) {
+            .fo-nav-actions {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                margin-top: .45rem;
+                padding: .45rem .5rem .45rem .65rem;
+            }
+        }
+
+        nav .e-control, nav .e-lib, nav .e-menu, nav .e-listview, nav .e-list {
+            all: unset;
+        }
+
+        .dashboard-scope .e-control, .dashboard-scope .e-lib {
+            all: revert;
+        }
+
+        main {
+            flex: 1 0 auto;
+            padding-top: 1.25rem;
+            padding-bottom: 2rem;
+        }
+
+        .content-container {
+            padding-top: .5rem;
+        }
+
+        .flash-region > .alert {
+            margin-bottom: .75rem;
+            border: 0;
+            border-radius: var(--fo-radius);
+            box-shadow: var(--fo-card-shadow);
+        }
+
+        .card {
+            border: 1px solid var(--fo-border);
+            border-radius: var(--fo-radius);
+            box-shadow: var(--fo-card-shadow);
+            transition: box-shadow var(--fo-transition);
+            overflow: hidden;
+        }
+
+            .card:hover {
+                box-shadow: var(--fo-card-shadow-hover);
+            }
+
+        .card-header {
+            font-weight: 700;
+            letter-spacing: .15px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--fo-orange-light);
+            box-shadow: 0 0 0 3px rgba(230, 81, 0, .15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--fo-orange), var(--fo-orange-dark));
+            border: none;
+            font-weight: 600;
+            transition: transform var(--fo-transition), box-shadow var(--fo-transition);
+        }
+
+            .btn-primary:hover,
+            .btn-primary:focus {
+                background: linear-gradient(135deg, var(--fo-orange-light), var(--fo-orange));
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(230, 81, 0, .3);
+            }
+
+        .btn-outline-danger {
+            border-color: var(--fo-orange);
+            color: var(--fo-orange);
+        }
+
+            .btn-outline-danger:hover {
+                background: var(--fo-orange);
+                border-color: var(--fo-orange);
+            }
+
+        .modal-backdrop {
+            z-index: 1050 !important;
+        }
+
+        .modal {
+            z-index: 1055 !important;
+        }
+
+        .modal-content {
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .15);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--fo-border);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--fo-border);
+        }
+
+        footer {
+            flex-shrink: 0;
+            border-top: 1px solid var(--fo-border);
+            background: #fff;
+        }
+
+        .fo-footer-accent {
+            display: inline-block;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--fo-orange);
+            vertical-align: middle;
+            margin: 0 .5rem;
+        }
+
+        ::selection {
+            background: rgba(230, 81, 0, .15);
+            color: var(--fo-text);
+        }
+
+        @@media (pointer: fine) {
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: rgba(230, 81, 0, .35);
+                border-radius: 999px;
+            }
+
+                ::-webkit-scrollbar-thumb:hover {
+                    background: rgba(230, 81, 0, .55);
+                }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header text-white py-2">
+        <div class="container">
+            <div class="row align-items-center gy-2">
+                <div class="col-lg-8 d-flex flex-wrap gap-3">
+                    @if (!string.IsNullOrEmpty(tenant.PhysicalAddress))
+                    {
+                        <span class="d-flex align-items-center">
+                            <i class="bi-geo-alt me-2"></i> @tenant.PhysicalAddress
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(tenant.ContactEmail))
+                    {
+                        <span class="d-flex align-items-center">
+                            <i class="bi-envelope me-2"></i>
+                            <a class="link-light text-decoration-none" href="mailto:@tenant.ContactEmail">@tenant.ContactEmail</a>
+                        </span>
+                    }
+                </div>
+                <div class="col-lg-4 d-none d-lg-flex justify-content-lg-end">
+                    <ul class="social-icon mb-0">
+                        @if (!string.IsNullOrEmpty(tenant.TwitterUrl))
+                        {
+                            <li class="social-icon-item">
+                                <a href="@tenant.TwitterUrl" class="social-icon-link bi-twitter" aria-label="Twitter"></a>
+                            </li>
+                        }
+                        @if (!string.IsNullOrEmpty(tenant.FacebookUrl))
+                        {
+                            <li class="social-icon-item">
+                                <a href="@tenant.FacebookUrl" class="social-icon-link bi-facebook" aria-label="Facebook"></a>
+                            </li>
+                        }
+                        @if (!string.IsNullOrEmpty(tenant.InstagramUrl))
+                        {
+                            <li class="social-icon-item">
+                                <a href="@tenant.InstagramUrl" class="social-icon-link bi-instagram" aria-label="Instagram"></a>
+                            </li>
+                        }
+                        @if (!string.IsNullOrEmpty(tenant.YouTubeUrl))
+                        {
+                            <li class="social-icon-item">
+                                <a href="@tenant.YouTubeUrl" class="social-icon-link bi-youtube" aria-label="YouTube"></a>
+                            </li>
+                        }
+                        @if (!string.IsNullOrEmpty(tenant.WebsiteUrl))
+                        {
+                            <li class="social-icon-item">
+                                <a href="@tenant.WebsiteUrl" class="social-icon-link bi-globe" aria-label="Website"></a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navbar navbar-expand-lg" data-bs-theme="light">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                <img src="@(tenant.LogoUrl ?? "~/Theme/images/logob-removebg-preview.png")" alt="@tenant.AppTitle" class="logo img-fluid me-2"
+                     style="max-height:48px;" asp-append-version="true" />
+                <span class="brand-accent">
+                    @tenant.AppTitle
+                    <small>@tenant.Tagline</small>
+                </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="mainNav" class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    @if (showStudentNav)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @(ViewContext.RouteData.Values["controller"]?.ToString() == "Student" || ViewContext.RouteData.Values["controller"]?.ToString() == "VenueBooking" ? "active" : "")"
+                               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-graduation-cap"></i> Students
+                            </a>
+                            <ul class="dropdown-menu" style="border-radius:var(--fo-radius);box-shadow:var(--fo-card-shadow-hover);border:1px solid var(--fo-border);padding:.35rem;">
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="Student" asp-action="StudentAnalytics">
+                                        <i class="fa fa-users" style="color:var(--fo-orange);width:1.2rem;"></i> Students
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="Student" asp-action="EnrollStudent">
+                                        <i class="fa fa-atom" style="color:var(--fo-orange);width:1.2rem;"></i> Enrol Student
+                                    </a>
+                                </li>
+                            </ul>
+
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @(ViewContext.RouteData.Values["controller"]?.ToString() == "Student" || ViewContext.RouteData.Values["controller"]?.ToString() == "VenueBooking" ? "active" : "")"
+                               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa fa-microscope"></i> Assessments
+                            </a>
+                            <ul class="dropdown-menu" style="border-radius:var(--fo-radius);box-shadow:var(--fo-card-shadow-hover);border:1px solid var(--fo-border);padding:.35rem;">
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="Assessment" asp-action="List">
+                                        <i class="fa fa-microscope" style="color:var(--fo-orange);width:1.2rem;"></i> Assessments
+                                    </a>
+                                </li>
+                                @if (isAdmin)
+                                {
+                                    <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                    <li>
+                                        <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                           asp-controller="Student" asp-action="LearningPortal">
+                                            <i class="fa fa-atom" style="color:var(--fo-orange);width:1.2rem;"></i> E-Learning
+                                        </a>
+                                    </li>
+                                }
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="VenueBooking" asp-action="ReserveVenue">
+                                        <i class="fa fa-clock-o" style="color:var(--fo-orange);width:1.2rem;"></i> Reserve
+                                        <span style="font-size:.5rem;background:linear-gradient(135deg,var(--fo-orange),var(--fo-orange-dark));
+                                                                 color:#fff;padding:.15rem .4rem;border-radius:50px;margin-left:.3rem;font-weight:800;
+                                                                 letter-spacing:.08rem;vertical-align:middle;">NEW</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="VenueBooking" asp-action="BookAssessment">
+                                        <i class="fa fa-calendar" style="color:var(--fo-orange);width:1.2rem;"></i> Book
+                                        <span style="font-size:.5rem;background:linear-gradient(135deg,var(--fo-orange),var(--fo-orange-dark));
+                                                             color:#fff;padding:.15rem .4rem;border-radius:50px;margin-left:.3rem;font-weight:800;
+                                                             letter-spacing:.08rem;vertical-align:middle;">NEW</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="VenueBooking" asp-action="ManageVenues">
+                                        <i class="fa fa-map-marker-alt" style="color:var(--fo-orange);width:1.2rem;"></i> Venues
+                                        <span style="font-size:.5rem;background:linear-gradient(135deg,var(--fo-orange),var(--fo-orange-dark));
+                                                             color:#fff;padding:.15rem .4rem;border-radius:50px;margin-left:.3rem;font-weight:800;
+                                                             letter-spacing:.08rem;vertical-align:middle;">NEW</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="VenueBooking" asp-action="PendingReservations">
+                                        <i class="fa fa-check-circle" style="color:var(--fo-orange);width:1.2rem;"></i> Approvals
+                                        <span style="font-size:.5rem;background:linear-gradient(135deg,var(--fo-orange),var(--fo-orange-dark));
+                                                                 color:#fff;padding:.15rem .4rem;border-radius:50px;margin-left:.3rem;font-weight:800;
+                                                                 letter-spacing:.08rem;vertical-align:middle;">NEW</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    @if (showEmployeeNav)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminEmployeePortal" || ViewContext.RouteData.Values["action"]?.ToString() == "Employees" ? "active" : "")"
+                               asp-controller="Employee" asp-action="AdminEmployeePortal">
+                                <i class="fa fa-id-card"></i> Employees
+                            </a>
+                        </li>
+                    }
+                    @if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "RetrieveUsers" ? "active" : "")"
+                               asp-controller="Auth" asp-action="RetrieveUsers">
+                                <i class="fa fa-users"></i> Users
+                            </a>
+                        </li>
+                    }
+                    @if (showResourceNav)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ListResources" ? "active" : "")"
+                               asp-controller="Resource" asp-action="ListResources">
+                                <i class="fas fa-file-archive"></i> Resources
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")"
+                               asp-controller="Auth" asp-action="Settings">
+                                <i class="fa fa-cog"></i> Settings
+                            </a>
+                        </li>
+                    }
+                    @if (isAdmin || isFacilitator || isStudent)
+                    {
+                        <li class="nav-item ms-lg-3">
+                            <div class="fo-nav-actions">
+                                <div class="fo-nav-bell-host">
+                                    <partial name="_NotificationBell" />
+                                </div>
+
+                                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline-flex">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-fo-logout">
+                                        <i class="fa fa-sign-out"></i> Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    @RenderSection("Hero", required: false)
+
+    <main role="main">
+        <div class="container content-container">
+            @RenderSection("Breadcrumb", required: false)
+
+            <div class="flash-region">
+                @if (TempData["error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (Context.Items["SubscriptionGracePeriod"] is true)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Subscription expiring!</strong> Your subscription expires in
+                        <strong>@Context.Items["SubscriptionDaysRemaining"] day(s)</strong>.
+                        Please contact your administrator to renew.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <partial name="_Notifications" />
+            </div>
+
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="mt-auto py-4 small">
+        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+                &copy; @DateTime.UtcNow.Year @tenant.CopyrightHolder. All rights reserved.
+            </div>
+            <div class="text-muted">
+                Build: @System.Reflection.Assembly.GetExecutingAssembly().GetName().Version
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/Theme/js/bootstrap.min.js" asp-append-version="true"></script>
+    <script src="~/Theme/js/jquery.sticky.js" defer asp-append-version="true"></script>
+    <script src="~/Theme/js/click-scroll.js" defer asp-append-version="true"></script>
+    <script src="~/Theme/js/counter.js" defer asp-append-version="true"></script>
+    <script src="~/Theme/js/custom.js" defer asp-append-version="true"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
+            integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+            crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="~/js/datatables-simple-demo.js" defer asp-append-version="true"></script>
+    <script src="https://cdn.syncfusion.com/ej2/27.1.48/ej2.min.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    <form id="sessionPingForm" asp-controller="Auth" asp-action="SessionPing" method="post" class="d-none">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script>
+        (function () {
+            const isAuthenticated = @User.Identity?.IsAuthenticated.ToString().ToLowerInvariant();
+            if (!isAuthenticated) {
+                return;
+            }
+
+            const form = document.getElementById('sessionPingForm');
+            if (!form) {
+                return;
+            }
+
+            const pingUrl = form.getAttribute('action');
+            const tokenInput = form.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+
+            if (!pingUrl || !token) {
+                return;
+            }
+
+            const intervalMs = 60 * 1000;
+
+            async function ping() {
+                try {
+                    await fetch(pingUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: new URLSearchParams({
+                            '__RequestVerificationToken': token
+                        })
+                    });
+                }
+                catch {
+                }
+            }
+
+            ping();
+            setInterval(ping, intervalMs);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    ping();
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        document.addEventListener('hidden.bs.modal', function () {
+            if (!document.querySelector('.modal.show')) {
+                document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1186 @@
+﻿@model ForekOnline.Domain.ViewModels.StudentListViewModel
+@using static ForekOnline.Application.Common.Utility.Helper
+@{
+    var students = (Model.Students ?? Enumerable.Empty<ForekOnline.Domain.Entities.Student>()).ToList();
+    bool isFallback = Model.IsFallBackStudents;
+    string role = Model.Role ?? "";
+    int deliveredCount = students.Count;
+    int total = Model.TotalCount == 0 ? deliveredCount : Model.TotalCount;
+    int activeCount = students.Count(s => s.IsActive);
+    int inactiveCount = deliveredCount - activeCount;
+    double activeRate = deliveredCount == 0 ? 0 : (double)activeCount / deliveredCount * 100;
+
+    string Key(string src)
+    {
+        if (string.IsNullOrWhiteSpace(src)) return "unknown";
+        src = src.Trim().ToLowerInvariant();
+        if (src == "website") return "website";
+        if (src == "forek online") return "forek";
+        if (src == "referral") return "referral";
+        if (src == "walk-in" || src == "walkin") return "walkin";
+        return "unknown";
+    }
+    string BadgeClass(string k) => k switch
+    {
+        "website" => "src-website",
+        "forek" => "src-forek",
+        "referral" => "src-referral",
+        "walkin" => "src-walkin",
+        _ => "src-unknown"
+    };
+    string LabelFromKey(string k) => k switch
+    {
+        "website" => "Website",
+        "forek" => "Forek Online",
+        "referral" => "Referral",
+        "walkin" => "Walk-In",
+        _ => "Unknown"
+    };
+}
+
+<style>
+    :root {
+        --sl-bg: var(--fo-bg, #f3f4f8);
+        --sl-card: var(--fo-bg-card, #fff);
+        --sl-text: var(--fo-text, #1a1a2e);
+        --sl-text2: var(--fo-text-2, #4a4f5e);
+        --sl-muted: var(--fo-muted, #6b7280);
+        --sl-border: var(--fo-border, #e3e5eb);
+        --sl-orange: var(--fo-orange, #e65100);
+        --sl-orange-lt: var(--fo-orange-light, #ff8a50);
+        --sl-orange-dk: var(--fo-orange-dark, #ac1900);
+        --sl-radius: 16px;
+        --sl-radius-sm: 10px;
+        --sl-radius-lg: 22px;
+        --sl-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.03);
+        --sl-shadow-hover: 0 4px 24px rgba(0,0,0,.08), 0 10px 36px rgba(0,0,0,.04);
+        --sl-t: .22s cubic-bezier(.4,0,.2,1);
+        --sl-grad: linear-gradient(135deg, var(--sl-orange), var(--sl-orange-dk));
+        --sl-green: #22c55e;
+        --sl-red: #ef4444;
+        --sl-blue: #3b82f6;
+        --sl-indigo: #818cf8;
+        --sl-amber: #f59e0b;
+    }
+
+    [data-theme="dark"] .sl-shell {
+        --sl-bg: #0e1018;
+        --sl-card: #161a24;
+        --sl-text: #e2e5eb;
+        --sl-text2: #9ca3b4;
+        --sl-muted: #6b7186;
+        --sl-border: rgba(255,255,255,.08);
+        --sl-shadow: 0 1px 3px rgba(0,0,0,.2), 0 6px 20px rgba(0,0,0,.12);
+        --sl-shadow-hover: 0 4px 24px rgba(0,0,0,.25), 0 10px 36px rgba(0,0,0,.18);
+    }
+
+    .sl-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: .5rem 0 3rem;
+    }
+
+    .sl-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .sl-header h1 {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -.3px;
+            color: var(--sl-text);
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            margin: 0;
+        }
+
+    .sl-header-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: var(--sl-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.2rem;
+        box-shadow: 0 8px 24px rgba(230,81,0,.22);
+        flex-shrink: 0;
+    }
+
+    .sl-header-meta {
+        font-size: .58rem;
+        letter-spacing: .18rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--sl-muted);
+        margin-top: .2rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .sl-chip {
+        background: rgba(230,81,0,.08);
+        color: var(--sl-orange);
+        padding: .3rem .6rem;
+        border-radius: 30px;
+        font-size: .52rem;
+        letter-spacing: .15rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .sl-header-actions {
+        display: flex;
+        gap: .45rem;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    .sl-btn {
+        font-size: .65rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: .55rem .9rem;
+        border-radius: var(--sl-radius-sm);
+        border: 1px solid var(--sl-border);
+        background: var(--sl-card);
+        color: var(--sl-text2);
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        cursor: pointer;
+        transition: all var(--sl-t);
+        text-decoration: none;
+    }
+
+        .sl-btn:hover {
+            border-color: var(--sl-orange);
+            color: var(--sl-orange);
+            box-shadow: 0 4px 12px rgba(230,81,0,.12);
+            transform: translateY(-1px);
+        }
+
+    .sl-btn-grad {
+        background: var(--sl-grad) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(230,81,0,.22);
+    }
+
+        .sl-btn-grad:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 6px 24px rgba(230,81,0,.32);
+            color: #fff !important;
+        }
+
+    .sl-fallback {
+        background: var(--sl-card);
+        border: 1px solid var(--sl-border);
+        border-left: 4px solid var(--sl-red);
+        border-radius: var(--sl-radius);
+        padding: .85rem 1rem;
+        margin-bottom: 1rem;
+        font-size: .72rem;
+        display: flex;
+        gap: .7rem;
+        align-items: flex-start;
+        color: var(--sl-text2);
+        box-shadow: var(--sl-shadow);
+    }
+
+        .sl-fallback i {
+            color: var(--sl-red);
+            font-size: .95rem;
+            margin-top: .05rem;
+        }
+
+        .sl-fallback strong {
+            color: var(--sl-red);
+        }
+
+    .sl-stats {
+        display: grid;
+        gap: .85rem;
+        grid-template-columns: repeat(4, 1fr);
+        margin-bottom: 1.25rem;
+    }
+
+    .sl-stat {
+        background: var(--sl-card);
+        border: 1px solid var(--sl-border);
+        border-radius: var(--sl-radius-lg);
+        padding: 1rem 1.1rem;
+        position: relative;
+        overflow: hidden;
+        transition: all .35s var(--sl-t);
+        box-shadow: var(--sl-shadow);
+    }
+
+        .sl-stat::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity .35s;
+        }
+
+        .sl-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--sl-shadow-hover);
+        }
+
+            .sl-stat:hover::before {
+                opacity: 1;
+            }
+
+        .sl-stat:nth-child(1)::before {
+            background: radial-gradient(circle at 30% 50%, rgba(230,81,0,.08), transparent 60%);
+        }
+
+        .sl-stat:nth-child(2)::before {
+            background: radial-gradient(circle at 30% 50%, rgba(34,197,94,.08), transparent 60%);
+        }
+
+        .sl-stat:nth-child(3)::before {
+            background: radial-gradient(circle at 30% 50%, rgba(239,68,68,.08), transparent 60%);
+        }
+
+        .sl-stat:nth-child(4)::before {
+            background: radial-gradient(circle at 30% 50%, rgba(129,140,248,.08), transparent 60%);
+        }
+
+    .sl-stat-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: .6rem;
+    }
+
+    .sl-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .sl-stat:nth-child(1) .sl-stat-icon {
+        background: rgba(230,81,0,.12);
+        color: var(--sl-orange);
+    }
+
+    .sl-stat:nth-child(2) .sl-stat-icon {
+        background: rgba(34,197,94,.12);
+        color: var(--sl-green);
+    }
+
+    .sl-stat:nth-child(3) .sl-stat-icon {
+        background: rgba(239,68,68,.12);
+        color: var(--sl-red);
+    }
+
+    .sl-stat:nth-child(4) .sl-stat-icon {
+        background: rgba(129,140,248,.12);
+        color: var(--sl-indigo);
+    }
+
+    .sl-stat-spark {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 24px;
+    }
+
+        .sl-stat-spark span {
+            width: 3px;
+            border-radius: 2px;
+        }
+
+    .sl-stat:nth-child(1) .sl-stat-spark span {
+        background: var(--sl-orange);
+    }
+
+    .sl-stat:nth-child(2) .sl-stat-spark span {
+        background: var(--sl-green);
+    }
+
+    .sl-stat:nth-child(3) .sl-stat-spark span {
+        background: var(--sl-red);
+    }
+
+    .sl-stat:nth-child(4) .sl-stat-spark span {
+        background: var(--sl-indigo);
+    }
+
+    .sl-stat-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -.5px;
+        line-height: 1;
+        color: var(--sl-text);
+    }
+
+    .sl-stat-label {
+        font-size: .52rem;
+        letter-spacing: .15rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--sl-muted);
+        margin-top: .3rem;
+    }
+
+    .sl-stat-sub {
+        font-size: .58rem;
+        font-weight: 600;
+        margin-top: .5rem;
+        padding: .25rem .5rem;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: rgba(0,0,0,.03);
+        color: var(--sl-muted);
+    }
+
+    [data-theme="dark"] .sl-stat-sub {
+        background: rgba(255,255,255,.04);
+    }
+
+    .sl-ring {
+        width: 52px;
+        height: 52px;
+        position: relative;
+        margin-left: auto;
+    }
+
+        .sl-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .sl-ring circle {
+            fill: none;
+            stroke-width: 4.5;
+            stroke-linecap: round;
+        }
+
+        .sl-ring .bg {
+            stroke: rgba(0,0,0,.06);
+        }
+
+    [data-theme="dark"] .sl-ring .bg {
+        stroke: rgba(255,255,255,.06);
+    }
+
+    .sl-ring .fill {
+        stroke: var(--sl-indigo);
+        transition: stroke-dashoffset 1.2s var(--sl-t);
+    }
+
+    .sl-ring .lbl {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .58rem;
+        font-weight: 800;
+        color: var(--sl-indigo);
+    }
+
+    .sl-filters {
+        background: var(--sl-card);
+        border: 1px solid var(--sl-border);
+        border-radius: var(--sl-radius-lg);
+        padding: .8rem 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .65rem;
+        align-items: center;
+        margin-bottom: 1rem;
+        box-shadow: var(--sl-shadow);
+        transition: background .35s, border-color .35s;
+    }
+
+    .sl-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+        .sl-filter-group label {
+            font-size: .48rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--sl-muted);
+        }
+
+    .sl-input {
+        background: var(--sl-bg) !important;
+        border: 1px solid var(--sl-border) !important;
+        color: var(--sl-text) !important;
+        padding: .5rem .7rem !important;
+        font-size: .72rem !important;
+        border-radius: var(--sl-radius-sm) !important;
+        transition: all var(--sl-t) !important;
+        min-width: 155px;
+    }
+
+        .sl-input:focus {
+            outline: none !important;
+            border-color: var(--sl-orange) !important;
+            box-shadow: 0 0 0 3px rgba(230,81,0,.1) !important;
+        }
+
+    .sl-search {
+        flex: 1;
+        min-width: 260px;
+        position: relative;
+    }
+
+        .sl-search i {
+            position: absolute;
+            left: .75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--sl-muted);
+            font-size: .8rem;
+        }
+
+        .sl-search input {
+            padding-left: 2.2rem !important;
+            width: 100% !important;
+        }
+
+    .sl-table-panel {
+        background: var(--sl-card);
+        border: 1px solid var(--sl-border);
+        border-radius: var(--sl-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--sl-shadow);
+        position: relative;
+        transition: background .35s, border-color .35s;
+    }
+
+        .sl-table-panel table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .74rem;
+        }
+
+        .sl-table-panel thead th {
+            background: var(--sl-bg);
+            font-size: .5rem;
+            letter-spacing: .18rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--sl-muted);
+            padding: .7rem .75rem;
+            border-bottom: 1px solid var(--sl-border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            white-space: nowrap;
+            transition: background .35s;
+        }
+
+        .sl-table-panel tbody tr {
+            transition: background var(--sl-t);
+            border-bottom: 1px solid var(--sl-border);
+        }
+
+            .sl-table-panel tbody tr:hover {
+                background: rgba(230,81,0,.03);
+            }
+
+    [data-theme="dark"] .sl-table-panel tbody tr:hover {
+        background: rgba(255,255,255,.03);
+    }
+
+    .sl-table-panel td {
+        padding: .6rem .75rem;
+        vertical-align: middle;
+        color: var(--sl-text2);
+    }
+
+        .sl-table-panel td:first-child {
+            padding-left: .9rem;
+        }
+
+    .sl-act {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        font-size: .85rem;
+        transition: all var(--sl-t);
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+
+    .sl-act-gallery {
+        color: var(--sl-orange);
+        background: rgba(230,81,0,.08);
+    }
+
+        .sl-act-gallery:hover {
+            background: var(--sl-orange);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(230,81,0,.25);
+        }
+
+    .sl-act-track {
+        color: var(--sl-blue);
+        background: rgba(59,130,246,.08);
+    }
+
+        .sl-act-track:hover {
+            background: var(--sl-blue);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59,130,246,.25);
+        }
+
+    .sl-act-info {
+        color: var(--sl-indigo);
+        background: rgba(129,140,248,.08);
+    }
+
+        .sl-act-info:hover {
+            background: var(--sl-indigo);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(129,140,248,.25);
+        }
+
+    .sl-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .55rem;
+        border-radius: 30px;
+        font-size: .52rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .sl-status-active {
+        background: rgba(34,197,94,.12);
+        color: var(--sl-green);
+    }
+
+    .sl-status-inactive {
+        background: rgba(239,68,68,.12);
+        color: var(--sl-red);
+    }
+
+    .sl-src {
+        font-size: .5rem;
+        letter-spacing: .1rem;
+        font-weight: 700;
+        padding: .3rem .55rem;
+        border-radius: 30px;
+        display: inline-flex;
+        gap: .3rem;
+        align-items: center;
+    }
+
+    .src-website {
+        background: rgba(59,130,246,.1);
+        color: var(--sl-blue);
+    }
+
+    .src-forek {
+        background: rgba(34,197,94,.1);
+        color: var(--sl-green);
+    }
+
+    .src-referral {
+        background: rgba(245,158,11,.1);
+        color: var(--sl-amber);
+    }
+
+    .src-walkin {
+        background: rgba(239,68,68,.1);
+        color: var(--sl-red);
+    }
+
+    .src-unknown {
+        background: rgba(0,0,0,.04);
+        color: var(--sl-muted);
+    }
+
+    [data-theme="dark"] .src-unknown {
+        background: rgba(255,255,255,.05);
+    }
+
+    .sl-name {
+        font-weight: 600;
+        color: var(--sl-text);
+    }
+
+    .sl-mono {
+        font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+        font-size: .68rem;
+        color: var(--sl-muted);
+    }
+
+    .sl-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .8rem 1rem;
+        border-top: 1px solid var(--sl-border);
+        flex-wrap: wrap;
+        gap: .6rem;
+        transition: border-color .35s;
+    }
+
+    .sl-footer-info {
+        font-size: .6rem;
+        letter-spacing: .12rem;
+        font-weight: 700;
+        color: var(--sl-muted);
+    }
+
+    .sl-pager {
+        display: flex;
+        gap: .35rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .sl-pgbtn {
+        background: var(--sl-card);
+        border: 1px solid var(--sl-border);
+        color: var(--sl-text2);
+        font-size: .58rem;
+        letter-spacing: .12rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: .5rem .7rem;
+        border-radius: var(--sl-radius-sm);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        transition: all var(--sl-t);
+    }
+
+        .sl-pgbtn:hover:not([disabled]) {
+            background: var(--sl-orange);
+            color: #fff;
+            border-color: var(--sl-orange);
+        }
+
+        .sl-pgbtn[disabled] {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+    .sl-pgsel {
+        border: 1px solid var(--sl-border);
+        background: var(--sl-card);
+        color: var(--sl-text);
+        border-radius: var(--sl-radius-sm);
+        padding: .4rem .5rem;
+        font-size: .6rem;
+        font-weight: 600;
+    }
+
+    .sl-loader {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.82);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .6rem;
+        font-size: .62rem;
+        font-weight: 700;
+        letter-spacing: .12rem;
+        color: var(--sl-orange);
+        border-radius: inherit;
+        z-index: 9;
+    }
+
+    [data-theme="dark"] .sl-loader {
+        background: rgba(14,16,24,.82);
+    }
+
+    .sl-loader.hidden {
+        display: none;
+    }
+
+    .sl-spinner {
+        width: 42px;
+        height: 42px;
+        position: relative;
+    }
+
+        .sl-spinner::before,
+        .sl-spinner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 3.5px solid transparent;
+            border-radius: 50%;
+            animation: sl-spin 1s linear infinite;
+        }
+
+        .sl-spinner::before {
+            border-color: var(--sl-orange) transparent var(--sl-orange) transparent;
+        }
+
+        .sl-spinner::after {
+            border-color: var(--sl-orange-lt) transparent var(--sl-orange-lt) transparent;
+            animation-duration: 1.4s;
+            animation-direction: reverse;
+        }
+
+    @@keyframes sl-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .sl-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sl-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .sl-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sl-header-actions {
+            margin-left: 0;
+            width: 100%;
+        }
+
+            .sl-header-actions .sl-btn {
+                flex: 1;
+                justify-content: center;
+            }
+    }
+</style>
+
+<div class="sl-shell">
+    <div class="sl-header">
+        <div>
+            <h1>
+                <span class="sl-header-icon"><i class="fa fa-user-graduate"></i></span>
+                Registered Students
+            </h1>
+            <div class="sl-header-meta">
+                <span class="sl-chip"><i class="fa fa-layer-group"></i> Directory</span>
+                <span>@role</span>
+            </div>
+        </div>
+        <div class="sl-header-actions">
+            <button type="button" class="sl-btn" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+            <button type="button" class="sl-btn" id="btnFetchApi"><i class="fa fa-cloud-arrow-down"></i> Sync</button>
+            <button type="button" class="sl-btn sl-btn-grad" id="btnExportCsv"><i class="fa fa-file-export"></i> CSV</button>
+            <form method="post" asp-controller="Student" asp-action="BulkImportStudents" class="d-inline">
+                @Html.AntiForgeryToken()
+                <div class="input-group" style="max-width: 400px;">
+                    <select name="source" class="form-select">
+                        <option value="SQLite" selected>SQLite Cache</option>
+                        <option value="API">External API</option>
+                    </select>
+                    <button type="submit" class="btn btn-warning"
+                            onclick="return confirm('This will import all students into the main database. Continue?');">
+                        <i class="fa fa-database me-1"></i> Bulk Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (isFallback)
+    {
+        <div class="sl-fallback">
+            <i class="fa fa-plug-circle-exclamation"></i>
+            <div><strong>Fallback Mode</strong> — Showing cached list. Sync when service returns.</div>
+        </div>
+    }
+
+    <div class="sl-stats">
+        <div class="sl-stat">
+            <div class="sl-stat-top">
+                <div class="sl-stat-icon"><i class="fa fa-users"></i></div>
+                <div class="sl-stat-spark">
+                    <span style="height:35%"></span><span style="height:55%"></span><span style="height:45%"></span><span style="height:75%"></span><span style="height:60%"></span><span style="height:90%"></span><span style="height:100%"></span>
+                </div>
+            </div>
+            <div class="sl-stat-val" data-count="@total">0</div>
+            <div class="sl-stat-label">Total Students</div>
+            <div class="sl-stat-sub"><i class="fa fa-database"></i> All records</div>
+        </div>
+        <div class="sl-stat">
+            <div class="sl-stat-top">
+                <div class="sl-stat-icon"><i class="fa fa-check-circle"></i></div>
+                <div class="sl-stat-spark">
+                    <span style="height:50%"></span><span style="height:70%"></span><span style="height:65%"></span><span style="height:85%"></span><span style="height:100%"></span><span style="height:80%"></span><span style="height:90%"></span>
+                </div>
+            </div>
+            <div class="sl-stat-val" data-count="@activeCount">0</div>
+            <div class="sl-stat-label">Active</div>
+            <div class="sl-stat-sub"><i class="fa fa-signal"></i> Currently enrolled</div>
+        </div>
+        <div class="sl-stat">
+            <div class="sl-stat-top">
+                <div class="sl-stat-icon"><i class="fa fa-user-xmark"></i></div>
+                <div class="sl-stat-spark">
+                    <span style="height:25%"></span><span style="height:40%"></span><span style="height:30%"></span><span style="height:20%"></span><span style="height:35%"></span><span style="height:15%"></span><span style="height:10%"></span>
+                </div>
+            </div>
+            <div class="sl-stat-val" data-count="@inactiveCount">0</div>
+            <div class="sl-stat-label">Inactive</div>
+            <div class="sl-stat-sub"><i class="fa fa-pause-circle"></i> Not enrolled</div>
+        </div>
+        <div class="sl-stat">
+            <div class="sl-stat-top">
+                <div class="sl-stat-icon"><i class="fa fa-shield-halved"></i></div>
+                <div class="sl-ring">
+                    <svg width="52" height="52" viewBox="0 0 52 52">
+                        <circle class="bg" cx="26" cy="26" r="21" />
+                        <circle class="fill" cx="26" cy="26" r="21"
+                                stroke-dasharray="131.95"
+                                stroke-dashoffset="@((131.95 * (1 - activeRate / 100)).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))" />
+                    </svg>
+                    <span class="lbl">@activeRate.ToString("F0")%</span>
+                </div>
+            </div>
+            <div class="sl-stat-val">Rate</div>
+            <div class="sl-stat-label">Active Rate</div>
+            <div class="sl-stat-sub"><i class="fa fa-chart-pie"></i> Active / Total</div>
+        </div>
+    </div>
+
+    <div class="sl-filters">
+        <div class="sl-search">
+            <i class="fa fa-search"></i>
+            <input type="text" id="searchBox" class="sl-input" placeholder="Search name, ID, student no, phone..." autocomplete="off" />
+        </div>
+        <div class="sl-filter-group">
+            <label><i class="fa fa-filter"></i> Status</label>
+            <select id="statusFilter" class="sl-input" style="min-width:120px;">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <div class="sl-filter-group">
+            <label><i class="fa fa-tag"></i> Source</label>
+            <select id="sourceFilter" class="sl-input" style="min-width:140px;">
+                <option value="">Any</option>
+                <option value="website">Website</option>
+                <option value="forek">Forek Online</option>
+                <option value="referral">Referral</option>
+                <option value="walkin">Walk-In</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="sl-table-panel">
+        <div id="loaderOverlay" class="sl-loader hidden">
+            <div class="sl-spinner"></div>
+            <span id="loaderText">Loading…</span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th style="width:110px;">Actions</th>
+                        <th>Full Name</th>
+                        <th>ID Number</th>
+                        <th>Cellphone</th>
+                        <th>Student #</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTbody">
+                    @foreach (var s in students)
+                    {
+                        var rawKey = Key(s.RegistrationSource ?? (isFallback ? "Walk-In" : "Website"));
+                        <tr data-active="@(s.IsActive ? "active" : "inactive")" data-source="@rawKey">
+                            <td>
+                                <div style="display:flex;gap:.3rem;">
+                                    <a class="sl-act sl-act-gallery"
+                                       asp-action="OnViewAllFiles" asp-controller="Evidence"
+                                       asp-route-StudentNumber="@s.StudentNumber" title="Gallery">
+                                        <i class="fa fa-image"></i>
+                                    </a>
+                                    <a class="sl-act sl-act-track"
+                                       asp-action="PlaceLearner" asp-controller="LearnerPlacement"
+                                       asp-route-StudentNumber="@s.StudentNumber" title="Track">
+                                        <i class="fa fa-route"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="sl-name">@s.FirstName @s.LastName</td>
+                            <td class="sl-mono">@MaskInput(s.IDNumber)</td>
+                            <td class="sl-mono">@MaskInput(s.Cellphone)</td>
+                            <td>@s.StudentNumber</td>
+                            <td>
+                                <span class="sl-status @(s.IsActive ? "sl-status-active" : "sl-status-inactive")">
+                                    <i class="fa @(s.IsActive ? "fa-check-circle" : "fa-xmark")"></i>
+                                    @(s.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <a class="sl-act sl-act-info"
+                                   asp-action="StudentDetail" asp-route-StudentNumber="@s.StudentNumber" title="Details">
+                                    <i class="fa fa-circle-info"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="sl-src @BadgeClass(rawKey)">@LabelFromKey(rawKey)</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sl-footer">
+            <span class="sl-footer-info" id="rowsInfo">Showing @deliveredCount of @total record(s)</span>
+            <div class="sl-pager">
+                <button id="btnPrev" class="sl-pgbtn" disabled><i class="fa fa-chevron-left"></i> Prev</button>
+                <span class="sl-footer-info" id="pageInfo">Page 1</span>
+                <button id="btnNext" class="sl-pgbtn">Next <i class="fa fa-chevron-right"></i></button>
+                <select id="pageSize" class="sl-pgsel" title="Page size">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        var currentPage = 1;
+        var totalPages = 1;
+        var totalCount = @total;
+        var pageSizeSel = document.getElementById('pageSize');
+        var tbody = document.getElementById('studentsTbody');
+        var rowsInfo = document.getElementById('rowsInfo');
+        var pageInfo = document.getElementById('pageInfo');
+        var btnPrev = document.getElementById('btnPrev');
+        var btnNext = document.getElementById('btnNext');
+        var searchBox = document.getElementById('searchBox');
+        var statusFilter = document.getElementById('statusFilter');
+        var sourceFilter = document.getElementById('sourceFilter');
+        var loader = document.getElementById('loaderOverlay');
+        var loaderText = document.getElementById('loaderText');
+        var btnExport = document.getElementById('btnExportCsv');
+        var btnFetchApi = document.getElementById('btnFetchApi');
+
+        function showLoader(msg) { loaderText.textContent = msg || 'Loading…'; loader.classList.remove('hidden'); }
+        function hideLoader() { loader.classList.add('hidden'); }
+
+        function buildQuery() {
+            var p = new URLSearchParams();
+            p.set('page', currentPage);
+            p.set('pageSize', pageSizeSel.value);
+            var q = searchBox.value.trim();
+            if (q) p.set('q', q);
+            if (statusFilter.value) p.set('status', statusFilter.value);
+            if (sourceFilter.value) {
+                var raw = sourceFilter.value;
+                switch (raw) {
+                    case 'website': raw = 'Website'; break;
+                    case 'forek': raw = 'Forek Online'; break;
+                    case 'referral': raw = 'Referral'; break;
+                    case 'walkin': raw = 'Walk-In'; break;
+                }
+                p.set('registrationSource', raw);
+            }
+            return p.toString();
+        }
+
+        function normalizeKey(raw) {
+            if (!raw) return 'unknown';
+            raw = raw.trim().toLowerCase();
+            if (raw === 'website') return 'website';
+            if (raw === 'forek online') return 'forek';
+            if (raw === 'referral') return 'referral';
+            if (raw === 'walk-in' || raw === 'walkin') return 'walkin';
+            return 'unknown';
+        }
+
+        function srcMeta(key) {
+            switch (key) {
+                case 'website':  return { cls: 'src-website',  text: 'Website' };
+                case 'forek':    return { cls: 'src-forek',    text: 'Forek Online' };
+                case 'referral': return { cls: 'src-referral', text: 'Referral' };
+                case 'walkin':   return { cls: 'src-walkin',   text: 'Walk-In' };
+                default:         return { cls: 'src-unknown',  text: 'Unknown' };
+            }
+        }
+
+        function maskVal(v) {
+            if (!v) return '';
+            var s = v.toString();
+            if (s.length === 13) return s.substring(0, 4) + '******' + s.substring(s.length - 3);
+            if (s.length >= 6) {
+                var show = Math.max(1, Math.floor(s.length / 4));
+                return s.substring(0, show) + '*'.repeat(s.length - show * 2) + s.substring(s.length - show);
+            }
+            return s.replace(/.(?=.{2})/g, '*');
+        }
+
+        function renderRows(items) {
+            tbody.innerHTML = '';
+            items.forEach(function (s) {
+                var key = normalizeKey(s.registrationSource || '');
+                var sm = srcMeta(key);
+                var isActive = s.isActive;
+                var tr = document.createElement('tr');
+                tr.setAttribute('data-active', isActive ? 'active' : 'inactive');
+                tr.setAttribute('data-source', key);
+                tr.innerHTML =
+                    '<td><div style="display:flex;gap:.3rem;">' +
+                        '<a class="sl-act sl-act-gallery" href="/Evidence/OnViewAllFiles?StudentNumber=' + encodeURIComponent(s.studentNumber || '') + '" title="Gallery"><i class="fa fa-image"></i></a>' +
+                        '<a class="sl-act sl-act-track" href="/LearnerPlacement/PlaceLearner?StudentNumber=' + encodeURIComponent(s.studentNumber || '') + '" title="Track"><i class="fa fa-route"></i></a>' +
+                    '</div></td>' +
+                    '<td class="sl-name">' + ((s.firstName || '') + ' ' + (s.lastName || '')) + '</td>' +
+                    '<td class="sl-mono">' + maskVal(s.idNumber) + '</td>' +
+                    '<td class="sl-mono">' + maskVal(s.cellphone) + '</td>' +
+                    '<td>' + (s.studentNumber || '') + '</td>' +
+                    '<td><span class="sl-status ' + (isActive ? 'sl-status-active' : 'sl-status-inactive') + '"><i class="fa ' + (isActive ? 'fa-check-circle' : 'fa-xmark') + '"></i> ' + (isActive ? 'Active' : 'Inactive') + '</span></td>' +
+                    '<td><a class="sl-act sl-act-info" href="/Student/StudentDetail?StudentNumber=' + encodeURIComponent(s.studentNumber || '') + '" title="Details"><i class="fa fa-circle-info"></i></a></td>' +
+                    '<td><span class="sl-src ' + sm.cls + '">' + sm.text + '</span></td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updatePager() {
+            pageInfo.textContent = 'Page ' + currentPage + ' / ' + totalPages;
+            btnPrev.disabled = currentPage <= 1;
+            btnNext.disabled = currentPage >= totalPages;
+            rowsInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages + ' · ' + totalCount + ' total';
+        }
+
+        function fetchPage() {
+            showLoader('Loading…');
+            fetch('/Student/PagedStudents?' + buildQuery(), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(function (data) {
+                    currentPage = data.page;
+                    totalPages = data.totalPages;
+                    totalCount = data.totalCount;
+                    renderRows(data.items);
+                    updatePager();
+                })
+                .catch(function (e) { alert('Failed to load students: ' + e.message); })
+                .finally(hideLoader);
+        }
+
+        document.querySelectorAll('.sl-stat-val[data-count]').forEach(function (el) {
+            var target = parseInt(el.getAttribute('data-count'), 10);
+            if (isNaN(target) || target === 0) { el.textContent = '0'; return; }
+            var duration = 1000;
+            var start = performance.now();
+            function tick(now) {
+                var elapsed = now - start;
+                var progress = Math.min(elapsed / duration, 1);
+                var eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(eased * target).toLocaleString();
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        });
+
+        var debounce;
+        function triggerSearch() {
+            clearTimeout(debounce);
+            debounce = setTimeout(function () { currentPage = 1; fetchPage(); }, 320);
+        }
+
+        (function () {
+            fetch('/Student/DistinctSources')
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(function (list) {
+                    var sel = sourceFilter;
+                    list.forEach(function (src) {
+                        var key = normalizeKey(src);
+                        if (!sel.querySelector('option[value="' + key + '"]')) {
+                            var opt = document.createElement('option');
+                            opt.value = key;
+                            opt.textContent = src;
+                            sel.appendChild(opt);
+                        }
+                    });
+                })
+                .catch(function () {});
+        })();
+
+        searchBox.addEventListener('input', triggerSearch);
+        statusFilter.addEventListener('change', function () { currentPage = 1; fetchPage(); });
+        sourceFilter.addEventListener('change', function () { currentPage = 1; fetchPage(); });
+        pageSizeSel.addEventListener('change', function () { currentPage = 1; fetchPage(); });
+        btnPrev.addEventListener('click', function () { if (currentPage > 1) { currentPage--; fetchPage(); } });
+        btnNext.addEventListener('click', function () { if (currentPage < totalPages) { currentPage++; fetchPage(); } });
+
+        if (btnFetchApi) {
+            btnFetchApi.addEventListener('click', function () { currentPage = 1; fetchPage(); });
+        }
+
+        btnExport.addEventListener('click', function () {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            if (!rows.length) { alert('No rows to export.'); return; }
+            var lines = ['Full Names,ID Number,Cellphone,Student Number,Status,Source'];
+            rows.forEach(function (r) {
+                var cells = r.querySelectorAll('td');
+                var fullName = (cells[1] ? cells[1].innerText.trim() : '');
+                var idNum = (cells[2] ? cells[2].innerText.trim() : '');
+                var cell = (cells[3] ? cells[3].innerText.trim() : '');
+                var stud = (cells[4] ? cells[4].innerText.trim() : '');
+                var status = r.getAttribute('data-active') === 'active' ? 'Active' : 'Inactive';
+                var source = srcMeta(r.getAttribute('data-source')).text;
+                lines.push([fullName, idNum, cell, stud, status, source].map(function (v) { return '"' + v.replace(/"/g, '""') + '"'; }).join(','));
+            });
+            var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'students-page' + currentPage + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        fetchPage();
+    })();
+</script>

@@ -1,0 +1,373 @@
+﻿@model IEnumerable<ForekOnline.Domain.ViewModels.EvidenceViewModel>
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Evidence Gallery";
+    var holder = (string?)ViewData["EvidenceHolder"] ?? "Student";
+    var holderNumber = ViewData["HolderNumber"];
+    int count = (int)(ViewData["Number"] ?? 0);
+    var items = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.EvidenceViewModel>();
+    var modules = items.Select(i => i.Module).Distinct().OrderBy(m => m.ToString()).ToList();
+}
+
+<style>
+:root{
+    --gal-bg:#ffffff;--gal-bg-alt:#f6f8fa;--gal-border:#e2e5ea;--gal-accent:#7d0e11;
+    --gal-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --gal-soft:#fff5f3;--gal-text:#1f252c;--gal-radius-xl:30px;--gal-radius:18px;
+    --gal-shadow:0 12px 36px -16px rgba(125,14,17,.28),0 4px 18px -8px rgba(125,14,17,.14);
+    --gal-focus:0 0 0 .16rem #b3121726;
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1400px;margin:0 auto;padding:1.85rem 1.15rem 3rem;}
+.header-band{background:var(--gal-bg);border:1px solid var(--gal-border);border-radius:var(--gal-radius-xl);
+    padding:1.2rem 1.5rem 1.1rem;display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center;position:relative;overflow:hidden;}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121716,#ff7a1818);}
+.icon-pill{width:72px;height:72px;border-radius:24px;background:var(--gal-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;box-shadow:0 10px 30px -12px rgba(179,18,23,.5);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:var(--gal-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.6rem;letter-spacing:.18rem;font-weight:700;background:var(--gal-soft);color:var(--gal-accent);padding:.48rem .85rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.4rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.55rem;flex-wrap:wrap;}
+
+.btn-base,.btn-accent,.btn-outline,.btn-danger-soft{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.58rem .95rem;border-radius:14px;border:1px solid var(--gal-border);
+    background:#fff;color:var(--gal-accent);display:inline-flex;align-items:center;gap:.45rem;cursor:pointer;
+    text-decoration:none;transition:.3s;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--gal-accent-grad);color:#fff;border-color:var(--gal-accent);box-shadow:var(--gal-shadow);}
+.btn-accent{background:var(--gal-accent-grad);color:#fff;border:1px solid var(--gal-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+.btn-danger-soft{background:#ffe8ea;color:#7d0e11;border:1px solid #f3c2c7;}
+.btn-danger-soft:hover{background:var(--gal-accent-grad);color:#fff;}
+
+.filter-bar{margin-top:1.4rem;background:var(--gal-bg);border:1px solid var(--gal-border);border-radius:28px;padding:1rem .95rem .85rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:160px;}
+.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
+.search-wrap{position:relative;flex:1 1 320px;}
+.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
+.search-wrap input{width:100%;padding:.5rem .65rem .5rem 2rem;background:#fff;border:1px solid var(--gal-border);border-radius:12px;font-size:.68rem;transition:.25s;}
+.search-wrap input:focus{outline:none;border-color:var(--gal-accent);box-shadow:var(--gal-focus);}
+.filter-bar select{background:#fff;border:1px solid var(--gal-border);border-radius:12px;font-size:.65rem;padding:.48rem .6rem;transition:.25s;}
+.filter-bar select:focus{outline:none;border-color:var(--gal-accent);box-shadow:var(--gal-focus);}
+
+.gallery-shell{margin-top:1.2rem;}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+.card-item{
+    position:relative;background:#fff;border:1px solid var(--gal-border);border-radius:20px;overflow:hidden;
+    display:flex;flex-direction:column;cursor:pointer;transition:.35s;
+}
+.card-item:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e110d,#b3121710,#ff7a1810);opacity:0;transition:.35s;}
+.card-item:hover{transform:translateY(-6px);box-shadow:0 12px 26px -12px rgba(125,14,17,.3);}
+.card-item:hover:before{opacity:1;}
+.thumb-wrap{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:#f5f7fa;overflow:hidden;}
+.thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb-wrap .pdf-ico{font-size:2.8rem;color:#b31217;opacity:.8;}
+.meta-bar{padding:.55rem .65rem .6rem;display:flex;flex-direction:column;gap:.4rem;}
+.meta-title{font-size:.55rem;font-weight:700;letter-spacing:.06rem;color:#222;line-height:1.2;word-break:break-word;}
+.meta-sub{font-size:.46rem;font-weight:600;letter-spacing:.08rem;color:#666;display:flex;justify-content:space-between;align-items:center;gap:.4rem;}
+.badge-mod{background:#eef3f7;color:#16394f;padding:.25rem .55rem;border-radius:30px;font-size:.45rem;font-weight:700;letter-spacing:.06rem;border:1px solid #d1dce5;white-space:nowrap;}
+.badge-time{font-size:.45rem;color:#777;font-weight:600;}
+.actions-inline{margin-top:.15rem;display:flex;gap:.4rem;flex-wrap:wrap;}
+.actions-inline a{font-size:.45rem;font-weight:700;letter-spacing:.08rem;padding:.33rem .55rem;border-radius:10px;border:1px solid var(--gal-border);text-decoration:none;color:#7d0e11;background:#fff;display:inline-flex;align-items:center;gap:.3rem;transition:.25s;}
+.actions-inline a:hover{background:var(--gal-accent-grad);color:#fff;border-color:#7d0e11;}
+.hidden-item{display:none!important;}
+.empty-box{padding:2.2rem 1.2rem;text-align:center;background:#fff;border:1px dashed var(--gal-border);border-radius:24px;font-size:.7rem;font-weight:600;color:#777;letter-spacing:.08rem;}
+.stats-bar{margin-top:.8rem;font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;display:flex;gap:.8rem;flex-wrap:wrap;}
+.stats-pill{background:var(--gal-soft);color:var(--gal-accent);padding:.4rem .65rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.08rem;display:inline-flex;align-items:center;gap:.35rem;}
+.perf{margin-left:auto;}
+/* Lightbox */
+.lightbox{position:fixed;inset:0;background:rgba(15,15,20,.85);display:none;align-items:center;justify-content:center;z-index:1200;padding:1.5rem;}
+.lightbox.active{display:flex;}
+.lightbox-content{max-width:1100px;width:100%;background:#121417;border:1px solid #1e2227;border-radius:24px;display:flex;flex-direction:column;overflow:hidden;animation:pop .45s ease;}
+.lightbox-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;background:var(--gal-accent-grad);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.12rem;}
+.lightbox-body{background:#0f1214;display:flex;align-items:center;justify-content:center;padding:1rem;min-height:480px;position:relative;}
+.lightbox-body img{max-width:100%;max-height:70vh;object-fit:contain;}
+.lightbox-body iframe{width:100%;height:70vh;border:0;}
+.lightbox-foot{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;background:#181d21;font-size:.5rem;letter-spacing:.12rem;color:#c7cfd6;flex-wrap:wrap;gap:.6rem;}
+.close-btn{background:#fff;border:none;border-radius:10px;font-size:.55rem;font-weight:700;letter-spacing:.08rem;padding:.4rem .75rem;color:#7d0e11;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;transition:.25s;}
+.close-btn:hover{background:#7d0e11;color:#fff;}
+.nav-btn{background:#fff;border:none;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;color:#7d0e11;font-size:1rem;cursor:pointer;position:absolute;top:50%;transform:translateY(-50%);box-shadow:0 4px 16px -8px rgba(0,0,0,.35);transition:.3s;}
+.nav-btn:hover{background:var(--gal-accent-grad);color:#fff;}
+.nav-prev{left:12px;}
+.nav-next{right:12px;}
+@@keyframes pop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+@@media (max-width:680px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+    .lightbox-body{min-height:340px;}
+}
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-images"></i></div>
+        <div>
+            <h1>Evidence Gallery</h1>
+            <div class="tagline"><i class="fa fa-user-graduate"></i> @holder</div>
+        </div>
+        <div class="toolbar">
+            <a asp-controller="Evidence" asp-action="UploadEvidence" asp-route-StudentNumber="@holderNumber" class="btn-accent"><i class="fa fa-plus-circle"></i> Add More</a>
+            <button id="btnExport" type="button" class="btn-base"><i class="fa fa-file-export"></i> Export List</button>
+            <a asp-action="StudentDetail" asp-controller="Student" asp-route-StudentNumber="@holderNumber" class="btn-outline"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="search-wrap">
+            <i class="fa fa-search"></i>
+            <input id="searchBox" type="text" placeholder="Search module / file name..." autocomplete="off"/>
+        </div>
+        <div class="filter-group">
+            <label>Module</label>
+            <select id="moduleFilter">
+                <option value="">Any</option>
+                @foreach(var m in modules){ <option value="@m">@m</option> }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Type</label>
+            <select id="typeFilter">
+                <option value="">Any</option>
+                <option value="image">Image</option>
+                <option value="pdf">PDF</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Sort</label>
+            <select id="sortFilter">
+                <option value="new">Newest</option>
+                <option value="old">Oldest</option>
+                <option value="module">Module</option>
+                <option value="name">File Name</option>
+            </select>
+        </div>
+        <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
+            <span id="filterState" class="stats-pill" style="display:none;"><i class="fa fa-filter"></i> FILTERED</span>
+        </div>
+    </div>
+
+    <div class="gallery-shell">
+        @if(count == 0 || !items.Any())
+        {
+            <div class="empty-box"><i class="fa fa-circle-info"></i> No evidence uploaded yet.</div>
+        }
+        else
+        {
+            <div id="galleryGrid" class="grid">
+                @for(int i=0;i<items.Count;i++)
+                {
+                    var it = items[i];
+                    var isPdf = (it.Photo ?? "").EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                    var filePath = Url.Content($"~/Gallery/{it.Photo}");
+                    var moduleName = it.Module.ToString();
+                    <div class="card-item"
+                         data-index="@i"
+                         data-module="@moduleName"
+                         data-type="@(isPdf? "pdf":"image")"
+                         data-name="@it.Photo?.ToLower()"
+                         data-text="@($"{moduleName} {it.Photo}").ToLower()">
+                        <div class="thumb-wrap">
+                            @if(isPdf){
+                                <i class="fa fa-file-pdf pdf-ico"></i>
+                            } else {
+                                <img src="@filePath" alt="@it.Photo"/>
+                            }
+                        </div>
+                        <div class="meta-bar">
+                            <div class="meta-title" title="@it.Photo">@it.Photo</div>
+                            <div class="meta-sub">
+                                <span class="badge-mod">@moduleName</span>
+                            </div>
+                            <div class="actions-inline">
+                                <a href="@filePath" download><i class="fa fa-download"></i> Get</a>
+                                <a href="#" class="act-view" data-index="@i"><i class="fa fa-eye"></i> View</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="stats-bar">
+                <span id="statsInfo" class="stats-pill"><i class="fa fa-database"></i> Showing @items.Count of @items.Count</span>
+                <span id="perfInfo" class="stats-pill perf" style="display:none;"></span>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Lightbox Viewer -->
+<div id="lightbox" class="lightbox" aria-hidden="true">
+    <div class="lightbox-content">
+        <div class="lightbox-head">
+            <span id="lbTitle"></span>
+            <button type="button" class="close-btn" id="lbClose"><i class="fa fa-xmark"></i> Close</button>
+        </div>
+        <div class="lightbox-body" id="lbBody"></div>
+        <button type="button" class="nav-btn nav-prev" id="lbPrev" title="Prev"><i class="fa fa-chevron-left"></i></button>
+        <button type="button" class="nav-btn nav-next" id="lbNext" title="Next"><i class="fa fa-chevron-right"></i></button>
+        <div class="lightbox-foot">
+            <span id="lbMeta"></span>
+            <div style="display:flex;gap:.5rem;">
+                <a id="lbDownload" class="btn-base" style="padding:.45rem .8rem;"><i class="fa fa-download"></i> Download</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const grid = document.getElementById('galleryGrid');
+    if(!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.card-item'));
+    const searchBox = document.getElementById('searchBox');
+    const moduleFilter = document.getElementById('moduleFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const statsInfo = document.getElementById('statsInfo');
+    const filterState = document.getElementById('filterState');
+    const perfInfo = document.getElementById('perfInfo');
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+
+    function apply(){
+        const t0=performance.now();
+        const q=norm(searchBox.value);
+        const mod=moduleFilter.value;
+        const tp=typeFilter.value;
+        const sort=sortFilter.value;
+
+        let visible = [];
+        cards.forEach(c=>{
+            const text=c.getAttribute('data-text')||'';
+            const m=c.getAttribute('data-module')||'';
+            const t=c.getAttribute('data-type')||'';
+            let show=true;
+            if(q && !text.includes(q)) show=false;
+            if(mod && m!==mod) show=false;
+            if(tp && t!==tp) show=false;
+            c.classList.toggle('hidden-item', !show);
+            if(show) visible.push(c);
+        });
+
+        // Sorting (only visible)
+        const comparator = {
+            new: (a,b)=> new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date')),
+            old: (a,b)=> new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date')),
+            module: (a,b)=> (a.getAttribute('data-module')||'').localeCompare(b.getAttribute('data-module')||'',
+            'en', { numeric: true, sensitivity: 'base' }),
+            name: (a,b)=> (a.getAttribute('data-name')||'').localeCompare(b.getAttribute('data-name')||'',
+            'en', { numeric: true, sensitivity: 'base' })
+        }[sort] || ((a,b)=>0);
+
+        visible.sort(comparator);
+        // Re-append in sorted order
+        visible.forEach(v=>grid.appendChild(v));
+
+        const filtering = !!(q||mod||tp||sort!=='new');
+        filterState.style.display = filtering? '' : 'none';
+        statsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${visible.length} of ${cards.length}`;
+        perfInfo.style.display='';
+        perfInfo.textContent='Render '+(performance.now()-t0).toFixed(1)+'ms';
+    }
+
+    [searchBox,moduleFilter,typeFilter,sortFilter].forEach(el=>{
+        el.addEventListener(el.tagName==='INPUT'?'input':'change', apply);
+    });
+    apply();
+
+    // Export list (CSV)
+    document.getElementById('btnExport')?.addEventListener('click', ()=>{
+        const visible = cards.filter(c=>!c.classList.contains('hidden-item'));
+        if(!visible.length){ alert('No items to export.'); return; }
+        const rows = ['File,Module,Date,Type'];
+        visible.forEach(c=>{
+            const name = c.querySelector('.meta-title').textContent.trim();
+            const mod = c.getAttribute('data-module');
+            const date = c.getAttribute('data-date');
+            const type = c.getAttribute('data-type');
+            rows.push([name,mod,date,type].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(','));
+        });
+        const blob=new Blob([rows.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+        a.download='evidence-gallery-'+new Date().toISOString().slice(0,10)+'.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+
+    // Lightbox
+    const lb = document.getElementById('lightbox');
+    const lbTitle = document.getElementById('lbTitle');
+    const lbBody = document.getElementById('lbBody');
+    const lbMeta = document.getElementById('lbMeta');
+    const lbDownload = document.getElementById('lbDownload');
+    const btnPrev = document.getElementById('lbPrev');
+    const btnNext = document.getElementById('lbNext');
+    const btnClose = document.getElementById('lbClose');
+    let current = -1;
+
+    function show(index){
+        if(index<0 || index>=cards.length) return;
+        const card = cards[index];
+        if(card.classList.contains('hidden-item')){ // skip hidden
+            const forward = (i,dir)=>{
+                while(i>=0 && i<cards.length){
+                    if(!cards[i].classList.contains('hidden-item')) return i;
+                    i+=dir;
+                }
+                return -1;
+            }
+            const alt = forward(index+1,1);
+            if(alt!==-1) return show(alt);
+            const alt2 = forward(index-1,-1);
+            if(alt2!==-1) return show(alt2);
+            return;
+        }
+        current = index;
+        const name = card.querySelector('.meta-title').textContent.trim();
+        const module = card.getAttribute('data-module');
+        const date = card.getAttribute('data-date');
+        const type = card.getAttribute('data-type');
+        const img = card.querySelector('img');
+        const filePath = img ? img.getAttribute('src') : card.querySelector('.pdf-ico') ? `/Gallery/${name}` : `/Gallery/${name}`;
+
+        lbTitle.textContent = name;
+        lbMeta.textContent = `Module: ${module} • Date: ${date} • Type: ${type.toUpperCase()}`;
+        lbDownload.href = filePath;
+        lbDownload.setAttribute('download', name);
+
+        if(type==='pdf'){
+            lbBody.innerHTML = `<iframe src="${filePath}#toolbar=0" title="PDF Preview"></iframe>`;
+        }else{
+            lbBody.innerHTML = `<img src="${filePath}" alt="${name}"/>`;
+        }
+        lb.classList.add('active');
+        lb.setAttribute('aria-hidden','false');
+    }
+
+    function close(){
+        lb.classList.remove('active');
+        lb.setAttribute('aria-hidden','true');
+        lbBody.innerHTML='';
+    }
+
+    grid.addEventListener('click', e=>{
+        const viewBtn = e.target.closest('.act-view');
+        const card = e.target.closest('.card-item');
+        if(viewBtn){
+            show(parseInt(viewBtn.dataset.index));
+            e.preventDefault();
+        } else if(card && !e.target.closest('.actions-inline a')){
+            show(parseInt(card.dataset.index));
+        }
+    });
+
+    btnPrev.addEventListener('click', ()=> show(Math.max(0,current-1)));
+    btnNext.addEventListener('click', ()=> show(Math.min(cards.length-1,current+1)));
+    btnClose.addEventListener('click', close);
+    lb.addEventListener('click', e=> { if(e.target===lb) close(); });
+    document.addEventListener('keydown', e=>{
+        if(!lb.classList.contains('active')) return;
+        if(e.key==='Escape') close();
+        else if(e.key==='ArrowLeft') btnPrev.click();
+        else if(e.key==='ArrowRight') btnNext.click();
+    });
+})();
+</script>
+

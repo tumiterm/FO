@@ -1,0 +1,243 @@
+﻿@model ForekOnline.Domain.ViewModels.DocumentViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+</head>
+<style>
+    .card-header, .head {
+        background-color: darkred;
+    }
+
+    .res {
+        margin-right: 10px;
+    }
+
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        border-color: black;
+    }
+
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+
+    .form-control {
+        border-color: black;
+    }
+
+    thead {
+        background-color: darkred;
+    }
+
+    th {
+        color: white;
+    }
+</style>
+
+<div class="row">
+</div>
+<div class="col-xl-12">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fa fa-file me-1 text-white"></i>
+            <span class="text-white">Document / Record Request Section<span class="text-bold"></span></span>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-xl-7">
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fa fa-file me-1 text-white"></i>
+                            <span class="text-white">Request For Document / Record<span class="text-bold"></span></span>
+                        </div>
+
+                        <input asp-for="DocumentId" hidden  />
+
+                        <form asp-action="OnRequestDocument" enctype="multipart/form-data">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Document Type</label>
+                                        <div class="input-group mb-3 input1">
+                                            <select asp-for="DocumentType" class="form-control docType" asp-items="Html.GetEnumSelectList<eDocumentType>()">
+                                                <option disabled selected="selected" value="">Select Type</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Request Date</label>
+                                        <div class="input-group mb-3 input1">
+                                            <input asp-for="RequestDate" type="date" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Return Date</label>
+                                        <div class="input-group mb-3 input1">
+                                            <input asp-for="ReturnDate" type="date" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Quantity</label>
+                                        <div class="input-group mb-3 input1">
+                                            <input asp-for="Quantity" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Department</label>
+                                        <div class="input-group mb-3 input1">
+                                            <select asp-for="Department" class="form-control" asp-items="Html.GetEnumSelectList<eDepartment>()">
+                                                <option selected="selected" value="">Select Department</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="control-label">Designation</label>
+                                        <div class="input-group mb-3 input1">
+                                            <select asp-for="Designation" class="form-control" asp-items="Html.GetEnumSelectList<eSysRole>()">
+                                                <option selected="selected" value="">Select Designation</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-6 c1">
+                                        <label class="control-label" name="Course">Course</label>
+                                        <select asp-for="CourseId" class="form-control course" required asp-items="@ViewBag.CourseId">
+                                            <option selected="selected" value="">Select Course</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-6 c1">
+                                        <label class="control-label" name="Module">Module</label>
+                                        <select asp-for="ModuleId" class="form-control module" required asp-items="@ViewBag.ModuleId">
+                                            <option selected="selected" value="">Select Module</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-12 student">
+                                        Student(s) <span class="badge rounded-pill bg-primary"> you may select multiple</span>
+                                        <div class="input-group mb-3 input1">
+                                            <select asp-for="SelectedIDArray" multiple class="form-control studs" asp-items="@ViewBag.StudentId">
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12 attach">
+                                        <label class="control-label">Attach File</label>
+                                        <div class="input-group mb-3 input1">
+                                            <input asp-for="DocumentFile" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group col-md-12">
+                                        <label>Request Purpose</label>
+                                        <textarea asp-for="RequestPurpose" class="form-control" text-wrap:normal" type="text" placeholder="Write Request Purpose here..."></textarea>
+                                    </div>
+
+                                    <div class="form-group col-md-12 ">
+                                        <div class="form-group col-md-12 mt-2" style="background-color:whitesmoke;">
+                                            <button type="submit" class="btn btn-success save"><i class="fa fa-save"></i> Save</button>
+                                            <button type="reset" class="btn btn-outline-warning float-end"><i class="fa fa-undo"></i> Reset</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-xl-5">
+                    <div class="card-body mb-4">
+                        <img id="output" src="~/Images/Docs.jpg" class="form-control" height="350px" style="border:none" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('.studs').select2();
+
+        $('.student,.attach,.c1').hide();
+
+        $('.docType').on('change', function () {
+
+            var selectedItem = $(".docType").find('option:selected').text();
+
+            if (selectedItem == "Knowledge Module" || selectedItem == "Practical Module" || selectedItem == "Workplace Module") {
+
+                $('.c1').show();
+                $('.student,.studs').hide();
+
+            }
+            else if (selectedItem == "Student File") {
+
+                $('.student,.studs,.c1').show();
+
+            } else {
+
+                $('.student,.attach,.studs,.c1').hide();
+            }
+        });
+
+
+    });
+
+    $('.course').change(function () {
+
+        getCourseByModuleId();
+
+    });
+
+    var getCourseByModuleId = function () {
+
+        $.ajax({
+
+            url: '@Url.Action("GetCourseModuleId","Document")',
+
+            type: 'GET',
+
+            data: {
+
+                CourseId: $('.course').val(),
+            },
+            success: function (data) {
+
+                $('.module').find('option').remove();
+
+                $(data).each(
+
+                    function (index, item) {
+
+                        $('.module').append('<option value="' + item.moduleId + '">' + item.moduleName + '<option/>')
+
+                    }
+                )
+
+            }
+        })
+    }
+
+    $(document).on("select2:open", () => {
+        document.querySelector(".select2-container--open .select2-search__field").focus()
+    });
+
+</script>

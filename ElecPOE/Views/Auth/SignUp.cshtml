@@ -1,0 +1,544 @@
+﻿@model ForekOnline.Domain.Entities.User
+@using static ForekOnline.Domain.Enums.EnumRegistry
+
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sign Up • Forek Online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --auth-dr: #320606;
+            --auth-red: #9d1117;
+            --auth-red-strong: #b31217;
+            --auth-orange: #ff7a18;
+            --auth-orange-soft: #ff9c55;
+            --auth-bg: #ffffff;
+            --auth-bg-alt: #f4f6f8;
+            --auth-soft: #fff5f3;
+            --auth-border: #e1e3e6;
+            --auth-border-alt: #cfd2d6;
+            --auth-grad: linear-gradient(92deg, #320606, #b31217 60%, #ff7a18);
+            --auth-radius-xl: 34px;
+            --auth-radius-lg: 22px;
+            --auth-shadow: 0 4px 14px -4px rgba(50, 6, 6, .22), 0 2px 6px -2px rgba(50, 6, 6, .15);
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--auth-bg-alt);
+            color: #222;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 1060px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            align-items: stretch;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--auth-bg);
+            border: 1px solid var(--auth-border);
+            border-radius: var(--auth-radius-xl);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--auth-shadow);
+        }
+
+        /* Brand panel */
+        .brand-panel {
+            padding: 1.8rem 1.7rem 1.6rem;
+            justify-content: space-between;
+        }
+
+        .brand-head {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .logo-mark {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: var(--auth-grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 12px -4px rgba(179, 18, 23, .55);
+        }
+
+        .brand-heading {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: .4px;
+        }
+
+        .brand-sub {
+            font-size: .68rem;
+            line-height: 1.15rem;
+            color: #555;
+            max-width: 360px;
+            margin: 0;
+        }
+
+        .brand-ill img {
+            width: 100%;
+            max-width: 280px;
+            display: block;
+            margin-top: .5rem;
+        }
+
+        .meta-footer {
+            font-size: .48rem;
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #777;
+            margin-top: 1rem;
+        }
+
+        /* Form panel */
+        .form-panel {
+            padding: 1.8rem 1.7rem 1.6rem;
+        }
+
+        .form-head {
+            margin: 0 0 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+            .form-head h1 {
+                font-size: 1.3rem;
+                font-weight: 600;
+                letter-spacing: .5px;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+            }
+
+                .form-head h1 .ico {
+                    background: var(--auth-grad);
+                    color: #fff;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: .95rem;
+                    box-shadow: 0 4px 11px -3px rgba(179, 18, 23, .45);
+                }
+
+            .form-head p {
+                font-size: .6rem;
+                line-height: .95rem;
+                color: #555;
+                margin: 0;
+            }
+
+        .alert {
+            border: 1px solid #d4edda;
+            background: #d4edda;
+            color: #155724;
+            padding: .6rem .75rem;
+            border-radius: 12px;
+            font-size: .58rem;
+            letter-spacing: .3px;
+            font-weight: 500;
+            display: flex;
+            gap: .5rem;
+            align-items: flex-start;
+            margin-bottom: .8rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+        }
+
+            .field label {
+                font-size: .5rem;
+                letter-spacing: .15rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                color: #4f5458;
+                display: flex;
+                gap: .35rem;
+                align-items: center;
+            }
+
+        .input-wrap {
+            position: relative;
+        }
+
+            .input-wrap .fa {
+                position: absolute;
+                top: 50%;
+                left: .65rem;
+                transform: translateY(-50%);
+                font-size: .6rem;
+                color: #9aa0a5;
+            }
+
+            .input-wrap input {
+                width: 100%;
+                padding: .65rem .7rem .65rem 2.1rem;
+                font-size: .65rem;
+                letter-spacing: .25px;
+                border: 1px solid var(--auth-border);
+                border-radius: 12px;
+                background: #fff;
+                color: #222;
+                transition: .2s;
+                font-family: inherit;
+            }
+
+                .input-wrap input:focus {
+                    outline: none;
+                    border-color: var(--auth-red-strong);
+                    box-shadow: 0 0 0 .12rem #b3121716;
+                }
+
+        .actions-row {
+            display: flex;
+            flex-direction: column;
+            gap: .65rem;
+            margin-top: .3rem;
+        }
+
+        .btn-primary-auth {
+            background: var(--auth-grad);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            font-size: .65rem;
+            letter-spacing: .12rem;
+            padding: .7rem .85rem;
+            border-radius: 14px;
+            display: inline-flex;
+            justify-content: center;
+            gap: .45rem;
+            align-items: center;
+            cursor: pointer;
+            transition: .28s;
+        }
+
+            .btn-primary-auth:hover {
+                filter: brightness(.94);
+                box-shadow: 0 6px 16px -6px rgba(179, 18, 23, .5);
+            }
+
+        .alt-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            font-size: .52rem;
+            letter-spacing: .03rem;
+            color: #555;
+        }
+
+            .alt-links a {
+                color: var(--auth-red-strong);
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+                .alt-links a:hover {
+                    text-decoration: underline;
+                }
+
+        .app-callout {
+            margin-top: .2rem;
+            border: 1px solid #cce5ff;
+            background: linear-gradient(180deg, #e7f3ff, #ffffff);
+            border-radius: 14px;
+            padding: .75rem .8rem;
+            display: flex;
+            gap: .65rem;
+            align-items: flex-start;
+        }
+
+            .app-callout .badge {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #004E89, #1A659E);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 auto;
+                box-shadow: 0 4px 12px -6px rgba(0, 78, 137, .55);
+                font-size: .85rem;
+            }
+
+            .app-callout h3 {
+                margin: 0 0 .2rem;
+                font-size: .62rem;
+                letter-spacing: .1rem;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: #4f5458;
+            }
+
+            .app-callout p {
+                margin: 0;
+                font-size: .58rem;
+                line-height: .95rem;
+                color: #5a5f63;
+                font-weight: 500;
+            }
+
+            .app-callout a {
+                color: #004E89;
+                font-weight: 700;
+                text-decoration: none;
+            }
+
+                .app-callout a:hover {
+                    text-decoration: underline;
+                }
+
+        /* Password strength */
+        .password-strength {
+            height: 3px;
+            background: var(--auth-border);
+            border-radius: 2px;
+            margin-top: .3rem;
+            overflow: hidden;
+            display: none;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak {
+            background: #dc3545;
+            width: 33%;
+        }
+
+        .strength-medium {
+            background: var(--auth-orange);
+            width: 66%;
+        }
+
+        .strength-strong {
+            background: #28a745;
+            width: 100%;
+        }
+
+        @@media (max-width: 1020px) {
+            .auth-wrapper
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        }
+
+        @@media (max-width: 620px) {
+            body
+
+        {
+            padding: .8rem;
+        }
+
+        .panel {
+            border-radius: 26px;
+        }
+
+        .brand-panel,
+        .form-panel {
+            padding: 1.5rem 1.2rem 1.3rem;
+        }
+
+        .brand-ill img {
+            max-width: 240px;
+        }
+
+        }</style>
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <div class="panel brand-panel">
+            <div class="brand-head">
+                <div class="logo-mark"><i class="fa fa-layer-group"></i></div>
+                <h2 class="brand-heading">Join Forek Online</h2>
+                <p class="brand-sub">Register to access the Forek Online platform with your student or employee credentials. Start your journey with us today.</p>
+                <div class="brand-ill">
+                    <img src="~/Images/v2Launcher.png" alt="Application Illustration" />
+                </div>
+            </div>
+            <div class="meta-footer">© @DateTime.UtcNow.Year • Forek Institute</div>
+        </div>
+
+        <div class="panel form-panel">
+            <div class="form-head">
+                <h1><span class="ico"><i class="fa fa-user-plus"></i></span> Sign Up</h1>
+                <p>Create your account to get started.</p>
+            </div>
+
+            <form asp-action="SignUp" method="post" class="auth-form" autocomplete="off">
+                @if (ViewBag.Status != null && Convert.ToBoolean(ViewBag.Status))
+                {
+                    if (ViewBag.Message != null)
+                    {
+                        <div class="alert" role="alert">
+                            <i class="fa fa-circle-check"></i>
+                            <div>
+                                <strong>Registration Successful!</strong><br />
+                                Your account has been created. You can now sign in.
+                            </div>
+                        </div>
+                        <a href="~/Auth/SignIn" class="btn-primary-auth">
+                            <i class="fa fa-right-to-bracket"></i> Sign In Now
+                        </a>
+                    }
+                }
+                else
+                {
+                    <div class="field">
+                        <label for="Name"><i class="fa fa-user"></i> First Name</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-user"></i>
+                            <input asp-for="Name" id="Name" placeholder="e.g. John" required autofocus />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="LastName"><i class="fa fa-user"></i> Surname</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-user"></i>
+                            <input asp-for="LastName" id="LastName" placeholder="e.g. Smith" required />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="StudentNumber"><i class="fa fa-id-card"></i> Student / Employee Number</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-id-card"></i>
+                            <input asp-for="StudentNumber" id="StudentNumber" placeholder="e.g. STU12345" required />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="Password"><i class="fa fa-key"></i> Password</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-lock"></i>
+                            <input asp-for="Password" id="Password" type="password" placeholder="Create a strong password" required />
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="password-strength-bar" id="strengthBar"></div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="ConfirmPassword"><i class="fa fa-key"></i> Confirm Password</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-key"></i>
+                            <input asp-for="ConfirmPassword" id="ConfirmPassword" type="password" placeholder="Re-enter your password" required />
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn-primary-auth"><i class="fa fa-rocket"></i> Create Account</button>
+
+                        <div class="alt-links">
+                            <span>Already have an account? <a asp-action="SignIn">Sign in</a></span>
+                        </div>
+
+                        <div class="app-callout" role="note" aria-label="Online applications">
+                            <div class="badge"><i class="fa fa-graduation-cap"></i></div>
+                            <div>
+                                <h3>Applying Online?</h3>
+                                <p>
+                                    To submit a new application for programs and courses:
+                                    <a href="https://forekonline.co.za/Applications/Apply" target="_blank" rel="noopener">Start an online application</a>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const passwordInput = document.getElementById('Password');
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthBar = document.getElementById('strengthBar');
+
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function () {
+                    const password = this.value;
+                    strengthIndicator.style.display = password.length > 0 ? 'block' : 'none';
+
+                    let strength = 0;
+                    if (password.length >= 8) strength++;
+                    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+                    if (password.match(/[0-9]/)) strength++;
+                    if (password.match(/[^a-zA-Z0-9]/)) strength++;
+
+                    strengthBar.className = 'password-strength-bar';
+                    if (strength <= 2) {
+                        strengthBar.classList.add('strength-weak');
+                    } else if (strength === 3) {
+                        strengthBar.classList.add('strength-medium');
+                    } else {
+                        strengthBar.classList.add('strength-strong');
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

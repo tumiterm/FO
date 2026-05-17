@@ -1,0 +1,318 @@
+﻿@model ForekOnline.Domain.Entities.Evidence
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@{
+    ViewData["Title"] = "Upload Evidence";
+    var studentNumber = ViewData["StudentNumber"];
+    var studentId = ViewData["StudentId"];
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+<style>
+:root{
+    --ev-bg:#ffffff;--ev-bg-alt:#f6f8fa;--ev-border:#e2e5ea;--ev-accent:#7d0e11;
+    --ev-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
+    --ev-soft:#fff4f2;--ev-text:#1f252c;--ev-radius-xl:30px;--ev-radius-lg:24px;--ev-radius:14px;
+    --ev-focus:0 0 0 .16rem #b3121728;--ev-shadow:0 14px 38px -16px rgba(125,14,17,.32),0 6px 22px -10px rgba(125,14,17,.20);
+    font-family:'Segoe UI',system-ui,sans-serif;
+}
+.page-shell{max-width:1180px;margin:0 auto;padding:1.9rem 1.15rem 3.2rem;}
+.header-band{
+    background:var(--ev-bg);border:1px solid var(--ev-border);border-radius:var(--ev-radius-xl);
+    padding:1.25rem 1.55rem 1.15rem;display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center;position:relative;overflow:hidden;
+}
+.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121714,#ff7a1816);}
+.icon-pill{width:74px;height:74px;border-radius:26px;background:var(--ev-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.5);}
+.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.54px;color:var(--ev-text);display:flex;align-items:center;gap:.55rem;}
+.tagline{font-size:.6rem;letter-spacing:.2rem;font-weight:700;background:var(--ev-soft);color:var(--ev-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.45rem;align-items:center;}
+.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
+
+.btn-base,.btn-accent,.btn-outline,.btn-danger-soft{
+    font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
+    padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--ev-border);
+    background:#fff;color:var(--ev-accent);display:inline-flex;align-items:center;gap:.5rem;
+    cursor:pointer;transition:.3s;text-decoration:none;
+}
+.btn-base:hover,.btn-outline:hover{background:var(--ev-accent-grad);color:#fff;border-color:var(--ev-accent);box-shadow:var(--ev-shadow);} 
+.btn-accent{background:var(--ev-accent-grad);color:#fff;border:1px solid var(--ev-accent);}
+.btn-accent:hover{filter:brightness(.94);}
+.btn-danger-soft{background:#ffe8ea;color:#7d0e11;border:1px solid #f3c2c7;}
+.btn-danger-soft:hover{background:var(--ev-accent-grad);color:#fff;border-color:var(--ev-accent);}
+
+.grid-shell{margin-top:1.6rem;display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));align-items:start;}
+.card{
+    background:var(--ev-bg);border:1px solid var(--ev-border);border-radius:28px;
+    padding:1.2rem 1.25rem 1.15rem;display:flex;flex-direction:column;gap:1.05rem;position:relative;overflow:hidden;
+}
+.card:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,#7d0e110d,#b3121710,#ff7a1810);}
+.card h2{margin:.1rem 0;font-size:.82rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;color:var(--ev-accent);display:flex;align-items:center;gap:.55rem;}
+.meta{font-size:.5rem;letter-spacing:.1rem;font-weight:600;color:#666;display:flex;gap:.7rem;flex-wrap:wrap;}
+.badge-inline{background:#eef3f7;color:#15394f;border:1px solid #d1dce5;padding:.34rem .6rem;font-size:.48rem;font-weight:700;letter-spacing:.08rem;border-radius:30px;display:inline-flex;align-items:center;gap:.35rem;}
+
+.field-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));}
+.field{display:flex;flex-direction:column;gap:.45rem;}
+.field label{font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;color:#495059;display:flex;align-items:center;gap:.4rem;}
+.required:after{content:"*";color:#b31217;margin-left:.25rem;font-weight:800;}
+.input-wrap{display:flex;align-items:center;gap:.45rem;background:#fff;border:1px solid var(--ev-border);padding:.55rem .65rem;border-radius:14px;transition:.25s;}
+.input-wrap:focus-within{border-color:var(--ev-accent);box-shadow:var(--ev-focus);}
+.input-wrap i{font-size:.75rem;color:#888;}
+.field select,.field input[type='file']{width:100%;border:none;background:transparent;font-size:.7rem;outline:none;color:#222;}
+
+.drop-zone{
+    position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:2px dashed #c8ccd1;border-radius:18px;padding:1.4rem .9rem;
+    background:#fff;min-height:150px;text-align:center;cursor:pointer;transition:.3s;
+}
+.drop-zone.dragover{border-color:#b31217;background:#fff7f6;}
+.drop-zone i{font-size:2.2rem;color:#b31217;margin-bottom:.45rem;}
+.drop-zone small{font-size:.55rem;color:#666;font-weight:600;letter-spacing:.06rem;}
+
+.preview-shell{display:flex;flex-direction:column;gap:.6rem;}
+.preview-box{
+    background:#f8fafc;border:1px solid #e2e8ef;border-radius:18px;padding:.8rem .85rem;display:flex;gap:.75rem;align-items:center;position:relative;
+}
+.preview-box i{font-size:1.6rem;color:#b31217;}
+.preview-info{flex:1 1 auto;display:flex;flex-direction:column;gap:.25rem;}
+.preview-info span{font-size:.6rem;font-weight:600;color:#333;word-break:break-all;}
+.preview-info small{font-size:.5rem;color:#777;}
+.preview-actions a{font-size:.65rem;cursor:pointer;color:#7d0e11;text-decoration:none;font-weight:600;}
+.preview-actions a:hover{text-decoration:underline;}
+
+.validation-summary{font-size:.6rem;border:1px solid #f1d0d4;background:#fff5f7;color:#7d0e11;padding:.65rem .85rem;border-radius:16px;}
+.inline-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.5rem;}
+.note{font-size:.5rem;letter-spacing:.14rem;color:#666;font-weight:600;margin-top:.3rem;}
+.viewer{border:1px solid var(--ev-border);border-radius:20px;background:#fff;overflow:hidden;min-height:360px;display:flex;align-items:center;justify-content:center;position:relative;}
+.viewer.empty{color:#888;font-size:.65rem;letter-spacing:.12rem;font-weight:600;}
+.viewer iframe,.viewer img{width:100%;height:100%;object-fit:contain;border:0;}
+
+@@media (max-width:640px){
+    .header-band{padding:1.15rem 1.1rem 1rem;}
+    .icon-pill{width:62px;height:62px;font-size:1.55rem;}
+    .header-band h1{font-size:1.32rem;}
+}
+
+    .header-band:before,
+    .card:before {
+        pointer-events: none; 
+    }
+
+    .header-band > *,
+    .card > * {
+        position: relative;
+        z-index: 1; 
+    }
+</style>
+
+<div class="page-shell">
+    <div class="header-band">
+        <div class="icon-pill"><i class="fa fa-images"></i></div>
+        <div>
+            <h1>Upload Evidence</h1>
+            <div class="tagline"><i class="fa fa-graduation-cap"></i> Student Gallery</div>
+        </div>
+        <div class="toolbar">
+            <a asp-action="OnViewAllFiles" asp-route-StudentNumber="@studentNumber" class="btn-base"><i class="fa fa-photo-film"></i> View Gallery</a>
+            <a asp-action="StudentDetail" asp-controller="Student" asp-route-StudentNumber="@studentNumber" class="btn-outline"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <div class="grid-shell">
+
+        <!-- Upload Card -->
+        <div class="card">
+            <h2><i class="fa fa-cloud-arrow-up"></i> New Evidence</h2>
+            <div class="meta">
+                <span class="badge-inline"><i class="fa fa-id-card"></i>@studentNumber</span>
+                <span class="badge-inline"><i class="fa fa-hashtag"></i>@studentId</span>
+            </div>
+
+            <form asp-action="UploadEvidence" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label class="required">Module</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-book"></i>
+                            <select asp-for="Module" class="Module" asp-items="Html.GetEnumSelectList<eModule>()">
+                                <option value="">Select module...</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="Module" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label class="required">File (Image or PDF)</label>
+                        <div id="dropZone" class="drop-zone">
+                            <i class="fa fa-cloud-arrow-up"></i>
+                            <strong style="font-size:.6rem;">Drag & Drop or Click to Select</strong>
+                            <small id="dropHint">Accepted: .jpg .png .jpeg .pdf • Max 350KB</small>
+                            <input asp-for="PhotoFile" id="fileInput" type="file" accept="image/*,.pdf" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+                        </div>
+                        <span asp-validation-for="PhotoFile" class="text-danger" style="font-size:.55rem;"></span>
+                        <div class="preview-shell" id="previewShell" style="display:none;margin-top:.8rem;"></div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="StudentNumber" value="@studentNumber"/>
+                <input type="hidden" name="StudentId" value="@studentId"/>
+
+                <div class="inline-actions">
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save</button>
+                    <button type="reset" id="btnReset" class="btn-outline"><i class="fa fa-undo"></i> Reset</button>
+                    <a asp-action="StudentDetail" asp-controller="Student" asp-route-StudentNumber="@studentNumber" class="btn-danger-soft"><i class="fa fa-window-close"></i> Exit</a>
+                </div>
+                <div class="note"><strong>Note:</strong> For multiple files upload them one at a time. Ensure correct module selection.</div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa fa-eye"></i> Preview</h2>
+            <div class="viewer empty" id="viewer">
+                No file selected
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+(function(){
+    $('.Module').select2({ width:'100%' });
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const previewShell = document.getElementById('previewShell');
+    const viewer = document.getElementById('viewer');
+
+    const MAX = 350 * 1024;
+
+    const allowedExt = ['png', 'jpg', 'jpeg', 'webp'];
+    const allowedMime = ['image/png', 'image/jpeg', 'image/webp'];
+
+    function showMessage(title, message){
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            return window.Swal.fire(title, message, 'warning');
+        }
+
+        alert(title + '\n\n' + message);
+    }
+
+    function resetPreview(){
+        previewShell.innerHTML = '';
+        previewShell.style.display='none';
+        viewer.classList.add('empty');
+        viewer.innerHTML='No file selected';
+    }
+
+    function formatSize(bytes){
+        if(bytes < 1024) return bytes + ' B';
+        if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+' KB';
+        return (bytes/1024/1024).toFixed(1)+' MB';
+    }
+
+    function getExt(name){
+        const parts = (name || '').toLowerCase().split('.');
+        return parts.length > 1 ? parts.pop() : '';
+    }
+
+    function isAllowedImage(file){
+        if(!file) return false;
+
+        if (allowedMime.includes(file.type)) return true;
+
+        return allowedExt.includes(getExt(file.name));
+    }
+
+    function renderPreview(file){
+        previewShell.style.display='flex';
+        previewShell.innerHTML = `
+            <div class="preview-box">
+                <i class="fa fa-image"></i>
+                <div class="preview-info">
+                    <span>${file.name}</span>
+                    <small>${formatSize(file.size)} • Image</small>
+                </div>
+                <div class="preview-actions">
+                    <a id="removeFile">Remove</a>
+                </div>
+            </div>`;
+        document.getElementById('removeFile').onclick = e=>{
+            e.preventDefault();
+            fileInput.value='';
+            resetPreview();
+        };
+        renderViewer(file);
+    }
+
+    function renderViewer(file){
+        viewer.classList.remove('empty');
+        const url = URL.createObjectURL(file);
+        viewer.innerHTML = `<img src="${url}" alt="Preview Image"/>`;
+    }
+
+    function validateAndShow(files){
+        if(!files || !files.length){
+            resetPreview();
+            return;
+        }
+
+        const file = files[0];
+
+        if(!isAllowedImage(file)){
+            showMessage(
+                'Invalid File Type',
+                'Only image files are allowed (PNG, JPG/JPEG, WEBP). Please upload a screenshot or an image.'
+            );
+            fileInput.value='';
+            resetPreview();
+            return;
+        }
+
+        if(file.size > MAX){
+            showMessage(
+                'File Too Large',
+                `The selected image is ${formatSize(file.size)}. Maximum allowed size is 350 KB.\n\n` +
+                'Please compress the image or upload it as a screenshot.'
+            );
+            fileInput.value='';
+            resetPreview();
+            return;
+        }
+
+        renderPreview(file);
+    }
+
+    fileInput.addEventListener('change', e => validateAndShow(e.target.files));
+
+    ['dragenter','dragover'].forEach(evt=>{
+        dropZone.addEventListener(evt, e=>{
+            e.preventDefault(); e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave','drop'].forEach(evt=>{
+        dropZone.addEventListener(evt, e=>{
+            e.preventDefault(); e.stopPropagation();
+            if(evt==='drop'){
+                const dt = e.dataTransfer;
+                if(dt && dt.files){
+                    fileInput.files = dt.files;
+                    validateAndShow(dt.files);
+                }
+            }
+            dropZone.classList.remove('dragover');
+        });
+    });
+
+    document.getElementById('btnReset')?.addEventListener('click', ()=>{
+        setTimeout(()=>resetPreview(),0);
+    });
+
+    // Optional (recommended): enforce on load too
+    resetPreview();
+})();
+</script>

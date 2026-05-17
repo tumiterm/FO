@@ -1,0 +1,41 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="~/Theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Theme/css/bootstrap-icons.css" />
+    <style>
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #fafafa; font-family: 'Inter', system-ui, sans-serif; }
+        .expired-card { max-width: 520px; text-align: center; padding: 3rem 2.5rem; border-radius: 16px; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+        .expired-icon { font-size: 4rem; color: #e65100; }
+        .btn-contact { background: linear-gradient(135deg, #e65100, #ac1900); color: #fff; border: none; border-radius: 10px; padding: .65rem 1.5rem; font-weight: 700; }
+        .btn-contact:hover { opacity: .9; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="expired-card">
+        <div class="expired-icon mb-3"><i class="bi bi-shield-lock-fill"></i></div>
+        <h2 class="fw-bold mb-2">Subscription @ViewBag.Status</h2>
+        <p class="text-muted mb-1">
+            Your <strong>@ViewBag.TenantName</strong> subscription expired on <strong>@ViewBag.ExpiredOn</strong>.
+        </p>
+        <p class="text-muted mb-4">
+            Please contact your administrator or renew your subscription to regain access.
+        </p>
+        @if (!string.IsNullOrEmpty(ViewBag.ContactEmail))
+        {
+            <a href="mailto:@ViewBag.ContactEmail" class="btn btn-contact">
+                <i class="bi bi-envelope me-2"></i> Contact Support
+            </a>
+        }
+        <div class="mt-4">
+            <a href="/Auth/Logout" class="text-muted small">Sign out</a>
+        </div>
+    </div>
+</body>
+</html>

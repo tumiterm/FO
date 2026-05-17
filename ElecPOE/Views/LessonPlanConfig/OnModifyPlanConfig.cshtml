@@ -1,0 +1,713 @@
+﻿@model ForekOnline.Domain.ViewModels.LessonPlanViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using ForekOnline.Application.Common.Utility
+@{
+    ViewData["Title"] = "Moderate Lesson Plan";
+
+    var currentStatus = Model.Approval;
+    var statusLabel = Helper.GetDisplayName(currentStatus);
+    var statusClass = currentStatus switch
+    {
+        eSelection.Yes => "st-ok",
+        eSelection.No => "st-no",
+        _ => "st-w"
+    };
+    var statusIcon = currentStatus switch
+    {
+        eSelection.Yes => "fa-circle-check",
+        eSelection.No => "fa-circle-xmark",
+        _ => "fa-clock"
+    };
+    var phaseLabel = Model.Phase != null ? Helper.GetDisplayName(Model.Phase) : "—";
+    var funderLabel = Helper.GetDisplayName(Model.Funder);
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --c-bg: #f3f2ef;
+        --c-surface: #ffffff;
+        --c-surface-alt: #faf9f7;
+        --c-text: #1a1a1a;
+        --c-muted: #71706e;
+        --c-border: #e4e0db;
+        --c-border-s: #d4cfc9;
+        --c-accent: #b5301a;
+        --c-accent-d: #8f2614;
+        --c-accent-l: #fef0ec;
+        --c-accent-g: linear-gradient(135deg, #c0392b, #e67e22);
+        --c-ok: #1a7a48;
+        --c-ok-bg: #f0faf4;
+        --c-ok-br: #c6e6d3;
+        --c-warn: #91660a;
+        --c-warn-bg: #fff7e8;
+        --c-warn-br: #f0d7aa;
+        --c-err: #b42318;
+        --c-err-bg: #fff0f0;
+        --c-err-br: #f0c1c1;
+        --r: 10px;
+        --r-sm: 8px;
+        --shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.03);
+        --focus: 0 0 0 3px rgba(181,48,26,.12);
+        --ease: 160ms ease;
+        --font: "Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    }
+
+    body {
+        background: var(--c-bg);
+        font-family: var(--font);
+        color: var(--c-text);
+    }
+
+    .rv {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 2.5rem;
+    }
+
+    .card {
+        background: var(--c-surface);
+        border: 1px solid var(--c-border);
+        border-radius: var(--r);
+        box-shadow: var(--shadow);
+    }
+
+    .back {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .78rem;
+        font-weight: 600;
+        color: var(--c-accent);
+        text-decoration: none;
+        margin-bottom: .85rem;
+        transition: color var(--ease);
+    }
+
+        .back:hover {
+            color: var(--c-accent-d);
+        }
+
+    .rv-hdr {
+        display: flex;
+        align-items: center;
+        gap: .85rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .rv-ico {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--c-accent-l);
+        color: var(--c-accent);
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+    }
+
+    .rv-hdr h1 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -.02em;
+        line-height: 1;
+    }
+
+    .rv-sub {
+        margin: .2rem 0 0;
+        font-size: .82rem;
+        color: var(--c-muted);
+    }
+
+    .ctx {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: .55rem;
+        margin-bottom: 1rem;
+    }
+
+    .ctx-item {
+        padding: .6rem .7rem;
+    }
+
+    .ctx-lbl {
+        font-size: 10px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--c-muted);
+        margin-bottom: .2rem;
+    }
+
+    .ctx-val {
+        font-size: .88rem;
+        font-weight: 600;
+        color: var(--c-text);
+        word-break: break-word;
+    }
+
+    .st {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        border-radius: 999px;
+        padding: .25rem .55rem;
+        font-size: .72rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .st-ok {
+        background: var(--c-ok-bg);
+        color: var(--c-ok);
+        border-color: var(--c-ok-br);
+    }
+
+    .st-w {
+        background: var(--c-warn-bg);
+        color: var(--c-warn);
+        border-color: var(--c-warn-br);
+    }
+
+    .st-no {
+        background: var(--c-err-bg);
+        color: var(--c-err);
+        border-color: var(--c-err-br);
+    }
+
+    .decision {
+        padding: .85rem;
+        margin-bottom: .85rem;
+    }
+
+    .dec-head {
+        margin-bottom: .75rem;
+    }
+
+    .dec-kicker {
+        font-size: 11px;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--c-accent);
+        margin-bottom: .2rem;
+    }
+
+    .dec-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -.01em;
+    }
+
+    .dec-note {
+        margin: .2rem 0 0;
+        font-size: .8rem;
+        color: var(--c-muted);
+    }
+
+    .choices {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .55rem;
+        margin-bottom: .75rem;
+    }
+
+    .choice {
+        position: relative;
+    }
+
+        .choice input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+    .choice-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .3rem;
+        padding: .65rem .5rem;
+        border: 1.5px solid var(--c-border);
+        border-radius: var(--r-sm);
+        background: var(--c-surface-alt);
+        cursor: pointer;
+        text-align: center;
+        transition: border-color var(--ease), background var(--ease), box-shadow var(--ease), transform var(--ease);
+    }
+
+        .choice-label:hover {
+            border-color: var(--c-border-s);
+            transform: translateY(-1px);
+        }
+
+    .choice input:checked + .choice-label {
+        border-color: var(--c-accent);
+        background: var(--c-accent-l);
+        box-shadow: var(--focus);
+    }
+
+    .choice-ico {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: .95rem;
+    }
+
+        .choice-ico.ico-yes {
+            background: var(--c-ok-bg);
+            color: var(--c-ok);
+        }
+
+        .choice-ico.ico-no {
+            background: var(--c-err-bg);
+            color: var(--c-err);
+        }
+
+        .choice-ico.ico-pen {
+            background: var(--c-warn-bg);
+            color: var(--c-warn);
+        }
+
+    .choice-txt {
+        font-size: .72rem;
+        font-weight: 700;
+        color: var(--c-text);
+    }
+
+    .choice-sub {
+        font-size: .65rem;
+        color: var(--c-muted);
+    }
+
+    .ff {
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+        margin-bottom: .65rem;
+    }
+
+    .ff-lbl {
+        font-size: 11px;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--c-muted);
+        transition: color var(--ease), transform var(--ease);
+    }
+
+    .ff:focus-within .ff-lbl {
+        color: var(--c-accent);
+        transform: translateY(-1px);
+    }
+
+    .ff-wrap {
+        position: relative;
+    }
+
+    .ff-ico {
+        position: absolute;
+        left: .7rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: .85rem;
+        color: #999;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .ff-sel, .ff-ta {
+        width: 100%;
+        min-height: 40px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface-alt);
+        padding: .5rem .7rem .5rem 2.3rem;
+        font-size: .85rem;
+        color: var(--c-text);
+        transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
+    }
+
+    .ff-ta {
+        min-height: 80px;
+        padding-left: .7rem;
+        resize: vertical;
+        font-family: var(--font);
+    }
+
+        .ff-sel:focus, .ff-ta:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--c-accent);
+            box-shadow: var(--focus);
+        }
+
+    .ff-hint {
+        font-size: .7rem;
+        color: var(--c-muted);
+    }
+
+    .reason-panel {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height .3s ease, opacity .25s ease, margin .25s ease;
+        margin-top: 0;
+    }
+
+        .reason-panel.open {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: .65rem;
+        }
+
+    .toggle {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        margin-bottom: .75rem;
+        padding: .55rem .7rem;
+        border-radius: var(--r-sm);
+        background: var(--c-surface-alt);
+        border: 1px solid var(--c-border);
+        cursor: pointer;
+        transition: border-color var(--ease);
+    }
+
+        .toggle:hover {
+            border-color: var(--c-border-s);
+        }
+
+        .toggle input {
+            accent-color: var(--c-accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+    .toggle-txt {
+        font-size: .82rem;
+        font-weight: 600;
+    }
+
+    .toggle-sub {
+        font-size: .72rem;
+        color: var(--c-muted);
+    }
+
+    .actions {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        min-height: 38px;
+        padding: 0 .85rem;
+        border-radius: var(--r-sm);
+        font-size: .78rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface);
+        color: var(--c-text);
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform var(--ease), box-shadow var(--ease), background var(--ease), color var(--ease), border-color var(--ease);
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .btn-p {
+        background: var(--c-accent-g);
+        color: #fff;
+        border-color: var(--c-accent);
+        box-shadow: 0 6px 18px rgba(181,48,26,.16);
+    }
+
+        .btn-p:hover {
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(181,48,26,.22);
+        }
+
+    .btn-g {
+        background: transparent;
+        color: var(--c-accent);
+        border-color: #dab8b0;
+    }
+
+        .btn-g:hover {
+            background: var(--c-accent-l);
+        }
+
+    .divider {
+        border: none;
+        border-top: 1px solid var(--c-border);
+        margin: .75rem 0;
+    }
+
+    .readonly-notice {
+        padding: .85rem;
+        text-align: center;
+    }
+
+        .readonly-notice i {
+            font-size: 1.2rem;
+            color: var(--c-muted);
+            margin-bottom: .35rem;
+            display: block;
+        }
+
+        .readonly-notice p {
+            margin: 0;
+            font-size: .85rem;
+            color: var(--c-muted);
+        }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .ff-wrap .select2-container--default .select2-selection--single {
+        min-height: 40px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--c-border-s);
+        background: var(--c-surface-alt);
+        padding-left: 2.3rem;
+        transition: border-color var(--ease), box-shadow var(--ease);
+    }
+
+    .ff-wrap:focus-within .select2-container--default .select2-selection--single,
+    .ff-wrap .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: var(--c-accent);
+        box-shadow: var(--focus);
+        background: #fff;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px;
+        padding-left: 0;
+        font-size: .85rem;
+        color: var(--c-text);
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 38px;
+        right: .4rem;
+    }
+
+    @@media (max-width: 600px) {
+        .rv {
+            padding-inline: .7rem;
+        }
+
+        .rv-hdr h1 {
+            font-size: 1.2rem;
+        }
+
+        .choices {
+            grid-template-columns: 1fr;
+        }
+
+        .ctx {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="rv">
+    <a asp-action="OnCreatePlan" asp-controller="LessonPlanConfig" asp-route-IdPass="@Model.IdPass" class="back">
+        <i class="fa fa-arrow-left"></i> Back to Lesson Plans
+    </a>
+
+    <header class="rv-hdr">
+        <span class="rv-ico"><i class="fa fa-gavel"></i></span>
+        <div>
+            <h1>Moderate Lesson Plan</h1>
+            <p class="rv-sub">Review the submission details and record your decision below.</p>
+        </div>
+    </header>
+
+    <div class="ctx">
+        <div class="card ctx-item">
+            <div class="ctx-lbl">Reference</div>
+            <div class="ctx-val">@(Model.Reference ?? "—")</div>
+        </div>
+        <div class="card ctx-item">
+            <div class="ctx-lbl">Phase</div>
+            <div class="ctx-val">@phaseLabel</div>
+        </div>
+        <div class="card ctx-item">
+            <div class="ctx-lbl">Funder</div>
+            <div class="ctx-val">@funderLabel</div>
+        </div>
+        <div class="card ctx-item">
+            <div class="ctx-lbl">Current Status</div>
+            <div class="ctx-val">
+                <span class="st @statusClass"><i class="fa @statusIcon"></i> @statusLabel</span>
+            </div>
+        </div>
+        <div class="card ctx-item">
+            <div class="ctx-lbl">Document</div>
+            <div class="ctx-val">
+                @if (!string.IsNullOrWhiteSpace(Model.Document))
+                {
+                    <a asp-action="AttachmentDownload" asp-controller="LessonPlanConfig" asp-route-fileId="@Model.UploadUrl"
+                       style="color:var(--c-accent);font-weight:600;font-size:.82rem;text-decoration:none;">
+                        <i class="fa fa-file-pdf"></i> @Model.Document
+                    </a>
+                }
+                else
+                {
+                    <span style="color:var(--c-muted);">No file</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="OnModifyPlanConfig" id="modForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.82rem;margin-bottom:.5rem;"></div>
+
+        <input type="hidden" asp-for="LessonPlanId" />
+        <input type="hidden" asp-for="IdPass" />
+        <input type="hidden" asp-for="Reference" />
+        <input type="hidden" asp-for="Course" />
+        <input type="hidden" asp-for="Module" />
+        <input type="hidden" asp-for="Phase" />
+        <input type="hidden" asp-for="Funder" />
+        <input type="hidden" asp-for="Document" />
+        <input type="hidden" asp-for="UploadUrl" />
+
+        @if (User.IsInRole("Admin"))
+        {
+            <section class="card decision">
+                <div class="dec-head">
+                    <div class="dec-kicker">Admin Decision</div>
+                    <h2 class="dec-title">What is your verdict?</h2>
+                    <p class="dec-note">Choose one option. The learner will be notified via SMS automatically.</p>
+                </div>
+
+                <div class="choices">
+                    <label class="choice">
+                        <input type="radio" name="Approval" value="Yes"
+                               @(Model.Approval == eSelection.Yes ? "checked" : "") />
+                        <span class="choice-label">
+                            <span class="choice-ico ico-yes"><i class="fa fa-circle-check"></i></span>
+                            <span class="choice-txt">Approve</span>
+                            <span class="choice-sub">Lesson plan accepted</span>
+                        </span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="Approval" value="No"
+                               @(Model.Approval == eSelection.No ? "checked" : "") />
+                        <span class="choice-label">
+                            <span class="choice-ico ico-no"><i class="fa fa-circle-xmark"></i></span>
+                            <span class="choice-txt">Reject</span>
+                            <span class="choice-sub">Requires resubmission</span>
+                        </span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="Approval" value="Pending"
+                               @(Model.Approval == eSelection.Pending ? "checked" : "") />
+                        <span class="choice-label">
+                            <span class="choice-ico ico-pen"><i class="fa fa-clock"></i></span>
+                            <span class="choice-txt">Pending</span>
+                            <span class="choice-sub">Under review</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="ff">
+                    <label class="ff-lbl">Approved / Rejected By</label>
+                    <div class="ff-wrap">
+                        <span class="ff-ico"><i class="fa fa-user-shield"></i></span>
+                        <select name="IsApprovedBy" class="ff-sel js-s2" asp-items="@ViewBag.IsApprovedBy">
+                            <option value="">Select admin</option>
+                        </select>
+                    </div>
+                    <span class="ff-hint">The admin responsible for this decision.</span>
+                </div>
+
+                <div class="reason-panel" id="reasonPanel">
+                    <div class="ff">
+                        <label asp-for="Reason" class="ff-lbl">Reason for Rejection</label>
+                        <textarea asp-for="Reason" class="ff-ta"
+                                  placeholder="Briefly explain why the lesson plan was rejected so the learner can address it."></textarea>
+                        <span asp-validation-for="Reason" class="text-danger" style="font-size:.75rem;"></span>
+                        <span class="ff-hint">This feedback is shared with the learner.</span>
+                    </div>
+                </div>
+
+                <hr class="divider" />
+
+                <label class="toggle">
+                    <input type="checkbox" asp-for="IsActive" />
+                    <div>
+                        <div class="toggle-txt">Active</div>
+                        <div class="toggle-sub">Uncheck to deactivate this lesson plan record.</div>
+                    </div>
+                </label>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-p"><i class="fa fa-paper-plane"></i> Submit Decision</button>
+                    <button type="reset" class="btn btn-g"><i class="fa fa-rotate-left"></i> Reset</button>
+                    <a asp-action="OnCreatePlan" asp-controller="LessonPlanConfig" asp-route-IdPass="@Model.IdPass" class="btn btn-g">
+                        <i class="fa fa-xmark"></i> Cancel
+                    </a>
+                </div>
+            </section>
+        }
+        else
+        {
+            <section class="card readonly-notice">
+                <i class="fa fa-lock"></i>
+                <p>Only administrators can moderate lesson plans. You are viewing this record in read-only mode.</p>
+            </section>
+        }
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    (function () {
+        $('.js-s2').select2({ width: '100%', minimumResultsForSearch: 6 });
+
+        $(document).on('select2:open', function () {
+            var field = document.querySelector('.select2-container--open .select2-search__field');
+            if (field) field.focus();
+        });
+
+        var panel = document.getElementById('reasonPanel');
+
+        function syncReason() {
+            var checked = document.querySelector('input[name="Approval"]:checked');
+            var isReject = checked && checked.value === 'No';
+
+            if (panel) {
+                if (isReject) {
+                    panel.classList.add('open');
+                } else {
+                    panel.classList.remove('open');
+                }
+            }
+        }
+
+        document.querySelectorAll('input[name="Approval"]').forEach(function (radio) {
+            radio.addEventListener('change', syncReason);
+        });
+
+        syncReason();
+    })();
+</script>

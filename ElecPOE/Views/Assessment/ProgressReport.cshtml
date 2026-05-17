@@ -1,0 +1,503 @@
+﻿@model ForekOnline.Domain.ViewModels.LearnerProgressReportViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Learner Progress Report";
+
+    var grouped = Model.Assessments
+        .GroupBy(a => a.Module)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    bool hasScores = Model.Assessments.Any(a => a.HasScore);
+    var latest = Model.Assessments
+        .OrderByDescending(a => a.CreatedOn)
+        .FirstOrDefault();
+
+    var scoredSeries = Model.Assessments
+        .Where(a => a.HasScore)
+        .OrderBy(a => a.CreatedOn)
+        .Select(a => new { label = a.AssessmentType.ToString(), value = a.Percent ?? 0 })
+        .ToList();
+
+    string scoredJson = JsonSerializer.Serialize(scoredSeries);
+}
+
+@section Styles {
+<style>
+:root{
+  --c-dr:#320606;--c-red:#b31217;--c-orange:#ff7a18;
+  --c-bg:#ffffff;--c-bg-alt:#f5f7fa;--c-soft:#fff5f3;
+  --c-border:#e4e6ea;--c-border-alt:#d5d8dd;
+  --c-grad:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
+  --c-text:#1f262e;--c-muted:#6b7280;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+@@media (prefers-color-scheme:dark){
+  :root{
+    --c-bg:#1f242d;--c-bg-alt:#161b23;--c-soft:#2a3139;
+    --c-border:#2c343f;--c-border-alt:#3b4552;
+    --c-text:#e7ecf1;--c-muted:#99a5b3;
+  }
+  body{background:radial-gradient(at 72% 18%,#ff7a1818,#161b23 70%)!important;}
+}
+body{background:var(--c-bg-alt);color:var(--c-text);}
+/* Layout */
+.shell{max-width:1500px;margin:0 auto;padding:1.9rem 1.25rem 3rem;display:grid;grid-template-columns:230px 1fr;gap:1.6rem;}
+@@media (max-width:1100px){.shell{grid-template-columns:1fr;} .rail{position:static;}}
+/* Navigation Rail */
+.rail{position:sticky;top:1rem;align-self:start;display:flex;flex-direction:column;gap:1.2rem;
+  background:var(--c-bg);border:1px solid var(--c-border);border-radius:28px;padding:1.1rem .95rem;}
+.rail h6{margin:0;font-size:.58rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;color:var(--c-red);}
+.nav-list{display:flex;flex-direction:column;gap:.4rem;}
+.nav-list button{all:unset;cursor:pointer;font-size:.62rem;letter-spacing:.1rem;font-weight:600;
+  border:1px solid var(--c-border);padding:.55rem .75rem;border-radius:13px;
+  background:var(--c-soft);color:var(--c-text);display:flex;align-items:center;gap:.45rem;transition:.3s;}
+.nav-list button:hover,.nav-list button.active{background:var(--c-grad);color:#fff;border-color:var(--c-red);box-shadow:0 5px 16px -8px rgba(179,18,23,.5);}
+.print-btn{margin-top:auto;}
+/* Header */
+.header{background:var(--c-bg);border:1px solid var(--c-border);border-radius:38px;
+  padding:1.2rem 1.4rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;}
+.header:before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,#32060610,#b3121710,#ff7a1812);pointer-events:none;}
+.icon-pill{width:82px;height:82px;border-radius:28px;background:var(--c-grad);display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:2.2rem;box-shadow:0 14px 34px -14px rgba(179,18,23,.55);}
+.header h1{margin:0;font-size:1.6rem;font-weight:600;display:flex;gap:.6rem;align-items:center;}
+.meta-chip{font-size:.58rem;letter-spacing:.22rem;font-weight:700;text-transform:uppercase;background:var(--c-soft);
+  color:var(--c-red);padding:.5rem .9rem;border-radius:40px;margin-top:.35rem;display:inline-flex;gap:.45rem;align-items:center;}
+.actions{margin-left:auto;display:flex;gap:.65rem;flex-wrap:wrap;}
+.btn{font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;padding:.6rem 1rem;
+  border-radius:16px;border:1px solid var(--c-border);background:#fff;color:var(--c-red);
+  display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;text-decoration:none;transition:.35s;}
+.btn:hover{background:var(--c-grad);color:#fff;border-color:var(--c-red);box-shadow:0 6px 16px -6px rgba(179,18,23,.45);}
+.btn-accent{background:var(--c-grad);border:1px solid var(--c-red);color:#fff;}
+.btn-accent:hover{filter:brightness(.93);}
+/* Metrics */
+.metrics{margin-top:1.7rem;display:grid;gap:1.3rem;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
+.metric{position:relative;background:var(--c-bg);border:1px solid var(--c-border);border-radius:30px;
+  padding:1rem .95rem .85rem;display:flex;flex-direction:column;gap:.55rem;overflow:hidden;transition:.45s;}
+.metric:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 78% 18%,rgba(255,122,24,.3),transparent 64%);}
+.metric:hover{transform:translateY(-5px);border-color:var(--c-border-alt);box-shadow:0 10px 24px -12px rgba(50,6,6,.25);}
+.metric-label{font-size:.55rem;letter-spacing:.18rem;font-weight:700;text-transform:uppercase;color:var(--c-muted);}
+.metric-value{font-size:clamp(2rem,2.2vw,2.4rem);font-weight:600;line-height:1;background:var(--c-grad);-webkit-background-clip:text;color:transparent;}
+.bar-mini{height:6px;background:#e6e9ed;border-radius:5px;overflow:hidden;margin-top:.15rem;}
+.bar-mini span{display:block;height:100%;background:linear-gradient(90deg,#b31217,#ff7a18);border-radius:inherit;transition:width .7s;}
+@@media (prefers-color-scheme:dark){.bar-mini{background:#2f3741;}}
+.heat-badge{font-size:.58rem;font-weight:700;letter-spacing:.08rem;padding:.38rem .6rem;border-radius:12px;display:inline-block;min-width:62px;text-align:center;}
+.heat-high{background:#16a34a20;color:#15803d;} .heat-mid{background:#f59e0b26;color:#b45309;} .heat-low{background:#dc262625;color:#b91c1c;}
+.module-grid{display:grid;gap:.55rem;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-top:.3rem;}
+/* Filters */
+.filters{margin-top:2.2rem;background:var(--c-bg);border:1px solid var(--c-border);border-radius:34px;padding:1rem 1.1rem .95rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;}
+.f-group{display:flex;flex-direction:column;gap:.4rem;}
+.f-group label{font-size:.5rem;letter-spacing:.16rem;font-weight:700;text-transform:uppercase;color:var(--c-muted);}
+.filters input,.filters select{background:#fff;border:1px solid var(--c-border);border-radius:14px;padding:.55rem .7rem;font-size:.72rem;min-width:170px;transition:.25s;}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--c-red);box-shadow:0 0 0 .16rem #b3121720;}
+@@media (prefers-color-scheme:dark){.filters input,.filters select{background:#222b35;color:var(--c-text);}}
+/* Accordion (custom lightweight) */
+.acc{margin-top:2.1rem;display:flex;flex-direction:column;gap:.9rem;}
+.acc-item{background:var(--c-bg);border:1px solid var(--c-border);border-radius:28px;overflow:hidden;transition:.4s;}
+.acc-head{display:flex;align-items:center;gap:.65rem;padding:.9rem 1rem;cursor:pointer;position:relative;}
+.acc-head:hover{background:var(--c-soft);}
+.badge-mod{background:var(--c-soft);color:var(--c-red);font-size:.48rem;font-weight:700;letter-spacing:.14rem;padding:.38rem .6rem;border-radius:30px;}
+.badge-num{background:#eef2f5;color:#314252;font-size:.48rem;font-weight:700;letter-spacing:.14rem;padding:.38rem .6rem;border-radius:26px;}
+@@media (prefers-color-scheme:dark){.badge-num{background:#2f3945;color:#d7e1ec;}}
+.acc-item.open{border-color:var(--c-border-alt);box-shadow:0 10px 24px -14px rgba(50,6,6,.25);}
+.acc-body{display:none;padding:.55rem .65rem .85rem;}
+.acc-item.open .acc-body{display:block;}
+/* Table */
+.table-wrap{overflow:auto;border:1px solid var(--c-border);border-radius:22px;background:var(--c-bg);}
+.data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
+.data-table thead th{background:var(--c-grad);color:#fff;font-size:.52rem;letter-spacing:.14rem;text-transform:uppercase;font-weight:700;padding:.5rem .6rem;position:sticky;top:0;z-index:4;}
+.data-table tbody tr{transition:.18s;}
+.data-table tbody tr:nth-child(even){background:#fffdfd;}
+.data-table tbody tr:nth-child(odd){background:#ffffff;}
+.data-table tbody tr:hover{background:#fff3ef;}
+@@media (prefers-color-scheme:dark){.data-table tbody tr:nth-child(even){background:#1e2731;} .data-table tbody tr:nth-child(odd){background:#202d37;} .data-table tbody tr:hover{background:#2a3744;}}
+.score-cell{min-width:90px;}
+.progress-cell{min-width:160px;}
+.state-chip{display:inline-flex;align-items:center;gap:.35rem;font-size:.5rem;font-weight:700;letter-spacing:.1rem;padding:.4rem .6rem;border-radius:30px;}
+.state-done{background:#16a34a26;color:#15803d;} .state-pending{background:#f59e0b26;color:#b45309;}
+.perf-bar{height:6px;background:#e6e9ed;border-radius:5px;overflow:hidden;}
+.perf-bar span{display:block;height:100%;background:linear-gradient(90deg,#b31217,#ff7a18);}
+@@media (prefers-color-scheme:dark){.perf-bar{background:#2f3741;}}
+.empty{padding:2.2rem 1.2rem;text-align:center;border:2px dashed var(--c-border);border-radius:26px;background:var(--c-bg);}
+/* Chart */
+.chart-card{margin-top:2.4rem;background:var(--c-bg);border:1px solid var(--c-border);border-radius:34px;padding:1.1rem 1.2rem 1.25rem;position:relative;overflow:hidden;}
+.chart-card:before{content:'';position:absolute;inset:0;background:linear-gradient(130deg,#32060608,#b312170a,#ff7a180c);pointer-events:none;}
+.chart-toolbar{display:flex;justify-content:space-between;align-items:center;gap:.85rem;flex-wrap:wrap;margin-bottom:.9rem;}
+.mode-btn{all:unset;cursor:pointer;font-size:.55rem;font-weight:700;letter-spacing:.12rem;background:#fff;border:1px solid var(--c-border);color:var(--c-red);padding:.5rem .85rem;border-radius:12px;transition:.3s;}
+.mode-btn:hover,.mode-btn.active{background:var(--c-grad);color:#fff;border-color:var(--c-red);}
+@@media (prefers-color-scheme:dark){.mode-btn{background:#232d37;}}
+/* Anim */
+.fade-in{animation:fade .55s ease;} @@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+}
+
+<div class="shell fade-in">
+
+    <aside class="rail">
+        <h6>Sections</h6>
+        <div class="nav-list" id="navRail">
+            <button data-scroll="top" class="active"><i class="fa fa-arrow-up"></i> Top</button>
+            <button data-scroll="metrics"><i class="fa fa-chart-pie"></i> Metrics</button>
+            <button data-scroll="modules"><i class="fa fa-layer-group"></i> Modules</button>
+            <button data-scroll="chart"><i class="fa fa-wave-square"></i> Chart</button>
+        </div>
+        <div class="print-btn">
+            <button class="btn btn-accent" id="btnPrint" style="width:100%;justify-content:center;"><i class="fa fa-print"></i> Print</button>
+        </div>
+    </aside>
+
+    <main id="top">
+
+        <div class="header">
+            <div class="icon-pill"><i class="fa fa-graduation-cap"></i></div>
+            <div>
+                <h1>Academic Results</h1>
+                <div class="meta-chip"><i class="fa fa-user"></i> @Model.StudentName • @Model.CourseTitle</div>
+            </div>
+            <div class="actions">
+                <a asp-action="StudAssessments" asp-controller="LearnerAssessment" class="btn"><i class="fa fa-arrow-left"></i> Back</a>
+                <button type="button" id="btnExport" class="btn-accent"><i class="fa fa-file-export"></i> Export</button>
+            </div>
+        </div>
+
+        <section id="metrics" class="metrics">
+            <div class="metric">
+                <div class="metric-label">Average Score</div>
+                <div class="metric-value">@Model.AveragePercent<span style="font-size:.8rem;">%</span></div>
+                <div class="bar-mini"><span style="width:@Model.AveragePercent%;"></span></div>
+                <small class="metric-label" style="font-weight:600;margin-top:.25rem;">Latest: @(latest?.AssessmentType.ToString() ?? "—")</small>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Completion</div>
+                <div class="metric-value">@Model.CompletionPercent<span style="font-size:.8rem;">%</span></div>
+                <div class="bar-mini"><span style="width:@Model.CompletionPercent%;"></span></div>
+                <small class="metric-label" style="font-weight:600;margin-top:.25rem;">@Model.CompletedAssessments / @Model.TotalAssessments done</small>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Module Averages</div>
+                <div class="module-grid">
+                    @if (Model.AverageByModule.Count == 0)
+                    {
+                        <div class="metric-label" style="font-size:.58rem;">No scores yet</div>
+                    }
+                    else
+                    {
+                        foreach (var kv in Model.AverageByModule)
+                        {
+                            var level = kv.Value >= 70 ? "heat-high" : kv.Value >= 50 ? "heat-mid" : "heat-low";
+                            <div style="display:flex;flex-direction:column;gap:.25rem;">
+                                <span class="metric-label" style="font-size:.48rem;">@kv.Key</span>
+                                <span class="heat-badge @level">@kv.Value %</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+           @*  <div class="metric">
+                <div class="metric-label">Latest Activity</div>
+                @if (latest != null)
+                {
+                    <div class="fw-semibold" style="font-size:.85rem;">@latest.AssessmentType</div>
+                    <small class="metric-label">@latest.CreatedOn.ToLocalTime().ToString("yyyy-MM-dd")</small>
+                }
+                else
+                {
+                    <div class="metric-label" style="font-size:.58rem;">No Data</div>
+                }
+                <div class="metric-label" style="margin-top:.55rem;">Modules</div>
+                <div class="metric-value" style="font-size:1.5rem;">@grouped.Count</div>
+            </div> *@
+        </section>
+
+        <div class="filters">
+            <div class="f-group">
+                <label>Search</label>
+                <input id="searchBox" type="text" placeholder="Find assessment..." autocomplete="off" />
+            </div>
+            <div class="f-group">
+                <label>Min %</label>
+                <select id="minPercent">
+                    <option value="0">0</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
+                    <option value="60">60</option>
+                    <option value="70">70</option>
+                    <option value="80">80</option>
+                </select>
+            </div>
+            <div class="f-group">
+                <label>Status</label>
+                <select id="statusFilter">
+                    <option value="">Any</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+            <div class="f-group">
+                <label>Expand</label>
+                <div style="display:flex;gap:.55rem;">
+                    <button type="button" class="btn" id="btnExpandAll" style="padding:.45rem .8rem;">All</button>
+                    <button type="button" class="btn" id="btnCollapseAll" style="padding:.45rem .8rem;">None</button>
+                </div>
+            </div>
+        </div>
+
+        <section id="modules" class="acc">
+            @if (!grouped.Any())
+            {
+                <div class="empty">
+                    <h6 class="fw-semibold mb-2">No Assessments</h6>
+                    <p class="text-muted mb-0" style="font-size:.72rem;">Data appears once assessments exist.</p>
+                </div>
+            }
+            else
+            {
+                for (int i = 0; i < grouped.Count; i++)
+                {
+                    var g = grouped[i];
+                    var moduleAvg = g.Where(a => a.HasScore).Any()
+                        ? Math.Round(g.Where(a => a.HasScore).Average(a => a.Percent ?? 0), 1)
+                        : 0;
+                    var lvl = moduleAvg >= 70 ? "heat-high" : moduleAvg >= 50 ? "heat-mid" : "heat-low";
+                    <div class="acc-item @(i==0?"open":"")" data-module="@g.Key">
+                        <div class="acc-head" data-acc-toggle>
+                            <span class="badge-mod">@g.Key</span>
+                            <span class="heat-badge @lvl" style="font-size:.55rem;">@moduleAvg %</span>
+                            <span class="badge-num">@g.Count()</span>
+                            <span class="metric-label" style="margin-left:auto;">Module</span>
+                        </div>
+                        <div class="acc-body">
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Assessment</th>
+                                            <th>Date</th>
+                                            <th>Score</th>
+                                            <th>Performance</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var a in g.OrderByDescending(x => x.CreatedOn))
+                                    {
+                                        var pct = a.Percent ?? 0;
+                                        var barLevel = pct >= 70 ? "ok" : pct >= 50 ? "warn" : "bad";
+                                        <tr data-name="@a.Module"
+                                            data-pct="@pct"
+                                            data-status="@(a.HasScore? "completed":"pending")">
+                                            <td class="fw-semibold">@a.Module</td>
+                                            <td>@a.CreatedOn.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                                            <td class="score-cell">@((a.HasScore)? $"{a.Score}/{a.MaxScore}" : "-")</td>
+                                            <td class="progress-cell">
+                                                @if (a.HasScore)
+                                                {
+                                                    <div style="display:flex;flex-direction:column;gap:.35rem;">
+                                                        <div style="display:flex;justify-content:space-between;font-size:.55rem;">
+                                                            <span>@pct %</span>
+                                                            <span class="text-muted" style="font-size:.55rem;">
+                                                                @(pct>=70?"Good": pct>=50?"Fair":"Low")
+                                                            </span>
+                                                        </div>
+                                                        <div class="perf-bar">
+                                                            <span style="width:@pct%;background:@(
+                                                                barLevel=="ok" ? "linear-gradient(90deg,#16a34a,#059669)" :
+                                                                barLevel=="warn" ? "linear-gradient(90deg,#eab308,#d97706)" :
+                                                                                "linear-gradient(90deg,#dc2626,#b91c1c)")"></span>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted" style="font-size:.55rem;">Not graded</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="state-chip @(a.HasScore?"state-done":"state-pending")">
+                                                    <i class="fa @(a.HasScore?"fa-check-circle":"fa-clock")"></i>
+                                                    @(a.Status)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </section>
+
+        <!-- CHART -->
+        <div id="chart" class="chart-card">
+            <div class="chart-toolbar">
+                <div>
+                    <h6 class="mb-0" style="font-weight:600;">Performance Trend</h6>
+                    <small class="metric-label" style="font-size:.5rem;">Across scored assessments</small>
+                </div>
+                <div style="display:flex;gap:.55rem;">
+                    <button type="button" data-chart-mode="line" class="mode-btn active">Line</button>
+                    <button type="button" data-chart-mode="bar" class="mode-btn">Bar</button>
+                    <button type="button" data-chart-mode="radar" class="mode-btn">Radar</button>
+                </div>
+            </div>
+            @if (hasScores)
+            {
+                <div style="height:270px;"><canvas id="scoreChart"></canvas></div>
+            }
+            else
+            {
+                <div class="empty" style="margin:0;">
+                    <h6 class="fw-semibold mb-2">No Scores</h6>
+                    <p class="text-muted mb-0" style="font-size:.65rem;">Chart will appear once scores exist.</p>
+                </div>
+            }
+        </div>
+
+    </main>
+</div>
+
+@section Scripts {
+@if (hasScores)
+{
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+
+    // Smooth section navigation
+    document.querySelectorAll('[data-scroll]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            document.querySelectorAll('.nav-list button').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            const id = btn.getAttribute('data-scroll');
+            if(id === 'top'){ window.scrollTo({top:0,behavior:'smooth'}); return; }
+            const el = document.getElementById(id);
+            if(el){
+                const y = el.getBoundingClientRect().top + window.scrollY - 10;
+                window.scrollTo({top:y,behavior:'smooth'});
+            }
+        });
+    });
+
+    // Accordion
+    document.querySelectorAll('[data-acc-toggle]').forEach(h=>{
+        h.addEventListener('click',()=> h.parentElement.classList.toggle('open'));
+    });
+    document.getElementById('btnExpandAll')?.addEventListener('click',()=>{
+        document.querySelectorAll('.acc-item').forEach(i=>i.classList.add('open'));
+    });
+    document.getElementById('btnCollapseAll')?.addEventListener('click',()=>{
+        document.querySelectorAll('.acc-item').forEach(i=>i.classList.remove('open'));
+    });
+
+    // Filters
+    const searchBox = document.getElementById('searchBox');
+    const minPercent = document.getElementById('minPercent');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function norm(v){ return (v||'').toString().toLowerCase().trim(); }
+
+    function applyFilters(){
+        const q = norm(searchBox.value);
+        const mp = parseInt(minPercent.value||'0',10);
+        const st = statusFilter.value;
+        document.querySelectorAll('.acc-item').forEach(block=>{
+            let visibleModule = false;
+            block.querySelectorAll('tbody tr').forEach(r=>{
+                const name = norm(r.getAttribute('data-name'));
+                const pct = parseInt(r.getAttribute('data-pct')||'0',10);
+                const status = r.getAttribute('data-status');
+                let show = true;
+                if(q && !name.includes(q)) show=false;
+                if(pct < mp) show=false;
+                if(st && status !== st) show=false;
+                r.style.display = show ? '' : 'none';
+                if(show) visibleModule = true;
+            });
+            block.style.display = visibleModule ? '' : 'none';
+        });
+    }
+    [searchBox,minPercent,statusFilter].forEach(el=> el.addEventListener(el.tagName==='INPUT'?'input':'change',applyFilters));
+
+    // Chart
+    const raw = @Html.Raw(scoredJson);
+    if(raw?.length){
+        const labels = raw.map(x=>x.label);
+        const values = raw.map(x=>x.value);
+        let currentMode = 'line';
+        const ctx = document.getElementById('scoreChart');
+
+        function gradient(chart){
+            const {ctx,chartArea} = chart;
+            if(!chartArea) return 'rgba(179,18,23,.15)';
+            const g = ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+            g.addColorStop(0,'rgba(179,18,23,.45)');
+            g.addColorStop(1,'rgba(179,18,23,0)');
+            return g;
+        }
+
+        function config(){
+            return {
+                type: currentMode,
+                data:{
+                    labels,
+                    datasets:[{
+                        data: values,
+                        label: 'Percent',
+                        tension:.35,
+                        fill: currentMode !== 'bar',
+                        backgroundColor: (c)=> currentMode==='bar' ? 'rgba(179,18,23,.75)' : gradient(c.chart),
+                        borderColor:'rgba(179,18,23,1)',
+                        borderWidth:2,
+                        pointRadius:4,
+                        pointBackgroundColor:'#fff',
+                        pointBorderColor:'rgba(179,18,23,1)',
+                        maxBarThickness:42
+                    }]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    scales: currentMode==='radar'? {} : {
+                        y:{beginAtZero:true,max:100,ticks:{stepSize:10}},
+                        x:{grid:{display:false}}
+                    },
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{
+                            backgroundColor:'rgba(17,24,39,.92)',
+                            padding:10,
+                            displayColors:false,
+                            callbacks:{ label: (ctx)=>' '+ctx.parsed.y+'%' }
+                        }
+                    }
+                }
+            };
+        }
+
+        let chart = new Chart(ctx, config());
+
+        document.querySelectorAll('[data-chart-mode]').forEach(b=>{
+            b.addEventListener('click',()=>{
+                const mode = b.getAttribute('data-chart-mode');
+                if(mode === currentMode) return;
+                document.querySelectorAll('[data-chart-mode]').forEach(x=>x.classList.remove('active'));
+                b.classList.add('active');
+                currentMode = mode;
+                chart.destroy();
+                chart = new Chart(ctx, config());
+            });
+        });
+    }
+
+    // Print + Export stub
+    document.getElementById('btnPrint')?.addEventListener('click',()=> window.print());
+    document.getElementById('btnExport')?.addEventListener('click',()=> alert('Please contact Forek Admin to enable results export option in order for  you to be able to download your results'));
+
+    applyFilters();
+})();</script>
+}
+}
