@@ -6,6 +6,9 @@
     var statusGroups = placements.GroupBy(p => p.Status).ToDictionary(g => g.Key, g => g.Count());
     int total = placements.Count;
     int atRisk = placements.Count(p => p.IsAtRisk);
+    int pendingTimesheets = ViewBag.PendingTimesheets ?? 0;
+    int pendingCampusAcknowledgements = ViewBag.PendingCampusAcknowledgements ?? 0;
+    int totalVisits = ViewBag.TotalVisits ?? 0;
 }
 
 <style>
@@ -152,6 +155,21 @@ body {
             <div class="stat-label">AT RISK</div>
             <div class="stat-value">@atRisk</div>
             <div class="stat-chip"><i class="fa fa-triangle-exclamation"></i> INTERVENTION</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">PENDING TIMESHEETS</div>
+            <div class="stat-value">@pendingTimesheets</div>
+            <div class="stat-chip"><i class="fa fa-clock"></i> WORKPLACE APPROVAL</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">CAMPUS ACKS</div>
+            <div class="stat-value">@pendingCampusAcknowledgements</div>
+            <div class="stat-chip"><i class="fa fa-user-check"></i> ACKNOWLEDGEMENT</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">VISITS</div>
+            <div class="stat-value">@totalVisits</div>
+            <div class="stat-chip"><i class="fa fa-clipboard-check"></i> LINKED HISTORY</div>
         </div>
         @foreach (eStatus s in Enum.GetValues(typeof(eStatus)))
         {

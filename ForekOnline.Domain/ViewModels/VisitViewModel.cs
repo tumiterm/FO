@@ -41,7 +41,7 @@ namespace ForekOnline.Domain.ViewModels
         /// <summary>
         /// Gets or sets the placement ID associated with the visit.
         /// </summary>
-        public Guid PlacementId { get; set; }
+        public Guid? PlacementId { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether a report is attached to the visit.
@@ -65,9 +65,32 @@ namespace ForekOnline.Domain.ViewModels
         public string Date { get; set; }
 
         /// <summary>
+        /// Gets or sets the visit duration in minutes.
+        /// </summary>
+        public int? DurationMinutes { get; set; }
+
+        /// <summary>
         /// Gets or sets the feedback provided by the learner.
         /// </summary>
         public string? LearnerFeedback { get; set; }
+
+        public bool AttendanceObserved { get; set; }
+
+        public bool EngagementObserved { get; set; }
+
+        public bool WorkplaceConditionsObserved { get; set; }
+
+        public bool SafetyObserved { get; set; }
+
+        public bool SkillApplicationObserved { get; set; }
+
+        public string? ObservationNotes { get; set; }
+
+        public string? ActionItems { get; set; }
+
+        public DateTime? ActionItemDueDate { get; set; }
+
+        public string? ActionItemAssignee { get; set; }
 
         /// <summary>
         /// Gets or sets the purpose of the visit.

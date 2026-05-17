@@ -11,6 +11,8 @@ using ForekOnline.Application.Common.Services;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
+using ForekOnline.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -32,6 +34,7 @@ namespace ElecPOE.Controllers
         private readonly IStudentService _studentService;
         private readonly IUserService _userService;
         private readonly IPlacementService _placementService;
+        private readonly ApplicationDbContext _db;
         #endregion
 
         /// <summary>
@@ -43,7 +46,8 @@ namespace ElecPOE.Controllers
             IHelperService helperService,
             IStudentService studentService,
             IUserService userService,
-            IPlacementService placementService)
+            IPlacementService placementService,
+            ApplicationDbContext db)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
@@ -51,6 +55,7 @@ namespace ElecPOE.Controllers
             _studentService = studentService ?? throw new ArgumentNullException(nameof(studentService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _placementService = placementService ?? throw new ArgumentNullException(nameof(placementService));
+            _db = db ?? throw new ArgumentNullException(nameof(db));
         }
 
         /// <summary>
@@ -74,6 +79,13 @@ namespace ElecPOE.Controllers
             ViewData["company"] = await _placementService.GetCompanyNameAsync(placement.CompanyId);
             ViewData["student"] = student;
             ViewData["PlacementId"] = placement.PlacementId;
+            ViewData["placement"] = placement;
+            ViewBag.Timesheets = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .Where(t => t.PlacementId == placement.PlacementId)
+                .OrderByDescending(t => t.WeekStartDate)
+                .Take(8)
+                .ToListAsync();
 
             return View();
         }
@@ -185,8 +197,131 @@ namespace ElecPOE.Controllers
 
             ViewBag.StatusCounts = _placementService.GetStatusCounts(placementList);
             ViewBag.StatusList = placementList.Select(p => p.Status.ToString()).ToList();
+            ViewBag.PendingTimesheets = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Pending Workplace Approval");
+            ViewBag.PendingCampusAcknowledgements = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Approved - Pending Campus Acknowledgement");
+            ViewBag.TotalVisits = await _db.Visits.CountAsync(v => v.PlacementId != null);
 
             return View(placementList);
+        }
+
+
+        /// <summary>
+        /// Submits a weekly learner timesheet against a placement and starts workplace approval.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitWeeklyTimesheet(WeeklyTimesheetViewModel model, string? StudentNumber)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Please complete the required weekly timesheet fields.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
+            var placement = await _db.Placements.FindAsync(model.PlacementId);
+            if (placement is null)
+                return RedirectToAction("RouteNotFound", "Global");
+
+            model.WeekStartDate = model.WeekStartDate == default ? GetCurrentMonday() : model.WeekStartDate.Date;
+            model.WeekEndDate = model.WeekEndDate == default ? model.WeekStartDate.AddDays(6) : model.WeekEndDate.Date;
+
+            var timesheet = new WeeklyTimesheet
+            {
+                WeeklyTimesheetId = Helper.GenerateGuid(),
+                PlacementId = model.PlacementId,
+                WeekStartDate = model.WeekStartDate,
+                WeekEndDate = model.WeekEndDate,
+                TotalHours = model.TotalHours,
+                MondayHours = model.MondayHours,
+                TuesdayHours = model.TuesdayHours,
+                WednesdayHours = model.WednesdayHours,
+                ThursdayHours = model.ThursdayHours,
+                FridayHours = model.FridayHours,
+                SaturdayHours = model.SaturdayHours,
+                SundayHours = model.SundayHours,
+                ActivityDescription = model.ActivityDescription,
+                SkillsApplied = model.SkillsApplied,
+                LearningOutcomes = model.LearningOutcomes,
+                ChallengesFaced = model.ChallengesFaced,
+                Status = "Pending Workplace Approval",
+                SubmittedOn = _helperService.GetCurrentTime(),
+                CreatedOn = _helperService.GetCurrentTime().ToString(),
+                CreatedBy = placement.Student,
+                IsActive = true
+            };
+
+            if (model.EvidenceFile is not null && model.EvidenceFile.Length > 0)
+                timesheet.EvidenceFileName = await UploadPlacementEvidenceAsync(timesheet.WeeklyTimesheetId, model.EvidenceFile);
+
+            _db.WeeklyTimesheets.Add(timesheet);
+            placement.ModifiedOn = Helper.OnGetCurrentDateTime();
+            placement.ModifiedBy = placement.Student;
+            await _db.SaveChangesAsync();
+
+            TempData["success"] = "Weekly timesheet submitted and is pending workplace approval.";
+            return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+        }
+
+        /// <summary>
+        /// Records a workplace mentor approval/rejection decision for a timesheet.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> WorkplaceTimesheetDecision(Guid weeklyTimesheetId, bool approve, string? comments)
+        {
+            var currentUser = GetCurrentUser();
+            var timesheet = await _db.WeeklyTimesheets.Include(t => t.Placement).FirstOrDefaultAsync(t => t.WeeklyTimesheetId == weeklyTimesheetId);
+            if (timesheet is null)
+                return RedirectToAction("RouteNotFound", "Global");
+
+            timesheet.Status = approve ? "Approved - Pending Campus Acknowledgement" : "Rejected by Workplace Mentor";
+            timesheet.WorkplaceMentorComments = comments;
+            timesheet.WorkplaceMentorDecisionBy = currentUser?.Id;
+            timesheet.WorkplaceMentorDecisionOn = _helperService.GetCurrentTime();
+            timesheet.ModifiedOn = Helper.OnGetCurrentDateTime();
+            timesheet.ModifiedBy = currentUser is null ? "Workplace Mentor" : $"{currentUser.Name} {currentUser.LastName}";
+
+            if (timesheet.Placement is not null)
+            {
+                timesheet.Placement.ModifiedOn = Helper.OnGetCurrentDateTime();
+                timesheet.Placement.ModifiedBy = timesheet.ModifiedBy;
+            }
+
+            await _db.SaveChangesAsync();
+            TempData[approve ? "success" : "warning"] = approve
+                ? "Timesheet approved. Campus mentor acknowledgement has been requested."
+                : "Timesheet rejected with workplace mentor comments.";
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
+        }
+
+        /// <summary>
+        /// Lets the campus mentor acknowledge an approved workplace timesheet.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AcknowledgeTimesheet(Guid weeklyTimesheetId, string? comments)
+        {
+            var currentUser = GetCurrentUser();
+            var timesheet = await _db.WeeklyTimesheets.Include(t => t.Placement).FirstOrDefaultAsync(t => t.WeeklyTimesheetId == weeklyTimesheetId);
+            if (timesheet is null)
+                return RedirectToAction("RouteNotFound", "Global");
+
+            timesheet.Status = "Final Approved";
+            timesheet.CampusMentorComments = comments;
+            timesheet.CampusMentorAcknowledgedBy = currentUser?.Id;
+            timesheet.CampusMentorAcknowledgedOn = _helperService.GetCurrentTime();
+            timesheet.ModifiedOn = Helper.OnGetCurrentDateTime();
+            timesheet.ModifiedBy = currentUser is null ? "Campus Mentor" : $"{currentUser.Name} {currentUser.LastName}";
+
+            if (timesheet.Placement is not null)
+            {
+                timesheet.Placement.ModifiedOn = Helper.OnGetCurrentDateTime();
+                timesheet.Placement.ModifiedBy = timesheet.ModifiedBy;
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Timesheet acknowledged and final approved; placement progress has been refreshed.";
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
         }
 
         /// <summary>
@@ -239,6 +374,16 @@ namespace ElecPOE.Controllers
             ViewData["PlacementId"] = dto.PlacementId;
             ViewData["CompanyName"] = companyName;
             ViewData["CampusMentorName"] = placedByName;
+            ViewBag.Timesheets = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .Where(t => t.PlacementId == placement.PlacementId)
+                .OrderByDescending(t => t.WeekStartDate)
+                .ToListAsync();
+            ViewBag.VisitHistory = await _db.Visits
+                .AsNoTracking()
+                .Where(v => v.PlacementId == placement.PlacementId)
+                .OrderByDescending(v => v.Date)
+                .ToListAsync();
 
             return View(dto);
         }
@@ -383,6 +528,28 @@ namespace ElecPOE.Controllers
             DigitalSignature = vm.DigitalSignature
         };
 
+
+
+        private static DateTime GetCurrentMonday()
+        {
+            var today = DateTime.Today;
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+            return today.AddDays(-diff).Date;
+        }
+
+        private async Task<string> UploadPlacementEvidenceAsync(Guid ownerId, IFormFile file)
+        {
+            string folder = Path.Combine(_hostEnvironment.WebRootPath, "PlacementEvidence");
+            Directory.CreateDirectory(folder);
+
+            string extension = Path.GetExtension(file.FileName);
+            string fileName = $"{ownerId:N}{extension}";
+            string path = Path.Combine(folder, fileName);
+
+            await using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+            return fileName;
+        }
 
         private async Task<string> UploadPlacementAgreementAsync(Guid placementId, IFormFile file)
         {

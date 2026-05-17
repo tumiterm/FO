@@ -119,6 +119,16 @@ namespace ForekOnline.Domain.Entities
         /// </summary>
         [NotMapped]
         public IFormFile? PlacementAgreementFile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the weekly timesheets submitted against this placement.
+        /// </summary>
+        public ICollection<WeeklyTimesheet> WeeklyTimesheets { get; set; } = new List<WeeklyTimesheet>();
+
+        /// <summary>
+        /// Gets or sets the integrated campus visit history for this placement.
+        /// </summary>
+        public ICollection<Visit> Visits { get; set; } = new List<Visit>();
     }
 
 }

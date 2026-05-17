@@ -32,6 +32,13 @@ namespace ForekOnline.Domain.Entities
         public Guid CompanyId { get; set; }
 
         /// <summary>
+        /// Gets or sets the placement this campus visit belongs to.
+        /// </summary>
+        public Guid? PlacementId { get; set; }
+
+        public Placement? Placement { get; set; }
+
+        /// <summary>
         /// Gets or sets an array of selected IDs (not mapped to the database) representing specific records or entities.
         /// </summary>
         [NotMapped]
@@ -53,6 +60,11 @@ namespace ForekOnline.Domain.Entities
         public DateTime Date { get; set; }
 
         /// <summary>
+        /// Gets or sets the duration of the visit in minutes.
+        /// </summary>
+        public int? DurationMinutes { get; set; }
+
+        /// <summary>
         /// Gets or sets the IDs of selected employees for the visit, stored as a string.
         /// </summary>
         public string? SelectedEmployeeIDs { get; set; }
@@ -61,6 +73,24 @@ namespace ForekOnline.Domain.Entities
         /// Gets or sets the learner feedback provided during the visit.
         /// </summary>
         public string? LearnerFeedback { get; set; }
+
+        public bool AttendanceObserved { get; set; }
+
+        public bool EngagementObserved { get; set; }
+
+        public bool WorkplaceConditionsObserved { get; set; }
+
+        public bool SafetyObserved { get; set; }
+
+        public bool SkillApplicationObserved { get; set; }
+
+        public string? ObservationNotes { get; set; }
+
+        public string? ActionItems { get; set; }
+
+        public DateTime? ActionItemDueDate { get; set; }
+
+        public string? ActionItemAssignee { get; set; }
 
         /// <summary>
         /// Gets or sets the purpose of the visit.
