@@ -11,6 +11,7 @@ using ForekOnline.Application.Common.Services;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -122,6 +123,14 @@ namespace ElecPOE.Controllers
 
             string studentFullName = $"{student.FirstName} {student.LastName}";
 
+            if (string.IsNullOrWhiteSpace(placement.WorkplaceMentorName) ||
+                string.IsNullOrWhiteSpace(placement.WorkplaceMentorEmail) ||
+                string.IsNullOrWhiteSpace(placement.WorkplaceMentorPhone))
+            {
+                TempData["error"] = "Workplace mentor name, email and phone are required before confirming a placement.";
+                return RedirectToAction(nameof(PlaceLearner), new { StudentNumber });
+            }
+
             if (await _placementService.IsStudentPlacedAsync(placement.CompanyId, studentFullName))
             {
                 TempData["error"] = "Error: Student is already placed at the selected company.";
@@ -142,6 +151,9 @@ namespace ElecPOE.Controllers
             placement.StudentId ??= student.StudentId;
             placement.IsActive = true;
 
+            if (placement.PlacementAgreementFile is not null && placement.PlacementAgreementFile.Length > 0)
+                placement.PlacementAgreement = await UploadPlacementAgreementAsync(placement.PlacementId, placement.PlacementAgreementFile);
+
             var entity = MapToPlacement(placement, currentUser);
 
             var saved = await _placementService.CreatePlacementAsync(entity);
@@ -151,20 +163,13 @@ namespace ElecPOE.Controllers
                 return View(placement);
             }
 
-            if (placement.SendNotification)
+            try
             {
-                try
-                {
-                    string companyName = await _placementService.GetCompanyNameAsync(placement.CompanyId);
-                    _helperService.SendSms(
-                        $"Dear {student.FirstName}, congratulations on being selected for workplace at {companyName}. " +
-                        $"You are expected to report from {FormatDate(placement.StartDate)} until {FormatDate(placement.EndDate)}",
-                        student.Cellphone);
-                }
-                catch
-                {
-                    TempData["warning"] = "Placement saved, but SMS notification could not be sent.";
-                }
+                await SendPlacementOnboardingAsync(placement, student);
+            }
+            catch
+            {
+                TempData["warning"] = "Placement saved, but one or more onboarding notifications could not be sent.";
             }
 
             TempData["success"] = "Learner placement successful.";
@@ -214,16 +219,26 @@ namespace ElecPOE.Controllers
             {
                 PlacementId = placement.PlacementId,
                 Student = placement.Student,
-                CompanyId = companyName,
-                PlacedBy = placedByName,
+                CompanyId = placement.CompanyId.ToString(),
+                PlacedBy = placement.PlacedBy.ToString(),
                 StartDate = FormatDate(placement.StartDate),
                 EndDate = FormatDate(placement.EndDate),
                 Status = placement.Status,
                 IsActive = placement.IsActive,
                 CompletionDate = placement.StartDate,
+                WorkplaceMentorName = placement.WorkplaceMentorName,
+                WorkplaceMentorEmail = placement.WorkplaceMentorEmail,
+                WorkplaceMentorPhone = placement.WorkplaceMentorPhone,
+                PlacementAgreement = placement.PlacementAgreement,
+                DigitalSignature = placement.DigitalSignature,
+                ProgressPercentage = CalculateProgress(placement.StartDate, placement.EndDate, placement.Status),
+                RiskLevel = CalculateRiskLevel(placement.StartDate, placement.EndDate, placement.Status, placement.WorkplaceMentorName),
+                LastActivity = string.IsNullOrWhiteSpace(placement.ModifiedOn) ? $"Created {placement.CreatedOn}" : $"Updated {placement.ModifiedOn}",
             };
 
             ViewData["PlacementId"] = dto.PlacementId;
+            ViewData["CompanyName"] = companyName;
+            ViewData["CampusMentorName"] = placedByName;
 
             return View(dto);
         }
@@ -247,6 +262,9 @@ namespace ElecPOE.Controllers
 
             placement.ModifiedBy = $"{currentUser.Name} {currentUser.LastName}";
             placement.ModifiedOn = Helper.OnGetCurrentDateTime();
+
+            if (placement.PlacementAgreementFile is not null && placement.PlacementAgreementFile.Length > 0)
+                placement.PlacementAgreement = await UploadPlacementAgreementAsync(placement.PlacementId, placement.PlacementAgreementFile);
 
             var updated = await _placementService.UpdatePlacementAsync(placement);
             if (updated is null)
@@ -357,8 +375,113 @@ namespace ElecPOE.Controllers
             IsActive = vm.IsActive,
             ModifiedBy = $"{currentUser.Name} {currentUser.LastName}",
             ModifiedOn = Helper.OnGetCurrentDateTime(),
-            SendNotification = vm.SendNotification
+            SendNotification = vm.SendNotification,
+            WorkplaceMentorName = vm.WorkplaceMentorName,
+            WorkplaceMentorEmail = vm.WorkplaceMentorEmail,
+            WorkplaceMentorPhone = vm.WorkplaceMentorPhone,
+            PlacementAgreement = vm.PlacementAgreement,
+            DigitalSignature = vm.DigitalSignature
         };
+
+
+        private async Task<string> UploadPlacementAgreementAsync(Guid placementId, IFormFile file)
+        {
+            string wwwRootPath = _hostEnvironment.WebRootPath;
+            string uploadDirectory = Path.Combine(wwwRootPath, "PlacementAgreements");
+            Directory.CreateDirectory(uploadDirectory);
+
+            string fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            string extension = Path.GetExtension(file.FileName);
+            string safeFileName = $"{fileName}-{placementId:N}{extension}";
+            string path = Path.Combine(uploadDirectory, safeFileName);
+
+            await using var fileStream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(fileStream);
+
+            return safeFileName;
+        }
+
+        private async Task SendPlacementOnboardingAsync(LearnerPlacementViewModel placement, Student student)
+        {
+            string companyName = await _placementService.GetCompanyNameAsync(placement.CompanyId);
+            string start = FormatDate(placement.StartDate);
+            string end = FormatDate(placement.EndDate);
+            string mentorName = string.IsNullOrWhiteSpace(placement.WorkplaceMentorName) ? "your workplace mentor" : placement.WorkplaceMentorName;
+            string campusMentor = await ResolveUserNameAsync(placement.PlacedBy);
+
+            if (placement.SendNotification && !string.IsNullOrWhiteSpace(student.Cellphone))
+            {
+                _helperService.SendSms(
+                    $"Dear {student.FirstName}, welcome to your workplace placement at {companyName} from {start} to {end}. " +
+                    $"Workplace mentor: {mentorName}. Campus mentor: {campusMentor}.",
+                    student.Cellphone);
+            }
+
+            var emails = new List<EmailDataViewModel>();
+
+            if (!string.IsNullOrWhiteSpace(student.Email))
+            {
+                emails.Add(new EmailDataViewModel
+                {
+                    Recipient = student.Email,
+                    Header = "Learner Placement Confirmation",
+                    Subject = "Your workplace placement has been confirmed",
+                    From = "Forek Online",
+                    Body = $"Welcome {student.FirstName},<br/><br/>Your placement at <strong>{companyName}</strong> runs from {start} to {end}.<br/>" +
+                           $"Workplace mentor: {mentorName} ({placement.WorkplaceMentorEmail}, {placement.WorkplaceMentorPhone}).<br/>" +
+                           $"Campus mentor: {campusMentor}.<br/><br/>Please submit weekly activity logs and upload evidence throughout your placement."
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(placement.WorkplaceMentorEmail))
+            {
+                emails.Add(new EmailDataViewModel
+                {
+                    Recipient = placement.WorkplaceMentorEmail,
+                    Header = "New Learner Placement",
+                    Subject = $"Learner assigned: {student.FirstName} {student.LastName}",
+                    From = "Forek Online",
+                    Body = $"Dear {mentorName},<br/><br/>{student.FirstName} {student.LastName} has been placed at {companyName} from {start} to {end}.<br/>" +
+                           "Please support weekly log approvals, learning outcomes and workplace evidence."
+                });
+            }
+
+            var campusUser = await _userService.GetUserInfoAsync(placement.PlacedBy);
+            if (!string.IsNullOrWhiteSpace(campusUser?.Username))
+            {
+                emails.Add(new EmailDataViewModel
+                {
+                    Recipient = campusUser.Username,
+                    Header = "Placement Notification",
+                    Subject = $"New placement: {student.FirstName} {student.LastName}",
+                    From = "Forek Online",
+                    Body = $"A new placement has been created for {student.FirstName} {student.LastName} at {companyName}.<br/>" +
+                           $"Workplace mentor: {mentorName}. Start: {start}. End: {end}."
+                });
+            }
+
+            await Task.WhenAll(emails.Select(_helperService.SendMailNotificationAsync));
+        }
+
+        private static int CalculateProgress(DateTime? startDate, DateTime? endDate, eStatus status)
+        {
+            if (status == eStatus.Completed) return 100;
+            if (!startDate.HasValue || !endDate.HasValue) return 0;
+            if (DateTime.Today <= startDate.Value.Date) return status == eStatus.StartingSoon ? 5 : 10;
+            if (DateTime.Today >= endDate.Value.Date) return 95;
+            double totalDays = Math.Max(1, (endDate.Value.Date - startDate.Value.Date).TotalDays + 1);
+            double elapsedDays = Math.Max(0, (DateTime.Today - startDate.Value.Date).TotalDays + 1);
+            return Math.Clamp((int)Math.Round((elapsedDays / totalDays) * 100), 0, 99);
+        }
+
+        private static string CalculateRiskLevel(DateTime? startDate, DateTime? endDate, eStatus status, string? workplaceMentorName)
+        {
+            if (status == eStatus.DroppedOut) return "At Risk";
+            if (status == eStatus.Completed) return "Good";
+            if (string.IsNullOrWhiteSpace(workplaceMentorName)) return "At Risk";
+            if (endDate.HasValue && endDate.Value.Date < DateTime.Today) return "At Risk";
+            return status == eStatus.Started ? "Good" : "Attention";
+        }
 
         #endregion
     }

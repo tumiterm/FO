@@ -46,6 +46,9 @@ namespace ForekOnline.Application.Common.Services
                // string companyName = await GetCompanyNameAsync(item.CompanyId, cancellationToken);
                 string placedByName = await ResolveUserNameAsync(item.PlacedBy, cancellationToken);
 
+                int progress = CalculateProgress(item.StartDate, item.EndDate, item.Status);
+                string riskLevel = CalculateRiskLevel(item.StartDate, item.EndDate, item.Status, item.ModifiedOn, item.WorkplaceMentorName);
+
                 result.Add(new PlacementViewModel
                 {
                     PlacementId = item.PlacementId,
@@ -56,6 +59,14 @@ namespace ForekOnline.Application.Common.Services
                     EndDate = FormatDate(item.EndDate),
                     Status = item.Status,
                     IsActive = item.IsActive,
+                    WorkplaceMentorName = item.WorkplaceMentorName,
+                    WorkplaceMentorEmail = item.WorkplaceMentorEmail,
+                    WorkplaceMentorPhone = item.WorkplaceMentorPhone,
+                    PlacementAgreement = item.PlacementAgreement,
+                    DigitalSignature = item.DigitalSignature,
+                    ProgressPercentage = progress,
+                    RiskLevel = riskLevel,
+                    LastActivity = BuildLastActivity(item, progress)
                 });
             }
 
@@ -192,6 +203,45 @@ namespace ForekOnline.Application.Common.Services
             {
                 return string.Empty;
             }
+        }
+
+        private static int CalculateProgress(DateTime? startDate, DateTime? endDate, eStatus status)
+        {
+            if (status == eStatus.Completed) return 100;
+            if (status == eStatus.DroppedOut) return 0;
+            if (!startDate.HasValue || !endDate.HasValue) return 0;
+
+            DateTime start = startDate.Value.Date;
+            DateTime end = endDate.Value.Date;
+            DateTime today = DateTime.Today;
+
+            if (today <= start) return status == eStatus.StartingSoon ? 5 : 10;
+            if (today >= end) return 95;
+
+            double totalDays = Math.Max(1, (end - start).TotalDays + 1);
+            double elapsedDays = Math.Max(0, (today - start).TotalDays + 1);
+            return Math.Clamp((int)Math.Round((elapsedDays / totalDays) * 100), 0, 99);
+        }
+
+        private static string CalculateRiskLevel(DateTime? startDate, DateTime? endDate, eStatus status, string? modifiedOn, string? workplaceMentorName)
+        {
+            if (status == eStatus.DroppedOut) return "At Risk";
+            if (status == eStatus.Completed) return "Good";
+            if (string.IsNullOrWhiteSpace(workplaceMentorName)) return "At Risk";
+            if (endDate.HasValue && endDate.Value.Date < DateTime.Today && status != eStatus.Completed) return "At Risk";
+            if (startDate.HasValue && startDate.Value.Date <= DateTime.Today.AddDays(7) && string.IsNullOrWhiteSpace(modifiedOn)) return "Attention";
+            return status == eStatus.Started ? "Good" : "Attention";
+        }
+
+        private static string BuildLastActivity(Placement placement, int progress)
+        {
+            if (!string.IsNullOrWhiteSpace(placement.ModifiedOn))
+                return $"Updated {placement.ModifiedOn}";
+
+            if (!string.IsNullOrWhiteSpace(placement.CreatedOn))
+                return $"Created {placement.CreatedOn}";
+
+            return progress > 0 ? $"Progress calculated at {progress}%" : "Awaiting first weekly log";
         }
     }
 }
