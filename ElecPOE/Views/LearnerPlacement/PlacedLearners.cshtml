@@ -5,6 +5,7 @@
     var placements = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.PlacementViewModel>();
     var statusGroups = placements.GroupBy(p => p.Status).ToDictionary(g => g.Key, g => g.Count());
     int total = placements.Count;
+    int atRisk = placements.Count(p => p.IsAtRisk);
 }
 
 <style>
@@ -73,6 +74,13 @@ body { background:var(--pl-bg-alt); }
 .st-transferred { background:#e9f3ff; color:#1c5e9d; border:1px solid #b3d2ef; }
 .st-completed { background:#e2f5ff; color:#0f6c92; border:1px solid #a8d9ed; }
 .st-default { background:#f0f1f3; color:#555; border:1px solid #dadde0; }
+.risk-good { background:#e8f9ef; color:#167846; border:1px solid #b7e6c8; }
+.risk-attention { background:#fff3e0; color:#bc6b00; border:1px solid #f0c48b; }
+.risk-at-risk { background:#ffe6ea; color:#b31217; border:1px solid #f3b4ba; }
+.progress-cell { min-width:120px; }
+.progress-track { height:8px; background:#eef1f4; border-radius:999px; overflow:hidden; border:1px solid var(--pl-border); }
+.progress-fill { height:100%; background:var(--pl-grad); border-radius:999px; }
+.progress-label { font-size:.52rem; font-weight:800; color:var(--pl-red-strong); margin-top:.22rem; }
 
 .footer-bar { margin-top:.75rem; display:flex; gap:.75rem; flex-wrap:wrap; justify-content:space-between; align-items:center; font-size:.55rem; letter-spacing:.1rem; color:#555; }
 .footer-bar .mini { display:flex; gap:.4rem; align-items:center; }
@@ -101,6 +109,11 @@ body { background:var(--pl-bg-alt); }
             <div class="stat-label">TOTAL</div>
             <div class="stat-value">@total</div>
             <div class="stat-chip"><i class="fa fa-database"></i> RECORDS</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">AT RISK</div>
+            <div class="stat-value">@atRisk</div>
+            <div class="stat-chip"><i class="fa fa-triangle-exclamation"></i> INTERVENTION</div>
         </div>
         @foreach (eStatus s in Enum.GetValues(typeof(eStatus)))
         {
@@ -151,9 +164,14 @@ body { background:var(--pl-bg-alt); }
                     <th>Action</th>
                     <th>Student</th>
                     <th>Host Company</th>
-                    <th>Placement Date</th>
-                    <th>Placed By</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Campus Mentor</th>
+                    <th>Workplace Mentor</th>
+                    <th>Progress</th>
                     <th>Status</th>
+                    <th>Last Activity</th>
+                    <th>Risk Level</th>
                 </tr>
             </thead>
             <tbody id="placementsBody">
@@ -167,7 +185,13 @@ body { background:var(--pl-bg-alt); }
                     <td>@p.Student</td>
                     <td>@p.CompanyId</td>
                     <td>@dateVal.ToString()</td>
+                    <td>@p.EndDate</td>
                     <td>@p.PlacedBy</td>
+                    <td>@(string.IsNullOrWhiteSpace(p.WorkplaceMentorName) ? "Not captured" : p.WorkplaceMentorName)</td>
+                    <td class="progress-cell">
+                        <div class="progress-track"><div class="progress-fill" style="width:@p.ProgressPercentage%"></div></div>
+                        <div class="progress-label">@p.ProgressPercentage%</div>
+                    </td>
                     <td>
                         @{ string stClass = p.Status switch {
                                 eStatus.StartingSoon => "st-startingsoon",
@@ -178,6 +202,11 @@ body { background:var(--pl-bg-alt); }
                                 _ => "st-default"
                             }; }
                         <span class="badge-status @stClass"><i class="fa fa-circle"></i> @p.Status</span>
+                    </td>
+                    <td>@p.LastActivity</td>
+                    <td>
+                        @{ var riskCss = p.RiskLevel == "Good" ? "risk-good" : p.RiskLevel == "At Risk" ? "risk-at-risk" : "risk-attention"; }
+                        <span class="badge-status @riskCss"><i class="fa fa-shield-heart"></i> @p.RiskLevel</span>
                     </td>
                 </tr>
             }
@@ -257,15 +286,20 @@ body { background:var(--pl-bg-alt); }
         const visible = Array.from(bodyEl.querySelectorAll('tr:not(.hidden-row)'));
         if(!visible.length){ alert('No rows to export.'); return; }
         const lines = [];
-        lines.push('Student,HostCompany,PlacementDate,PlacedBy,Status');
+        lines.push('Student,HostCompany,StartDate,EndDate,CampusMentor,WorkplaceMentor,Progress,Status,LastActivity,RiskLevel');
         visible.forEach(r=>{
             const cells = r.querySelectorAll('td');
             const student = cells[1]?.innerText.trim() || '';
             const host = cells[2]?.innerText.trim() || '';
-            const date = cells[3]?.innerText.trim() || '';
-            const placedBy = cells[4]?.innerText.trim() || '';
-            const status = cells[5]?.innerText.trim() || '';
-            const row = [student,host,date,placedBy,status].map(v => '"'+v.replace(/"/g,'""')+'"').join(',');
+            const start = cells[3]?.innerText.trim() || '';
+            const end = cells[4]?.innerText.trim() || '';
+            const campus = cells[5]?.innerText.trim() || '';
+            const workplace = cells[6]?.innerText.trim() || '';
+            const progress = cells[7]?.innerText.trim() || '';
+            const status = cells[8]?.innerText.trim() || '';
+            const lastActivity = cells[9]?.innerText.trim() || '';
+            const risk = cells[10]?.innerText.trim() || '';
+            const row = [student,host,start,end,campus,workplace,progress,status,lastActivity,risk].map(v => '"'+v.replace(/"/g,'""')+'"').join(',');
             lines.push(row);
         });
         const blob = new Blob([lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});

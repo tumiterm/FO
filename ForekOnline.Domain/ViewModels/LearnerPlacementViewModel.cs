@@ -7,6 +7,7 @@
 
 #region Usings
 using ForekOnline.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static ForekOnline.Domain.Enums.EnumRegistry;
@@ -103,5 +104,45 @@ namespace ForekOnline.Domain.ViewModels
 
         [NotMapped]
         public string CreatedBy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor name responsible for learner supervision.
+        /// </summary>
+        [Required]
+        [Display(Name = "Workplace Mentor Name")]
+        public string? WorkplaceMentorName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor email address.
+        /// </summary>
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Workplace Mentor Email")]
+        public string? WorkplaceMentorEmail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor phone number.
+        /// </summary>
+        [Required]
+        [Display(Name = "Workplace Mentor Phone")]
+        public string? WorkplaceMentorPhone { get; set; }
+
+        /// <summary>
+        /// Gets or sets the saved placement agreement file name.
+        /// </summary>
+        public string? PlacementAgreement { get; set; }
+
+        /// <summary>
+        /// Gets or sets the uploaded placement agreement PDF.
+        /// </summary>
+        [NotMapped]
+        [Display(Name = "Placement Agreement PDF")]
+        public IFormFile? PlacementAgreementFile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the signer confirmation for the placement agreement.
+        /// </summary>
+        [Display(Name = "Digital Signature")]
+        public string? DigitalSignature { get; set; }
     }
 }

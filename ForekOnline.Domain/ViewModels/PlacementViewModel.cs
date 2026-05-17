@@ -58,6 +58,51 @@ namespace ForekOnline.Domain.ViewModels
         /// Gets or sets the completion date of the placement, if applicable.
         /// </summary>
         public DateTime? CompletionDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor name responsible for daily supervision.
+        /// </summary>
+        public string? WorkplaceMentorName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor email address.
+        /// </summary>
+        public string? WorkplaceMentorEmail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor phone number.
+        /// </summary>
+        public string? WorkplaceMentorPhone { get; set; }
+
+        /// <summary>
+        /// Gets or sets the stored placement agreement file name.
+        /// </summary>
+        public string? PlacementAgreement { get; set; }
+
+        /// <summary>
+        /// Gets or sets the captured digital signature text.
+        /// </summary>
+        public string? DigitalSignature { get; set; }
+
+        /// <summary>
+        /// Gets or sets the calculated progress percentage for oversight display.
+        /// </summary>
+        public int ProgressPercentage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the latest meaningful activity shown on the dashboard.
+        /// </summary>
+        public string LastActivity { get; set; } = "Awaiting activity";
+
+        /// <summary>
+        /// Gets or sets the computed risk level for monitoring.
+        /// </summary>
+        public string RiskLevel { get; set; } = "Attention";
+
+        /// <summary>
+        /// Gets a value indicating whether this placement currently needs intervention.
+        /// </summary>
+        public bool IsAtRisk => RiskLevel.Equals("At Risk", StringComparison.OrdinalIgnoreCase);
     }
 
 }

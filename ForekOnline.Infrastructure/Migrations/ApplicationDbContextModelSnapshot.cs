@@ -2219,6 +2219,9 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<int?>("Duration")
                         .HasColumnType("int");
 
+                    b.Property<string>("DigitalSignature")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -2234,8 +2237,20 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<Guid?>("Module")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PlacementAgreement")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("PlacedBy")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WorkplaceMentorEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorPhone")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");

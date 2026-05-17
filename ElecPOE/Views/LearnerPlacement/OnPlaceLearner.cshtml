@@ -56,7 +56,7 @@
 }
 .input-wrap:focus-within{border-color:var(--pl-accent);box-shadow:var(--pl-focus);}
 .input-wrap i{font-size:.75rem;color:#888;}
-.field select,.field input[type='text'],.field input[type='date'],.field input[type='number']{
+.field select,.field input[type='text'],.field input[type='email'],.field input[type='file'],.field input[type='date'],.field input[type='number']{
     width:100%;border:none;background:transparent;font-size:.72rem;color:#222;outline:none;
 }
 .badge-inline{
@@ -128,9 +128,10 @@
         </div>
     </div>
 
-    <form asp-action="OnPlaceLearner" method="post" autocomplete="off" novalidate>
+    <form asp-action="OnPlaceLearner" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
         @Html.AntiForgeryToken()
         <input asp-for="PlacementId" type="hidden"/>
+        <input asp-for="PlacementAgreement" type="hidden"/>
 
         <div class="layout-grid">
             <!-- Placement Form -->
@@ -182,6 +183,49 @@
                         <span asp-validation-for="PlacedBy" class="text-danger" style="font-size:.55rem;"></span>
                     </div>
 
+
+
+                    <div class="field">
+                        <label class="required">Workplace Mentor Name</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-id-badge"></i>
+                            <input asp-for="WorkplaceMentorName" required placeholder="Full name" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Workplace Mentor Email</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-at"></i>
+                            <input asp-for="WorkplaceMentorEmail" type="email" required placeholder="mentor@company.co.za" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Workplace Mentor Phone</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-phone"></i>
+                            <input asp-for="WorkplaceMentorPhone" required placeholder="Contact number" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Placement Agreement PDF</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-file-pdf"></i>
+                            <input type="file" name="PlacementAgreementFile" accept="application/pdf" />
+                        </div>
+                        <small style="font-size:.5rem;color:#666;">Current: @(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? "No agreement uploaded" : Model.PlacementAgreement)</small>
+                    </div>
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Digital Signature / Confirmation</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-signature"></i>
+                            <input asp-for="DigitalSignature" placeholder="Signer name, e-signature reference, or confirmation" />
+                        </div>
+                    </div>
+
                     <div class="field">
                         <label class="required">Start Date</label>
                         <div class="input-wrap">
@@ -230,17 +274,47 @@
                 <div class="note"><strong>Note:</strong> Dates drive duration. Adjust duration directly to shift end date.</div>
             </div>
 
-            <!-- Visual / Illustration -->
+            <!-- WBL / WIL Journey -->
             <div class="section-card" style="min-height:100%;">
                 <div class="section-head">
-                    <h2><i class="fa fa-image"></i> Preview</h2>
+                    <h2><i class="fa fa-chart-line"></i> WBL Journey Hub</h2>
+                    @{
+                        var riskClass = Model.RiskLevel == "Good" ? "risk-good" : Model.RiskLevel == "At Risk" ? "risk-risk" : "risk-attention";
+                    }
+                    <span class="badge-inline @riskClass"><i class="fa fa-shield-heart"></i> @Model.RiskLevel</span>
                 </div>
-                <div class="preview-box">
-                    <img src="~/Images/6308.jpg" alt="Placement Illustration"/>
+
+                <div class="monitor-grid">
+                    <div class="monitor-card"><div class="monitor-label">Progress</div><div class="monitor-value">@Model.ProgressPercentage%</div></div>
+                    <div class="monitor-card"><div class="monitor-label">Weekly Logs</div><div class="monitor-value">0</div></div>
+                    <div class="monitor-card"><div class="monitor-label">Visits</div><div class="monitor-value">0</div></div>
+                    <div class="monitor-card"><div class="monitor-label">Documents</div><div class="monitor-value">@(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? 0 : 1)</div></div>
                 </div>
-                <div class="helper-inline" style="margin-top:.8rem;">
-                    <span class="calc-pill" id="calcInfo"><i class="fa fa-circle-info"></i> Awaiting date selection</span>
+                <div class="progress-track" aria-label="Placement progress"><div class="progress-fill" style="width:@Model.ProgressPercentage%"></div></div>
+                <div class="helper-inline">
+                    <span class="calc-pill" id="calcInfo"><i class="fa fa-circle-info"></i> @Model.LastActivity</span>
+                    <span class="calc-pill"><i class="fa fa-building"></i> @(ViewData["CompanyName"] ?? "Host company")</span>
+                    <span class="calc-pill"><i class="fa fa-user-tie"></i> @(ViewData["CampusMentorName"] ?? "Campus mentor")</span>
                 </div>
+
+                <div class="wbl-tabs" role="tablist" aria-label="Placement detail sections">
+                    <button type="button" class="wbl-tab active" data-tab="overview">Overview</button>
+                    <button type="button" class="wbl-tab" data-tab="logs">Activity Logs</button>
+                    <button type="button" class="wbl-tab" data-tab="visits">Visits</button>
+                    <button type="button" class="wbl-tab" data-tab="documents">Documents</button>
+                    <button type="button" class="wbl-tab" data-tab="issues">Issues</button>
+                </div>
+
+                <div class="tab-pane active" id="tab-overview">
+                    <div class="timeline">
+                        <div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-body"><strong>Placement created.</strong><br/>Single learner placement record now anchors mentor contacts, documents, visits, logs, progress and risk monitoring.</div></div>
+                        <div class="timeline-item"><span class="timeline-dot"></span><div class="timeline-body"><strong>Next action:</strong> Student submits first weekly activity log; workplace mentor approves; campus mentor acknowledges.</div></div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab-logs"><div class="empty-state"><i class="fa fa-clock"></i> Weekly timesheet workflow placeholder: mobile-first student submissions, workplace approvals and campus acknowledgements will appear here.</div></div>
+                <div class="tab-pane" id="tab-visits"><div class="empty-state"><i class="fa fa-clipboard-check"></i> Campus visit history and action items will be linked to this placement record.</div></div>
+                <div class="tab-pane" id="tab-documents"><div class="empty-state"><i class="fa fa-folder-open"></i> Agreement: @(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? "Not uploaded yet." : Model.PlacementAgreement) Evidence uploads and final certificates will be listed here.</div></div>
+                <div class="tab-pane" id="tab-issues"><div class="empty-state"><i class="fa fa-life-ring"></i> Support tickets, at-risk alerts and overdue actions will be managed from this section.</div></div>
             </div>
         </div>
     </form>
@@ -459,6 +533,14 @@
             mStart?.addEventListener('change', modFromDates);
             mEnd?.addEventListener('change', modFromDates);
             mDays?.addEventListener('input', modFromDays);
+
+            $('.wbl-tab').on('click', function(){
+                const key = $(this).data('tab');
+                $('.wbl-tab').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-pane').removeClass('active');
+                $('#tab-' + key).addClass('active');
+            });
 
         })(jQuery);
 

@@ -7,6 +7,7 @@
 
 #region Usings
 using ForekOnline.Domain.Shared;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static ForekOnline.Domain.Enums.EnumRegistry;
@@ -87,6 +88,37 @@ namespace ForekOnline.Domain.Entities
         [NotMapped]
         [Display(Name = "Send SMS?")]
         public bool SendNotification { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor name responsible for day-to-day learner supervision.
+        /// </summary>
+        public string? WorkplaceMentorName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor email address used for onboarding and approvals.
+        /// </summary>
+        public string? WorkplaceMentorEmail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the workplace mentor phone number used for urgent placement communication.
+        /// </summary>
+        public string? WorkplaceMentorPhone { get; set; }
+
+        /// <summary>
+        /// Gets or sets the stored placement agreement file name.
+        /// </summary>
+        public string? PlacementAgreement { get; set; }
+
+        /// <summary>
+        /// Gets or sets the captured digital signature text or signer confirmation.
+        /// </summary>
+        public string? DigitalSignature { get; set; }
+
+        /// <summary>
+        /// Gets or sets the uploaded placement agreement file.
+        /// </summary>
+        [NotMapped]
+        public IFormFile? PlacementAgreementFile { get; set; }
     }
 
 }

@@ -308,10 +308,13 @@ body { background: var(--c-bg); }
 .input-wrap i { color: #bbb; font-size: .78rem; flex-shrink: 0; transition: color .25s; }
 .input-wrap:focus-within i { color: var(--c-accent-mid); }
 .input-wrap input,
-.input-wrap select {
+.input-wrap select,
+.input-wrap textarea {
     border: none; outline: none; background: transparent;
     font-size: .72rem; font-family: inherit; color: var(--c-text); width: 100%;
 }
+.input-wrap textarea { min-height: 58px; resize: vertical; }
+.input-wrap input[type="file"] { font-size: .66rem; }
 .input-wrap select { cursor: pointer; }
 .field .val-msg { font-size: .54rem; color: var(--c-accent-mid); display: none; }
 .field .val-msg.show { display: block; }
@@ -511,7 +514,7 @@ body { background: var(--c-bg); }
         </div>
     </div>
 
-    <form asp-action="PlaceLearner" method="post" autocomplete="off" novalidate id="placementForm">
+    <form asp-action="PlaceLearner" method="post" enctype="multipart/form-data" autocomplete="off" novalidate id="placementForm">
         @Html.AntiForgeryToken()
         <input asp-for="StudentId" type="hidden" />
         <input asp-for="StudentNumber" type="hidden" />
@@ -565,6 +568,51 @@ body { background: var(--c-bg); }
                             </select>
                         </div>
                         <span asp-validation-for="PlacedBy" class="val-msg show"></span>
+                    </div>
+
+
+                    <div class="field">
+                        <label><i class="fa fa-user-shield"></i> Workplace Mentor Name <span class="req">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-id-badge"></i>
+                            <input required asp-for="WorkplaceMentorName" id="workplaceMentorName" placeholder="Full name" />
+                        </div>
+                        <span asp-validation-for="WorkplaceMentorName" class="val-msg show"></span>
+                    </div>
+
+                    <div class="field">
+                        <label><i class="fa fa-envelope"></i> Workplace Mentor Email <span class="req">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-at"></i>
+                            <input required asp-for="WorkplaceMentorEmail" type="email" placeholder="mentor@company.co.za" />
+                        </div>
+                        <span asp-validation-for="WorkplaceMentorEmail" class="val-msg show"></span>
+                    </div>
+
+                    <div class="field">
+                        <label><i class="fa fa-phone"></i> Workplace Mentor Phone <span class="req">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-mobile-screen"></i>
+                            <input required asp-for="WorkplaceMentorPhone" placeholder="Contact number" />
+                        </div>
+                        <span asp-validation-for="WorkplaceMentorPhone" class="val-msg show"></span>
+                    </div>
+
+                    <div class="field">
+                        <label><i class="fa fa-file-pdf"></i> Placement Agreement PDF</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-upload"></i>
+                            <input asp-for="PlacementAgreementFile" type="file" accept="application/pdf" />
+                        </div>
+                        <small style="font-size:.52rem;color:#aaa;margin-top:.15rem;">Upload the signed placement agreement when available.</small>
+                    </div>
+
+                    <div class="field" style="grid-column:1/-1;">
+                        <label><i class="fa fa-signature"></i> Digital Signature / Confirmation</label>
+                        <div class="input-wrap">
+                            <i class="fa fa-pen-nib"></i>
+                            <textarea asp-for="DigitalSignature" placeholder="Signer name, confirmation note, or e-signature reference"></textarea>
+                        </div>
                     </div>
 
                     <div class="field">
@@ -639,7 +687,7 @@ body { background: var(--c-bg); }
                     <div class="form-note">
                         <i class="fa fa-circle-info"></i>
                         Fields marked <strong style="color:var(--c-accent-mid);">*</strong> are required.
-                        Enabling SMS notification triggers learner communication upon save.
+                        Saving triggers onboarding emails for the student, workplace mentor, and campus mentor. Enabling SMS also sends the learner welcome SMS.
                     </div>
                 </div>
             </div>
@@ -667,7 +715,8 @@ body { background: var(--c-bg); }
                     <div class="sw-head"><i class="fa fa-clipboard-list"></i> Live Summary</div>
                     <div class="sw-row"><span class="sw-key">Student</span><span class="sw-val" id="smStudent">@Model.Student</span></div>
                     <div class="sw-row"><span class="sw-key">Company</span><span class="sw-val placeholder" id="smCompany">Not selected</span></div>
-                    <div class="sw-row"><span class="sw-key">Mentor</span><span class="sw-val placeholder" id="smMentor">Not selected</span></div>
+                    <div class="sw-row"><span class="sw-key">Campus Mentor</span><span class="sw-val placeholder" id="smMentor">Not selected</span></div>
+                    <div class="sw-row"><span class="sw-key">Workplace Mentor</span><span class="sw-val placeholder" id="smWorkplaceMentor">Not selected</span></div>
                     <div class="sw-row"><span class="sw-key">Course</span><span class="sw-val placeholder" id="smCourse">Not selected</span></div>
                     <div class="sw-row"><span class="sw-key">Status</span><span class="sw-val placeholder" id="smStatus">Not selected</span></div>
                     <div class="sw-row"><span class="sw-key">Notify</span><span class="sw-val" id="smNotify">No</span></div>
@@ -765,6 +814,7 @@ body { background: var(--c-bg); }
     const mentor2  = $('select.s2-mentor');
     const course2  = $('select.s2-course');
     const status2  = $('select[name="Status"]');
+    const workplaceMentorInput = document.getElementById('workplaceMentorName');
 
     company2.on('change', function () {
         setText('smCompany', $('option:selected', this).text() || null);
@@ -779,6 +829,9 @@ body { background: var(--c-bg); }
     });
     status2.on('change', function () {
         setText('smStatus', $('option:selected', this).text() || null);
+    });
+    workplaceMentorInput?.addEventListener('input', function () {
+        setText('smWorkplaceMentor', this.value || null);
     });
 
     function loadModules(courseId) {
