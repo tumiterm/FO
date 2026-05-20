@@ -19,6 +19,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Syncfusion.EJ2.Linq;
 using System.Data;
 using System.Dynamic;
+using System.Xml.Linq;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
@@ -36,6 +37,7 @@ namespace ElecPOE.Controllers
     public class StudentController : Controller
     {
         #region Private Variables
+        private readonly IFileUploadService _fileUploadService;
         private readonly IUnitOfWork _context;
         private readonly IHelperService _helperService;
         private readonly ILogger<StudentController> _logger;
@@ -58,11 +60,12 @@ namespace ElecPOE.Controllers
         /// <param name="studentService">The student service for handling student-related operations.</param>
         /// <param name="userService">The user service for managing user-related data.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> or <paramref name="hostEnvironment"/> is null.</exception>
-        public StudentController(IUnitOfWork context, IWebHostEnvironment hostEnvironment, IHelperService helperService, ILogger<StudentController> logger, IStudentService studentService, IUserService userService, IMemoryCache cache, IPdfReportService pdfReportService, EnrollmentOrchestrationService enrollmentOrchestration)
+        public StudentController(IUnitOfWork context, IWebHostEnvironment hostEnvironment, IHelperService helperService, ILogger<StudentController> logger, IStudentService studentService, IUserService userService, IMemoryCache cache, IPdfReportService pdfReportService, EnrollmentOrchestrationService enrollmentOrchestration, IFileUploadService fileUploadService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
             _helperService = helperService;
+            _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
             _electrical = _helperService.GetConfigurationValue("Courses:Occupational:Electrical", string.Empty);
             _logger = logger;
             _studentService = studentService;
@@ -437,22 +440,24 @@ namespace ElecPOE.Controllers
         /// Uploads a student attachment file to the server storage.
         /// </summary>
         /// <param name="attachment">The student attachment object containing file details.</param>
-        public async void AttachmentUploader(StudentAttachment attachment)
+        public async void AttachmentUploader(StudentAttachment attachment, CancellationToken ct = default)
         {
-            string wwwRootPath = _hostEnvironment.WebRootPath;
+            await using var stream = attachment.AttachmentFile.OpenReadStream();
 
-            string fileName = Path.GetFileNameWithoutExtension(attachment.AttachmentFile.FileName);
-
-            string extension = Path.GetExtension(attachment.AttachmentFile.FileName);
-
-            attachment.Document = fileName = fileName + Helper.GenerateGuid() + extension;
-
-            string path = Path.Combine(wwwRootPath + "/Docs/", fileName);
-
-            using (var fileStream = new FileStream(path, FileMode.Create))
-            {
-                await attachment.AttachmentFile.CopyToAsync(fileStream);
-            }
+            var upload = await _fileUploadService.UploadAsync(new UploadFileRequest(
+                FileStream: stream,
+                FileName: attachment.AttachmentFile.FileName,
+                ContentType: attachment.AttachmentFile.ContentType,
+                Metadata: new Dictionary<string, string>
+                {
+                    ["Entity"] = "Student",
+                    ["Purpose"] = "Attachments"
+                },
+                ProviderHint: null,
+                ExpiryDate: null,
+                TenantId: null,
+                DocumentType: "AssessmentQuestionImage"
+            ), ct).ConfigureAwait(false);
         }
 
         /// <summary>

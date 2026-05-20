@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ForekOnline.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260419141556_ReportEnhance")]
-    partial class ReportEnhance
+    [Migration("20260517193114_newWeekly")]
+    partial class newWeekly
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1887,15 +1887,15 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("0a4937a0-344b-4443-85ef-4069f6d4d819"),
-                            NotificationEventId = new Guid("dceac202-5f9b-47ca-ae56-8b97b16918e7"),
+                            Id = new Guid("69dfc4b2-dbe3-449b-996c-bee80c05870f"),
+                            NotificationEventId = new Guid("aea5c804-4fed-488a-9523-8364ff0ce4f8"),
                             Order = 0,
                             Text = "A sleeker, faster platform...",
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("04fc2c94-dc9f-429c-a668-7b2626744d89"),
+                            Id = new Guid("7d1057f7-aa52-4816-8cf6-e3c8cdf36037"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "A sleeker, faster platform with cohesive red → orange design language and improved UX consistency.",
@@ -1903,7 +1903,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("00813b5a-bb66-4141-a2a5-92b4d715e513"),
+                            Id = new Guid("fa30fff4-84ed-4f61-9991-8edc06b758a2"),
                             ListItems = "Unified visual system (Dark Red / Red / Orange)||Enhanced statistics & quick scan KPIs||Optimized markup & reduced layout shift||Modular section architecture for future widgets||Accessibility-focused contrast & semantics",
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
@@ -1911,7 +1911,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("3a48e480-5fc8-43e9-9b3c-dd3845d1a719"),
+                            Id = new Guid("50dcb10d-5d7c-4b75-ac26-a5104b1add43"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "<div class='alert alert-warning'><i class='fa fa-triangle-exclamation me-2'></i>Please report anomalies to ICT so iterative refinements can ship rapidly.</div>",
@@ -1969,30 +1969,30 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("dceac202-5f9b-47ca-ae56-8b97b16918e7"),
+                            Id = new Guid("aea5c804-4fed-488a-9523-8364ff0ce4f8"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 4, 26, 16, 15, 55, 433, DateTimeKind.Local).AddTicks(5840),
+                            EndUtc = new DateTime(2026, 5, 24, 21, 31, 12, 37, DateTimeKind.Local).AddTicks(9727),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 4, 18, 16, 15, 55, 433, DateTimeKind.Local).AddTicks(5826),
+                            StartUtc = new DateTime(2026, 5, 16, 21, 31, 12, 37, DateTimeKind.Local).AddTicks(9693),
                             Title = "Forek Online Version 2 Highlights"
                         },
                         new
                         {
                             Id = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 4, 26, 14, 15, 55, 433, DateTimeKind.Utc).AddTicks(6638),
+                            EndUtc = new DateTime(2026, 5, 24, 19, 31, 12, 38, DateTimeKind.Utc).AddTicks(5443),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 4, 18, 14, 15, 55, 433, DateTimeKind.Utc).AddTicks(6638),
+                            StartUtc = new DateTime(2026, 5, 16, 19, 31, 12, 38, DateTimeKind.Utc).AddTicks(5443),
                             Title = "Forek Online Version 2 Highlights"
                         });
                 });
@@ -2219,6 +2219,9 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("CreatedOn")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DigitalSignature")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("Duration")
                         .HasColumnType("int");
 
@@ -2240,6 +2243,9 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<Guid>("PlacedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PlacementAgreement")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -2248,6 +2254,15 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.Property<string>("Student")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorPhone")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("PlacementId");
@@ -3652,6 +3667,18 @@ namespace ForekOnline.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ActionItemAssignee")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ActionItemDueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ActionItems")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("AttendanceObserved")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -3663,6 +3690,12 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EngagementObserved")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("HasReport")
                         .HasColumnType("bit");
@@ -3682,11 +3715,23 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("ModifiedOn")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ObservationNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Report")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("SafetyObserved")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SelectedEmployeeIDs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SkillApplicationObserved")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("VisitBy")
                         .HasColumnType("uniqueidentifier");
@@ -3694,9 +3739,117 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("VisitPurpose")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("WorkplaceConditionsObserved")
+                        .HasColumnType("bit");
+
                     b.HasKey("VisitId");
 
+                    b.HasIndex("PlacementId")
+                        .HasDatabaseName("IX_Visits_PlacementId");
+
                     b.ToTable("Visits");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.WeeklyTimesheet", b =>
+                {
+                    b.Property<Guid>("WeeklyTimesheetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActivityDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CampusMentorAcknowledgedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CampusMentorAcknowledgedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CampusMentorComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChallengesFaced")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvidenceFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("FridayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LearningOutcomes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("MondayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("SaturdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SkillsApplied")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SubmittedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SundayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ThursdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalHours")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal?>("TuesdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("WednesdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("WeekEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("WeekStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkplaceMentorComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("WorkplaceMentorDecisionBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("WorkplaceMentorDecisionOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("WeeklyTimesheetId");
+
+                    b.HasIndex("PlacementId", "WeekStartDate", "WeekEndDate")
+                        .HasDatabaseName("IX_WeeklyTimesheets_Placement_Week");
+
+                    b.ToTable("WeeklyTimesheets");
                 });
 
             modelBuilder.Entity("ForekOnline.Domain.Entities.Application", b =>
@@ -3927,6 +4080,27 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("Reservation");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Visit", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithMany("Visits")
+                        .HasForeignKey("PlacementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Placement");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.WeeklyTimesheet", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithMany("WeeklyTimesheets")
+                        .HasForeignKey("PlacementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Placement");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.Application", b =>
                 {
                     b.Navigation("ApplicantGuardian")
@@ -3956,6 +4130,13 @@ namespace ForekOnline.Infrastructure.Migrations
             modelBuilder.Entity("ForekOnline.Domain.Entities.NotificationEvent", b =>
                 {
                     b.Navigation("Blocks");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Placement", b =>
+                {
+                    b.Navigation("Visits");
+
+                    b.Navigation("WeeklyTimesheets");
                 });
 
             modelBuilder.Entity("ForekOnline.Domain.Entities.Resource", b =>

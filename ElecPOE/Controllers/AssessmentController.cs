@@ -17,9 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System.Dynamic;
-using System.Threading.Tasks;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 

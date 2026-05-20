@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ForekOnline.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260418112739_ReportExtension")]
-    partial class ReportExtension
+    [Migration("20260517112241_AddNewWithOld2")]
+    partial class AddNewWithOld2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1887,15 +1887,15 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f39dd93b-56c5-46f2-8f10-cf1d438ead39"),
-                            NotificationEventId = new Guid("94e14490-7db4-48b7-a320-181c061c4c01"),
+                            Id = new Guid("b1c7d4a2-75fc-46cb-8b5b-386593cfd598"),
+                            NotificationEventId = new Guid("2ec20796-c29a-4ea5-b98f-c45d714f3193"),
                             Order = 0,
                             Text = "A sleeker, faster platform...",
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("db252a14-7df3-4f7a-b388-32d3c91cfed7"),
+                            Id = new Guid("b6f4594c-dffa-4723-899d-01936da8de47"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "A sleeker, faster platform with cohesive red → orange design language and improved UX consistency.",
@@ -1903,7 +1903,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("92147494-9832-416c-8d5b-efc8120257f9"),
+                            Id = new Guid("9f94d0ed-c4ad-4f0e-9127-ab4a9d8b1b4a"),
                             ListItems = "Unified visual system (Dark Red / Red / Orange)||Enhanced statistics & quick scan KPIs||Optimized markup & reduced layout shift||Modular section architecture for future widgets||Accessibility-focused contrast & semantics",
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
@@ -1911,7 +1911,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("c971c2c2-8e89-4d32-9df9-1751504452bc"),
+                            Id = new Guid("8c43c1e8-64db-4a41-b087-bfc97dae5c9d"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "<div class='alert alert-warning'><i class='fa fa-triangle-exclamation me-2'></i>Please report anomalies to ICT so iterative refinements can ship rapidly.</div>",
@@ -1969,30 +1969,30 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("94e14490-7db4-48b7-a320-181c061c4c01"),
+                            Id = new Guid("2ec20796-c29a-4ea5-b98f-c45d714f3193"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 4, 25, 13, 27, 38, 344, DateTimeKind.Local).AddTicks(3921),
+                            EndUtc = new DateTime(2026, 5, 24, 13, 22, 40, 440, DateTimeKind.Local).AddTicks(2559),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 4, 17, 13, 27, 38, 344, DateTimeKind.Local).AddTicks(3904),
+                            StartUtc = new DateTime(2026, 5, 16, 13, 22, 40, 440, DateTimeKind.Local).AddTicks(2537),
                             Title = "Forek Online Version 2 Highlights"
                         },
                         new
                         {
                             Id = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 4, 25, 11, 27, 38, 344, DateTimeKind.Utc).AddTicks(4766),
+                            EndUtc = new DateTime(2026, 5, 24, 11, 22, 40, 440, DateTimeKind.Utc).AddTicks(3768),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 4, 17, 11, 27, 38, 344, DateTimeKind.Utc).AddTicks(4766),
+                            StartUtc = new DateTime(2026, 5, 16, 11, 22, 40, 440, DateTimeKind.Utc).AddTicks(3768),
                             Title = "Forek Online Version 2 Highlights"
                         });
                 });
@@ -2219,6 +2219,9 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("CreatedOn")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DigitalSignature")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("Duration")
                         .HasColumnType("int");
 
@@ -2240,6 +2243,9 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<Guid>("PlacedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PlacementAgreement")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -2248,6 +2254,15 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.Property<string>("Student")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkplaceMentorPhone")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("PlacementId");

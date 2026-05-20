@@ -741,173 +741,174 @@ body { background: var(--c-bg); }
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-(function ($) {
-    'use strict';
+    (function ($) {
+        'use strict';
 
-    const s2opts = { width: '100%', dropdownParent: $('body') };
-    $('.s2-company, .s2-mentor, .s2-course, .s2-module').select2(s2opts);
+        const s2opts = { width: '100%', dropdownParent: $('body') };
+        $('.s2-company, .s2-mentor, .s2-course, .s2-module').select2(s2opts);
 
-    const parseDate = d => d ? new Date(d + 'T00:00:00') : null;
-    const fmtDate   = d => d ? d.toLocaleDateString('en-ZA', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-    const diffDays  = (a, b) => Math.round((b - a) / 86400000) + 1;
-    const setText   = (id, val, placeholder) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = val || '—';
-        el.classList.toggle('placeholder', !val);
-    };
+        const parseDate = d => d ? new Date(d + 'T00:00:00') : null;
+        const fmtDate   = d => d ? d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+        const diffDays  = (a, b) => Math.round((b - a) / 86400000) + 1;
+        const setText   = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = val || '—';
+            el.classList.toggle('placeholder', !val);
+        };
 
-    const notifyCb  = document.getElementById('notifyCheck');
-    const notifyPill = document.getElementById('notifyPill');
-    const smNotify  = document.getElementById('smNotify');
-    notifyCb?.addEventListener('change', () => {
-        const on = notifyCb.checked;
-        notifyPill.innerHTML = on
-            ? '<i class="fa fa-bell"></i> Will Notify'
-            : '<i class="fa fa-bell-slash"></i> No Notice';
-        notifyPill.classList.toggle('on', on);
-        smNotify.textContent = on ? 'Yes — SMS will be sent' : 'No';
-    });
+        const notifyCb   = document.getElementById('notifyCheck');
+        const notifyPill = document.getElementById('notifyPill');
+        const smNotify   = document.getElementById('smNotify');
 
-    const startEl = document.getElementById('startDate');
-    const endEl   = document.getElementById('endDate');
-    const durEl   = document.getElementById('durationDays');
-    const dpNum   = document.getElementById('dpNum');
-    const dpFrom  = document.getElementById('dpFrom');
-    const dpTo    = document.getElementById('dpTo');
-    const dpWarn  = document.getElementById('dpWarning');
+        notifyCb?.addEventListener('change', () => {
+            const on = notifyCb.checked;
+            notifyPill.innerHTML = on
+                ? '<i class="fa fa-bell"></i> Will Notify'
+                : '<i class="fa fa-bell-slash"></i> No Notice';
+            notifyPill.classList.toggle('on', on);
+            smNotify.textContent = on ? 'Yes — SMS will be sent' : 'No';
+        });
 
-    function syncDates() {
-        const s = parseDate(startEl.value);
-        const e = parseDate(endEl.value);
-        if (s && e && e >= s) {
-            const d = diffDays(s, e);
-            durEl.value  = d;
-            dpNum.textContent  = d;
-            dpFrom.textContent = 'From: ' + fmtDate(s);
-            dpTo.textContent   = 'To: '   + fmtDate(e);
-            dpWarn.style.display = 'none';
-        } else {
-            dpNum.textContent  = '—';
-            dpFrom.textContent = 'From: —';
-            dpTo.textContent   = 'To: —';
-            dpWarn.style.display = (startEl.value || endEl.value) ? 'flex' : 'none';
+        const startEl = document.getElementById('startDate');
+        const endEl   = document.getElementById('endDate');
+        const durEl   = document.getElementById('durationDays');
+        const dpNum   = document.getElementById('dpNum');
+        const dpFrom  = document.getElementById('dpFrom');
+        const dpTo    = document.getElementById('dpTo');
+        const dpWarn  = document.getElementById('dpWarning');
+
+        function syncDates() {
+            const s = parseDate(startEl.value);
+            const e = parseDate(endEl.value);
+            if (s && e && e >= s) {
+                const d = diffDays(s, e);
+                durEl.value            = d;
+                dpNum.textContent      = d;
+                dpFrom.textContent     = 'From: ' + fmtDate(s);
+                dpTo.textContent       = 'To: '   + fmtDate(e);
+                dpWarn.style.display   = 'none';
+            } else {
+                dpNum.textContent    = '—';
+                dpFrom.textContent   = 'From: —';
+                dpTo.textContent     = 'To: —';
+                dpWarn.style.display = (startEl.value || endEl.value) ? 'flex' : 'none';
+            }
         }
-    }
 
-    function durToEnd() {
-        const s = parseDate(startEl.value);
-        const d = parseInt(durEl.value, 10);
-        if (s && d > 0) {
-            const e = new Date(s);
-            e.setDate(e.getDate() + d - 1);
-            endEl.value = e.toISOString().slice(0, 10);
-            syncDates();
+        function durToEnd() {
+            const s = parseDate(startEl.value);
+            const d = parseInt(durEl.value, 10);
+            if (s && d > 0) {
+                const e = new Date(s);
+                e.setDate(e.getDate() + d - 1);
+                endEl.value = e.toISOString().slice(0, 10);
+                syncDates();
+            }
         }
-    }
 
-    startEl?.addEventListener('change', syncDates);
-    endEl?.addEventListener('change', syncDates);
-    durEl?.addEventListener('input', durToEnd);
+        startEl?.addEventListener('change', syncDates);
+        endEl?.addEventListener('change', syncDates);
+        durEl?.addEventListener('input', durToEnd);
 
-    const company2 = $('select.s2-company');
-    const mentor2  = $('select.s2-mentor');
-    const course2  = $('select.s2-course');
-    const status2  = $('select[name="Status"]');
-    const workplaceMentorInput = document.getElementById('workplaceMentorName');
+        const workplaceMentorInput = document.getElementById('workplaceMentorName');
 
-    company2.on('change', function () {
-        setText('smCompany', $('option:selected', this).text() || null);
-    });
-    mentor2.on('change', function () {
-        setText('smMentor', $('option:selected', this).text() || null);
-    });
-    course2.on('change', function () {
-        const txt = $('option:selected', this).text();
-        setText('smCourse', txt && txt !== 'Select course…' ? txt : null);
-        loadModules($(this).val());
-    });
-    status2.on('change', function () {
-        setText('smStatus', $('option:selected', this).text() || null);
-    });
-    workplaceMentorInput?.addEventListener('input', function () {
-        setText('smWorkplaceMentor', this.value || null);
-    });
+        $('select.s2-company').on('change', function () {
+            setText('smCompany', $('option:selected', this).text() || null);
+        });
+        $('select.s2-mentor').on('change', function () {
+            setText('smMentor', $('option:selected', this).text() || null);
+        });
+        $('select.s2-course').on('change', function () {
+            const txt = $('option:selected', this).text();
+            setText('smCourse', txt && txt !== 'Select course…' ? txt : null);
+            loadModules($(this).val());
+        });
+        $('select[name="Status"]').on('change', function () {
+            setText('smStatus', $('option:selected', this).text() || null);
+        });
+        workplaceMentorInput?.addEventListener('input', function () {
+            setText('smWorkplaceMentor', this.value || null);
+        });
 
-    function loadModules(courseId) {
-        const modSel = $('#moduleSelect');
-        modSel.empty().append('<option value="">Loading…</option>');
-        modSel.trigger('change');
-        if (!courseId) {
-            modSel.empty().append('<option value="">Select module…</option>');
-            return;
-        }
-        $.getJSON('@Url.Action("GetCourseModuleId", "LearnerPlacement")', { CourseId: courseId })
-            .done(function (data) {
-                modSel.empty().append('<option value="">Select module…</option>');
-                $.each(data, function (_, m) {
-                    modSel.append($('<option>', { value: m.moduleId, text: m.moduleName }));
+        function loadModules(courseId) {
+            const modSel = $('#moduleSelect');
+            modSel.empty().append('<option value="">Loading…</option>').trigger('change');
+            if (!courseId) {
+                modSel.empty().append('<option value="">Select module…</option>').trigger('change');
+                return;
+            }
+            $.getJSON('@Url.Action("GetCourseModuleId", "LearnerPlacement")', { CourseId: courseId })
+                .done(function (data) {
+                    modSel.empty().append('<option value="">Select module…</option>');
+                    $.each(data, function (_, m) {
+                        modSel.append($('<option>', { value: m.moduleId, text: m.moduleName }));
+                    });
+                    modSel.trigger('change');
+                })
+                .fail(function () {
+                    modSel.empty().append('<option value="">Failed to load modules</option>').trigger('change');
                 });
-                modSel.trigger('change');
-            })
-            .fail(function () {
-                modSel.empty().append('<option value="">Failed to load</option>');
-            });
-    }
+        }
 
-    const lookupInput  = document.getElementById('lookupInput');
-    const lookupBtn    = document.getElementById('lookupBtn');
-    const lookupResult = document.getElementById('lookupResult');
-    const lookupName   = document.getElementById('lookupName');
-    const lookupMeta   = document.getElementById('lookupMeta');
-    const lookupBadge  = document.getElementById('lookupBadge');
-    const lookupAvatar = document.getElementById('lookupAvatar');
+        const lookupInput  = document.getElementById('lookupInput');
+        const lookupBtn    = document.getElementById('lookupBtn');
+        const lookupResult = document.getElementById('lookupResult');
+        const lookupName   = document.getElementById('lookupName');
+        const lookupMeta   = document.getElementById('lookupMeta');
+        const lookupBadge  = document.getElementById('lookupBadge');
+        const lookupAvatar = document.getElementById('lookupAvatar');
 
-    function doLookup() {
-        const q = lookupInput.value.trim();
-        if (!q) return;
+        function doLookup() {
+            const q = lookupInput.value.trim();
+            if (!q) return;
 
-        lookupBadge.className = 'placement-status-badge pst-checking';
-        lookupBadge.innerHTML = '<span class="spin"></span> Checking…';
-        lookupName.textContent = q;
-        lookupMeta.textContent = 'Searching placement records…';
-        lookupResult.style.display = 'block';
-        lookupAvatar.innerHTML = '<i class="fa fa-user"></i>';
+            lookupBadge.className    = 'placement-status-badge pst-checking';
+            lookupBadge.innerHTML    = '<span class="spin"></span> Checking…';
+            lookupName.textContent   = q;
+            lookupMeta.textContent   = 'Searching placement records…';
+            lookupResult.style.display = 'block';
+            lookupAvatar.innerHTML   = '<i class="fa fa-user"></i>';
 
-        $.getJSON('@Url.Action("CheckStudentPlacement", "LearnerPlacement")', { studentName: q })
-            .done(function (res) {
-                lookupName.textContent = res.studentName || q;
-                if (res.isPlaced) {
-                    lookupMeta.innerHTML =
-                        'Placed at <strong>' + (res.companyName || 'a company') + '</strong>' +
-                        (res.startDate ? ' &bull; From ' + res.startDate : '');
-                    lookupBadge.className = 'placement-status-badge pst-placed';
-                    lookupBadge.innerHTML = '<i class="fa fa-circle-xmark"></i> Already Placed';
-                    lookupAvatar.innerHTML = '<i class="fa fa-user-xmark"></i>';
-                } else {
-                    lookupMeta.innerHTML = res.found
-                        ? 'Student found &bull; No active placement on record.'
-                        : 'No placement record found for this name.';
-                    lookupBadge.className = 'placement-status-badge pst-clear';
-                    lookupBadge.innerHTML = '<i class="fa fa-circle-check"></i> Clear';
-                    lookupAvatar.innerHTML = '<i class="fa fa-user-check"></i>';
-                }
-            })
-            .fail(function () {
-                lookupMeta.textContent = 'Could not reach lookup service.';
-                lookupBadge.className = 'placement-status-badge pst-checking';
-                lookupBadge.innerHTML = '<i class="fa fa-triangle-exclamation"></i> Error';
-            });
-    }
+            $.getJSON('@Url.Action("CheckStudentPlacement", "LearnerPlacement")', { studentName: q })
+                .done(function (res) {
+                    lookupName.textContent = res.studentName || q;
+                    if (res.isPlaced) {
+                        lookupMeta.innerHTML =
+                            'Placed at <strong>' + (res.companyName || 'a company') + '</strong>' +
+                            (res.startDate ? ' &bull; From ' + res.startDate : '');
+                        lookupBadge.className = 'placement-status-badge pst-placed';
+                        lookupBadge.innerHTML = '<i class="fa fa-circle-xmark"></i> Already Placed';
+                        lookupAvatar.innerHTML = '<i class="fa fa-user-xmark"></i>';
+                    } else {
+                        lookupMeta.innerHTML = res.found
+                            ? 'Student found &bull; No active placement on record.'
+                            : 'No placement record found for this name.';
+                        lookupBadge.className = 'placement-status-badge pst-clear';
+                        lookupBadge.innerHTML = '<i class="fa fa-circle-check"></i> Clear';
+                        lookupAvatar.innerHTML = '<i class="fa fa-user-check"></i>';
+                    }
+                })
+                .fail(function () {
+                    lookupMeta.textContent = 'Could not reach lookup service.';
+                    lookupBadge.className  = 'placement-status-badge pst-checking';
+                    lookupBadge.innerHTML  = '<i class="fa fa-triangle-exclamation"></i> Error';
+                });
+        }
 
-    lookupBtn?.addEventListener('click', doLookup);
-    lookupInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doLookup(); } });
+        lookupBtn?.addEventListener('click', doLookup);
+        lookupInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doLookup(); } });
+        
+        document.getElementById('placementForm')?.addEventListener('submit', function () {
+            const btn = document.getElementById('saveBtn');
+            if (!btn) return;
 
-    document.getElementById('saveBtn')?.addEventListener('click', function () {
-        this.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Saving…';
-        this.disabled = true;
-        document.getElementById('step3')?.classList.add('active');
-    });
+            document.getElementById('step2')?.classList.remove('active');
+            document.getElementById('step3')?.classList.add('active');
 
-})(jQuery);
+            btn.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Saving…';
+            btn.disabled  = true;
+        });
+
+    })(jQuery);
 </script>
