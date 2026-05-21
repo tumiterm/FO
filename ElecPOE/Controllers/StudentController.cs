@@ -6,6 +6,7 @@
 // Purpose:         Defines the StudentController class
 
 #region Usings
+using ElecPOE.Common;
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Application.Common.Services;
 using ForekOnline.Application.Common.Utility;
@@ -403,7 +404,7 @@ namespace ElecPOE.Controllers
 
             if (ModelState.IsValid)
             {
-                AttachmentUploader(attachment);
+                attachment.Document = await AttachmentUploaderAsync(attachment).ConfigureAwait(false);
 
                 StudentAttachment file = await _context.StudentAttachment.AddAsync(attachment);
 
@@ -440,24 +441,18 @@ namespace ElecPOE.Controllers
         /// Uploads a student attachment file to the server storage.
         /// </summary>
         /// <param name="attachment">The student attachment object containing file details.</param>
-        public async void AttachmentUploader(StudentAttachment attachment, CancellationToken ct = default)
+        public async Task<string?> AttachmentUploaderAsync(StudentAttachment attachment, CancellationToken ct = default)
         {
-            await using var stream = attachment.AttachmentFile.OpenReadStream();
-
-            var upload = await _fileUploadService.UploadAsync(new UploadFileRequest(
-                FileStream: stream,
-                FileName: attachment.AttachmentFile.FileName,
-                ContentType: attachment.AttachmentFile.ContentType,
-                Metadata: new Dictionary<string, string>
+            return await _fileUploadService.UploadIfPresentAsync(
+                attachment.AttachmentFile,
+                documentType: "StudentAttachment",
+                metadata: new Dictionary<string, string>
                 {
                     ["Entity"] = "Student",
-                    ["Purpose"] = "Attachments"
+                    ["Purpose"] = "Attachments",
+                    ["StudentNumber"] = attachment.StudentNumber ?? string.Empty
                 },
-                ProviderHint: null,
-                ExpiryDate: null,
-                TenantId: null,
-                DocumentType: "AssessmentQuestionImage"
-            ), ct).ConfigureAwait(false);
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -466,28 +461,20 @@ namespace ElecPOE.Controllers
         /// </summary>
         /// <param name="filename">The name of the file to download.</param>
         /// <returns>The requested file as a downloadable response.</returns>
-        public async Task<IActionResult> AttachmentDownload(string filename)
+        public async Task<IActionResult> AttachmentDownload(string filename, CancellationToken ct = default)
         {
-            if (filename == null)
-
-                return Content("Sorry NO Attachment found!!!");
-
-
-            var path1 = Path.Combine(
-                           Directory.GetCurrentDirectory(),
-                           "wwwroot");
-
-            string folder = path1 + @"\Docs\" + filename;
-
-            var memory = new MemoryStream();
-
-            using (var stream = new FileStream(folder, FileMode.Open))
+            if (string.IsNullOrWhiteSpace(filename))
             {
-                await stream.CopyToAsync(memory);
+                return Content("Sorry NO Attachment found!!!");
             }
-            memory.Position = 0;
 
-            return File(memory, Helper.GetContentType(folder), Path.GetFileName(folder));
+            var download = await _fileUploadService.DownloadIfPresentAsync(filename, ct).ConfigureAwait(false);
+            if (download is null)
+            {
+                return Content("Sorry NO Attachment found!!!");
+            }
+
+            return File(download.Value.FileStream, download.Value.ContentType ?? "application/octet-stream", download.Value.FileName);
         }
 
         /// <summary>
@@ -514,6 +501,7 @@ namespace ElecPOE.Controllers
 
             if (isSuccess)
             {
+                await _fileUploadService.DeleteIfPresentAsync(attachment.Document).ConfigureAwait(false);
                 return RedirectToAction("StudentDocuments", new { StudentNumber = attachment.StudentNumber, StudentId = attachment.StudentId });
             }
 
@@ -1131,5 +1119,4 @@ namespace ElecPOE.Controllers
         #endregion
     }
 }
-
 
