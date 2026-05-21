@@ -1,9 +1,11 @@
+#region Usings
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+#endregion
 
 namespace ElecPOE.Controllers
 {

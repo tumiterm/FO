@@ -1,293 +1,516 @@
 ﻿@model IEnumerable<ForekOnline.Domain.ViewModels.VisitationViewModel>
 @{
     ViewData["Title"] = "Visitations";
-    var visits = (Model ?? Enumerable.Empty<ForekOnline.Domain.ViewModels.VisitationViewModel>()).ToList();
+    var visits       = (Model ?? Enumerable.Empty<ForekOnline.Domain.ViewModels.VisitationViewModel>()).ToList();
     string companyName = (string?)ViewData["result"] ?? "Company";
-    var mentors = visits.Select(v => v.Mentor).Where(m=>!string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m=>m).ToList();
-    var visitors = visits.Select(v => v.VisitBy).Where(m=>!string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m=>m).ToList();
+    var mentors   = visits.Select(v => v.Mentor).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m => m).ToList();
+    var visitors  = visits.Select(v => v.VisitBy).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().OrderBy(m => m).ToList();
     var companyId = ViewData["CompanyId"];
 }
 
-<style>
-:root{
-  --v-bg:#ffffff;--v-bg-alt:#f6f8fa;--v-border:#e2e6ea;--v-border-strong:#cbd1d7;
-  --v-accent:#7d0e11;--v-accent-grad:linear-gradient(120deg,#7d0e11,#b31217 55%,#ff7a18);
-  --v-soft:#fff5f3;--v-text:#1f262e;--v-radius-xl:34px;--v-radius:22px;--v-radius:14px;
-  --v-shadow:0 14px 42px -18px rgba(125,14,17,.28),0 6px 22px -12px rgba(125,14,17,.14);
-  --v-focus:0 0 0 .15rem #b3121726;
-  font-family:'Segoe UI',system-ui,sans-serif;
-}
-.page-shell{max-width:1250px;margin:0 auto;padding:1.9rem 1.15rem 3rem;}
-.header-band{
-  background:var(--v-bg);border:1px solid var(--v-border);border-radius:var(--v-radius-xl);
-  padding:1.25rem 1.55rem 1.15rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;position:relative;overflow:hidden;
-}
-.header-band:before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,#7d0e1114,#b3121714,#ff7a1816);}
-.icon-pill{width:78px;height:78px;border-radius:26px;background:var(--v-accent-grad);display:flex;align-items:center;justify-content:center;font-size:2.05rem;color:#fff;box-shadow:0 12px 30px -12px rgba(179,18,23,.55);}
-.header-band h1{margin:0;font-size:1.55rem;font-weight:600;letter-spacing:.55px;color:#222;display:flex;align-items:center;gap:.6rem;}
-.tagline{font-size:.58rem;letter-spacing:.18rem;font-weight:700;background:var(--v-soft);color:var(--v-accent);padding:.5rem .9rem;border-radius:40px;text-transform:uppercase;display:inline-flex;gap:.45rem;align-items:center;}
-.toolbar{margin-left:auto;display:flex;gap:.6rem;flex-wrap:wrap;}
-.btn-base,.btn-accent{
-  font-size:.58rem;letter-spacing:.12rem;font-weight:600;text-transform:uppercase;
-  padding:.6rem 1.05rem;border-radius:16px;border:1px solid var(--v-border);
-  background:#fff;color:var(--v-accent);display:inline-flex;align-items:center;gap:.5rem;
-  cursor:pointer;text-decoration:none;transition:.35s;
-}
-.btn-base:hover{background:var(--v-accent-grad);color:#fff;border-color:var(--v-accent);box-shadow:var(--v-shadow);}
-.btn-accent{background:var(--v-accent-grad);color:#fff;border:1px solid var(--v-accent);}
-.btn-accent:hover{filter:brightness(.94);}
-.filter-bar{
-  margin-top:1.45rem;background:var(--v-bg);border:1px solid var(--v-border);border-radius:28px;
-  padding:1rem 1rem .9rem;display:flex;flex-wrap:wrap;gap:.85rem;align-items:flex-end;
-}
-.filter-group{display:flex;flex-direction:column;gap:.35rem;min-width:150px;}
-.filter-group label{font-size:.5rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:700;color:#555;}
-.search-wrap{position:relative;flex:1 1 300px;}
-.search-wrap i{position:absolute;top:50%;left:.7rem;transform:translateY(-50%);font-size:.7rem;color:#999;}
-.search-wrap input{width:100%;padding:.5rem .65rem .5rem 2rem;border:1px solid var(--v-border);border-radius:14px;font-size:.68rem;background:#fff;transition:.25s;}
-.search-wrap input:focus{outline:none;border-color:var(--v-accent);box-shadow:var(--v-focus);}
-.filter-bar select,.filter-bar input[type='date']{
-  background:#fff;border:1px solid var(--v-border);border-radius:14px;font-size:.65rem;padding:.5rem .6rem;transition:.25s;
-}
-.filter-bar select:focus,.filter-bar input[type='date']:focus{outline:none;border-color:var(--v-accent);box-shadow:var(--v-focus);}
-#filterState{display:none;font-size:.48rem;font-weight:700;letter-spacing:.1rem;padding:.38rem .65rem;border-radius:30px;background:var(--v-soft);color:var(--v-accent);}
+<link rel="stylesheet" href="~/css/Enrollment.css" />
 
-.table-shell{margin-top:1.25rem;background:var(--v-bg);border:1px solid var(--v-border);border-radius:30px;padding:1.2rem 1.1rem 1.05rem;overflow:auto;}
-.table-meta{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.65rem;font-size:.5rem;letter-spacing:.14rem;font-weight:700;color:#666;}
-.table-meta .badge{background:var(--v-soft);color:var(--v-accent);padding:.4rem .65rem;border-radius:30px;font-size:.48rem;font-weight:700;letter-spacing:.1rem;}
-.visits-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.64rem;}
-.visits-table thead th{
-  background:var(--v-accent-grad);color:#fff;font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:700;padding:.55rem .55rem;position:sticky;top:0;z-index:2;
+<style>
+.vl-shell {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 2.1rem 1.35rem 4rem;
 }
-.visits-table tbody tr{transition:.18s;}
-.visits-table tbody tr:nth-child(even){background:#fff;}
-.visits-table tbody tr:nth-child(odd){background:#fffdfd;}
-.visits-table tbody tr:hover{background:#fff4ef;}
-.visits-table td{padding:.5rem .55rem;border-bottom:1px solid var(--v-border);vertical-align:middle;color:#333;}
-.action-link{
-  font-size:.48rem;font-weight:600;letter-spacing:.08rem;text-transform:uppercase;
-  background:#fff;padding:.38rem .55rem;border:1px solid var(--v-border);border-radius:10px;text-decoration:none;
-  display:inline-flex;align-items:center;gap:.3rem;color:var(--v-accent);transition:.3s;
+
+.vl-hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--es-bg);
+    border: 1px solid var(--es-border);
+    border-radius: var(--es-radius-xl);
+    box-shadow: var(--es-shadow-lg);
+    padding: 1.6rem 1.75rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
 }
-.action-link:hover{background:var(--v-accent-grad);color:#fff;border-color:var(--v-accent);box-shadow:0 4px 12px -6px rgba(179,18,23,.45);}
-.pill{
-  font-size:.46rem;font-weight:700;letter-spacing:.08rem;padding:.28rem .55rem;border-radius:24px;display:inline-flex;align-items:center;gap:.3rem;
-  background:#f0f1f3;color:#555;
+.vl-hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--es-grad-soft);
+    pointer-events: none;
 }
-.pill-yes{background:#e8f9ef;color:#147a40;border:1px solid #b6e6c6;}
-.pill-no{background:#ffe8eb;color:#b31217;border:1px solid #f3b4ba;}
-.empty-row{font-style:italic;text-align:center;color:#777;}
-.hidden-row{display:none!important;}
-.footer-info{margin-top:.6rem;font-size:.48rem;color:#666;font-weight:600;display:flex;gap:.9rem;flex-wrap:wrap;}
-@@media (max-width:860px){
-  .visits-table thead th:nth-child(3),.visits-table td:nth-child(3){display:none;}
+.vl-hero__icon {
+    width: 82px; height: 82px;
+    border-radius: 26px;
+    background: var(--es-grad);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 2.35rem;
+    box-shadow: 0 16px 32px -16px rgba(179,18,23,.45);
+    position: relative; z-index: 1;
+    animation: vl-pop .65s cubic-bezier(.34,1.56,.64,1) both;
 }
-@@media (max-width:640px){
-  .visits-table thead th:nth-child(2),.visits-table td:nth-child(2){display:none;}
+@@keyframes vl-pop {
+    from { transform: scale(.5) rotate(-8deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0);      opacity: 1; }
 }
-.fade-in{animation:fade .55s ease;}
-@@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.vl-hero__body { position: relative; z-index: 1; }
+.vl-hero__actions {
+    position: relative; z-index: 1;
+    display: flex; flex-wrap: wrap; gap: .55rem; justify-content: flex-end;
+}
+
+.vl-stats {
+    margin-top: 1.4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: .75rem;
+}
+.vl-stat {
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(179,18,23,.08);
+    border-radius: 18px;
+    padding: .85rem 1rem;
+    box-shadow: var(--es-shadow-sm);
+    position: relative; overflow: hidden;
+    transition: transform .28s, box-shadow .28s;
+}
+.vl-stat:hover { transform: translateY(-3px); box-shadow: var(--es-shadow-md); }
+.vl-stat::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px; background: var(--es-grad);
+    border-radius: 0 0 18px 18px; opacity: .55;
+}
+.vl-stat__label {
+    color: var(--es-muted); font-size: .62rem; font-weight: 800;
+    letter-spacing: .14rem; text-transform: uppercase; margin-bottom: .3rem;
+}
+.vl-stat__value {
+    font-size: 1.32rem; font-weight: 800; line-height: 1.1;
+    background: var(--es-grad);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* ── Content grid (mirrors enroll-grid) ── */
+.vl-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    margin-top: 1.8rem;
+}
+@@media (max-width: 900px) { .vl-grid { grid-template-columns: 1fr; } }
+
+.vl-filter-card {
+    display: flex; flex-direction: column; gap: 1.1rem;
+}
+.vl-filter-group {
+    display: flex; flex-direction: column; gap: .38rem;
+}
+.vl-filter-group label {
+    font-size: .58rem; letter-spacing: .16rem; font-weight: 800;
+    text-transform: uppercase; color: var(--es-muted);
+    display: flex; align-items: center; gap: .38rem;
+}
+.vl-filter-group label i { color: var(--es-red); }
+.vl-filter-input {
+    background: var(--es-bg);
+    border: 1.5px solid var(--es-border);
+    border-radius: var(--es-radius-md);
+    font-size: .72rem; font-family: inherit;
+    color: var(--es-text);
+    padding: .58rem .75rem;
+    transition: border-color var(--es-speed), box-shadow var(--es-speed);
+    width: 100%;
+}
+.vl-filter-input:focus {
+    outline: none;
+    border-color: var(--es-red);
+    box-shadow: 0 0 0 .18rem rgba(179,18,23,.14);
+}
+.vl-search-wrap { position: relative; }
+.vl-search-wrap i {
+    position: absolute; top: 50%; left: .75rem;
+    transform: translateY(-50%);
+    color: #aab; font-size: .72rem; pointer-events: none;
+}
+.vl-search-wrap .vl-filter-input { padding-left: 2.2rem; }
+
+.vl-filter-actions {
+    display: flex; flex-direction: column; gap: .5rem; margin-top: .3rem;
+}
+
+.vl-main { min-width: 0; display: flex; flex-direction: column; gap: 1.1rem; }
+
+.vl-doc-grid { display: flex; flex-direction: column; gap: .65rem; }
+.vl-visit-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: .9rem;
+    background: var(--es-bg);
+    border: 1px solid var(--es-border);
+    border-radius: var(--es-radius-md);
+    padding: .9rem 1.05rem;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    animation: vl-rise .4s cubic-bezier(.22,1,.36,1) both;
+}
+.vl-visit-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--es-shadow-md);
+    border-color: var(--es-border-strong);
+    background: #fff;
+}
+@@keyframes vl-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.vl-row-icon {
+    width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+    background: var(--es-grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; color: #fff;
+    box-shadow: 0 6px 18px -6px rgba(179,18,23,.42);
+}
+.vl-row-info { flex: 1; min-width: 120px; }
+.vl-row-title { font-size: .76rem; font-weight: 700; color: var(--es-text); }
+.vl-row-meta {
+    font-size: .6rem; color: var(--es-muted);
+    margin-top: .18rem; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap;
+}
+.vl-row-meta i { font-size: .56rem; }
+.vl-row-actions { display: flex; gap: .42rem; flex-shrink: 0; flex-wrap: wrap; }
+
+.vl-chip {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-size: .5rem; letter-spacing: .1rem; font-weight: 700; text-transform: uppercase;
+    padding: .28rem .55rem; border-radius: 30px;
+    background: #f0f1f3; color: #555; border: 1px solid #e0e4ea;
+}
+.vl-chip-yes { background: #e8f9ef; color: #137a44; border-color: #b7e6c8; }
+.vl-chip-no  { background: #ffe6ea; color: #b31217; border-color: #f3b4ba; }
+
+.vl-empty {
+    text-align: center; padding: 3.5rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: .75rem;
+    color: var(--es-muted); font-size: .8rem;
+}
+.vl-empty i { font-size: 2.6rem; opacity: .25; }
+
+.vl-filtered-chip {
+    display: none;
+    font-size: .5rem; font-weight: 700; letter-spacing: .12rem; text-transform: uppercase;
+    padding: .38rem .7rem; border-radius: 30px;
+    background: var(--es-rose); color: var(--es-red); border: 1px solid rgba(179,18,23,.18);
+    align-items: center; gap: .35rem;
+}
+.vl-filtered-chip.show { display: inline-flex; }
+
+@@media (max-width: 860px) {
+    .vl-hero { grid-template-columns: auto 1fr; }
+    .vl-hero__actions { grid-column: 1/-1; justify-content: flex-start; }
+}
+@@media (max-width: 580px) {
+    .vl-hero { padding: 1.25rem 1.1rem 1rem; }
+    .vl-hero__icon { width: 64px; height: 64px; font-size: 1.65rem; border-radius: 18px; }
+}
 </style>
 
-<div class="page-shell fade-in">
-  <div class="header-band">
-      <div class="icon-pill"><i class="fa fa-archway"></i></div>
-      <div>
-          <h1>Visitations</h1>
-          <div class="tagline"><i class="fa fa-building"></i> @companyName</div>
-      </div>
-      <div class="toolbar">
-          <a asp-action="Visitation" asp-route-CompanyId="@companyId" class="btn-accent"><i class="fa fa-plus-circle"></i> New</a>
-          <a asp-action="HostCompanies" class="btn-base"><i class="fa fa-arrow-left"></i> Back</a>
-      </div>
-  </div>
+<div class="vl-shell fade-up">
 
-  <div class="filter-bar">
-      <div class="search-wrap">
-          <i class="fa fa-search"></i>
-          <input id="searchBox" type="text" placeholder="Search mentor / visitor / report status..." autocomplete="off" />
-      </div>
-      <div class="filter-group">
-          <label>Mentor</label>
-          <select id="mentorFilter">
-              <option value="">Any</option>
-              @foreach(var m in mentors){ <option value="@m">@m</option> }
-          </select>
-      </div>
-      <div class="filter-group">
-          <label>Visited By</label>
-          <select id="visitorFilter">
-              <option value="">Any</option>
-              @foreach(var vb in visitors){ <option value="@vb">@vb</option> }
-          </select>
-      </div>
-      <div class="filter-group">
-          <label>Report</label>
-          <select id="reportFilter">
-              <option value="">Any</option>
-              <option value="yes">Has Report</option>
-              <option value="no">No Report</option>
-          </select>
-      </div>
-      <div class="filter-group">
-          <label>Date From</label>
-          <input type="date" id="fromDate"/>
-      </div>
-      <div class="filter-group">
-          <label>Date To</label>
-          <input type="date" id="toDate"/>
-      </div>
-      <div class="filter-group" style="margin-left:auto;align-items:flex-end;">
-          <span id="filterState"><i class="fa fa-filter"></i> FILTERED</span>
-      </div>
-  </div>
+    <div class="vl-hero">
+        <div class="vl-hero__icon"><i class="fa fa-archway"></i></div>
+        <div class="vl-hero__body">
+            <div class="enroll-kicker">
+                <i class="fa fa-building"></i>
+                Company Visitation Suite
+            </div>
+            <h1 class="enroll-title">Visitations</h1>
+            <p class="enroll-subtitle" style="margin-top:.4rem;">
+                Track, audit and manage all workplace visits for
+                <strong>@companyName</strong>.
+                Filter records, open a visit detail or log a new visitation below.
+            </p>
+        </div>
+        <div class="vl-hero__actions">
+            <a asp-action="Visitation"
+               asp-route-CompanyId="@companyId"
+               class="btn-premium btn-premium--primary">
+                <i class="fa fa-plus-circle me-2"></i>New Visitation
+            </a>
+            <a asp-action="HostCompanies" class="btn-premium btn-premium--ghost">
+                <i class="fa fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
 
-  <div class="table-shell">
-      <div class="table-meta">
-          <span id="rowsInfo" class="badge"><i class="fa fa-database"></i> Loading...</span>
-          <div style="display:flex;gap:.45rem;flex-wrap:wrap;">
-              <button id="btnExport" type="button" class="action-link"><i class="fa fa-file-export"></i> Export</button>
-              <button id="btnRefresh" type="button" class="action-link"><i class="fa fa-rotate"></i> Refresh</button>
-          </div>
-      </div>
-      <table class="visits-table" id="visitsTable">
-          <thead>
-              <tr>
-                  <th>Action</th>
-                  <th>Mentor</th>
-                  <th>Visited By</th>
-                  <th>Date</th>
-                  <th>Report</th>
-                  <th>File</th>
-              </tr>
-          </thead>
-          <tbody id="visitsBody">
-          @if(!visits.Any()){
-              <tr><td class="empty-row" colspan="6">No visitations recorded.</td></tr>
-          } else {
-              foreach(var v in visits){
-                  var dateTxt = v.Date.ToString() ?? "";
-                  var has = v.HasReport;
-                  <tr data-text="@($"{v.Mentor} {v.VisitBy} {(has?"yes":"no")} {dateTxt}".ToLower())"
-                      data-mentor="@v.Mentor"
-                      data-visitor="@v.VisitBy"
-                      data-report="@(has?"yes":"no")"
-                      data-date="@dateTxt">
-                      <td>
-                          <a class="action-link" asp-action="OnModifyVisitation" asp-route-VisitId="@v.VisitId"><i class="fa fa-folder-open"></i> Open</a>
-                      </td>
-                      <td>@v.Mentor</td>
-                      <td>@v.VisitBy</td>
-                      <td>@dateTxt</td>
-                      <td>
-                          <span class="pill @(has?"pill-yes":"pill-no")">
-                              <i class="fa @(has?"fa-check-circle":"fa-times-circle")"></i> @(has?"YES":"NO")
-                          </span>
-                      </td>
-                      <td>
-                          @if (has && !string.IsNullOrWhiteSpace(v.Report))
-                          {
-                              <a class="action-link" asp-action="AttachmentDownload" asp-route-filename="@v.Report" title="Download"><i class="fa fa-download"></i></a>
-                          }
-                          else
-                          {
-                              <span class="action-link" style="opacity:.45;cursor:not-allowed;"><i class="fa fa-ban"></i> N/A</span>
-                          }
-                      </td>
-                  </tr>
-              }
-          }
-          </tbody>
-      </table>
-      <div class="footer-info">
-          <span><i class="fa fa-info-circle"></i> Filters & export apply to current visible rows.</span>
-          <span id="perfInfo"></span>
-      </div>
-  </div>
+    <div class="vl-stats">
+        <div class="vl-stat">
+            <div class="vl-stat__label">Company</div>
+            <div class="vl-stat__value" style="font-size:.95rem;-webkit-text-fill-color:var(--es-dark);">@companyName</div>
+        </div>
+        <div class="vl-stat">
+            <div class="vl-stat__label">Total Visits</div>
+            <div class="vl-stat__value" id="statTotal">@visits.Count</div>
+        </div>
+        <div class="vl-stat">
+            <div class="vl-stat__label">With Report</div>
+            <div class="vl-stat__value" id="statReports">@visits.Count(v => v.HasReport)</div>
+        </div>
+        <div class="vl-stat">
+            <div class="vl-stat__label">Visible</div>
+            <div class="vl-stat__value" id="statVisible">@visits.Count</div>
+        </div>
+    </div>
+
+    <div class="vl-grid">
+        <aside>
+            <div class="glass-card progress-card fade-up">
+                <h5 class="progress-title">
+                    <i class="fa fa-filter"></i>
+                    Filter Visitations
+                </h5>
+
+                <div class="vl-filter-card">
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-magnifying-glass"></i> Search</label>
+                        <div class="vl-search-wrap">
+                            <i class="fa fa-search"></i>
+                            <input id="searchBox" class="vl-filter-input"
+                                   type="text"
+                                   placeholder="Mentor / visitor / notes…"
+                                   autocomplete="off" />
+                        </div>
+                    </div>
+
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-chalkboard-user"></i> Mentor</label>
+                        <select id="mentorFilter" class="vl-filter-input">
+                            <option value="">Any</option>
+                            @foreach (var m in mentors) { <option value="@m">@m</option> }
+                        </select>
+                    </div>
+
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-user-tie"></i> Visited By</label>
+                        <select id="visitorFilter" class="vl-filter-input">
+                            <option value="">Any</option>
+                            @foreach (var vb in visitors) { <option value="@vb">@vb</option> }
+                        </select>
+                    </div>
+
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-file-circle-check"></i> Report</label>
+                        <select id="reportFilter" class="vl-filter-input">
+                            <option value="">Any</option>
+                            <option value="yes">Has Report</option>
+                            <option value="no">No Report</option>
+                        </select>
+                    </div>
+
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-calendar-day"></i> Date From</label>
+                        <input type="date" id="fromDate" class="vl-filter-input" />
+                    </div>
+
+                    <div class="vl-filter-group">
+                        <label><i class="fa fa-calendar-day"></i> Date To</label>
+                        <input type="date" id="toDate" class="vl-filter-input" />
+                    </div>
+
+                    <div class="vl-filter-actions">
+                        <button id="btnClearFilters" type="button" class="btn-premium btn-premium--ghost" style="justify-content:center;">
+                            <i class="fa fa-filter-circle-xmark me-2"></i>Clear Filters
+                        </button>
+                        <button id="btnExport" type="button" class="btn-premium" style="justify-content:center;">
+                            <i class="fa fa-file-export me-2"></i>Export CSV
+                        </button>
+                    </div>
+
+                    <div class="lookup-badge-row">
+                        <span class="vl-filtered-chip" id="filteredChip">
+                            <i class="fa fa-filter"></i> Filters active
+                        </span>
+                        <span class="smart-badge smart-badge--soft" id="perfBadge"></span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <main class="vl-main">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+                <span class="smart-badge smart-badge--soft" id="rowsInfo">
+                    <i class="fa fa-database"></i> @visits.Count visit(s)
+                </span>
+                <button id="btnRefresh" type="button" class="btn-premium btn-premium--ghost btn-sm"
+                        style="font-size:.55rem;padding:.46rem .85rem;">
+                    <i class="fa fa-rotate me-1"></i>Refresh
+                </button>
+            </div>
+            <div class="vl-doc-grid" id="visitGrid">
+                @if (!visits.Any())
+                {
+                    <div class="vl-empty" id="emptyState">
+                        <i class="fa fa-folder-open"></i>
+                        <span>No visitations recorded for <strong>@companyName</strong> yet.<br />
+                              Use the <em>New Visitation</em> button above to add the first one.</span>
+                    </div>
+                }
+                else
+                {
+                    foreach (var v in visits)
+                    {
+                        var dateTxt = v.Date.ToString("yyyy-MM-dd");
+                        var has     = v.HasReport;
+                        <div class="vl-visit-row"
+                             data-text="@($"{v.Mentor} {v.VisitBy} {(has ? "yes" : "no")} {dateTxt}".ToLower())"
+                             data-mentor="@v.Mentor"
+                             data-visitor="@v.VisitBy"
+                             data-report="@(has ? "yes" : "no")"
+                             data-date="@dateTxt">
+
+                            <div class="vl-row-icon"><i class="fa fa-building-user"></i></div>
+
+                            <div class="vl-row-info">
+                                <div class="vl-row-title">@(string.IsNullOrWhiteSpace(v.Mentor) ? "—" : v.Mentor)</div>
+                                <div class="vl-row-meta">
+                                    <i class="fa fa-user-tie"></i> @v.VisitBy
+                                    &nbsp;·&nbsp;
+                                    <i class="fa fa-calendar"></i> @dateTxt
+                                    @if (!string.IsNullOrWhiteSpace(v.VisitPurpose))
+                                    {
+                                        <text>&nbsp;·&nbsp;<i class="fa fa-bullseye"></i> @v.VisitPurpose</text>
+                                    }
+                                    &nbsp;·&nbsp;
+                                    <span class="vl-chip @(has ? "vl-chip-yes" : "vl-chip-no")">
+                                        <i class="fa @(has ? "fa-check-circle" : "fa-times-circle")"></i>
+                                        @(has ? "Report" : "No Report")
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="vl-row-actions">
+                                <a class="btn-premium btn-premium--primary btn-sm"
+                                   asp-action="OnModifyVisitation"
+                                   asp-route-VisitId="@v.VisitId"
+                                   style="font-size:.55rem;padding:.46rem .85rem;">
+                                    <i class="fa fa-folder-open me-1"></i>Open
+                                </a>
+                                @if (has && !string.IsNullOrWhiteSpace(v.Report))
+                                {
+                                    <a class="btn-premium btn-sm"
+                                       asp-action="AttachmentDownload"
+                                       asp-route-filename="@v.Report"
+                                       style="font-size:.55rem;padding:.46rem .85rem;">
+                                        <i class="fa fa-download me-1"></i>Report
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="vl-empty" id="noResults" style="display:none;">
+                <i class="fa fa-magnifying-glass"></i>
+                <span>No visitations match your current filter criteria.</span>
+            </div>
+
+        </main>
+    </div>
 </div>
 
 <script>
-(function(){
-  const body = document.getElementById('visitsBody');
-  const rowsInfo = document.getElementById('rowsInfo');
-  const perfInfo = document.getElementById('perfInfo');
-  const searchBox = document.getElementById('searchBox');
-  const mentorFilter = document.getElementById('mentorFilter');
-  const visitorFilter = document.getElementById('visitorFilter');
-  const reportFilter = document.getElementById('reportFilter');
-  const fromDate = document.getElementById('fromDate');
-  const toDate = document.getElementById('toDate');
-  const filterState = document.getElementById('filterState');
-  const btnExport = document.getElementById('btnExport');
-  const btnRefresh = document.getElementById('btnRefresh');
+(function () {
+    'use strict';
 
-  function norm(v){return (v||'').toString().toLowerCase().trim();}
-  function parseDate(d){ if(!d) return null; const dt=new Date(d); return isNaN(dt.getTime())? null: dt; }
+    const grid         = document.getElementById('visitGrid');
+    const noResults    = document.getElementById('noResults');
+    const emptyState   = document.getElementById('emptyState');
+    const rowsInfo     = document.getElementById('rowsInfo');
+    const statVisible  = document.getElementById('statVisible');
+    const perfBadge    = document.getElementById('perfBadge');
+    const filteredChip = document.getElementById('filteredChip');
 
-  function apply(){
-    const t0=performance.now();
-    const q=norm(searchBox.value);
-    const m=mentorFilter.value;
-    const vb=visitorFilter.value;
-    const rp=reportFilter.value;
-    const f=fromDate.value? parseDate(fromDate.value):null;
-    const t=toDate.value? parseDate(toDate.value):null;
+    const searchBox     = document.getElementById('searchBox');
+    const mentorFilter  = document.getElementById('mentorFilter');
+    const visitorFilter = document.getElementById('visitorFilter');
+    const reportFilter  = document.getElementById('reportFilter');
+    const fromDate      = document.getElementById('fromDate');
+    const toDate        = document.getElementById('toDate');
 
-    const rows=[...body.querySelectorAll('tr')];
-    let shown=0,total=0;
-    rows.forEach(r=>{
-      if(r.classList.contains('empty-row')) return;
-      total++;
-      const txt=r.getAttribute('data-text')||'';
-      const dm=r.getAttribute('data-mentor')||'';
-      const dv=r.getAttribute('data-visitor')||'';
-      const dr=r.getAttribute('data-report')||'';
-      const dRaw=r.getAttribute('data-date');
-      const dObj=parseDate(dRaw);
-      let show=true;
-      if(q && !txt.includes(q)) show=false;
-      if(m && dm!==m) show=false;
-      if(vb && dv!==vb) show=false;
-      if(rp && dr!==rp) show=false;
-      if(f && (!dObj || dObj < f)) show=false;
-      if(t && (!dObj || dObj > t)) show=false;
-      r.classList.toggle('hidden-row', !show);
-      if(show) shown++;
+    function norm(v)  { return (v || '').toString().toLowerCase().trim(); }
+    function pd(d)    { if (!d) return null; const dt = new Date(d); return isNaN(dt) ? null : dt; }
+
+    function apply() {
+        const t0 = performance.now();
+        const q  = norm(searchBox.value);
+        const m  = mentorFilter.value;
+        const vb = visitorFilter.value;
+        const rp = reportFilter.value;
+        const f  = fromDate.value ? pd(fromDate.value) : null;
+        const t  = toDate.value   ? pd(toDate.value)   : null;
+
+        const rows  = Array.from(grid.querySelectorAll('.vl-visit-row'));
+        let shown   = 0;
+
+        rows.forEach(r => {
+            const txt  = norm(r.getAttribute('data-text'));
+            const dm   = r.getAttribute('data-mentor')  || '';
+            const dv   = r.getAttribute('data-visitor') || '';
+            const dr   = r.getAttribute('data-report')  || '';
+            const dObj = pd(r.getAttribute('data-date'));
+
+            let ok = true;
+            if (q  && !txt.includes(q))            ok = false;
+            if (m  && dm !== m)                    ok = false;
+            if (vb && dv !== vb)                   ok = false;
+            if (rp && dr !== rp)                   ok = false;
+            if (f  && (!dObj || dObj < f))         ok = false;
+            if (t  && (!dObj || dObj > t))         ok = false;
+
+            r.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+
+        const total     = rows.length;
+        const filtering = !!(q || m || vb || rp || f || t);
+
+        rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${shown} of ${total} visit(s)${filtering ? ' (filtered)' : ''}`;
+        if (statVisible) statVisible.textContent = shown;
+        filteredChip.classList.toggle('show', filtering);
+        noResults.style.display    = (total > 0 && shown === 0) ? 'flex' : 'none';
+        if (emptyState) emptyState.style.display = total === 0 ? 'flex' : 'none';
+        perfBadge.innerHTML = `<i class="fa fa-bolt"></i> ${(performance.now() - t0).toFixed(1)} ms`;
+    }
+
+    [searchBox, mentorFilter, visitorFilter, reportFilter].forEach(el =>
+        el?.addEventListener('input', apply));
+    [mentorFilter, visitorFilter, reportFilter, fromDate, toDate].forEach(el =>
+        el?.addEventListener('change', apply));
+
+    document.getElementById('btnClearFilters')?.addEventListener('click', () => {
+        searchBox.value = mentorFilter.value = visitorFilter.value = reportFilter.value = '';
+        fromDate.value  = toDate.value = '';
+        apply();
     });
 
-    const filtering=!!(q||m||vb||rp||f||t);
-    filterState.style.display = filtering? '' : 'none';
-    rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${shown} of ${total} visit(s)` + (filtering? ' (filtered)':'');
-    perfInfo.textContent = 'Render '+(performance.now()-t0).toFixed(1)+'ms';
-  }
+    document.getElementById('btnRefresh')?.addEventListener('click', () => location.reload());
 
-  [searchBox, mentorFilter, visitorFilter, reportFilter, fromDate, toDate].forEach(el=>{
-    el.addEventListener(el.tagName==='INPUT'?'input':'change', apply);
-  });
+    document.getElementById('btnExport')?.addEventListener('click', () => {
+        const visible = Array.from(grid.querySelectorAll('.vl-visit-row')).filter(r => r.style.display !== 'none');
+        if (!visible.length) { alert('No rows to export.'); return; }
 
-  btnExport.addEventListener('click', ()=>{
-    const visible=[...body.querySelectorAll('tr:not(.hidden-row)')].filter(r=>!r.classList.contains('empty-row'));
-    if(!visible.length){ alert('No rows to export.'); return; }
-    const lines=['Mentor,VisitedBy,Date,HasReport'];
-    visible.forEach(r=>{
-      const cells=r.querySelectorAll('td');
-      const arr=[
-        cells[1].innerText.trim(),
-        cells[2].innerText.trim(),
-        cells[3].innerText.trim(),
-        cells[4].innerText.replace(/\s+/g,' ').trim()
-      ].map(v=>'"'+v.replace(/"/g,'""')+'"');
-      lines.push(arr.join(','));
+        const lines = ['"Mentor","Visited By","Date","Has Report","Purpose"'];
+        visible.forEach(r => {
+            const cells = [
+                r.getAttribute('data-mentor')  ?? '',
+                r.getAttribute('data-visitor') ?? '',
+                r.getAttribute('data-date')    ?? '',
+                r.getAttribute('data-report')  ?? '',
+                r.querySelector('.vl-row-meta')?.innerText?.replace(/\s+/g,' ').trim() ?? ''
+            ].map(v => '"' + v.replace(/"/g, '""') + '"');
+            lines.push(cells.join(','));
+        });
+
+        const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+        const a    = Object.assign(document.createElement('a'), {
+            href:     URL.createObjectURL(blob),
+            download: `visitations-${new Date().toISOString().slice(0, 10)}.csv`
+        });
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     });
-    const blob=new Blob([lines.join('\\r\\n')],{type:'text/csv;charset=utf-8;'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='visitations-'+new Date().toISOString().slice(0,10)+'.csv';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  });
 
-  btnRefresh.addEventListener('click', ()=>location.reload());
-
-  apply();
+    apply();
 })();
 </script>

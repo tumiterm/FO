@@ -1,17 +1,21 @@
+#region Usings
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static ForekOnline.Domain.Enums.EnumRegistry;
+#endregion
 
 namespace ForekOnline.Application.Common.Services
 {
     public class VisitService : IVisitService
     {
+        #region Fields
         private readonly IUnitOfWork _uow;
         private readonly IHelperService _helperService;
         private readonly IFileUploadService _fileUploadService;
+        #endregion
 
         public VisitService(IUnitOfWork uow, IHelperService helperService, IFileUploadService fileUploadService)
         {
@@ -117,7 +121,7 @@ namespace ForekOnline.Application.Common.Services
             return students
                 .Where(s => string.IsNullOrWhiteSpace(term) || $"{s.FirstName} {s.LastName} {s.StudentNumber}".Contains(term, StringComparison.OrdinalIgnoreCase))
                 .Take(max)
-                .Select(s => new StudentLookupItem($"{s.FirstName} {s.LastName}", s.EmailAddress ?? string.Empty, s.StudentNumber ?? string.Empty))
+                .Select(s => new StudentLookupItem($"{s.FirstName} {s.LastName}", s.Email ?? string.Empty, s.StudentNumber ?? string.Empty))
                 .ToList();
         }
 

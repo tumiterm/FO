@@ -1,11 +1,61 @@
 @{
     ViewData["Title"] = "Visit Home";
 }
-<div class="container py-4">
-    <h1>Visit Home</h1>
-    <p>Quickly find students for visitation planning.</p>
-    <input id="studentSearch" class="form-control" placeholder="Search student name or number..." />
-    <ul id="results" class="list-group mt-3"></ul>
+
+<link rel="stylesheet" href="~/css/Enrollment.css" />
+
+<div class="enroll-shell">
+    <div class="enroll-hero fade-up">
+        <div class="enroll-hero__icon">
+            <i class="fa fa-archway"></i>
+        </div>
+        <div class="enroll-hero__content">
+            <div class="enroll-kicker">
+                <i class="fa fa-building"></i>
+                Company Visitation Suite
+            </div>
+            <h1 class="enroll-title">Visit Home</h1>
+            <p class="enroll-subtitle">
+                Welcome to the premium visitation dashboard. Track, add, and review all company visits in one place.
+            </p>
+        </div>
+        <div class="enroll-hero__meta">
+            <div class="hero-stat">
+                <div class="hero-stat__label">Total Visits</div>
+                <div class="hero-stat__value">0</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat__label">Active Companies</div>
+                <div class="hero-stat__value">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="enroll-grid">
+        <aside class="enroll-side">
+            <div class="glass-card progress-card fade-up">
+                <h5 class="progress-title">
+                    <i class="fa fa-compass"></i>
+                    Quick Actions
+                </h5>
+                <div class="lookup-badge-row">
+                    <a href="#" class="btn-premium btn-premium--primary"><i class="fa fa-plus"></i> New Visit</a>
+                </div>
+            </div>
+        </aside>
+        <main class="enroll-main">
+            <div class="glass-card fade-up">
+                <h3 class="form-card__title">
+                    <i class="fa fa-list"></i>
+                    Recent Visits
+                </h3>
+                <p class="form-card__copy">
+                    Here you can see all recent visitations and their statuses.
+                </p>
+                <!-- Add your visit list or dashboard content here -->
+            </div>
+        </main>
+    </div>
 </div>
 
 <script>
