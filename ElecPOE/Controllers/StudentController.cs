@@ -384,59 +384,49 @@ namespace ElecPOE.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> StudentDocuments(StudentAttachment attachment)
         {
-            Student student = await _studentService.GetStudentAsync(attachment.StudentNumber);
-
-            attachment.AttachmentId = Helper.GenerateGuid();
-
-            attachment.CreatedBy = $"{_userService.OnGetCurrentUser()?.Name} {_userService.OnGetCurrentUser()?.LastName}";
-
-            attachment.CreatedOn = _helperService.GetCurrentTime().ToString();
-
-            attachment.IsActive = true;
-
-            attachment.StudentNumber = student.StudentNumber;
-
-            string fileName = attachment.AttachmentFile.FileName;
-
-            attachment.Document = $"{fileName}";
-
-            attachment.StudentId = student.StudentId;
-
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                attachment.Document = await AttachmentUploaderAsync(attachment).ConfigureAwait(false);
-
-                StudentAttachment file = await _context.StudentAttachment.AddAsync(attachment);
-
-                if (file != null)
-                {
-                    int rc = await _context.SaveAsync();
-
-                    if (rc > 0)
-                    {
-                        TempData["success"] = $"{file.DocumentName} successfully saved and uploaded";
-
-                        return RedirectToAction("StudentDocuments", new { StudentNumber = attachment.StudentNumber, StudentId = attachment.StudentId });
-                    }
-                    else
-                    {
-                        TempData["error"] = $"Error: UNABLE to saved and uploaded file!!!";
-                    }
-                }
-                else
-                {
-                    TempData["error"] = $"Error: something went wrong!!!";
-                }
-            }
-            else
-            {
-                TempData["error"] = $"Error: File upload required!!!";
+                TempData["error"] = "File upload required!";
+                return View();
             }
 
-            return View();
+            var student = await _studentService.GetStudentAsync(attachment.StudentNumber);
+            if (student == null)
+            {
+                TempData["error"] = "Student not found.";
+                return View();
+            }
 
+            var currentUser = _userService.OnGetCurrentUser();
+            PopulateAttachmentMetadata(attachment, student, currentUser);
+
+            try
+            {
+                attachment.Document = await AttachmentUploaderAsync(attachment);
+
+                await _context.StudentAttachment.AddAsync(attachment);
+                var rows = await _context.SaveAsync();
+
+                if (rows <= 0)
+                {
+                    TempData["error"] = "Unable to save and upload file.";
+                    return View();
+                }
+
+                TempData["success"] = $"Learner file successfully saved and uploaded";
+
+                return RedirectToAction("StudentDocuments", new
+                {
+                    StudentNumber = attachment.StudentNumber,
+                    StudentId = attachment.StudentId
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Something went wrong while uploading the file.";
+                return View();
+            }
         }
-
         /// <summary>
         /// Uploads a student attachment file to the server storage.
         /// </summary>
@@ -961,6 +951,19 @@ namespace ElecPOE.Controllers
         }
 
         #region Private Methods
+
+        private void PopulateAttachmentMetadata(StudentAttachment attachment, Student student, User currentUser)
+        {
+            attachment.AttachmentId = Helper.GenerateGuid();
+            attachment.CreatedBy = $"{currentUser?.Name} {currentUser?.LastName}";
+            attachment.CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString();
+            attachment.IsActive = true;
+
+            attachment.StudentNumber = student.StudentNumber;
+            attachment.StudentId = student.StudentId;
+
+            attachment.Document = attachment.AttachmentFile?.FileName;
+        }
 
         /// <summary>
         /// Loads active courses as SelectListItems for the enrollment dropdown.

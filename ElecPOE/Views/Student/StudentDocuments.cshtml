@@ -2,340 +2,796 @@
 @model dynamic
 @{
     ViewData["Title"] = "Student Documents";
-    var studentName = (string?)ViewData["name"] ?? "Student";
+    var studentName   = (string?)ViewData["name"] ?? "Student";
     var studentNumber = ViewData["StudentNumber"];
-    var studentId = ViewData["StudentId"];
-    var files = (IEnumerable<dynamic>?)Model?.FileModel ?? Enumerable.Empty<dynamic>();
-    var totalFiles = files.Count();
+    var studentId     = ViewData["StudentId"];
+    var files         = (IEnumerable<dynamic>?)Model?.FileModel ?? Enumerable.Empty<dynamic>();
+    var totalFiles    = files.Count();
+
+    var parts    = studentName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = parts.Length >= 2
+        ? $"{parts[0][0]}{parts[^1][0]}"
+        : studentName.Length > 0 ? studentName[0].ToString() : "?";
 }
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
 
 <style>
 :root {
-    --sd-bg: #f5f7fb;
-    --sd-surface: #ffffff;
-    --sd-surface-soft: #f8fafc;
-    --sd-border: #dfe6ef;
-    --sd-text: #1b2430;
-    --sd-muted: #6a7584;
-    --sd-primary: #7d0e11;
-    --sd-primary-2: #b31217;
-    --sd-primary-3: #ff7a18;
-    --sd-primary-grad: linear-gradient(125deg, #7d0e11 0%, #b31217 50%, #ff7a18 100%);
-    --sd-ring: 0 0 0 .18rem rgba(179, 18, 23, .14);
-    --sd-shadow-lg: 0 32px 58px -35px rgba(18, 31, 53, .45);
-    --sd-shadow-md: 0 18px 36px -24px rgba(18, 31, 53, .34);
-    --sd-radius-xl: 30px;
-    --sd-radius-lg: 22px;
-    --sd-radius-md: 15px;
+    --bg:           #eef1f7;
+    --surface:      #ffffff;
+    --surface-2:    #f7f9fc;
+    --border:       #e2e8f2;
+    --border-s:     #c8d4e4;
+    --text:         #0f1923;
+    --text-2:       #3d4d60;
+    --muted:        #6e7f96;
+    --accent:       #7d0e11;
+    --accent-mid:   #b31217;
+    --accent-warm:  #ff7a18;
+    --grad:         linear-gradient(128deg,#7d0e11 0%,#b31217 50%,#ff7a18 100%);
+    --grad-soft:    linear-gradient(128deg,#7d0e110e 0%,#b3121712 50%,#ff7a1814 100%);
+    --glow:         0 0 0 .18rem rgba(179,18,23,.15);
+    --sh-xs:        0 1px 4px rgba(15,25,35,.07);
+    --sh-sm:        0 4px 16px -4px rgba(15,25,35,.12);
+    --sh-md:        0 12px 36px -10px rgba(15,25,35,.18);
+    --sh-lg:        0 28px 62px -18px rgba(15,25,35,.26);
+    --sh-accent:    0 14px 34px -12px rgba(125,14,17,.48);
+    --r-xl:         30px;
+    --r-lg:         22px;
+    --r-md:         14px;
+    --r-sm:         10px;
+    --r-xs:         7px;
+    font-family: 'Inter','Segoe UI',system-ui,sans-serif;
 }
 
-.student-docs-shell { max-width: 1360px; margin: 0 auto; padding: 1.55rem 1rem 2.8rem; }
-.hero-card {
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); min-height:100vh; }
+
+.sd-shell {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 2.2rem 1.3rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+}
+
+.hero {
     position: relative;
-    border: 1px solid var(--sd-border);
-    border-radius: var(--sd-radius-xl);
-    background: radial-gradient(circle at top right, #ffffff 0, #f9fbff 45%, #f4f7fc 100%);
+    border-radius: var(--r-xl);
     overflow: hidden;
-    box-shadow: var(--sd-shadow-lg);
-    padding: 1.3rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--sh-lg);
+    padding: 2.2rem 2.2rem 1.8rem;
 }
-.hero-card::before {
-    content: "";
+
+.hero-mesh {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 70% at  3% 10%, rgba(125,14,17,.09)    0%, transparent 56%),
+        radial-gradient(ellipse 55% 55% at 97% 90%, rgba(255,122,24,.11)   0%, transparent 52%),
+        radial-gradient(ellipse 40% 40% at 55% 55%, rgba(179,18,23,.065)   0%, transparent 55%),
+        radial-gradient(ellipse 30% 30% at 80%  8%, rgba(255,122,24,.07)   0%, transparent 50%);
+}
+
+.hero-dots {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.hero-dots span {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(150deg, rgba(179, 18, 23, .08), rgba(255, 122, 24, .08), transparent 62%);
-    pointer-events: none;
+    border-radius: 50%;
+    background: var(--grad);
+    opacity: .07;
+    animation: floatDot var(--dur,8s) ease-in-out infinite alternate;
 }
-.hero-grid { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
-.hero-left { display: flex; align-items: center; gap: 1rem; }
-.hero-orb {
-    width: 76px; height: 76px; border-radius: 24px; background: var(--sd-primary-grad);
-    display: flex; justify-content: center; align-items: center; color: #fff; font-size: 1.85rem;
-    box-shadow: 0 14px 26px -14px rgba(125, 14, 17, .9);
+.hero-dots span:nth-child(1) { width:180px;height:180px; top:-50px;  right:12%; --dur:9s; }
+.hero-dots span:nth-child(2) { width: 90px;height: 90px; bottom:10px;right:28%; --dur:7s; opacity:.05; }
+.hero-dots span:nth-child(3) { width:130px;height:130px; top:20%;    left:-30px;--dur:11s;opacity:.055; }
+@@keyframes floatDot {
+    from { transform:translateY(0) scale(1); }
+    to   { transform:translateY(-22px) scale(1.06); }
 }
-.hero-kicker {
-    font-size: .62rem; letter-spacing: .18rem; font-weight: 800; text-transform: uppercase;
-    color: var(--sd-primary);
-}
-.hero-title { margin: .15rem 0 0; color: var(--sd-text); font-size: 1.6rem; font-weight: 700; }
-.hero-copy { margin: .3rem 0 0; color: var(--sd-muted); font-size: .86rem; max-width: 760px; }
-.hero-actions { display: flex; flex-wrap: wrap; gap: .55rem; justify-content: flex-end; }
 
-.premium-btn {
-    border: 1px solid var(--sd-border); background: #fff; color: var(--sd-primary); border-radius: 13px;
-    padding: .58rem .98rem; font-size: .59rem; text-transform: uppercase; letter-spacing: .12rem; font-weight: 700;
-    display: inline-flex; align-items: center; gap: .4rem; text-decoration: none; transition: .22s ease;
-}
-.premium-btn:hover { background: var(--sd-primary-grad); color: #fff; border-color: var(--sd-primary); box-shadow: var(--sd-shadow-md); }
-.premium-btn--primary { background: var(--sd-primary-grad); color: #fff; border-color: var(--sd-primary); }
-.premium-btn--danger { background: #fff2f3; color: #7d0e11; border-color: #efcad0; }
+.hero > * { position: relative; z-index: 1; }
 
-.metrics-row { position: relative; margin-top: .95rem; display: grid; grid-template-columns: repeat(3, minmax(170px, 1fr)); gap: .7rem; }
-.metric {
-    border: 1px solid var(--sd-border); border-radius: 14px; padding: .72rem .86rem; background: rgba(255,255,255,.82);
-}
-.metric small { display:block; font-size:.54rem; letter-spacing:.11rem; text-transform:uppercase; color:var(--sd-muted); font-weight:700; }
-.metric strong { font-size:1.02rem; color:var(--sd-text); }
+.hero-top { display:flex; flex-wrap:wrap; gap:1.4rem; align-items:flex-start; }
 
-.section-grid { margin-top: 1.3rem; display: grid; gap: 1rem; }
-.glass-card {
-    border: 1px solid var(--sd-border); border-radius: var(--sd-radius-lg); background: var(--sd-surface);
-    box-shadow: var(--sd-shadow-md); overflow: hidden;
+.hero-avatar-ring {
+    flex-shrink: 0;
+    width: 86px; height: 86px;
+    border-radius: 26px;
+    background: var(--grad);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--sh-accent), 0 0 0 6px rgba(179,18,23,.09);
+    animation: popIn .7s cubic-bezier(.34,1.56,.64,1) both;
 }
-.card-header {
-    padding: .92rem 1rem; border-bottom: 1px solid var(--sd-border);
-    background: linear-gradient(155deg, #fff, #fbfdff);
-    display: flex; gap: .7rem; align-items: center; justify-content: space-between; flex-wrap: wrap;
+.hero-avatar-initials {
+    font-size: 1.75rem; font-weight: 800; color: #fff;
+    letter-spacing: -.5px; line-height: 1;
 }
-.card-title { margin: 0; font-size: .8rem; letter-spacing: .16rem; text-transform: uppercase; color: var(--sd-primary); font-weight: 800; }
-.card-body { padding: 1rem; }
+@@keyframes popIn {
+    from { transform:scale(.5) rotate(-10deg); opacity:0; }
+    to   { transform:scale(1)  rotate(0);      opacity:1; }
+}
 
-.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: .85rem; }
-.field label { display:block; margin-bottom:.36rem; font-size:.53rem; letter-spacing:.12rem; text-transform:uppercase; font-weight:800; color:#4d5968; }
-.required::after { content:'*'; color:#b31217; margin-left:.25rem; }
+.hero-copy { flex: 1; min-width: 200px; }
+.hero-eyebrow {
+    font-size: .58rem; letter-spacing: .24rem; font-weight: 800;
+    text-transform: uppercase; color: var(--accent-mid);
+    display: inline-flex; align-items: center; gap: .4rem;
+    margin-bottom: .4rem;
+}
+.hero-h1 {
+    font-size: 1.75rem; font-weight: 800; letter-spacing: -.6px;
+    color: var(--text); line-height: 1.18;
+}
+.hero-h1 em {
+    font-style: normal;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero-sub {
+    margin-top: .45rem;
+    font-size: .78rem; color: var(--muted); max-width: 660px; line-height: 1.6;
+}
+
+.hero-actions { margin-left: auto; display:flex; flex-wrap:wrap; gap:.5rem; align-items:flex-start; }
+
+.hero-stats {
+    margin-top: 1.6rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: .85rem;
+}
+.stat-card {
+    position: relative; overflow: hidden;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: .85rem 1rem .8rem;
+    transition: transform .3s, box-shadow .3s;
+}
+.stat-card:hover { transform:translateY(-3px); box-shadow: var(--sh-md); }
+.stat-card::after {
+    content:''; position:absolute; bottom:0; left:0; right:0;
+    height:3px; background:var(--grad);
+    border-radius:0 0 var(--r-md) var(--r-md);
+    opacity:.6;
+}
+.stat-label { font-size:.52rem; letter-spacing:.15rem; text-transform:uppercase; font-weight:700; color:var(--muted); }
+.stat-value {
+    font-size:1.35rem; font-weight:800; line-height:1.1; margin-top:.2rem;
+    background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.stat-sub { font-size:.55rem; color:var(--muted); margin-top:.2rem; }
+
+.btn {
+    display: inline-flex; align-items: center; gap: .48rem;
+    font-size: .58rem; letter-spacing: .13rem; font-weight: 700;
+    text-transform: uppercase; text-decoration: none; white-space: nowrap;
+    padding: .62rem 1.1rem; border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--accent-mid);
+    cursor: pointer; transition: .28s; outline: none;
+    position: relative; overflow: hidden;
+}
+.btn::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(circle at center,rgba(255,255,255,.3) 0%,transparent 70%);
+    opacity:0; transition:opacity .3s; pointer-events:none;
+}
+.btn:hover::before { opacity:1; }
+.btn:hover { background:var(--grad); color:#fff; border-color:var(--accent); box-shadow:var(--sh-accent); }
+.btn:focus-visible { box-shadow:var(--glow); }
+.btn-primary { background:var(--grad); color:#fff; border-color:var(--accent); box-shadow:var(--sh-sm); }
+.btn-primary:hover { filter:brightness(.92); box-shadow:var(--sh-accent); }
+.btn-danger  { background:#fff2f3; color:#7d0e11; border-color:#eec8cc; }
+.btn-danger:hover  { background:#b31217; color:#fff; border-color:#b31217; }
+.btn-ghost  { background:transparent; border-color:transparent; }
+.btn-ghost:hover  { background:var(--grad); color:#fff; border-color:var(--accent); }
+.btn-sm { padding:.46rem .8rem; font-size:.54rem; border-radius:var(--r-sm); }
+.btn:disabled { opacity:.5; pointer-events:none; }
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-sm);
+    overflow: hidden;
+    animation: riseUp .55s cubic-bezier(.22,1,.36,1) both;
+}
+@@keyframes riseUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.card-hdr {
+    padding: 1.1rem 1.35rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(155deg,#fff 0%,#f9fbfe 100%);
+    display: flex; align-items: center; flex-wrap: wrap; gap: .75rem;
+}
+.card-hdr-icon {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: var(--grad-soft); border: 1px solid #f2cccf;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; color: var(--accent-mid);
+}
+.card-title { font-size:.72rem; letter-spacing:.2rem; font-weight:800; text-transform:uppercase; color:var(--accent-mid); }
+.card-badge {
+    margin-left: auto;
+    font-size:.5rem; letter-spacing:.1rem; font-weight:700; text-transform:uppercase;
+    background:var(--grad-soft); color:var(--accent-mid); border:1px solid #f2cccf;
+    padding:.32rem .65rem; border-radius:30px;
+    display:inline-flex; align-items:center; gap:.35rem;
+}
+.card-body { padding: 1.35rem; }
+
+.drop-zone {
+    position: relative;
+    border: 2px dashed var(--border-s);
+    border-radius: var(--r-lg);
+    padding: 2.8rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--surface-2);
+    transition: border-color .28s, background .28s, box-shadow .28s;
+    margin-bottom: 1.2rem;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--accent-mid);
+    background: #fff9f9;
+    box-shadow: var(--glow), inset 0 0 0 1px rgba(179,18,23,.08);
+}
+.drop-zone.dropped {
+    border-color: #18a85a;
+    background: #f0faf4;
+    box-shadow: 0 0 0 .18rem rgba(24,168,90,.18);
+}
+.drop-zone.error-state {
+    border-color: var(--accent-mid);
+    background: #fff2f2;
+    box-shadow: var(--glow);
+}
+.drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.dz-icon {
+    font-size: 2.6rem; margin-bottom: .75rem;
+    background: var(--grad);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: block; transition: transform .3s;
+}
+.drop-zone:hover .dz-icon,
+.drop-zone.drag-over .dz-icon { transform: translateY(-5px) scale(1.08); }
+.dz-title { font-size:.88rem; font-weight:700; color:var(--text); }
+.dz-sub   { font-size:.65rem; color:var(--muted); margin-top:.35rem; line-height:1.6; }
+.dz-browse {
+    display: inline-block;
+    margin-top: .85rem;
+    font-size: .6rem; letter-spacing: .14rem; font-weight: 700; text-transform: uppercase;
+    background: var(--grad); color: #fff;
+    padding: .52rem 1.1rem; border-radius: var(--r-sm);
+    box-shadow: var(--sh-sm);
+    pointer-events: none; 
+    transition: .25s;
+}
+.drop-zone:hover .dz-browse { box-shadow: var(--sh-accent); filter: brightness(.94); }
+
+.file-chip {
+    display: none;
+    align-items: center; gap: .65rem;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: .75rem 1rem;
+    margin-top: 1rem;
+    animation: chipIn .35s ease both;
+}
+.file-chip.show { display: flex; }
+@@keyframes chipIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+.file-chip-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--grad-soft); border: 1px solid #f2cccf;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; color: var(--accent-mid); flex-shrink: 0;
+}
+.file-chip-info { flex: 1; }
+.file-chip-name { font-size: .72rem; font-weight: 600; color: var(--text); word-break: break-word; }
+.file-chip-size { font-size: .58rem; color: var(--muted); margin-top: .15rem; }
+.file-chip-clear { font-size: .85rem; color: var(--muted); cursor: pointer; transition: color .2s; background:none; border:none; }
+.file-chip-clear:hover { color: var(--accent-mid); }
+
+.upload-bar {
+    display: none;
+    height: 4px; border-radius: 99px;
+    background: var(--border); overflow: hidden;
+    margin-top: .75rem;
+}
+.upload-bar.show { display: block; }
+.upload-bar-fill {
+    height: 100%; width: 0%;
+    background: var(--grad);
+    border-radius: 99px;
+    transition: width .3s ease;
+}
+
+.field-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:.95rem; }
+.field { display:flex; flex-direction:column; gap:.4rem; }
+.field > label {
+    font-size:.52rem; letter-spacing:.15rem; text-transform:uppercase;
+    font-weight:700; color:#495668;
+    display:flex; align-items:center; gap:.38rem;
+}
+.field > label .req { color:var(--accent-mid); }
 .input-wrap {
-    display:flex; align-items:center; gap:.48rem; border:1px solid var(--sd-border); border-radius:13px;
-    padding:.56rem .7rem; background:var(--sd-surface-soft); transition:.2s;
+    display:flex; align-items:center; gap:.52rem;
+    background:#fff; border:1.5px solid var(--border);
+    border-radius:var(--r-md); padding:.6rem .78rem;
+    transition:.22s;
 }
-.input-wrap:focus-within { border-color: var(--sd-primary); box-shadow: var(--sd-ring); background:#fff; }
-.input-wrap i { font-size:.77rem; color:#8a95a5; }
-.input-wrap select, .input-wrap input[type='file'] { border:none; background:transparent; width:100%; outline:none; font-size:.72rem; color:var(--sd-text); }
-.hint { font-size:.53rem; color:var(--sd-muted); margin-top:.25rem; }
-.form-actions { margin-top: .78rem; display:flex; flex-wrap:wrap; gap:.5rem; }
-
-.filter-bar { display:flex; flex-wrap:wrap; gap:.55rem; margin-bottom:.8rem; }
-.search-wrap { position:relative; flex:1 1 300px; }
-.search-wrap i { position:absolute; top:50%; left:.7rem; transform:translateY(-50%); color:#8d99a8; font-size:.7rem; }
-.search-wrap input, .filter-select {
-    border:1px solid var(--sd-border); border-radius:13px; background:#fff; font-size:.69rem;
+.input-wrap:focus-within { border-color:var(--accent-mid); box-shadow:var(--glow); background:#fff; }
+.input-wrap i { font-size:.78rem; color:#b0bbc8; flex-shrink:0; transition:color .22s; }
+.input-wrap:focus-within i { color:var(--accent-mid); }
+.input-wrap select {
+    border:none; outline:none; background:transparent;
+    font-size:.72rem; font-family:inherit; color:var(--text); width:100%; cursor:pointer;
 }
-.search-wrap input { width:100%; padding:.52rem .7rem .52rem 2rem; }
-.filter-select { padding:.52rem .65rem; min-width:180px; }
-.search-wrap input:focus, .filter-select:focus { outline:none; border-color:var(--sd-primary); box-shadow:var(--sd-ring); }
 
-.table-wrap { overflow:auto; border:1px solid var(--sd-border); border-radius:16px; }
-.doc-table { width:100%; border-collapse:separate; border-spacing:0; font-size:.66rem; }
-.doc-table th { position:sticky; top:0; z-index:1; background:var(--sd-primary-grad); color:#fff; text-transform:uppercase; font-size:.53rem; letter-spacing:.14rem; padding:.55rem; }
-.doc-table td { padding:.5rem .55rem; border-bottom:1px solid #e6ecf3; color:#334155; }
-.doc-table tbody tr:nth-child(odd){ background:#fdfefe; }
-.doc-table tbody tr:nth-child(even){ background:#f8fbff; }
-.doc-table tbody tr:hover { background:#fff3ef; }
+.form-actions-row {
+    display:flex; flex-wrap:wrap; gap:.6rem; align-items:center;
+    padding-top: 1rem; border-top: 1px solid var(--border);
+}
+.form-note {
+    width:100%; display:flex; align-items:flex-start; gap:.4rem;
+    font-size:.54rem; color:var(--muted); line-height:1.55;
+}
+.form-note i { color:var(--accent-mid); margin-top:.1rem; flex-shrink:0; }
 
-.pill { display:inline-flex; align-items:center; gap:.3rem; border:1px solid #d4deea; background:#eef4fb; color:#20405f; border-radius:99px; padding:.24rem .52rem; font-size:.48rem; font-weight:700; letter-spacing:.07rem; }
-.date-pill { background:#f1f5f9; border:1px solid #dce5ef; color:#475569; }
-.action-link { text-decoration:none; }
-.empty-row { text-align:center; font-style:italic; color:#7a8796; }
-.hidden-row { display:none !important; }
+.filter-bar {
+    display:flex; flex-wrap:wrap; gap:.6rem; margin-bottom:1.1rem; align-items:center;
+}
+.search-wrap { position:relative; flex:1 1 260px; }
+.search-wrap i { position:absolute; top:50%; left:.75rem; transform:translateY(-50%); color:#a0acbb; font-size:.72rem; pointer-events:none; }
+.filter-input {
+    background:#fff; border:1.5px solid var(--border);
+    border-radius:var(--r-md); font-size:.7rem; font-family:inherit; color:var(--text);
+    padding:.6rem .75rem;
+    transition:.22s;
+}
+.search-wrap .filter-input { padding-left:2.2rem; width:100%; }
+.filter-input:focus { outline:none; border-color:var(--accent-mid); box-shadow:var(--glow); }
+.filter-select { min-width:180px; cursor:pointer; }
 
-@media (max-width: 900px) {
-    .hero-grid { grid-template-columns: 1fr; }
-    .hero-actions { justify-content: flex-start; }
-    .metrics-row { grid-template-columns: 1fr; }
+.doc-grid {
+    display: grid;
+    gap: .75rem;
+}
+.doc-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: .85rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: .85rem 1rem;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    animation: riseUp .4s ease both;
+}
+.doc-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sh-md);
+    border-color: var(--border-s);
+    background: #fff;
+}
+.doc-icon-wrap {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: var(--grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; color: #fff;
+    box-shadow: 0 6px 18px -6px rgba(179,18,23,.45);
+}
+.doc-info { flex: 1; min-width: 120px; }
+.doc-type { font-size:.72rem; font-weight:700; color:var(--text); }
+.doc-meta { font-size:.58rem; color:var(--muted); margin-top:.18rem; display:flex; align-items:center; gap:.4rem; }
+.doc-meta i { font-size:.55rem; }
+.doc-actions { display:flex; gap:.45rem; flex-shrink:0; }
+
+.doc-chip {
+    font-size:.48rem; letter-spacing:.1rem; font-weight:700; text-transform:uppercase;
+    padding:.3rem .6rem; border-radius:30px;
+    background:var(--grad-soft); color:var(--accent-mid); border:1px solid #f2cccf;
+    display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap;
+}
+
+.empty-state {
+    text-align:center; padding:3.5rem 1rem;
+    color:var(--muted); font-size:.78rem;
+    display:flex; flex-direction:column; align-items:center; gap:.75rem;
+}
+.empty-state i { font-size:2.5rem; opacity:.3; }
+
+.chip {
+    display:inline-flex; align-items:center; gap:.3rem;
+    font-size:.5rem; letter-spacing:.1rem; font-weight:700; text-transform:uppercase;
+    padding:.28rem .55rem; border-radius:30px;
+    background:#eef3fa; color:#3a5270; border:1px solid #d0dce8;
+}
+
+@@media (max-width:860px) {
+    .hero { padding:1.5rem 1.2rem 1.35rem; }
+    .hero-h1 { font-size:1.45rem; }
+    .hero-actions { margin-left:0; }
+}
+@@media (max-width:580px) {
+    .doc-row { padding:.7rem .85rem; }
+    .hero-avatar-ring { width:68px; height:68px; border-radius:20px; }
+    .hero-avatar-initials { font-size:1.4rem; }
 }
 </style>
 
-<div class="student-docs-shell">
-    <section class="hero-card">
-        <div class="hero-grid">
-            <div class="hero-left">
-                <div class="hero-orb"><i class="fa fa-file-circle-check"></i></div>
-                <div>
-                    <div class="hero-kicker"><i class="fa fa-sparkles"></i> Student Records Suite</div>
-                    <h1 class="hero-title">Student Documents</h1>
-                    <p class="hero-copy">Manage secure learner documents in one premium workspace. Upload, filter, audit and download with confidence.</p>
-                </div>
-            </div>
+<div class="sd-shell">
+    <section class="hero">
+        <div class="hero-mesh"></div>
+        <div class="hero-dots">
+            <span></span><span></span><span></span>
+        </div>
 
+        <div class="hero-top">
+            <div class="hero-avatar-ring">
+                <span class="hero-avatar-initials">@initials</span>
+            </div>
+            <div class="hero-copy">
+                <div class="hero-eyebrow"><i class="fa fa-sparkles"></i> Learner Records Suite</div>
+                <h1 class="hero-h1">Student <em>Documents</em></h1>
+                <p class="hero-sub">
+                    Upload, audit, and manage secure learner documents in one premium workspace.
+                    All files are version-tracked and instantly downloadable.
+                </p>
+            </div>
             <div class="hero-actions">
-                <a asp-action="Index" asp-controller="Student" class="premium-btn"><i class="fa fa-arrow-left"></i> Back</a>
-                <button id="btnExport" type="button" class="premium-btn"><i class="fa fa-file-export"></i> Export CSV</button>
-                <button id="btnRefresh" type="button" class="premium-btn premium-btn--primary"><i class="fa fa-rotate"></i> Refresh</button>
+                <a asp-action="Index" asp-controller="Student" class="btn btn-ghost btn-sm">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+                <button id="btnExport" type="button" class="btn btn-sm">
+                    <i class="fa fa-file-export"></i> Export CSV
+                </button>
+                <button id="btnRefresh" type="button" class="btn btn-primary btn-sm">
+                    <i class="fa fa-rotate"></i> Refresh
+                </button>
             </div>
         </div>
 
-        <div class="metrics-row">
-            <div class="metric"><small>Learner</small><strong>@studentName</strong></div>
-            <div class="metric"><small>Student Number</small><strong>@studentNumber</strong></div>
-            <div class="metric"><small>Documents</small><strong>@totalFiles File(s)</strong></div>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-label">Learner</div>
+                <div class="stat-value" style="font-size:1.05rem;">@studentName</div>
+                <div class="stat-sub"><i class="fa fa-user"></i> Active learner</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Student Number</div>
+                <div class="stat-value" style="font-size:1.05rem;">@studentNumber</div>
+                <div class="stat-sub"><i class="fa fa-id-card"></i> Unique ID</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Documents</div>
+                <div class="stat-value" id="statTotal">@totalFiles</div>
+                <div class="stat-sub"><i class="fa fa-file-pdf"></i> Uploaded files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Storage Used</div>
+                <div class="stat-value" id="statStorage">—</div>
+                <div class="stat-sub"><i class="fa fa-database"></i> Across all files</div>
+            </div>
         </div>
     </section>
 
-    <div class="section-grid">
-        <section class="glass-card">
-            <div class="card-header">
-                <h2 class="card-title"><i class="fa fa-cloud-arrow-up"></i> Upload Document</h2>
-                <span class="pill"><i class="fa fa-shield-check"></i> PDF Only · Max 2MB</span>
-            </div>
-            <div class="card-body">
-                <form asp-action="StudentDocuments" enctype="multipart/form-data" method="post" novalidate autocomplete="off">
-                    @Html.AntiForgeryToken()
-                    <div class="field-grid">
-                        <div class="field">
-                            <label class="required">Document Type</label>
-                            <div class="input-wrap">
-                                <i class="fa fa-diagram-project"></i>
-                                <select name="DocumentName" required asp-items="Html.GetEnumSelectList<eLearnerAdministration>()">
-                                    <option value="">Select document...</option>
-                                </select>
-                            </div>
-                        </div>
+    <section class="card" style="animation-delay:.06s;">
+        <div class="card-hdr">
+            <div class="card-hdr-icon"><i class="fa fa-cloud-arrow-up"></i></div>
+            <span class="card-title">Upload Document</span>
+            <span class="card-badge"><i class="fa fa-shield-halved"></i> PDF · Max 2 MB</span>
+        </div>
+        <div class="card-body">
+            <form asp-action="StudentDocuments"
+                  enctype="multipart/form-data"
+                  method="post"
+                  novalidate
+                  autocomplete="off"
+                  id="uploadForm">
+                @Html.AntiForgeryToken()
 
-                        <div class="field">
-                            <label class="required">Document (PDF)</label>
-                            <div class="input-wrap">
-                                <i class="fa fa-file-pdf"></i>
-                                <input id="fileInput" name="AttachmentFile" required type="file" accept="application/pdf" />
-                            </div>
-                            <small id="fileInfo" class="hint">Max 2MB • PDF only</small>
-                        </div>
+                <label class="drop-zone" id="dropZone" for="fileInput">
+                    <input type="file" id="fileInput" name="AttachmentFile" accept="application/pdf" required />
+                    <i class="fa fa-cloud-arrow-up dz-icon" id="dzIcon"></i>
+                    <div class="dz-title" id="dzTitle">Drag &amp; drop your PDF here</div>
+                    <div class="dz-sub" id="dzSub">
+                        or click to browse &nbsp;·&nbsp; PDF only &nbsp;·&nbsp; Max 2 MB
                     </div>
+                    <span class="dz-browse"><i class="fa fa-folder-open"></i> Browse Files</span>
+                </label>
 
-                    <input type="hidden" name="StudentNumber" value="@studentNumber" />
-                    <input type="hidden" name="StudentId" value="@studentId" />
-
-                    <div class="form-actions">
-                        <button type="submit" class="premium-btn premium-btn--primary"><i class="fa fa-save"></i> Save</button>
-                        <button type="reset" class="premium-btn"><i class="fa fa-undo"></i> Reset</button>
-                        <a asp-action="Index" asp-controller="Student" class="premium-btn premium-btn--danger"><i class="fa fa-door-open"></i> Exit</a>
+                <div class="file-chip" id="fileChip">
+                    <div class="file-chip-icon"><i class="fa fa-file-pdf"></i></div>
+                    <div class="file-chip-info">
+                        <div class="file-chip-name" id="chipName">—</div>
+                        <div class="file-chip-size" id="chipSize">—</div>
                     </div>
-                </form>
-            </div>
-        </section>
-
-        <section class="glass-card">
-            <div class="card-header">
-                <h2 class="card-title"><i class="fa fa-folder-open"></i> Uploaded Documents (@totalFiles)</h2>
-                <span id="rowsInfo" class="pill"><i class="fa fa-database"></i> Loading...</span>
-            </div>
-            <div class="card-body">
-                <div class="filter-bar">
-                    <div class="search-wrap">
-                        <i class="fa fa-search"></i>
-                        <input id="searchBox" type="text" placeholder="Search type/date..." autocomplete="off" />
-                    </div>
-                    <select id="typeFilter" class="filter-select">
-                        <option value="">All Types</option>
-                        @foreach (var t in Enum.GetValues(typeof(eLearnerAdministration)).Cast<eLearnerAdministration>())
-                        {
-                            <option value="@t">@t</option>
-                        }
-                    </select>
-                    <span id="perfInfo" class="pill date-pill"></span>
+                    <button type="button" class="file-chip-clear" id="chipClear" title="Remove file">
+                        <i class="fa fa-xmark"></i>
+                    </button>
                 </div>
 
-                <div class="table-wrap">
-                    <table class="doc-table" id="docsTable">
-                        <thead>
-                        <tr>
-                            <th>Remove</th>
-                            <th>Type</th>
-                            <th>Added</th>
-                            <th>Download</th>
-                        </tr>
-                        </thead>
-                        <tbody id="docsBody">
-                        @if (!files.Any())
-                        {
-                            <tr><td colspan="4" class="empty-row">No documents uploaded yet.</td></tr>
-                        }
-                        else
-                        {
-                            foreach (var a in files)
-                            {
-                                string type = a.DocumentName?.ToString() ?? "";
-                                string created = a.CreatedOn?.ToString() ?? "";
-                                string fileName = a.Document?.ToString() ?? "";
-                                Guid attachmentId = a.AttachmentId;
-
-                                <tr data-type="@type" data-text="@($"{type} {created}".ToLower())">
-                                    <td>
-                                        <a class="premium-btn action-link" href="@Url.Action("RemoveDocument", "Student", new { AttachmentId = attachmentId })" onclick="return confirm('Remove this document?');">
-                                            <i class="fa fa-trash"></i> Remove
-                                        </a>
-                                    </td>
-                                    <td><span class="pill"><i class="fa fa-file-pdf"></i>@type</span></td>
-                                    <td><span class="pill date-pill" title="@created"><i class="fa fa-calendar"></i>@created</span></td>
-                                    <td>
-                                        <a class="premium-btn action-link" href="@Url.Action("AttachmentDownload", "Student", new { filename = fileName })">
-                                            <i class="fa fa-download"></i> Download
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
+                <div class="upload-bar" id="uploadBar">
+                    <div class="upload-bar-fill" id="uploadBarFill"></div>
                 </div>
+
+                <div class="field-grid" style="margin-top:1.1rem;">
+                    <div class="field">
+                        <label><i class="fa fa-diagram-project"></i> Document Type <span class="req">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fa fa-tags"></i>
+                            <select name="DocumentName" required asp-items="Html.GetEnumSelectList<eLearnerAdministration>()">
+                                <option value="">Select document type…</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="StudentNumber" value="@studentNumber" />
+                <input type="hidden" name="StudentId"     value="@studentId" />
+
+                <div class="form-actions-row" style="margin-top:1.1rem;">
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <i class="fa fa-floppy-disk"></i> Save Document
+                    </button>
+                    <button type="reset" class="btn" id="resetBtn">
+                        <i class="fa fa-undo"></i> Reset
+                    </button>
+                    <a asp-action="Index" asp-controller="Student" class="btn btn-danger">
+                        <i class="fa fa-door-open"></i> Exit
+                    </a>
+                    <div class="form-note">
+                        <i class="fa fa-circle-info"></i>
+                        Only PDF files under 2 MB are accepted.
+                        The document is linked to <strong>@studentName</strong> and will be permanently accessible from this dashboard.
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card" style="animation-delay:.12s;">
+        <div class="card-hdr">
+            <div class="card-hdr-icon"><i class="fa fa-folder-open"></i></div>
+            <span class="card-title">Uploaded Documents</span>
+            <span class="card-badge" id="rowsBadge">
+                <i class="fa fa-database"></i> @totalFiles Record(s)
+            </span>
+        </div>
+        <div class="card-body">
+
+            <div class="filter-bar">
+                <div class="search-wrap">
+                    <i class="fa fa-magnifying-glass"></i>
+                    <input id="searchBox" class="filter-input" type="text"
+                           placeholder="Search by type or date…" autocomplete="off" />
+                </div>
+                <select id="typeFilter" class="filter-input filter-select">
+                    <option value="">All Types</option>
+                    @foreach (var t in Enum.GetValues(typeof(eLearnerAdministration)).Cast<eLearnerAdministration>())
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+                <span id="perfChip" class="chip" style="margin-left:auto;"></span>
             </div>
-        </section>
-    </div>
+
+            <div class="doc-grid" id="docGrid">
+                @if (!files.Any())
+                {
+                    <div class="empty-state" id="emptyState">
+                        <i class="fa fa-folder-open"></i>
+                        <span>No documents uploaded yet.<br/>Use the upload panel above to add the first file.</span>
+                    </div>
+                }
+                else
+                {
+                    foreach (var a in files)
+                    {
+                        string docType  = a.DocumentName?.ToString() ?? "";
+                        string created  = a.CreatedOn?.ToString()    ?? "";
+                        string fileName = a.Document?.ToString()      ?? "";
+                        Guid   attId    = a.AttachmentId;
+
+                        <div class="doc-row"
+                             data-type="@docType"
+                             data-text="@($"{docType} {created}".ToLower())">
+                            <div class="doc-icon-wrap"><i class="fa fa-file-pdf"></i></div>
+                            <div class="doc-info">
+                                <div class="doc-type">@docType</div>
+                                <div class="doc-meta">
+                                    <i class="fa fa-calendar"></i> @created
+                                    &nbsp;·&nbsp;
+                                    <span class="doc-chip"><i class="fa fa-file-circle-check"></i> PDF</span>
+                                </div>
+                            </div>
+                            <div class="doc-actions">
+                                <a class="btn btn-sm btn-primary"
+                                   href="@Url.Action("AttachmentDownload","Student", new { filename = fileName })"
+                                   title="Download">
+                                    <i class="fa fa-download"></i> Download
+                                </a>
+                                <a class="btn btn-sm btn-danger"
+                                   href="@Url.Action("RemoveDocument","Student", new { AttachmentId = attId })"
+                                   onclick="return confirm('Remove this document? This action cannot be undone.');"
+                                   title="Remove">
+                                    <i class="fa fa-trash"></i> Remove
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="empty-state" id="noResults" style="display:none;">
+                <i class="fa fa-magnifying-glass"></i>
+                <span>No documents match your filter criteria.</span>
+            </div>
+
+        </div>
+    </section>
+
 </div>
 
 @section Scripts {
 <script>
-(function(){
-    const fi = document.getElementById('fileInput');
-    const info = document.getElementById('fileInfo');
+(function () {
+    'use strict';
 
-    fi?.addEventListener('change', function() {
-        const f = this.files[0];
-        if (!f) { info.textContent = 'Max 2MB • PDF only'; return; }
-        if (f.type !== 'application/pdf') { alert('Only PDF files allowed.'); this.value = ''; info.textContent = 'Max 2MB • PDF only'; return; }
-        if (f.size > (2 * 1024 * 1024)) { alert('File exceeds 2MB.'); this.value = ''; info.textContent = 'Max 2MB • PDF only'; return; }
-        info.textContent = `${f.name} (${(f.size / 1024).toFixed(0)} KB)`;
-    });
+    const dropZone  = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const dzIcon    = document.getElementById('dzIcon');
+    const dzTitle   = document.getElementById('dzTitle');
+    const dzSub     = document.getElementById('dzSub');
+    const fileChip  = document.getElementById('fileChip');
+    const chipName  = document.getElementById('chipName');
+    const chipSize  = document.getElementById('chipSize');
+    const chipClear = document.getElementById('chipClear');
+    const uploadBar = document.getElementById('uploadBar');
+    const uploadBarFill = document.getElementById('uploadBarFill');
+    const MAX_BYTES = 2 * 1024 * 1024;
 
-    const body = document.getElementById('docsBody');
-    const rowsInfo = document.getElementById('rowsInfo');
-    const perfInfo = document.getElementById('perfInfo');
-    const searchBox = document.getElementById('searchBox');
-    const typeFilter = document.getElementById('typeFilter');
-
-    function norm(v){ return (v || '').toString().toLowerCase().trim(); }
-
-    function apply(){
-        const t0 = performance.now();
-        const q = norm(searchBox.value);
-        const tp = typeFilter.value;
-        const rows = Array.from(body.querySelectorAll('tr'));
-
-        let shown = 0, total = 0;
-        rows.forEach(r => {
-            if (r.querySelector('.empty-row')) return;
-            total++;
-            const txt = r.getAttribute('data-text') || '';
-            const type = r.getAttribute('data-type') || '';
-            let show = true;
-            if (q && !txt.includes(q)) show = false;
-            if (tp && type !== tp) show = false;
-            r.classList.toggle('hidden-row', !show);
-            if (show) shown++;
-        });
-
-        rowsInfo.innerHTML = `<i class="fa fa-database"></i> Showing ${shown} of ${total}` + (q || tp ? ' (filtered)' : '');
-        perfInfo.textContent = 'Render ' + (performance.now() - t0).toFixed(1) + 'ms';
+    function fmtSize(b) {
+        return b > 1024 * 1024
+            ? (b / (1024 * 1024)).toFixed(1) + ' MB'
+            : (b / 1024).toFixed(0) + ' KB';
     }
 
-    [searchBox, typeFilter].forEach(el => el?.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', apply));
-    apply();
+    function setDropState(state, label) {
+        dropZone.classList.remove('drag-over', 'dropped', 'error-state');
+        if (state) dropZone.classList.add(state);
+        dzTitle.textContent = label || 'Drag & drop your PDF here';
+    }
+
+    function applyFile(file) {
+        if (!file) return clearFile();
+        if (file.type !== 'application/pdf') {
+            setDropState('error-state', 'Only PDF files are accepted');
+            dzSub.textContent = 'Please select a valid PDF document.';
+            dzIcon.className  = 'fa fa-triangle-exclamation dz-icon';
+            clearChip();
+            return;
+        }
+        if (file.size > MAX_BYTES) {
+            setDropState('error-state', 'File exceeds the 2 MB limit');
+            dzSub.textContent = `Your file is ${fmtSize(file.size)} — please compress it first.`;
+            dzIcon.className  = 'fa fa-triangle-exclamation dz-icon';
+            clearChip();
+            return;
+        }
+        setDropState('dropped', 'File selected — ready to save');
+        dzSub.textContent = `${file.name} · ${fmtSize(file.size)}`;
+        dzIcon.className  = 'fa fa-circle-check dz-icon';
+        chipName.textContent = file.name;
+        chipSize.textContent = fmtSize(file.size);
+        fileChip.classList.add('show');
+    }
+
+    function clearFile() {
+        fileInput.value = '';
+        clearChip();
+        setDropState(null, 'Drag & drop your PDF here');
+        dzSub.textContent = 'or click to browse · PDF only · Max 2 MB';
+        dzIcon.className  = 'fa fa-cloud-arrow-up dz-icon';
+    }
+
+    function clearChip() {
+        fileChip.classList.remove('show');
+        chipName.textContent = '—';
+        chipSize.textContent = '—';
+    }
+
+    fileInput.addEventListener('change', () => applyFile(fileInput.files[0]));
+    chipClear.addEventListener('click', clearFile);
+
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); setDropState('drag-over', 'Drop to upload'); });
+    dropZone.addEventListener('dragleave', e => { if (!dropZone.contains(e.relatedTarget)) setDropState(null); });
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        const dt = e.dataTransfer?.files;
+        if (!dt?.length) return;
+        try {
+            const dtObj = new DataTransfer();
+            dtObj.items.add(dt[0]);
+            fileInput.files = dtObj.files;
+        } catch (_) {}
+        applyFile(dt[0]);
+    });
+
+    document.getElementById('uploadForm')?.addEventListener('submit', function () {
+        const btn = document.getElementById('uploadBtn');
+        uploadBar.classList.add('show');
+        let w = 0;
+        const iv = setInterval(() => {
+            w = Math.min(w + Math.random() * 18, 88);
+            uploadBarFill.style.width = w + '%';
+            if (w >= 88) clearInterval(iv);
+        }, 120);
+        if (btn) { btn.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Saving…'; btn.disabled = true; }
+    });
+
+    document.getElementById('resetBtn')?.addEventListener('click', clearFile);
+
+    const docGrid   = document.getElementById('docGrid');
+    const noResults = document.getElementById('noResults');
+    const rowsBadge = document.getElementById('rowsBadge');
+    const perfChip  = document.getElementById('perfChip');
+    const searchBox = document.getElementById('searchBox');
+    const typeFilter= document.getElementById('typeFilter');
+
+    function applyFilter() {
+        const t0 = performance.now();
+        const q  = (searchBox.value || '').toLowerCase().trim();
+        const tp = typeFilter.value;
+
+        const rows  = Array.from(docGrid.querySelectorAll('.doc-row'));
+        let shown   = 0;
+
+        rows.forEach(r => {
+            const txt  = (r.getAttribute('data-text') || '').toLowerCase();
+            const type = r.getAttribute('data-type')  || '';
+            const ok   = (!q || txt.includes(q)) && (!tp || type === tp);
+            r.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+
+        const total = rows.length;
+        const filtered = q || tp;
+        rowsBadge.innerHTML = `<i class="fa fa-database"></i> ${shown} of ${total} Record(s)${filtered ? ' (filtered)' : ''}`;
+        noResults.style.display = (total > 0 && shown === 0) ? 'flex' : 'none';
+        perfChip.textContent = `${(performance.now() - t0).toFixed(1)} ms`;
+    }
+
+    searchBox?.addEventListener('input', applyFilter);
+    typeFilter?.addEventListener('change', applyFilter);
+    applyFilter();
 
     document.getElementById('btnExport')?.addEventListener('click', () => {
-        const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)')).filter(r => !r.querySelector('.empty-row'));
-        if (!visible.length) { alert('No rows to export.'); return; }
+        const visible = Array.from(docGrid.querySelectorAll('.doc-row')).filter(r => r.style.display !== 'none');
+        if (!visible.length) { alert('No documents to export.'); return; }
 
-        const lines = ['Type,Added,File'];
+        const lines = ['"Type","Added"'];
         visible.forEach(r => {
-            const cells = r.querySelectorAll('td');
-            const type = cells[1].innerText.trim();
-            const added = cells[2].innerText.trim();
-            const file = cells[3].innerText.trim();
-            lines.push([type, added, file].map(v => '"' + v.replace(/"/g, '""') + '"').join(','));
+            const type  = r.querySelector('.doc-type')?.innerText?.trim() ?? '';
+            const added = r.querySelector('.doc-meta')?.childNodes[2]?.textContent?.trim() ?? '';
+            lines.push(`"${type.replace(/"/g,'""')}","${added.replace(/"/g,'""')}"`);
         });
 
         const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'student-documents-' + new Date().toISOString().slice(0,10) + '.csv';
+        const a    = Object.assign(document.createElement('a'), {
+            href:     URL.createObjectURL(blob),
+            download: `student-docs-${new Date().toISOString().slice(0,10)}.csv`
+        });
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
     });
 
