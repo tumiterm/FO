@@ -104,6 +104,7 @@ namespace ForekOnline.Infrastructure.DI
             services.AddScoped<ITenantSubscriptionService, TenantSubscriptionService>();
             services.AddScoped<IReportComplianceService, ReportComplianceService>();
             services.AddScoped<IPlacementService, PlacementService>();
+            services.AddScoped<IVisitService, VisitService>();
             services.AddMemoryCache();
 
             if (!isAPI)

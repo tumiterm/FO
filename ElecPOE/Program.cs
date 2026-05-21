@@ -101,6 +101,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageProviderResolver, FileStorageProviderResolver>();
 builder.Services.AddScoped<IStoredDocumentLookup, StoredDocumentLookup>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IFileStorageProvider, AzureBlobFileStorageProvider>();
 builder.Services.AddScoped<IFileStorageProvider, DatabaseFileStorageProvider>();
 builder.Services.AddScoped<ICourseService, CourseService>();

@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Visit Home";
+}
+<div class="container py-4">
+    <h1>Visit Home</h1>
+    <p>Quickly find students for visitation planning.</p>
+    <input id="studentSearch" class="form-control" placeholder="Search student name or number..." />
+    <ul id="results" class="list-group mt-3"></ul>
+</div>
+
+<script>
+const input=document.getElementById('studentSearch');
+const results=document.getElementById('results');
+let timer;
+input.addEventListener('input', ()=>{
+  clearTimeout(timer);
+  timer=setTimeout(async ()=>{
+    const q=input.value.trim();
+    const resp=await fetch(`@Url.Action("StudentLookup","Visit")?term=${encodeURIComponent(q)}`);
+    const data=await resp.json();
+    results.innerHTML='';
+    data.forEach(s=>{
+      const li=document.createElement('li');
+      li.className='list-group-item';
+      li.textContent=`${s.fullName} - ${s.studentNumber} (${s.email})`;
+      results.appendChild(li);
+    });
+  },250);
+});
+</script>
