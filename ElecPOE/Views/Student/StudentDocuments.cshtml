@@ -110,7 +110,18 @@ small.hint{font-size:.5rem;color:#777;margin-top:-.2rem;}
 .filter-bar select:focus{outline:none;border-color:var(--sd-accent);box-shadow:var(--sd-focus);}
 .hidden-row{display:none!important;}
 .fade-in{animation:fade .5s ease;}
+
+.hero-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 8%,#ffddd76a,transparent 35%),radial-gradient(circle at 85% 15%,#b3121730,transparent 28%);} 
+.hero-copy{font-size:.63rem;color:#5d636b;max-width:520px;margin-top:.35rem;line-height:1.55;} 
+.hero-metrics{display:flex;gap:.6rem;flex-wrap:wrap;} 
+.metric-card{background:linear-gradient(145deg,#ffffff,#fff4f2);border:1px solid #f0d9d4;padding:.55rem .75rem;border-radius:14px;min-width:130px;box-shadow:0 8px 18px -14px rgba(125,14,17,.55);} 
+.metric-card span{display:block;font-size:.48rem;letter-spacing:.12rem;text-transform:uppercase;color:#8b7c7d;font-weight:700;} 
+.metric-card strong{font-size:.68rem;color:#791014;font-weight:700;line-height:1.3;} 
 @@keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@@media (max-width:980px){
+    .hero-metrics{width:100%;}
+    .toolbar{margin-left:0;}
+}
 @@media (max-width:760px){
     .doc-table thead th:nth-child(3),
     .doc-table tbody td:nth-child(3){display:none;}
@@ -118,11 +129,23 @@ small.hint{font-size:.5rem;color:#777;margin-top:-.2rem;}
 </style>
 
 <div class="page-shell fade-in">
+    <div class="hero-glow"></div>
     <div class="header-band">
         <div class="icon-pill"><i class="fa fa-file-circle-plus"></i></div>
         <div>
+            <div class="tagline"><i class="fa fa-crown"></i> Premium Learner Vault</div>
             <h1>Student Documents</h1>
-            <div class="tagline"><i class="fa fa-user-graduate"></i> @studentName</div>
+            <div class="hero-copy">Manage uploads, trace document history, and keep learner records submission-ready.</div>
+        </div>
+        <div class="hero-metrics">
+            <div class="metric-card">
+                <span>Student</span>
+                <strong>@studentName</strong>
+            </div>
+            <div class="metric-card">
+                <span>Total Files</span>
+                <strong>@files.Count()</strong>
+            </div>
         </div>
         <div class="toolbar">
             <a asp-action="Index" asp-controller="Student" class="btn"><i class="fa fa-arrow-left"></i> Back</a>
