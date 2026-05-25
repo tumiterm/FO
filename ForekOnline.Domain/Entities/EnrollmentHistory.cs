@@ -20,6 +20,7 @@ namespace ForekOnline.Domain.Entities
         /// <summary>
         /// Gets or sets the unique identifier for the enrollment record.
         /// </summary>
+        [Key]
         public Guid EnrollmentId { get; set; }
 
         /// <summary>

@@ -11,6 +11,7 @@ using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
 namespace ForekOnline.Application.Common.Services
@@ -100,8 +101,8 @@ namespace ForekOnline.Application.Common.Services
                 IDNumber = data.IDNumber,
                 PassportNumber = data.PassportNumber,
                 StudyPermitNumber = data.StudyPermitNumber,
-                DateOfBirth = data.DateOfBirth,
-                Gender = data.Gender,
+                DateOfBirth = data.DateOfBirth ?? DateTime.MinValue,
+                Gender = data.Gender ?? eGender.Other,
                 Nationality = data.Nationality,
                 Cellphone = data.Cellphone,
                 Email = data.Email,
@@ -265,17 +266,17 @@ namespace ForekOnline.Application.Common.Services
                 IDNumber = student.IDNumber,
                 PassportNumber = student.PassportNumber,
                 StudyPermitNumber = student.StudyPermitNumber,
-                DateOfBirth = student.DateofBirth,
+                DateOfBirth = student.DateOfBirth,
                 Gender = student.Gender,
                 Nationality = student.Nationality,
                 Language = student.Language,
-                AdmissionCategory = student.AdmissionCategory?.ToString(),
+                AdmissionCategory = student.AdmissionCategory,
                 StreetAddressLine1 = student.StreetAddressLine1,
                 StreetAddressLine2 = student.StreetAddressLine2,
                 Cellphone = student.Cellphone,
                 Email = student.Email,
                 HighestGrade = student.HighestGrade,
-                NameOfSchool = student.NameofSchool,
+                NameOfSchool = student.NameOfSchool,
                 AdmissionDate = student.AdmissionDate,
                 IsActive = student.IsActive,
                 IsDeregistered = student.Deregistered,

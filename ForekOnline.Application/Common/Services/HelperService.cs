@@ -6,7 +6,6 @@
 // Purpose:         Defines the HelperService class
 
 #region Usings
-using Azure.Core;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Application.Common.Validations;
 using ForekOnline.Domain.Entities;
@@ -18,7 +17,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Linq;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection;
@@ -1392,18 +1391,18 @@ If you cannot attend, please notify your facilitator as soon as possible.
                     IDNumber = "ID1234567899",
                     StudyPermitNumber = "SP123456",
                     PassportNumber = "P123456",
-                    DateofBirth = DateTime.Parse("2000-01-01"),
-                    Gender = "Male",
-                    PlaceofBirth = "City A",
+                    DateOfBirth = DateTime.Parse("2000-01-01"),
+                    Gender = eGender.Male,
+                    PlaceOfBirth = "City A",
                     Nationality = "South Africa",
                     Language = "English",
-                    AdmissionCategory = "Category A",
+                    AdmissionCategory = eAdmissionCategory.FullTime,
                     StreetAddressLine1 = "123 Main St",
                     StreetAddressLine2 = "Apt 4B",
                     Cellphone = "1234567890",
                     Email = "ifoliphant@forekisntitute.co.za",
                     HighestGrade = "Grade 12",
-                    NameofSchool = "Dummy School",
+                    NameOfSchool = "Dummy School",
                     IsActive = true,
                     Deregistered = false,
                     EnrollmentHistory = new List<EnrollmentHistory>
@@ -1432,18 +1431,18 @@ If you cannot attend, please notify your facilitator as soon as possible.
                     IDNumber = "ID6543215556",
                     StudyPermitNumber = "SP654321",
                     PassportNumber = "P654321",
-                    DateofBirth = DateTime.Parse("1999-05-15"),
-                    Gender = "Female",
-                    PlaceofBirth = "Nkandla",
+                    DateOfBirth = DateTime.Parse("1999-05-15"),
+                    Gender = eGender.Female,
+                    PlaceOfBirth = "Nkandla",
                     Nationality = "South African",
                     Language = "Zulu",
-                    AdmissionCategory = "Category B",
+                    AdmissionCategory = eAdmissionCategory.FullTime,
                     StreetAddressLine1 = "456 Elm St",
                     StreetAddressLine2 = "Suite 2A",
                     Cellphone = "098-765-4321",
                     Email = "jacob.zuma@gmail.com",
                     HighestGrade = "Grade 11",
-                    NameofSchool = "School B",
+                    NameOfSchool = "School B",
                     IsActive = true,
                     Deregistered = false,
                     EnrollmentHistory = new List<EnrollmentHistory>

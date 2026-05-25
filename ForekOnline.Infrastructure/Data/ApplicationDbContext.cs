@@ -312,18 +312,18 @@ namespace ForekOnline.Infrastructure.Data
             #region Academics
             modelBuilder.Entity<StudentEntity>(entity =>
             {
-                entity.HasIndex(e => e.StudentNumber)
-                    .IsUnique()
-                    .HasDatabaseName("UX_Student_StudentNumber");
+                //entity.HasIndex(e => e.StudentNumber)
+                //    .IsUnique()
+                //    .HasDatabaseName("UX_Student_StudentNumber");
 
-                entity.HasIndex(e => e.IDNumber)
-                    .HasDatabaseName("IX_Student_IDNumber");
+                //entity.HasIndex(e => e.IDNumber)
+                //    .HasDatabaseName("IX_Student_IDNumber");
 
-                entity.HasIndex(e => e.PassportNumber)
-                    .HasDatabaseName("IX_Student_PassportNumber");
+                //entity.HasIndex(e => e.PassportNumber)
+                //    .HasDatabaseName("IX_Student_PassportNumber");
 
-                entity.HasIndex(e => e.Email)
-                    .HasDatabaseName("IX_Student_Email");
+                //entity.HasIndex(e => e.Email)
+                //    .HasDatabaseName("IX_Student_Email");
 
                 entity.HasMany(e => e.Enrollments)
                     .WithOne(e => e.Student)

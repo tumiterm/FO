@@ -69,6 +69,11 @@ namespace ForekOnline.Domain.Enums
         }
         #endregion
 
+        public enum eAdmissionCategory
+        {
+            FullTime, PartTime, Distance, Online
+        }
+
         /// <summary>
         /// Indicates the compliance status of a user's report submissions.
         /// </summary>
@@ -153,6 +158,22 @@ namespace ForekOnline.Domain.Enums
             NewSubmitted,
             [Display(Name = "Aptitude Test")]
             AptituteTest
+        }
+        public enum eStudentDocumentType
+        {
+            NationalID = 1,
+            Passport = 2,
+            HighestQualification = 3,
+
+            StudyPermit = 4,   // foreign students only
+            GuardianID = 5,   // minors
+
+            ProofOfResidence = 6,
+            BirthCertificate = 7,
+            MedicalCertificate = 8,
+            DisabilityDocument = 9,   // links to HasDisability on Student
+            TransferLetter = 10,  // if transferring from another institution
+            Photo = 11,  // student profile photo
         }
 
         /// <summary>

@@ -5,6 +5,8 @@
 // Created Date:    14/03/2026 00:00 AM
 // Purpose:         Defines the CachedStudent entity for SQLite API data caching.
 
+using static ForekOnline.Domain.Enums.EnumRegistry;
+
 namespace ForekOnline.Domain.Entities
 {
     /// <summary>
@@ -66,7 +68,7 @@ namespace ForekOnline.Domain.Entities
         /// <summary>
         /// Gets or sets the gender of the individual.
         /// </summary>
-        public string Gender { get; set; }
+        public eGender Gender { get; set; }
 
         /// <summary>
         /// Gets or sets the place of birth of the individual.
@@ -86,7 +88,7 @@ namespace ForekOnline.Domain.Entities
         /// <summary>
         /// Gets or sets the admission category of the individual.
         /// </summary>
-        public string AdmissionCategory { get; set; }
+        public eAdmissionCategory AdmissionCategory { get; set; }
 
         /// <summary>
         /// Gets or sets the first line of the street address of the individual.

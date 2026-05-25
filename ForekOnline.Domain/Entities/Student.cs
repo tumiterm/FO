@@ -5,6 +5,9 @@
 // Created Date:    03/01/2025 12:01:14 PM
 // Purpose:         Defines the Student class
 
+#region Usings
+using static ForekOnline.Domain.Enums.EnumRegistry;
+#endregion
 namespace ForekOnline.Domain.Entities
 {
     /// <summary>
@@ -12,135 +15,100 @@ namespace ForekOnline.Domain.Entities
     /// </summary>
     public class Student
     {
-        /// <summary>
-        /// Gets or sets the unique identifier for the student.
-        /// </summary>
+        #region Identity 
         public Guid StudentId { get; set; }
+        public string StudentNumber { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string? MiddleName { get; set; }
+        public string LastName { get; set; } = string.Empty;
+        public string FullName => $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+        #endregion
 
-        /// <summary>
-        /// Gets or sets the student number.
-        /// </summary>
-        public string StudentNumber { get; set; }
+        #region Personal Details
+        public DateTime DateOfBirth { get; set; }
+        public int Age => DateTime.Today.Year - DateOfBirth.Year
+                          - (DateTime.Today < DateOfBirth.AddYears(DateTime.Today.Year - DateOfBirth.Year) ? 1 : 0);
+        public eGender Gender { get; set; }
+        public string? PlaceOfBirth { get; set; }
+        public string Nationality { get; set; } = string.Empty;
+        public string? Language { get; set; }
+        public bool? HasDisability { get; set; }    
+        public string? Disability { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Gets or sets the admission date of the student.
-        /// </summary>
+        #region Identification
+        public string? IDNumber { get; set; }
+        public string? PassportNumber { get; set; }
+        public string? StudyPermitNumber { get; set; }
+        public DateTime? StudyPermitExpiry { get; set; }
+
+        #endregion
+
+        #region  Contact 
+        public string? Email { get; set; }
+        public string? Cellphone { get; set; }
+        public string? AlternativePhone { get; set; }
+
+        #endregion
+
+        #region Address 
+        public string? StreetAddressLine1 { get; set; }
+        public string? StreetAddressLine2 { get; set; }
+        public string? City { get; set; }                   
+        public eProvince? Province { get; set; }               
+        public string? PostalCode { get; set; }             
+        public string? Country { get; set; }
+        #endregion
+
+        #region Admission 
         public DateTime AdmissionDate { get; set; }
+        public eAdmissionCategory AdmissionCategory { get; set; }
+        public string RegistrationSource { get; set; } = string.Empty;
+        public string? HighestGrade { get; set; }
+        public string? NameOfSchool { get; set; }
 
-        /// <summary>
-        /// Gets or sets the first name of the student.
-        /// </summary>
-        public string FirstName { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Gets or sets the middle name of the student.
-        /// </summary>
-        public string MiddleName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the last name of the student.
-        /// </summary>
-        public string LastName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the ID number of the student.
-        /// </summary>
-        public string IDNumber { get; set; }
-
-        /// <summary>
-        /// Gets or sets the study permit number of the student.
-        /// </summary>
-        public string StudyPermitNumber { get; set; }
-
-        /// <summary>
-        /// Gets or sets the passport number of the student.
-        /// </summary>
-        public string PassportNumber { get; set; }
-
-        /// <summary>
-        /// Gets or sets the date of birth of the student.
-        /// </summary>
-        public DateTime DateofBirth { get; set; }
-
-        /// <summary>
-        /// Gets or sets the gender of the student.
-        /// </summary>
-        public string Gender { get; set; }
-
-        /// <summary>
-        /// Gets or sets the place of birth of the student.
-        /// </summary>
-        public string PlaceofBirth { get; set; }
-
-        /// <summary>
-        /// Gets or sets the nationality of the student.
-        /// </summary>
-        public string Nationality { get; set; }
-
-        /// <summary>
-        /// Gets or sets the preferred language of the student.
-        /// </summary>
-        public string Language { get; set; }
-
-        /// <summary>
-        /// Gets or sets the admission category of the student. The category is an object type that can be extended based on the admission system.
-        /// </summary>
-        public object AdmissionCategory { get; set; }
-
-        /// <summary>
-        /// Gets or sets the first line of the student's street address.
-        /// </summary>
-        public string StreetAddressLine1 { get; set; }
-
-        /// <summary>
-        /// Gets or sets the second line of the student's street address.
-        /// </summary>
-        public string StreetAddressLine2 { get; set; }
-
-        /// <summary>
-        /// Gets or sets the student's cellphone number.
-        /// </summary>
-        public string Cellphone { get; set; }
-
-        /// <summary>
-        /// Gets or sets the student's email address.
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
-        /// Gets or sets the highest grade level the student has achieved.
-        /// </summary>
-        public string HighestGrade { get; set; }
-
-        /// <summary>
-        /// Gets or sets the name of the school the student attended before admission.
-        /// </summary>
-        public string NameofSchool { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether the student is active or inactive.
-        /// </summary>
+        #region Academic Status
         public bool IsActive { get; set; }
+        public bool Deregistered { get; set; }             
+        public DateTime? DeregistrationDate { get; set; }  
+        public string? DeregistrationReason { get; set; }
 
-        /// <summary>
-        /// Gets or sets whether the student has been deregistered.
-        /// </summary>
-        public bool Deregistered { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Gets or sets the enrollment history of the student, representing past courses and their status.
-        /// </summary>
+        #region Placement & Enrollment
+        public Guid? PlacementId { get; set; }
+        public Placement? Placement { get; set; }
         public List<EnrollmentHistory>? EnrollmentHistory { get; set; }
 
-        /// <summary>
-        /// Gets or sets the source from which the student was registered (e.g., online, in-person).
-        /// </summary>
-        public string RegistrationSource { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Gets or sets whether the student has been deregistrered.
-        /// </summary>
-        public bool Deregistrered { get; set; }  
+        #region Guardian
+        public Guardian? Guardian { get; set; }
+        public Guid GuardianId { get; set; }
+        #endregion
+
+        #region Documents
+        public List<StudentDocument>? Documents { get; set; }
+        public bool HasUploadedID =>
+            Documents?.Any(d => d.DocumentType == eStudentDocumentType.NationalID
+                             || d.DocumentType == eStudentDocumentType.Passport) ?? false;
+
+        public bool IsDocumentationComplete =>
+            HasUploadedID &&
+            (Documents?.Any(d => d.DocumentType == eStudentDocumentType.HighestQualification) ?? false) &&
+            (Documents?.Any(d => d.DocumentType == eStudentDocumentType.StudyPermit) ?? false);
+
+        #endregion
+
+        #region Audit
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;   
+        public DateTime? UpdatedAt { get; set; }                      
+        public string? CreatedBy { get; set; }                        
+        public string? UpdatedBy { get; set; }
+        #endregion
+
     }
 
 }

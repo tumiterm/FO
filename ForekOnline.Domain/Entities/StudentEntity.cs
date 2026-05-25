@@ -9,6 +9,7 @@
 using ForekOnline.Domain.Shared;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
 namespace ForekOnline.Domain.Entities
@@ -20,79 +21,96 @@ namespace ForekOnline.Domain.Entities
     [Table("Students", Schema = "Academics")]
     public class StudentEntity : EntityBase<Guid>
     {
-        /// <summary>
-        /// Institution-assigned student number (e.g. FIT-2026-001).
-        /// </summary>
-        [Required]
-        [MaxLength(20)]
+
+        #region Identity 
+        public Guid StudentId { get; set; }
         public string StudentNumber { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
         public string FirstName { get; set; } = string.Empty;
-
-        [MaxLength(100)]
         public string? MiddleName { get; set; }
-
-        [Required]
-        [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
+        public string FullName => $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+        #endregion
 
-        [MaxLength(13)]
-        public string? IDNumber { get; set; }
-
-        [MaxLength(20)]
-        public string? PassportNumber { get; set; }
-
-        [MaxLength(20)]
-        public string? StudyPermitNumber { get; set; }
-
-        public DateTime? DateOfBirth { get; set; }
-
-        [MaxLength(10)]
-        public string? Gender { get; set; }
-
-        [MaxLength(100)]
+        #region Personal Details
+        public DateTime DateOfBirth { get; set; }
+        public int Age => DateTime.Today.Year - DateOfBirth.Year
+                          - (DateTime.Today < DateOfBirth.AddYears(DateTime.Today.Year - DateOfBirth.Year) ? 1 : 0);
+        public eGender Gender { get; set; }
         public string? PlaceOfBirth { get; set; }
-
-        [MaxLength(100)]
-        public string? Nationality { get; set; }
-
-        [MaxLength(50)]
+        public string Nationality { get; set; } = string.Empty;
         public string? Language { get; set; }
+        public bool? HasDisability { get; set; }
+        public string? Disability { get; set; }
+        #endregion
 
-        [MaxLength(50)]
-        public string? AdmissionCategory { get; set; }
+        #region Identification
+        public string? IDNumber { get; set; }
+        public string? PassportNumber { get; set; }
+        public string? StudyPermitNumber { get; set; }
+        public DateTime? StudyPermitExpiry { get; set; }
 
-        [MaxLength(250)]
-        public string? StreetAddressLine1 { get; set; }
+        #endregion
 
-        [MaxLength(250)]
-        public string? StreetAddressLine2 { get; set; }
-
-        [MaxLength(15)]
-        public string? Cellphone { get; set; }
-
-        [MaxLength(256)]
+        #region  Contact 
         public string? Email { get; set; }
+        public string? Cellphone { get; set; }
+        public string? AlternativePhone { get; set; }
 
-        [MaxLength(50)]
+        #endregion
+
+        #region Address 
+        public string? StreetAddressLine1 { get; set; }
+        public string? StreetAddressLine2 { get; set; }
+        public string? City { get; set; }
+        public eProvince? Province { get; set; }
+        public string? PostalCode { get; set; }
+        public string? Country { get; set; }
+        #endregion
+
+        #region Admission 
+        public DateTime AdmissionDate { get; set; }
+        public eAdmissionCategory AdmissionCategory { get; set; }
+        public string RegistrationSource { get; set; } = string.Empty;
         public string? HighestGrade { get; set; }
-
-        [MaxLength(200)]
         public string? NameOfSchool { get; set; }
 
-        public DateTime AdmissionDate { get; set; }
+        #endregion
 
-        public bool IsActive { get; set; } = true;
+        #region Academic Status
+        public bool IsActive { get; set; }
+        public bool Deregistered { get; set; }
+        public DateTime? DeregistrationDate { get; set; }
+        public string? DeregistrationReason { get; set; }
 
+        #endregion
+
+        #region Placement & Enrollment
+        public Guid? PlacementId { get; set; }
+        public Placement? Placement { get; set; }
+        public List<EnrollmentEntity>? Enrollments { get; set; } = new();
+
+        #endregion
+
+        #region Guardian
+        public Guardian? Guardian { get; set; }
+        public Guid GuardianId { get; set; }
+        #endregion
+
+        #region Documents
+        public List<StudentDocument>? Documents { get; set; }
+        public bool HasUploadedID =>
+            Documents?.Any(d => d.DocumentType == eStudentDocumentType.NationalID
+                             || d.DocumentType == eStudentDocumentType.Passport) ?? false;
+
+        public bool IsDocumentationComplete =>
+            HasUploadedID &&
+            (Documents?.Any(d => d.DocumentType == eStudentDocumentType.HighestQualification) ?? false) &&
+            (Documents?.Any(d => d.DocumentType == eStudentDocumentType.StudyPermit) ?? false);
+
+        #endregion
+
+        #region Additional
         public bool IsDeregistered { get; set; }
-
-        /// <summary>
-        /// Where this record came from: "API", "SQLite", "WalkIn", "Application".
-        /// </summary>
-        [MaxLength(30)]
-        public string RegistrationSource { get; set; } = "WalkIn";
 
         /// <summary>
         /// Links back to the original Application if the student was an approved applicant.
@@ -101,9 +119,7 @@ namespace ForekOnline.Domain.Entities
 
         public string IdPassportDocument { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Navigation — enrollments for this student.
-        /// </summary>
-        public List<EnrollmentEntity> Enrollments { get; set; } = new();
+        #endregion
+
     }
 }

@@ -81,6 +81,8 @@ namespace ForekOnline.Domain.Entities
         [NotMapped]
         public Guid? StudentId { get; set; }
 
+        public Student Students { get; set; }
+
         /// <summary>
         /// Gets or sets a value indicating whether to send an SMS notification regarding the placement.
         /// This property is not mapped to the database.
@@ -129,6 +131,8 @@ namespace ForekOnline.Domain.Entities
         /// Gets or sets the integrated campus visit history for this placement.
         /// </summary>
         public ICollection<Visit> Visits { get; set; } = new List<Visit>();
+
+        public ICollection<LearnerWorkplaceModules> LearnerWorkplaceModules { get;set; }
     }
 
 }

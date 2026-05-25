@@ -9,6 +9,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
 namespace ForekOnline.Domain.ViewModels
@@ -73,7 +74,7 @@ namespace ForekOnline.Domain.ViewModels
         public string? LastName { get; set; }
 
         [MaxLength(10)]
-        public string? Gender { get; set; }
+        public eGender? Gender { get; set; }
 
         [Display(Name = "Date of Birth")]
         public DateTime? DateOfBirth { get; set; }

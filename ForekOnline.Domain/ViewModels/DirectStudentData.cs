@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 
 namespace ForekOnline.Domain.ViewModels
 {
@@ -18,7 +19,7 @@ namespace ForekOnline.Domain.ViewModels
         public string? PassportNumber { get; set; }
         public string? StudyPermitNumber { get; set; }
         public DateTime? DateOfBirth { get; set; }
-        public string? Gender { get; set; }
+        public eGender? Gender { get; set; }
         public string? Nationality { get; set; }
         public string? Cellphone { get; set; }
         public string? Email { get; set; }

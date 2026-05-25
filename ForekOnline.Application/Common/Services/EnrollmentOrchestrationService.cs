@@ -72,7 +72,7 @@ namespace ForekOnline.Application.Common.Services
                 PassportNumber = application.PassportNumber,
                 FirstName = application.ApplicantName,
                 LastName = application.ApplicantSurname,
-                Gender = application.Gender.ToString(),
+                Gender = application.Gender,
                 Cellphone = application.Cellphone,
                 Email = application.Email,
                 OriginalApplicationId = application.ApplicationId,

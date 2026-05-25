@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ForekOnline.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260517112241_AddNewWithOld2")]
-    partial class AddNewWithOld2
+    [Migration("20260524153809_AllPendingMig")]
+    partial class AllPendingMig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1084,6 +1084,46 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.ToTable("Enrollments", "Academics");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.EnrollmentHistory", b =>
+                {
+                    b.Property<Guid>("EnrollmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CourseTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CourseType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateCompleted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EnrollmentStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("EnrollmentId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("EnrollmentHistory");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.Evidence", b =>
                 {
                     b.Property<Guid>("EvidenceId")
@@ -1540,6 +1580,8 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.HasKey("LearnerWorkplaceModulesId");
 
+                    b.HasIndex("PlacementId");
+
                     b.ToTable("WorkplaceModules");
                 });
 
@@ -1887,15 +1929,15 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("b1c7d4a2-75fc-46cb-8b5b-386593cfd598"),
-                            NotificationEventId = new Guid("2ec20796-c29a-4ea5-b98f-c45d714f3193"),
+                            Id = new Guid("dbc3b243-8c21-40f6-99c7-9099f156ace8"),
+                            NotificationEventId = new Guid("1e0a0108-f2e2-4d84-a49e-a5ff2985e724"),
                             Order = 0,
                             Text = "A sleeker, faster platform...",
                             Type = 0
                         },
                         new
                         {
-                            Id = new Guid("b6f4594c-dffa-4723-899d-01936da8de47"),
+                            Id = new Guid("f8e32b2c-57d0-467a-b05a-4f52680d4c0d"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "A sleeker, faster platform with cohesive red → orange design language and improved UX consistency.",
@@ -1903,7 +1945,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("9f94d0ed-c4ad-4f0e-9127-ab4a9d8b1b4a"),
+                            Id = new Guid("b4bc6621-512d-491a-9c03-ba0ab34dca73"),
                             ListItems = "Unified visual system (Dark Red / Red / Orange)||Enhanced statistics & quick scan KPIs||Optimized markup & reduced layout shift||Modular section architecture for future widgets||Accessibility-focused contrast & semantics",
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
@@ -1911,7 +1953,7 @@ namespace ForekOnline.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("8c43c1e8-64db-4a41-b087-bfc97dae5c9d"),
+                            Id = new Guid("48e32bad-0a95-4b2a-a3c5-44269a597415"),
                             NotificationEventId = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             Order = 0,
                             Text = "<div class='alert alert-warning'><i class='fa fa-triangle-exclamation me-2'></i>Please report anomalies to ICT so iterative refinements can ship rapidly.</div>",
@@ -1969,30 +2011,30 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("2ec20796-c29a-4ea5-b98f-c45d714f3193"),
+                            Id = new Guid("1e0a0108-f2e2-4d84-a49e-a5ff2985e724"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 5, 24, 13, 22, 40, 440, DateTimeKind.Local).AddTicks(2559),
+                            EndUtc = new DateTime(2026, 5, 31, 17, 38, 7, 906, DateTimeKind.Local).AddTicks(9208),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 5, 16, 13, 22, 40, 440, DateTimeKind.Local).AddTicks(2537),
+                            StartUtc = new DateTime(2026, 5, 23, 17, 38, 7, 906, DateTimeKind.Local).AddTicks(9174),
                             Title = "Forek Online Version 2 Highlights"
                         },
                         new
                         {
                             Id = new Guid("59ebc1e4-31dc-4b87-91c8-39d49c298b64"),
                             DisplayOrder = 1,
-                            EndUtc = new DateTime(2026, 5, 24, 11, 22, 40, 440, DateTimeKind.Utc).AddTicks(3768),
+                            EndUtc = new DateTime(2026, 5, 31, 15, 38, 7, 907, DateTimeKind.Utc).AddTicks(1101),
                             HeaderGradientCss = "var(--ap-grad)",
                             HeaderIconCss = "fa fa-rocket",
                             HeaderTextColor = "#fff",
                             ImageUrl = "/Images/dancing.jpg",
                             IsActive = true,
                             ModalSize = 2,
-                            StartUtc = new DateTime(2026, 5, 16, 11, 22, 40, 440, DateTimeKind.Utc).AddTicks(3768),
+                            StartUtc = new DateTime(2026, 5, 23, 15, 38, 7, 907, DateTimeKind.Utc).AddTicks(1101),
                             Title = "Forek Online Version 2 Highlights"
                         });
                 });
@@ -2709,6 +2751,145 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.ToTable("StoredDocumentContents");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Student", b =>
+                {
+                    b.Property<Guid>("StudentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AdmissionCategory")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AdmissionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AlternativePhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cellphone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deregistered")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeregistrationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeregistrationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Disability")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GuardianId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("HasDisability")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("HighestGrade")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IDNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MiddleName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameOfSchool")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nationality")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PassportNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlaceOfBirth")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Province")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RegistrationSource")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetAddressLine1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetAddressLine2")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StudyPermitExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StudyPermitNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("StudentId");
+
+                    b.HasIndex("GuardianId");
+
+                    b.HasIndex("PlacementId")
+                        .IsUnique()
+                        .HasFilter("[PlacementId] IS NOT NULL");
+
+                    b.ToTable("Student");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.StudentAttachment", b =>
                 {
                     b.Property<Guid>("AttachmentId")
@@ -2747,26 +2928,88 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.ToTable("StudentAttachments");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.StudentDocument", b =>
+                {
+                    b.Property<Guid>("StudentDocumentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DocumentType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("StudentEntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VerifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("StudentDocumentId");
+
+                    b.HasIndex("StudentEntityId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("StudentDocument");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.StudentEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AdmissionCategory")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("AdmissionCategory")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("AdmissionDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("AlternativePhone")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Cellphone")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("DateCreated")
                         .ValueGeneratedOnAdd()
@@ -2781,29 +3024,42 @@ namespace ForekOnline.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasDefaultValueSql("SYSDATETIMEOFFSET()");
 
-                    b.Property<DateTime?>("DateOfBirth")
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("Deregistered")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeregistrationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeregistrationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Disability")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Gender")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GuardianId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("HasDisability")
+                        .HasColumnType("bit");
 
                     b.Property<string>("HighestGrade")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IDNumber")
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("IdPassportDocument")
                         .IsRequired()
@@ -2819,45 +3075,47 @@ namespace ForekOnline.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Language")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MiddleName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("NameOfSchool")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nationality")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("OriginalApplicationId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PassportNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("PlaceOfBirth")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Province")
+                        .HasColumnType("int");
 
                     b.Property<string>("RegistrationSource")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -2866,21 +3124,23 @@ namespace ForekOnline.Infrastructure.Migrations
                         .HasColumnType("rowversion");
 
                     b.Property<string>("StreetAddressLine1")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StreetAddressLine2")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("StudentNumber")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("StudyPermitExpiry")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("StudyPermitNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserCreated")
                         .HasMaxLength(256)
@@ -2895,15 +3155,19 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .HasDatabaseName("IX_Student_Email");
 
-                    b.HasIndex("IDNumber")
-                        .HasDatabaseName("IX_Student_IDNumber");
+                    b.HasIndex("GuardianId");
 
-                    b.HasIndex("PassportNumber")
-                        .HasDatabaseName("IX_Student_PassportNumber");
+                    //b.HasIndex("IDNumber")
+                    //    .HasDatabaseName("IX_Student_IDNumber");
 
-                    b.HasIndex("StudentNumber")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Student_StudentNumber");
+                    //b.HasIndex("PassportNumber")
+                    //    .HasDatabaseName("IX_Student_PassportNumber");
+
+                    b.HasIndex("PlacementId");
+
+                    //b.HasIndex("StudentNumber")
+                    //    .IsUnique()
+                    //    .HasDatabaseName("UX_Student_StudentNumber");
 
                     b.ToTable("Students", "Academics");
                 });
@@ -3667,6 +3931,18 @@ namespace ForekOnline.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ActionItemAssignee")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ActionItemDueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ActionItems")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("AttendanceObserved")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -3678,6 +3954,12 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EngagementObserved")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("HasReport")
                         .HasColumnType("bit");
@@ -3697,11 +3979,23 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("ModifiedOn")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ObservationNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Report")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("SafetyObserved")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SelectedEmployeeIDs")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SkillApplicationObserved")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("VisitBy")
                         .HasColumnType("uniqueidentifier");
@@ -3709,9 +4003,117 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<string>("VisitPurpose")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("WorkplaceConditionsObserved")
+                        .HasColumnType("bit");
+
                     b.HasKey("VisitId");
 
+                    b.HasIndex("PlacementId")
+                        .HasDatabaseName("IX_Visits_PlacementId");
+
                     b.ToTable("Visits");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.WeeklyTimesheet", b =>
+                {
+                    b.Property<Guid>("WeeklyTimesheetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActivityDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CampusMentorAcknowledgedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CampusMentorAcknowledgedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CampusMentorComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChallengesFaced")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvidenceFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("FridayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LearningOutcomes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedOn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("MondayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("PlacementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("SaturdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SkillsApplied")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SubmittedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SundayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ThursdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalHours")
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<decimal?>("TuesdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("WednesdayHours")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("WeekEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("WeekStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WorkplaceMentorComments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("WorkplaceMentorDecisionBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("WorkplaceMentorDecisionOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("WeeklyTimesheetId");
+
+                    b.HasIndex("PlacementId", "WeekStartDate", "WeekEndDate")
+                        .HasDatabaseName("IX_WeeklyTimesheets_Placement_Week");
+
+                    b.ToTable("WeeklyTimesheets");
                 });
 
             modelBuilder.Entity("ForekOnline.Domain.Entities.Application", b =>
@@ -3793,6 +4195,15 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.EnrollmentHistory", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Student", null)
+                        .WithMany("EnrollmentHistory")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.FinancialClearance", b =>
                 {
                     b.HasOne("ForekOnline.Domain.Entities.Application", "Application")
@@ -3809,6 +4220,15 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.HasOne("ForekOnline.Domain.Entities.Application", null)
                         .WithOne("ApplicantGuardian")
                         .HasForeignKey("ForekOnline.Domain.Entities.Guardian", "ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.LearnerWorkplaceModules", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", null)
+                        .WithMany("LearnerWorkplaceModules")
+                        .HasForeignKey("PlacementId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -3898,6 +4318,55 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("StoredDocument");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Student", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Guardian", "Guardian")
+                        .WithMany()
+                        .HasForeignKey("GuardianId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithOne("Students")
+                        .HasForeignKey("ForekOnline.Domain.Entities.Student", "PlacementId");
+
+                    b.Navigation("Guardian");
+
+                    b.Navigation("Placement");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.StudentDocument", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.StudentEntity", null)
+                        .WithMany("Documents")
+                        .HasForeignKey("StudentEntityId");
+
+                    b.HasOne("ForekOnline.Domain.Entities.Student", "Student")
+                        .WithMany("Documents")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.StudentEntity", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Guardian", "Guardian")
+                        .WithMany()
+                        .HasForeignKey("GuardianId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithMany()
+                        .HasForeignKey("PlacementId");
+
+                    b.Navigation("Guardian");
+
+                    b.Navigation("Placement");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.TenantSubscription", b =>
                 {
                     b.HasOne("ForekOnline.Domain.Entities.TenantProfile", "TenantProfile")
@@ -3942,6 +4411,27 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("Reservation");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Visit", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithMany("Visits")
+                        .HasForeignKey("PlacementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Placement");
+                });
+
+            modelBuilder.Entity("ForekOnline.Domain.Entities.WeeklyTimesheet", b =>
+                {
+                    b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
+                        .WithMany("WeeklyTimesheets")
+                        .HasForeignKey("PlacementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Placement");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.Application", b =>
                 {
                     b.Navigation("ApplicantGuardian")
@@ -3973,6 +4463,18 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("Blocks");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Placement", b =>
+                {
+                    b.Navigation("LearnerWorkplaceModules");
+
+                    b.Navigation("Students")
+                        .IsRequired();
+
+                    b.Navigation("Visits");
+
+                    b.Navigation("WeeklyTimesheets");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.Resource", b =>
                 {
                     b.Navigation("RoleAudiences");
@@ -3985,8 +4487,17 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Navigation("Resources");
                 });
 
+            modelBuilder.Entity("ForekOnline.Domain.Entities.Student", b =>
+                {
+                    b.Navigation("Documents");
+
+                    b.Navigation("EnrollmentHistory");
+                });
+
             modelBuilder.Entity("ForekOnline.Domain.Entities.StudentEntity", b =>
                 {
+                    b.Navigation("Documents");
+
                     b.Navigation("Enrollments");
                 });
 
