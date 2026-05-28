@@ -1,6 +1,7 @@
 @model IEnumerable<ForekOnline.Domain.ViewModels.PlacementViewModel>
 @using static ForekOnline.Domain.Enums.EnumRegistry
 @using ForekOnline.Application.Common.Utility
+@using ForekOnline.Domain.Entities
 @{
     var placements = Model?.ToList() ?? new List<ForekOnline.Domain.ViewModels.PlacementViewModel>();
     var statusGroups = placements.GroupBy(p => p.Status).ToDictionary(g => g.Key, g => g.Count());
@@ -9,6 +10,7 @@
     int pendingTimesheets = ViewBag.PendingTimesheets ?? 0;
     int pendingCampusAcknowledgements = ViewBag.PendingCampusAcknowledgements ?? 0;
     int totalVisits = ViewBag.TotalVisits ?? 0;
+    var pendingReviews = ViewBag.PendingTimesheetReviews as IReadOnlyCollection<WeeklyTimesheet> ?? new List<WeeklyTimesheet>();
 }
 
 <style>
@@ -97,6 +99,16 @@ body {
 .search-wrap input { width:100%; padding-left:2.35rem!important; }
 
 /* Table */
+.review-queue { margin-top:1.25rem; background:rgba(255,255,255,.88); border:1px solid var(--pl-border); border-radius:30px; padding:1rem; box-shadow:var(--pl-shadow); backdrop-filter:blur(18px); }
+.review-head { display:flex; justify-content:space-between; gap:.8rem; align-items:center; flex-wrap:wrap; margin-bottom:.8rem; }
+.review-title { margin:0; font-size:.78rem; letter-spacing:.13rem; text-transform:uppercase; font-weight:900; color:var(--pl-ink); display:flex; align-items:center; gap:.5rem; }
+.review-title i { color:var(--pl-red-strong); }
+.review-note { font-size:.56rem; letter-spacing:.12rem; text-transform:uppercase; font-weight:800; color:var(--pl-muted); }
+.review-grid { display:grid; gap:.75rem; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+.review-card { background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,244,238,.76)); border:1px solid var(--pl-border); border-radius:22px; padding:.9rem; box-shadow:var(--pl-shadow-soft); }
+.review-card strong { display:block; font-size:.78rem; color:#241417; margin-bottom:.2rem; }
+.review-meta { display:flex; flex-wrap:wrap; gap:.45rem; color:var(--pl-muted); font-size:.62rem; line-height:1.45; margin:.45rem 0 .7rem; }
+.review-meta span { display:inline-flex; align-items:center; gap:.35rem; }
 .table-shell { margin-top:1.25rem; background:rgba(255,255,255,.88); border:1px solid var(--pl-border); border-radius:30px; padding:1.1rem; overflow:auto; box-shadow:var(--pl-shadow); backdrop-filter:blur(18px); }
 .table-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.65rem; margin-bottom:.75rem; font-size:.56rem; letter-spacing:.15rem; font-weight:800; color:var(--pl-muted); text-transform:uppercase; }
 .table-meta span.badge { background:var(--pl-grad); color:#fff; padding:.45rem .7rem; border-radius:999px; font-size:.52rem; font-weight:800; letter-spacing:.12rem; box-shadow:0 12px 24px -18px rgba(143,13,19,.8); }
@@ -180,6 +192,37 @@ body {
             </div>
         }
     </div>
+
+
+    @if (pendingReviews.Any())
+    {
+        <div class="review-queue" id="timesheetReviewQueue">
+            <div class="review-head">
+                <h2 class="review-title"><i class="fa fa-clipboard-check"></i> Timesheets awaiting review</h2>
+                <div class="review-note">Mentors open these items from here — learners only submit from their workplace page.</div>
+            </div>
+            <div class="review-grid">
+                @foreach (var sheet in pendingReviews)
+                {
+                    var isCampusAck = sheet.Status == "Approved - Pending Campus Acknowledgement";
+                    var reviewIcon = isCampusAck ? "fa-user-check" : "fa-user-tie";
+                    var reviewLabel = isCampusAck ? "Campus acknowledgement" : "Workplace approval";
+                    <div class="review-card">
+                        <strong>@(sheet.Placement?.Student ?? "Learner")</strong>
+                        <div class="review-meta">
+                            <span><i class="fa fa-building"></i> @(sheet.Placement?.Company?.CompanyName ?? "Host company")</span>
+                            <span><i class="fa fa-calendar-week"></i> @sheet.WeekStartDate.ToString("yyyy-MM-dd") – @sheet.WeekEndDate.ToString("yyyy-MM-dd")</span>
+                            <span><i class="fa fa-clock"></i> @sheet.TotalHours hours</span>
+                            <span><i class="fa @reviewIcon"></i> @reviewLabel</span>
+                        </div>
+                        <a class="action-link" asp-action="OnPlaceLearner" asp-controller="LearnerPlacement" asp-route-PlacementId="@sheet.PlacementId" asp-route-FocusTimesheetId="@sheet.WeeklyTimesheetId">
+                            <i class="fa fa-folder-open"></i> Open Review
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     <div class="filter-bar">
         <div class="search-wrap">
