@@ -218,12 +218,50 @@ namespace ElecPOE.Controllers
                 return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
             }
 
+            model.WeekStartDate = model.WeekStartDate == default ? GetCurrentMonday() : model.WeekStartDate.Date;
+            model.WeekEndDate = model.WeekEndDate == default ? model.WeekStartDate.AddDays(6) : model.WeekEndDate.Date;
+
+            if (model.WeekStartDate.DayOfWeek != DayOfWeek.Monday || model.WeekEndDate != model.WeekStartDate.AddDays(6))
+            {
+                TempData["error"] = "Timesheets must run from Monday to Sunday for one full week.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
+            if (model.TotalHours <= 0 || model.TotalHours > 168)
+            {
+                TempData["error"] = "Total hours must be between 0.25 and 168 for the selected week.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
+            var summedHours =
+                (model.MondayHours ?? 0) +
+                (model.TuesdayHours ?? 0) +
+                (model.WednesdayHours ?? 0) +
+                (model.ThursdayHours ?? 0) +
+                (model.FridayHours ?? 0) +
+                (model.SaturdayHours ?? 0) +
+                (model.SundayHours ?? 0);
+
+            if (summedHours > 0 && Math.Abs(summedHours - model.TotalHours) > 0.01m)
+            {
+                TempData["error"] = "Total hours must match the sum of the day-by-day hours.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
             var placement = await _db.Placements.FindAsync(model.PlacementId);
             if (placement is null)
                 return RedirectToAction("RouteNotFound", "Global");
 
-            model.WeekStartDate = model.WeekStartDate == default ? GetCurrentMonday() : model.WeekStartDate.Date;
-            model.WeekEndDate = model.WeekEndDate == default ? model.WeekStartDate.AddDays(6) : model.WeekEndDate.Date;
+            var weekAlreadySubmitted = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .AnyAsync(t => t.PlacementId == model.PlacementId &&
+                               t.WeekStartDate == model.WeekStartDate &&
+                               t.WeekEndDate == model.WeekEndDate);
+            if (weekAlreadySubmitted)
+            {
+                TempData["warning"] = "A timesheet for this week has already been submitted.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
 
             var timesheet = new WeeklyTimesheet
             {
