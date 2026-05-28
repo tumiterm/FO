@@ -199,6 +199,14 @@ namespace ElecPOE.Controllers
             ViewBag.StatusList = placementList.Select(p => p.Status.ToString()).ToList();
             ViewBag.PendingTimesheets = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Pending Workplace Approval");
             ViewBag.PendingCampusAcknowledgements = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Approved - Pending Campus Acknowledgement");
+            ViewBag.PendingTimesheetReviews = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .Include(t => t.Placement)
+                .ThenInclude(p => p.Company)
+                .Where(t => t.Status == "Pending Workplace Approval" || t.Status == "Approved - Pending Campus Acknowledgement")
+                .OrderBy(t => t.SubmittedOn)
+                .Take(10)
+                .ToListAsync();
             ViewBag.TotalVisits = await _db.Visits.CountAsync(v => v.PlacementId != null);
 
             return View(placementList);
@@ -312,6 +320,12 @@ namespace ElecPOE.Controllers
             if (timesheet is null)
                 return RedirectToAction("RouteNotFound", "Global");
 
+            if (!timesheet.Status.Equals("Pending Workplace Approval", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["warning"] = "This timesheet is not currently awaiting workplace mentor verification.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
+            }
+
             timesheet.Status = approve ? "Approved - Pending Campus Acknowledgement" : "Rejected by Workplace Mentor";
             timesheet.WorkplaceMentorComments = comments;
             timesheet.WorkplaceMentorDecisionBy = currentUser?.Id;
@@ -329,7 +343,7 @@ namespace ElecPOE.Controllers
             TempData[approve ? "success" : "warning"] = approve
                 ? "Timesheet approved. Campus mentor acknowledgement has been requested."
                 : "Timesheet rejected with workplace mentor comments.";
-            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
         }
 
         /// <summary>
@@ -343,6 +357,12 @@ namespace ElecPOE.Controllers
             var timesheet = await _db.WeeklyTimesheets.Include(t => t.Placement).FirstOrDefaultAsync(t => t.WeeklyTimesheetId == weeklyTimesheetId);
             if (timesheet is null)
                 return RedirectToAction("RouteNotFound", "Global");
+
+            if (!timesheet.Status.Equals("Approved - Pending Campus Acknowledgement", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["warning"] = "This timesheet is not currently awaiting campus acknowledgement.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
+            }
 
             timesheet.Status = "Final Approved";
             timesheet.CampusMentorComments = comments;
@@ -359,14 +379,14 @@ namespace ElecPOE.Controllers
 
             await _db.SaveChangesAsync();
             TempData["success"] = "Timesheet acknowledged and final approved; placement progress has been refreshed.";
-            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
         }
 
         /// <summary>
         /// Displays the form to edit placement details for a learner.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> OnPlaceLearner(Guid PlacementId, string StudentNumber)
+        public async Task<IActionResult> OnPlaceLearner(Guid PlacementId, string StudentNumber, Guid? FocusTimesheetId)
         {
             if (PlacementId == Guid.Empty)
                 return RedirectToAction("RouteNotFound", "Global");
@@ -412,6 +432,7 @@ namespace ElecPOE.Controllers
             ViewData["PlacementId"] = dto.PlacementId;
             ViewData["CompanyName"] = companyName;
             ViewData["CampusMentorName"] = placedByName;
+            ViewBag.FocusTimesheetId = FocusTimesheetId;
             ViewBag.Timesheets = await _db.WeeklyTimesheets
                 .AsNoTracking()
                 .Where(t => t.PlacementId == placement.PlacementId)
