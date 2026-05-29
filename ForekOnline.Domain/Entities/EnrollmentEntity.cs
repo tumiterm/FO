@@ -16,9 +16,10 @@ namespace ForekOnline.Domain.Entities
     /// <summary>
     /// Represents a course enrollment for a <see cref="StudentEntity"/>.
     /// </summary>
-    [Table("Enrollments", Schema = "Academics")]
+    [Table("EnrollmentHistory", Schema = "Academics")]
     public class EnrollmentEntity : EntityBase<Guid>
     {
+        [Key]
         [Required]
         public Guid StudentId { get; set; }
 

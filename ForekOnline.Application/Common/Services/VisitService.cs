@@ -13,15 +13,15 @@ namespace ForekOnline.Application.Common.Services
     {
         #region Fields
         private readonly IUnitOfWork _uow;
-        private readonly IHelperService _helperService;
+        private readonly IStudentService _studentService;
         private readonly IFileUploadService _fileUploadService;
         #endregion
 
-        public VisitService(IUnitOfWork uow, IHelperService helperService, IFileUploadService fileUploadService)
+        public VisitService(IUnitOfWork uow, IStudentService studentService, IFileUploadService fileUploadService)
         {
             _uow = uow;
-            _helperService = helperService;
-            _fileUploadService = fileUploadService;
+            _studentService = studentService ?? throw new ArgumentNullException(nameof(studentService));
+            _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
         }
 
         public async Task<VisitViewModel?> GetCreateViewModelAsync(Guid companyId, Guid? placementId = null, CancellationToken cancellationToken = default)
@@ -116,7 +116,7 @@ namespace ForekOnline.Application.Common.Services
 
         public async Task<IReadOnlyCollection<StudentLookupItem>> SearchStudentsAsync(string? term, int max = 20, CancellationToken cancellationToken = default)
         {
-            var students = await Helper.GetStudentListAsync();
+            var students = await _studentService.GetStudentListAsync();
             term = term?.Trim() ?? string.Empty;
             return students
                 .Where(s => string.IsNullOrWhiteSpace(term) || $"{s.FirstName} {s.LastName} {s.StudentNumber}".Contains(term, StringComparison.OrdinalIgnoreCase))
@@ -127,7 +127,7 @@ namespace ForekOnline.Application.Common.Services
 
         public async Task<(IReadOnlyCollection<SelectListItem> Students, IReadOnlyCollection<SelectListItem> Visitors)> GetLookupOptionsAsync(CancellationToken cancellationToken = default)
         {
-            var students = await Helper.GetStudentListAsync();
+            var students = await _studentService.GetStudentListAsync();
             var users = await _uow.Users.GetAllAsync();
             var studentItems = students.Where(s => !string.IsNullOrEmpty(s.StudentNumber)).Select(m => new SelectListItem { Value = m.StudentId.ToString(), Text = $"{m.FirstName} {m.LastName} ({m.StudentNumber})" }).ToList();
             var visitorItems = users.Where(u => u.Role != eSysRole.Student).Select(u => new SelectListItem { Value = u.Id.ToString(), Text = $"{u.Name} {u.LastName} ({u.StudentNumber})" }).ToList();
@@ -154,7 +154,7 @@ namespace ForekOnline.Application.Common.Services
                 ReportFile = model.ReportFile,
                 IsActive = true,
                 CreatedBy = isCreate ? $"{currentUser?.Name} {currentUser?.LastName}" : null,
-                CreatedOn = isCreate ? _helperService.GetCurrentTime().ToString() : null,
+                CreatedOn = isCreate ? DateTimeHelper.GetCurrentSastDateTimeOffset().ToString() : null,
                 ModifiedBy = !isCreate ? $"{currentUser?.Name} {currentUser?.LastName}" : null,
                 ModifiedOn = !isCreate ? Helper.OnGetCurrentDateTime() : null
             };

@@ -6,6 +6,7 @@
 // Purpose:         Defines the Student class
 
 #region Usings
+using ForekOnline.Domain.Shared;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 namespace ForekOnline.Domain.Entities
@@ -13,7 +14,7 @@ namespace ForekOnline.Domain.Entities
     /// <summary>
     /// Represents a student with personal details, admission information, and enrollment history.
     /// </summary>
-    public class Student
+    public class Student : EntityBase<Guid>
     {
         #region Identity 
         public Guid StudentId { get; set; }

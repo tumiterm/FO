@@ -17,6 +17,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
@@ -43,7 +44,11 @@ namespace ForekOnline.Application.Common.Services
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,   
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) 
+            }
         };
 
         private static readonly TimeSpan DefaultSliding = TimeSpan.FromMinutes(10);
@@ -1110,6 +1115,21 @@ namespace ForekOnline.Application.Common.Services
                     NameOfSchool = "Dummy School",
                     IsActive = true,
                     Deregistered = false,
+                    Code = "DUMMYCODE",
+                    Name = "Dummy Student",
+                    HasDisability = false,
+                    RegistrationSource = "Fallback",
+                    StudyPermitExpiry = null,
+                    RowVersion = new byte[] { 0x00 },
+                    AlternativePhone = null,
+                    IsDeleted = false,
+                    DateDeleted = null,
+                    CreatedBy = "System",
+                    DateCreated = DateTime.UtcNow,
+                    UserModified = "System",
+                    DateModified = DateTime.UtcNow,
+                    DeregistrationDate = null,
+                    UserCreated = "System",
                     EnrollmentHistory = new List<EnrollmentHistory>
                     {
                         new()
@@ -1150,6 +1170,21 @@ namespace ForekOnline.Application.Common.Services
                     NameOfSchool = "School B",
                     IsActive = true,
                     Deregistered = false,
+                    Code = "DUMMYCODE",
+                    Name = "Dummy Student",
+                    HasDisability = false,
+                    RegistrationSource = "Fallback",
+                    StudyPermitExpiry = null,
+                    RowVersion = new byte[] { 0x00 },
+                    AlternativePhone = null,
+                    IsDeleted = false,
+                    DateDeleted = null,
+                    CreatedBy = "System",
+                    DateCreated = DateTime.UtcNow,
+                    UserModified = "System",
+                    DateModified = DateTime.UtcNow,
+                    DeregistrationDate = null,
+                    UserCreated = "System",
                     EnrollmentHistory = new List<EnrollmentHistory>
                     {
                         new()

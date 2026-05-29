@@ -22,8 +22,10 @@ namespace ForekOnline.Application.Common.Services
     /// </summary>
     public class StudentImportJob : IStudentImportJob
     {
+        #region Private Fields
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<StudentImportJob> _logger;
+        #endregion
 
         public StudentImportJob(IServiceScopeFactory scopeFactory, ILogger<StudentImportJob> logger)
         {
@@ -95,7 +97,7 @@ namespace ForekOnline.Application.Common.Services
             {
                 Id = Guid.NewGuid(),
                 StudentNumber = studentNumber,
-                FirstName = data.FirstName,
+                Name = data.FirstName,
                 MiddleName = data.MiddleName,
                 LastName = data.LastName,
                 IDNumber = data.IDNumber,
@@ -219,6 +221,7 @@ namespace ForekOnline.Application.Common.Services
                 _logger.LogWarning("Failed records ({Count}): {Errors}", errors.Count, string.Join(" | ", errors.Take(20).Select(e => $"{e.Identity}: {e.Error}")));
             }
         }
+
         #region Helpers
 
         private async Task<UpsertResult> UpsertStudentAsync(IUnitOfWork uow, Student student, string source, Guid? applicationId, CancellationToken ct)
@@ -231,7 +234,7 @@ namespace ForekOnline.Application.Common.Services
 
             if (existing is not null)
             {
-                existing.FirstName = student.FirstName ?? existing.FirstName;
+                existing.Name = student.FirstName ?? existing.Name;
                 existing.LastName = student.LastName ?? existing.LastName;
                 existing.Email = student.Email ?? existing.Email;
                 existing.Cellphone = student.Cellphone ?? existing.Cellphone;
@@ -260,7 +263,7 @@ namespace ForekOnline.Application.Common.Services
             {
                 Id = Guid.NewGuid(),
                 StudentNumber = studentNumber,
-                FirstName = student.FirstName ?? string.Empty,
+                Name = student.FirstName ?? string.Empty,
                 MiddleName = student.MiddleName,
                 LastName = student.LastName ?? string.Empty,
                 IDNumber = student.IDNumber,
@@ -281,7 +284,11 @@ namespace ForekOnline.Application.Common.Services
                 IsActive = student.IsActive,
                 IsDeregistered = student.Deregistered,
                 RegistrationSource = source,
-                OriginalApplicationId = applicationId
+                OriginalApplicationId = applicationId,
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
+                DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
+                IsDeleted = false,
+
             };
 
             await uow.Students.AddAsync(foStudent, ct);

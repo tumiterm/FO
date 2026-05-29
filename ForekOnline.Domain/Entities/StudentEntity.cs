@@ -21,14 +21,12 @@ namespace ForekOnline.Domain.Entities
     [Table("Students", Schema = "Academics")]
     public class StudentEntity : EntityBase<Guid>
     {
-
         #region Identity 
-        public Guid StudentId { get; set; }
         public string StudentNumber { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public string? MiddleName { get; set; }
         public string LastName { get; set; } = string.Empty;
-        public string FullName => $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+        public string FullName => $"{Name} {MiddleName} {LastName}".Replace("  ", " ").Trim();
         #endregion
 
         #region Personal Details
@@ -116,8 +114,6 @@ namespace ForekOnline.Domain.Entities
         /// Links back to the original Application if the student was an approved applicant.
         /// </summary>
         public Guid? OriginalApplicationId { get; set; }
-
-        public string IdPassportDocument { get; set; } = string.Empty;
 
         #endregion
 

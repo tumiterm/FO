@@ -6,7 +6,6 @@
 // Purpose:         Defines the ApplicationDbContext class
 
 #region Usings
-using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using static ForekOnline.Domain.Enums.EnumRegistry;
