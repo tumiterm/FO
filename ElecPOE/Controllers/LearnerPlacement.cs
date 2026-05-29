@@ -199,6 +199,14 @@ namespace ElecPOE.Controllers
             ViewBag.StatusList = placementList.Select(p => p.Status.ToString()).ToList();
             ViewBag.PendingTimesheets = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Pending Workplace Approval");
             ViewBag.PendingCampusAcknowledgements = await _db.WeeklyTimesheets.CountAsync(t => t.Status == "Approved - Pending Campus Acknowledgement");
+            ViewBag.PendingTimesheetReviews = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .Include(t => t.Placement)
+                .ThenInclude(p => p.Company)
+                .Where(t => t.Status == "Pending Workplace Approval" || t.Status == "Approved - Pending Campus Acknowledgement")
+                .OrderBy(t => t.SubmittedOn)
+                .Take(10)
+                .ToListAsync();
             ViewBag.TotalVisits = await _db.Visits.CountAsync(v => v.PlacementId != null);
 
             return View(placementList);
@@ -218,12 +226,50 @@ namespace ElecPOE.Controllers
                 return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
             }
 
+            model.WeekStartDate = model.WeekStartDate == default ? GetCurrentMonday() : model.WeekStartDate.Date;
+            model.WeekEndDate = model.WeekEndDate == default ? model.WeekStartDate.AddDays(6) : model.WeekEndDate.Date;
+
+            if (model.WeekStartDate.DayOfWeek != DayOfWeek.Monday || model.WeekEndDate != model.WeekStartDate.AddDays(6))
+            {
+                TempData["error"] = "Timesheets must run from Monday to Sunday for one full week.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
+            if (model.TotalHours <= 0 || model.TotalHours > 168)
+            {
+                TempData["error"] = "Total hours must be between 0.25 and 168 for the selected week.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
+            var summedHours =
+                (model.MondayHours ?? 0) +
+                (model.TuesdayHours ?? 0) +
+                (model.WednesdayHours ?? 0) +
+                (model.ThursdayHours ?? 0) +
+                (model.FridayHours ?? 0) +
+                (model.SaturdayHours ?? 0) +
+                (model.SundayHours ?? 0);
+
+            if (summedHours > 0 && Math.Abs(summedHours - model.TotalHours) > 0.01m)
+            {
+                TempData["error"] = "Total hours must match the sum of the day-by-day hours.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
+
             var placement = await _db.Placements.FindAsync(model.PlacementId);
             if (placement is null)
                 return RedirectToAction("RouteNotFound", "Global");
 
-            model.WeekStartDate = model.WeekStartDate == default ? GetCurrentMonday() : model.WeekStartDate.Date;
-            model.WeekEndDate = model.WeekEndDate == default ? model.WeekStartDate.AddDays(6) : model.WeekEndDate.Date;
+            var weekAlreadySubmitted = await _db.WeeklyTimesheets
+                .AsNoTracking()
+                .AnyAsync(t => t.PlacementId == model.PlacementId &&
+                               t.WeekStartDate == model.WeekStartDate &&
+                               t.WeekEndDate == model.WeekEndDate);
+            if (weekAlreadySubmitted)
+            {
+                TempData["warning"] = "A timesheet for this week has already been submitted.";
+                return RedirectToAction(nameof(PlacementDetails), new { StudentNumber });
+            }
 
             var timesheet = new WeeklyTimesheet
             {
@@ -274,6 +320,12 @@ namespace ElecPOE.Controllers
             if (timesheet is null)
                 return RedirectToAction("RouteNotFound", "Global");
 
+            if (!timesheet.Status.Equals("Pending Workplace Approval", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["warning"] = "This timesheet is not currently awaiting workplace mentor verification.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
+            }
+
             timesheet.Status = approve ? "Approved - Pending Campus Acknowledgement" : "Rejected by Workplace Mentor";
             timesheet.WorkplaceMentorComments = comments;
             timesheet.WorkplaceMentorDecisionBy = currentUser?.Id;
@@ -291,7 +343,7 @@ namespace ElecPOE.Controllers
             TempData[approve ? "success" : "warning"] = approve
                 ? "Timesheet approved. Campus mentor acknowledgement has been requested."
                 : "Timesheet rejected with workplace mentor comments.";
-            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
         }
 
         /// <summary>
@@ -305,6 +357,12 @@ namespace ElecPOE.Controllers
             var timesheet = await _db.WeeklyTimesheets.Include(t => t.Placement).FirstOrDefaultAsync(t => t.WeeklyTimesheetId == weeklyTimesheetId);
             if (timesheet is null)
                 return RedirectToAction("RouteNotFound", "Global");
+
+            if (!timesheet.Status.Equals("Approved - Pending Campus Acknowledgement", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["warning"] = "This timesheet is not currently awaiting campus acknowledgement.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
+            }
 
             timesheet.Status = "Final Approved";
             timesheet.CampusMentorComments = comments;
@@ -321,14 +379,14 @@ namespace ElecPOE.Controllers
 
             await _db.SaveChangesAsync();
             TempData["success"] = "Timesheet acknowledged and final approved; placement progress has been refreshed.";
-            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId });
+            return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = timesheet.PlacementId, FocusTimesheetId = timesheet.WeeklyTimesheetId });
         }
 
         /// <summary>
         /// Displays the form to edit placement details for a learner.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> OnPlaceLearner(Guid PlacementId, string StudentNumber)
+        public async Task<IActionResult> OnPlaceLearner(Guid PlacementId, string StudentNumber, Guid? FocusTimesheetId)
         {
             if (PlacementId == Guid.Empty)
                 return RedirectToAction("RouteNotFound", "Global");
@@ -374,6 +432,7 @@ namespace ElecPOE.Controllers
             ViewData["PlacementId"] = dto.PlacementId;
             ViewData["CompanyName"] = companyName;
             ViewData["CampusMentorName"] = placedByName;
+            ViewBag.FocusTimesheetId = FocusTimesheetId;
             ViewBag.Timesheets = await _db.WeeklyTimesheets
                 .AsNoTracking()
                 .Where(t => t.PlacementId == placement.PlacementId)
@@ -396,7 +455,10 @@ namespace ElecPOE.Controllers
         public async Task<IActionResult> OnPlaceLearner(Placement placement)
         {
             if (!ModelState.IsValid)
-                return View();
+            {
+                TempData["error"] = "Please correct the placement details before saving.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = placement.PlacementId });
+            }
 
             var currentUser = GetCurrentUser();
             if (currentUser is null)
@@ -415,7 +477,7 @@ namespace ElecPOE.Controllers
             if (updated is null)
             {
                 TempData["error"] = "Failed to update placement.";
-                return View();
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = placement.PlacementId });
             }
 
             ViewData["PlacementId"] = placement.PlacementId;

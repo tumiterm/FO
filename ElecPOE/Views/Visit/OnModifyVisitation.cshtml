@@ -1,166 +1,307 @@
 ﻿@model ForekOnline.Domain.ViewModels.VisitViewModel
+@{
+    ViewData["Title"] = "Modify Visitation";
+    var compId = ViewData["CompId"] ?? Model.CompanyId;
+    var hasReport = Model.HasReport && !string.IsNullOrWhiteSpace(Model.Report);
+    var observedCount = new[]
+    {
+        Model.AttendanceObserved,
+        Model.EngagementObserved,
+        Model.WorkplaceConditionsObserved,
+        Model.SafetyObserved,
+        Model.SkillApplicationObserved
+    }.Count(x => x);
+    var reportIcon = hasReport ? "fa-file-circle-check" : "fa-file-circle-exclamation";
+    var reportLabel = hasReport ? "Report attached" : "No report attached";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <style>
-    .card-header, .head {
-        background-color: darkred;
-    }
-
-    .res {
-        margin-right: 10px;
-    }
-
-    .form-control {
-        border-color: black;
-    }
-
-    thead {
-        background-color: darkred;
-    }
-
-    th {
-        color: white;
-    }
+:root{
+    --visit-ink:#171114;
+    --visit-muted:#73666c;
+    --visit-deep:#250306;
+    --visit-red:#8f0d13;
+    --visit-red-strong:#b31217;
+    --visit-orange:#ff7a18;
+    --visit-gold:#f7c873;
+    --visit-bg:#fffaf7;
+    --visit-card:rgba(255,255,255,.88);
+    --visit-soft:#fff1eb;
+    --visit-border:rgba(143,13,19,.13);
+    --visit-border-strong:rgba(143,13,19,.28);
+    --visit-grad:linear-gradient(135deg,#250306 0%,#8f0d13 48%,#ff7a18 100%);
+    --visit-grad-soft:linear-gradient(135deg,rgba(37,3,6,.10),rgba(179,18,23,.10),rgba(255,122,24,.16));
+    --visit-shadow:0 24px 70px -35px rgba(37,3,6,.45),0 14px 34px -28px rgba(179,18,23,.38);
+    --visit-shadow-soft:0 18px 44px -34px rgba(37,3,6,.36);
+    font-family:Inter,'Segoe UI',system-ui,sans-serif;
+}
+body{
+    color:var(--visit-ink);
+    background:
+        radial-gradient(circle at top left,rgba(255,122,24,.18),transparent 34rem),
+        radial-gradient(circle at 88% 10%,rgba(179,18,23,.14),transparent 28rem),
+        linear-gradient(180deg,#fffaf7 0%,#f7f4f2 100%);
+}
+.visit-shell{max-width:1440px;margin:0 auto;padding:2rem 1.25rem 3.5rem;}
+.visit-hero{position:relative;overflow:hidden;border:1px solid var(--visit-border);border-radius:34px;background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,248,244,.82));box-shadow:var(--visit-shadow);padding:1.35rem 1.55rem;display:flex;align-items:center;gap:1.15rem;flex-wrap:wrap;backdrop-filter:blur(18px);}
+.visit-hero:before{content:"";position:absolute;inset:0;background:var(--visit-grad-soft);pointer-events:none;}
+.visit-hero:after{content:"";position:absolute;width:290px;height:290px;right:-90px;top:-130px;background:radial-gradient(circle,rgba(247,200,115,.56),transparent 68%);pointer-events:none;}
+.visit-hero>*{position:relative;z-index:1;}
+.hero-icon{width:78px;height:78px;border-radius:28px;background:var(--visit-grad);display:grid;place-items:center;color:#fff;font-size:2rem;box-shadow:0 22px 42px -22px rgba(143,13,19,.76);}
+.hero-copy{flex:1;min-width:260px;}
+.eyebrow{display:inline-flex;align-items:center;gap:.45rem;padding:.48rem .78rem;border-radius:999px;background:rgba(255,255,255,.78);border:1px solid var(--visit-border);color:var(--visit-red-strong);font-size:.55rem;font-weight:900;letter-spacing:.18rem;text-transform:uppercase;}
+.visit-hero h1{margin:.5rem 0 .18rem;font-size:clamp(1.55rem,2.4vw,2.3rem);font-weight:900;letter-spacing:-.045em;color:#1d1214;}
+.hero-meta{display:flex;gap:.55rem;flex-wrap:wrap;color:var(--visit-muted);font-size:.68rem;font-weight:750;}
+.hero-chip,.status-chip{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--visit-border);background:rgba(255,255,255,.78);border-radius:999px;padding:.48rem .68rem;color:var(--visit-red-strong);font-size:.55rem;letter-spacing:.1rem;text-transform:uppercase;font-weight:900;}
+.hero-actions{display:flex;gap:.65rem;flex-wrap:wrap;margin-left:auto;}
+.btn-base,.btn-accent,.btn-outline{border:1px solid var(--visit-border);border-radius:16px;padding:.72rem 1.06rem;font-size:.6rem;letter-spacing:.13rem;text-transform:uppercase;font-weight:900;display:inline-flex;align-items:center;gap:.5rem;text-decoration:none;cursor:pointer;transition:.25s ease;box-shadow:0 12px 24px -20px rgba(37,3,6,.42);}
+.btn-base,.btn-outline{background:rgba(255,255,255,.86);color:var(--visit-red-strong);}
+.btn-base:hover,.btn-outline:hover{transform:translateY(-2px);background:#fff;color:var(--visit-red);border-color:var(--visit-border-strong);box-shadow:0 18px 30px -24px rgba(37,3,6,.54);}
+.btn-accent{background:var(--visit-grad);color:#fff;border-color:rgba(255,255,255,.26);box-shadow:0 18px 34px -20px rgba(143,13,19,.75);}
+.btn-accent:hover{color:#fff;transform:translateY(-2px);filter:saturate(1.08) brightness(.98);}
+.visit-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.75fr);gap:1rem;margin-top:1.15rem;align-items:start;}
+.panel{position:relative;background:var(--visit-card);border:1px solid var(--visit-border);border-radius:30px;padding:1.1rem;box-shadow:var(--visit-shadow-soft);overflow:hidden;backdrop-filter:blur(14px);}
+.panel:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,rgba(255,122,24,.16),transparent 42%),linear-gradient(140deg,rgba(143,13,19,.06),rgba(255,255,255,.18));pointer-events:none;}
+.panel:after{content:"";position:absolute;left:1.2rem;top:0;width:78px;height:4px;border-radius:0 0 999px 999px;background:var(--visit-grad);}
+.panel>*{position:relative;z-index:1;}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:.95rem;}
+.panel-head h2{margin:0;display:flex;align-items:center;gap:.5rem;font-size:.8rem;letter-spacing:.13rem;text-transform:uppercase;font-weight:900;color:#251316;}
+.field-grid{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr));}
+.field{display:flex;flex-direction:column;gap:.38rem;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:.54rem;letter-spacing:.15rem;text-transform:uppercase;font-weight:900;color:var(--visit-muted);}
+.field label.required:after{content:" *";color:var(--visit-red-strong);}
+.input-wrap{display:flex;align-items:center;gap:.65rem;background:#fff;border:1px solid var(--visit-border);border-radius:16px;padding:.62rem .72rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.86);transition:.22s ease;}
+.input-wrap:focus-within{border-color:var(--visit-border-strong);box-shadow:0 0 0 4px rgba(179,18,23,.08);}
+.input-wrap i{color:var(--visit-red-strong);min-width:18px;text-align:center;}
+.input-wrap input,.input-wrap select,.input-wrap textarea{width:100%;border:none!important;outline:none!important;background:transparent!important;color:var(--visit-ink);font:inherit;font-size:.78rem;padding:0;box-shadow:none!important;}
+.input-wrap textarea{min-height:104px;resize:vertical;line-height:1.5;}
+.select2-container--default .select2-selection--multiple,.select2-container--default .select2-selection--single{border:0!important;background:transparent!important;min-height:28px;}
+.select2-container{width:100%!important;}
+.observation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;}
+.check-tile{display:flex;align-items:center;gap:.6rem;background:#fff;border:1px solid var(--visit-border);border-radius:18px;padding:.75rem;color:#44363c;font-size:.68rem;font-weight:800;box-shadow:0 10px 22px -20px rgba(37,3,6,.36);}
+.check-tile input{width:18px;height:18px;accent-color:var(--visit-red-strong);}
+.summary-stack{display:grid;gap:.8rem;}
+.stat-card{background:rgba(255,255,255,.76);border:1px solid var(--visit-border);border-radius:22px;padding:.95rem;box-shadow:var(--visit-shadow-soft);}
+.stat-label{display:flex;align-items:center;gap:.45rem;font-size:.52rem;letter-spacing:.16rem;text-transform:uppercase;font-weight:900;color:var(--visit-muted);}
+.stat-value{margin-top:.35rem;font-size:1.35rem;font-weight:950;letter-spacing:-.045em;background:var(--visit-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.preview-card{min-height:250px;border-radius:26px;overflow:hidden;border:1px solid var(--visit-border);position:relative;background:#251316;box-shadow:var(--visit-shadow-soft);}
+.preview-card img{width:100%;height:100%;min-height:250px;object-fit:cover;display:block;opacity:.82;filter:saturate(1.05);}
+.preview-card:after{content:"VISIT EVIDENCE";position:absolute;left:1rem;bottom:1rem;background:rgba(255,255,255,.88);color:var(--visit-red-strong);border-radius:999px;padding:.5rem .75rem;font-size:.55rem;font-weight:900;letter-spacing:.14rem;}
+.report-box{border:1px dashed var(--visit-border-strong);background:rgba(255,250,247,.82);border-radius:22px;padding:.9rem;display:grid;gap:.65rem;}
+.report-current{display:flex;align-items:center;justify-content:space-between;gap:.65rem;flex-wrap:wrap;font-size:.68rem;color:var(--visit-muted);}
+.toggle-line{display:flex;align-items:center;gap:.65rem;background:#fff;border:1px solid var(--visit-border);border-radius:16px;padding:.68rem .75rem;}
+.toggle-line input{width:20px;height:20px;accent-color:var(--visit-red-strong);}
+.note{margin-top:.9rem;background:rgba(255,244,238,.82);border:1px solid var(--visit-border);border-radius:18px;padding:.75rem;color:var(--visit-muted);font-size:.67rem;line-height:1.5;}
+.actions-row{display:flex;justify-content:flex-end;gap:.65rem;flex-wrap:wrap;margin-top:1rem;}
+@media (max-width:1050px){.visit-grid{grid-template-columns:1fr;}.hero-actions{margin-left:0;}}
+@media (max-width:720px){.visit-shell{padding:1rem .75rem 2rem;}.field-grid{grid-template-columns:1fr;}.visit-hero{border-radius:26px;}.panel{border-radius:24px;}}
 </style>
-<head>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
-</head>
-<div class="col-xl-12">
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fa bi-building me-1 text-white"></i>
-            <span class="text-white">Learners Workplace Visitation Details<span class="text-bold"></span></span>
+
+<div class="visit-shell">
+    <div class="visit-hero">
+        <div class="hero-icon"><i class="fa fa-clipboard-check"></i></div>
+        <div class="hero-copy">
+            <span class="eyebrow"><i class="fa fa-helmet-safety"></i> Workplace Visit Review</span>
+            <h1>Modify Visitation Details</h1>
+            <div class="hero-meta">
+                <span class="hero-chip"><i class="fa fa-building"></i> @Model.Company</span>
+                <span class="hero-chip"><i class="fa fa-calendar"></i> @Model.Date</span>
+                <span class="hero-chip"><i class="fa fa-eye"></i> @observedCount/5 checks observed</span>
+            </div>
         </div>
-
-        <div class="card-body">
-
-            <form asp-action="OnModifyVisitation" enctype="multipart/form-data">
-                <div class="row">
-                    <div class="col-xl-6 bod">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="form-group col-md-6">
-
-                                    <label class="control-label">Company</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-building  text-primary"></i></span>
-                                        <input asp-for="Company" class="form-control fw-bold" style="background-color: rgb(255, 213, 128)" readonly />
-                                    </div>
-                                </div>
-
-                                <div class="form-group col-md-6">
-                                    <label class="control-label">Visitor</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-user  text-primary"></i></span>
-                                        <select asp-for="VisitBy" class="form-control" asp-items="@ViewBag.userList">
-                                            <option disabled selected="selected" value="">Select Visitor</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-
-                                <div class="form-group col-md-12 student">
-                                    <label class="control-label">Student(s)</label>
-                                    <div class="input-group mb-3 input1">
-                                        <select asp-for="SelectedIDArray" multiple class="form-control studs" asp-items="@ViewBag.StudentId">
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="form-group col-md-6">
-                                    <label class="control-label">Date of Visit</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-calendar  text-primary"></i></span>
-                                        <input asp-for="Date" class="form-control" type="datetime-local" />
-                                    </div>
-                                </div>
-
-                                <input asp-for="CompanyId" value="@ViewData["CompId"]" hidden />
-
-                                <div class="form-group col-md-6">
-                                    <label class="control-label">Workplace Mentor</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-user text-primary"></i></span>
-                                        <input asp-for="Mentor" class="form-control" />
-                                    </div>
-                                </div>
-
-                                <div class="form-group col-md-12">
-                                    <label class="control-label">Purpose of Visit</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-info-circle-fill  text-primary"></i></span>
-                                        <textarea asp-for="VisitPurpose" class="form-control" text-wrap:normal" type="text" placeholder="Please write purpose of visitation here..."></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-group col-md-12">
-                                    <label class="control-label">Learners Feedback</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-bullhorn  text-primary"></i></span>
-                                        <textarea asp-for="LearnerFeedback" class="form-control" text-wrap:normal" type="text" placeholder="Please write learner feedback here..."></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="form-group mt-2">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input class="form-check-input hasRep" asp-for="HasReport" style="background-color: rgb(255, 213, 128)" />
-                                            @Html.DisplayNameFor(model => model.HasReport)
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="form-group col-md-12 rep">
-                                    <label class="control-label">Workplace Report</label>
-                                    <div class="input-group input1">
-                                        <span class="input-group-text" id="basic-addon1"><i class="fa bi-file-pdf-fill text-primary"></i></span>
-                                        <input asp-for="ReportFile" class="form-control" type="file" />
-                                    </div>
-                                </div>
-
-                                <input asp-for="VisitId" hidden/>
-
-                                <div class="form-group col-md-12 mt-3" style="background-color:whitesmoke;">
-                                    <button type="submit" class="btn btn-success save"><i class="fa fa-save"></i> Save</button>
-                                    <a class="btn btn-outline-danger float-end" asp-action="StudentList" asp-controller="Student"><i class="fa fa-window-close"></i> Exit</a>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-xl-4">
-                        <div class="card-body mb-4">
-                            <img id="output" src="~/Theme/images/Work.jpg" class="form-control" height="350px" style="border:none" />
-                        </div>
-                    </div>
-
-                </div>
-            </form>
+        <div class="hero-actions">
+            <a asp-action="VisitationList" asp-route-CompanyId="@compId" class="btn-outline"><i class="fa fa-list"></i> Visit List</a>
+            @if (Model.PlacementId.HasValue)
+            {
+                <a asp-controller="LearnerPlacement" asp-action="OnPlaceLearner" asp-route-PlacementId="@Model.PlacementId" class="btn-base"><i class="fa fa-route"></i> Placement</a>
+            }
         </div>
     </div>
+
+    <form asp-action="OnModifyVisitation" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
+        @Html.AntiForgeryToken()
+        <input asp-for="VisitId" type="hidden" />
+        <input asp-for="CompanyId" type="hidden" value="@compId" />
+        <input asp-for="PlacementId" type="hidden" />
+        <input asp-for="Report" type="hidden" />
+        <input asp-for="Company" type="hidden" />
+
+        <div class="visit-grid">
+            <div class="panel">
+                <div class="panel-head">
+                    <h2><i class="fa fa-pen-to-square"></i> Visit Record</h2>
+                    <span class="status-chip"><i class="fa @reportIcon"></i> @reportLabel</span>
+                </div>
+
+                <div class="field-grid">
+                    <div class="field">
+                        <label>Company</label>
+                        <div class="input-wrap"><i class="fa fa-building"></i><input asp-for="Company" readonly /></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Visitor</label>
+                        <div class="input-wrap"><i class="fa fa-user-tie"></i><select asp-for="VisitBy" asp-items="ViewBag.userList"><option value="">Select visitor...</option></select></div>
+                        <span asp-validation-for="VisitBy" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field full">
+                        <label class="required">Learner(s) covered by visit</label>
+                        <div class="input-wrap"><i class="fa fa-users"></i><select asp-for="SelectedIDArray" multiple class="studs" asp-items="ViewBag.StudentId"></select></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="required">Visit Date & Time</label>
+                        <div class="input-wrap"><i class="fa fa-calendar-days"></i><input asp-for="Date" type="datetime-local" /></div>
+                        <span asp-validation-for="Date" class="text-danger" style="font-size:.55rem;"></span>
+                    </div>
+
+                    <div class="field">
+                        <label>Duration (Minutes)</label>
+                        <div class="input-wrap"><i class="fa fa-clock"></i><input asp-for="DurationMinutes" type="number" min="1" placeholder="e.g. 60" /></div>
+                    </div>
+
+                    <div class="field">
+                        <label>Workplace Mentor</label>
+                        <div class="input-wrap"><i class="fa fa-id-badge"></i><input asp-for="Mentor" placeholder="Mentor name" /></div>
+                    </div>
+
+                    <div class="field">
+                        <label>Action Due Date</label>
+                        <div class="input-wrap"><i class="fa fa-calendar-check"></i><input asp-for="ActionItemDueDate" type="date" /></div>
+                    </div>
+
+                    <div class="field full">
+                        <label>Purpose of Visit</label>
+                        <div class="input-wrap"><i class="fa fa-bullseye" style="align-self:flex-start;margin-top:.25rem;"></i><textarea asp-for="VisitPurpose" placeholder="What was the visit intended to verify or support?"></textarea></div>
+                    </div>
+
+                    <div class="field full">
+                        <label>Learner Feedback</label>
+                        <div class="input-wrap"><i class="fa fa-comments" style="align-self:flex-start;margin-top:.25rem;"></i><textarea asp-for="LearnerFeedback" placeholder="Learner feedback, concerns, confidence and support needs..."></textarea></div>
+                    </div>
+
+                    <div class="field full">
+                        <label>Observation Checklist</label>
+                        <div class="observation-grid">
+                            <label class="check-tile"><input asp-for="AttendanceObserved" type="checkbox" /> Attendance observed</label>
+                            <label class="check-tile"><input asp-for="EngagementObserved" type="checkbox" /> Engagement observed</label>
+                            <label class="check-tile"><input asp-for="WorkplaceConditionsObserved" type="checkbox" /> Workplace conditions</label>
+                            <label class="check-tile"><input asp-for="SafetyObserved" type="checkbox" /> Safety observed</label>
+                            <label class="check-tile"><input asp-for="SkillApplicationObserved" type="checkbox" /> Skill application</label>
+                        </div>
+                    </div>
+
+                    <div class="field full">
+                        <label>Observation Notes</label>
+                        <div class="input-wrap"><i class="fa fa-note-sticky" style="align-self:flex-start;margin-top:.25rem;"></i><textarea asp-for="ObservationNotes" placeholder="Evidence observed during the visit..."></textarea></div>
+                    </div>
+
+                    <div class="field full">
+                        <label>Action Items</label>
+                        <div class="input-wrap"><i class="fa fa-list-check" style="align-self:flex-start;margin-top:.25rem;"></i><textarea asp-for="ActionItems" placeholder="Agreed follow-up actions and interventions..."></textarea></div>
+                    </div>
+
+                    <div class="field">
+                        <label>Action Assignee</label>
+                        <div class="input-wrap"><i class="fa fa-user-check"></i><input asp-for="ActionItemAssignee" placeholder="Responsible person" /></div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn-accent"><i class="fa fa-save"></i> Save Visit</button>
+                    <a asp-action="VisitationList" asp-route-CompanyId="@compId" class="btn-outline"><i class="fa fa-arrow-left"></i> Back to List</a>
+                </div>
+                <div class="note"><strong>Tip:</strong> Keep the checklist and action items current so placement progress, risk and support follow-up can be reviewed from one place.</div>
+            </div>
+
+            <aside class="summary-stack">
+                <div class="panel">
+                    <div class="panel-head"><h2><i class="fa fa-chart-simple"></i> Snapshot</h2></div>
+                    <div class="summary-stack">
+                        <div class="stat-card"><div class="stat-label"><i class="fa fa-stopwatch"></i> Duration</div><div class="stat-value">@(Model.DurationMinutes.HasValue ? $"{Model.DurationMinutes} min" : "—")</div></div>
+                        <div class="stat-card"><div class="stat-label"><i class="fa fa-clipboard-check"></i> Observed</div><div class="stat-value">@observedCount / 5</div></div>
+                        <div class="stat-card"><div class="stat-label"><i class="fa fa-file-pdf"></i> Report</div><div class="stat-value">@(hasReport ? "Ready" : "None")</div></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head"><h2><i class="fa fa-file-shield"></i> Evidence</h2></div>
+                    <div class="report-box">
+                        <label class="toggle-line"><input asp-for="HasReport" type="checkbox" id="chkReport" /> <strong id="reportState">@(Model.HasReport ? "Report available" : "No report")</strong></label>
+                        @if (hasReport)
+                        {
+                            <div class="report-current">
+                                <span><i class="fa fa-paperclip"></i> Current report is attached.</span>
+                                <a asp-action="AttachmentDownload" asp-route-filename="@Model.Report" class="btn-outline"><i class="fa fa-download"></i> Download</a>
+                            </div>
+                        }
+                        <div class="field rep-field" id="repField">
+                            <label>Replace / Upload PDF</label>
+                            <div class="input-wrap"><i class="fa fa-file-arrow-up"></i><input asp-for="ReportFile" type="file" accept="application/pdf" id="reportInput" /></div>
+                            <small id="fileInfo" style="font-size:.55rem;color:var(--visit-muted);">Max 3MB • PDF only</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-card">
+                    <img src="~/Theme/images/Work.jpg" alt="Workplace visit preview" />
+                </div>
+            </aside>
+        </div>
+    </form>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+@section Scripts{
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function () {
+(function($){
+    $('.studs').select2({ width:'100%', placeholder:'Select learner(s) covered by this visit' });
 
-        $(".rep").hide();
+    const chkReport = document.getElementById('chkReport');
+    const repField = document.getElementById('repField');
+    const reportState = document.getElementById('reportState');
+    const reportInput = document.getElementById('reportInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const MAX = 3 * 1024 * 1024;
 
-        $('.studs').select2();
+    function syncReport(){
+        if (!chkReport || !repField || !reportState) return;
+        repField.style.display = chkReport.checked ? '' : 'none';
+        reportState.textContent = chkReport.checked ? 'Report available' : 'No report';
+        if (!chkReport.checked && reportInput) {
+            reportInput.value = '';
+            if (fileInfo) fileInfo.textContent = 'Max 3MB • PDF only';
+        }
+    }
 
-        $(".hasRep").on("click", function () {
+    chkReport?.addEventListener('change', syncReport);
+    syncReport();
 
-            if (this.checked) {
-
-                $(".rep").show();
-
-            } else {
-
-                $(".rep").hide();
-            }
-        });
+    reportInput?.addEventListener('change', function(){
+        const file = this.files[0];
+        if (!file) {
+            if (fileInfo) fileInfo.textContent = 'Max 3MB • PDF only';
+            return;
+        }
+        if (file.type !== 'application/pdf') {
+            alert('Only PDF reports are allowed.');
+            this.value = '';
+            if (fileInfo) fileInfo.textContent = 'Max 3MB • PDF only';
+            return;
+        }
+        if (file.size > MAX) {
+            alert('The report exceeds the 3MB limit.');
+            this.value = '';
+            if (fileInfo) fileInfo.textContent = 'Max 3MB • PDF only';
+            return;
+        }
+        if (fileInfo) fileInfo.textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
     });
-
+})(jQuery);
 </script>
+}
