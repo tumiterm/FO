@@ -92,7 +92,7 @@ namespace ForekOnline.Application.Common.Services
                 CompanyId = visit.CompanyId,
                 Company = company.CompanyName,
                 PlacementId = visit.PlacementId,
-                Date = visit.Date.ToString("dddd, dd MMMM yyyy hh:mm tt"),
+                Date = visit.Date.ToString("yyyy-MM-ddTHH:mm"),
                 DurationMinutes = visit.DurationMinutes,
                 SelectedEmployeeIDs = visit.SelectedEmployeeIDs,
                 SelectedIDArray = (visit.SelectedEmployeeIDs ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries),
@@ -100,12 +100,33 @@ namespace ForekOnline.Application.Common.Services
                 VisitBy = visit.VisitBy,
                 Mentor = visit.Mentor,
                 VisitPurpose = visit.VisitPurpose,
+                LearnerFeedback = visit.LearnerFeedback,
+                AttendanceObserved = visit.AttendanceObserved,
+                EngagementObserved = visit.EngagementObserved,
+                WorkplaceConditionsObserved = visit.WorkplaceConditionsObserved,
+                SafetyObserved = visit.SafetyObserved,
+                SkillApplicationObserved = visit.SkillApplicationObserved,
+                ObservationNotes = visit.ObservationNotes,
+                ActionItems = visit.ActionItems,
+                ActionItemDueDate = visit.ActionItemDueDate,
+                ActionItemAssignee = visit.ActionItemAssignee,
                 Report = visit.Report
             };
         }
 
         public async Task<(bool Success, string Message)> UpdateAsync(VisitViewModel model, User? currentUser, CancellationToken cancellationToken = default)
         {
+            if (model.HasReport && model.ReportFile != null)
+            {
+                await using var stream = model.ReportFile.OpenReadStream();
+                var upload = await _fileUploadService.UploadAsync(new UploadFileRequest(stream, model.ReportFile.FileName, model.ReportFile.ContentType, DocumentType: "Visitation"), cancellationToken);
+                model.Report = upload.FileId;
+            }
+            else if (!model.HasReport)
+            {
+                model.Report = null;
+            }
+
             var visit = MapToEntity(model, currentUser, isCreate: false);
             var updated = await _uow.Visit.UpdateVisitAsync(visit);
             return updated != null ? (true, "Visitation details saved") : (false, "Error: Unable to save visit!!!");
@@ -150,6 +171,15 @@ namespace ForekOnline.Application.Common.Services
                 Mentor = model.Mentor,
                 VisitPurpose = model.VisitPurpose,
                 LearnerFeedback = model.LearnerFeedback,
+                AttendanceObserved = model.AttendanceObserved,
+                EngagementObserved = model.EngagementObserved,
+                WorkplaceConditionsObserved = model.WorkplaceConditionsObserved,
+                SafetyObserved = model.SafetyObserved,
+                SkillApplicationObserved = model.SkillApplicationObserved,
+                ObservationNotes = model.ObservationNotes,
+                ActionItems = model.ActionItems,
+                ActionItemDueDate = model.ActionItemDueDate,
+                ActionItemAssignee = model.ActionItemAssignee,
                 Report = model.Report,
                 ReportFile = model.ReportFile,
                 IsActive = true,
