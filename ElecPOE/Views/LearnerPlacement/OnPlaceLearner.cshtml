@@ -167,15 +167,13 @@ body{
         </div>
     </div>
 
-    <form asp-action="OnPlaceLearner" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
-        @Html.AntiForgeryToken()
-        <input asp-for="PlacementId" type="hidden"/>
-        <input asp-for="PlacementAgreement" type="hidden"/>
-
-        <div class="layout-grid">
-            <!-- Placement Form -->
-            <div class="section-card">
-                <div class="section-head">
+    <div class="layout-grid">
+        <!-- Placement Form -->
+        <form asp-action="OnPlaceLearner" method="post" enctype="multipart/form-data" autocomplete="off" novalidate class="section-card">
+            @Html.AntiForgeryToken()
+            <input asp-for="PlacementId" type="hidden"/>
+            <input asp-for="PlacementAgreement" type="hidden"/>
+            <div class="section-head">
                     <h2><i class="fa fa-user-check"></i> Details</h2>
                     <span class="badge-inline"><i class="fa fa-hashtag"></i>@Model.PlacementId</span>
                 </div>
@@ -310,11 +308,11 @@ body{
                         <i class="fa fa-plus-circle"></i> Add Workplace Modules
                     </button>
                 </div>
-                <div class="note"><strong>Note:</strong> Dates drive duration. Adjust duration directly to shift end date.</div>
-            </div>
+            <div class="note"><strong>Note:</strong> Dates drive duration. Adjust duration directly to shift end date.</div>
+        </form>
 
-            <!-- WBL / WIL Journey -->
-            <div class="section-card" style="min-height:100%;">
+        <!-- WBL / WIL Journey -->
+        <div class="section-card" style="min-height:100%;">
                 <div class="section-head">
                     <h2><i class="fa fa-chart-line"></i> WBL Journey Hub</h2>
                     @{
@@ -419,9 +417,8 @@ body{
                 </div>
                 <div class="tab-pane" id="tab-documents"><div class="empty-state"><i class="fa fa-folder-open"></i> Agreement: @(string.IsNullOrWhiteSpace(Model.PlacementAgreement) ? "Not uploaded yet." : Model.PlacementAgreement) Evidence uploads and final certificates will be listed here.</div></div>
                 <div class="tab-pane" id="tab-issues"><div class="empty-state"><i class="fa fa-life-ring"></i> Support tickets, at-risk alerts and overdue actions will be managed from this section.</div></div>
-            </div>
         </div>
-    </form>
+    </div>
 </div>
 
 <!-- Modal: Add Workplace Modules -->

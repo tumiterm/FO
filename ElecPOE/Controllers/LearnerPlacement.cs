@@ -455,7 +455,10 @@ namespace ElecPOE.Controllers
         public async Task<IActionResult> OnPlaceLearner(Placement placement)
         {
             if (!ModelState.IsValid)
-                return View();
+            {
+                TempData["error"] = "Please correct the placement details before saving.";
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = placement.PlacementId });
+            }
 
             var currentUser = GetCurrentUser();
             if (currentUser is null)
@@ -474,7 +477,7 @@ namespace ElecPOE.Controllers
             if (updated is null)
             {
                 TempData["error"] = "Failed to update placement.";
-                return View();
+                return RedirectToAction(nameof(OnPlaceLearner), new { PlacementId = placement.PlacementId });
             }
 
             ViewData["PlacementId"] = placement.PlacementId;
