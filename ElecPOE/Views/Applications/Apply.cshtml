@@ -1,4 +1,4 @@
-﻿@using static ForekOnline.Domain.Enums.EnumRegistry
+@using static ForekOnline.Domain.Enums.EnumRegistry
 @model ForekOnline.Domain.ViewModels.ApplyViewModel
 @{
     Layout = null;
@@ -8,470 +8,1014 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Forek Online Application</title>
+    <title>Forek Online Application @DateTime.UtcNow.Year</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
         :root {
-            --accent:#0d8e66;
-            --accent-rgb:13,142,102;
-            --danger:#dc2626;
-            --radius:14px;
-            --bg-soft:#f8faf9;
+            --f950: #050F0A;
+            --f900: #071810;
+            --f800: #0A2318;
+            --f700: #0D3023;
+            --f600: #104030;
+            --f500: #145240;
+            --f400: #1A9E75;
+            --f300: #22C896;
+            --f200: #7EDDBA;
+            --f100: #C8F0E3;
+            --gold600: #8A5E12;
+            --gold500: #B8801E;
+            --gold400: #C9922A;
+            --gold300: #DDB05A;
+            --gold200: #EDCF8A;
+            --gold100: #FAF0D4;
+            --n950: #0F0F0E;
+            --n900: #1C1C1A;
+            --n800: #2D2D2A;
+            --n700: #404040;
+            --n600: #5A5A55;
+            --n500: #787870;
+            --n400: #9C9C94;
+            --n300: #BBBAB2;
+            --n200: #D8D7CF;
+            --n100: #EDECE6;
+            --n050: #F6F5F0;
+            --bg-page: #F4F3EE;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAF6;
+            --accent: #1A9E75;
+            --accent-dk: #145240;
+            --danger: #DC2626;
+            --r-sm: 10px;
+            --r-md: 16px;
+            --r-lg: 24px;
+            --sh-xs: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+            --sh-sm: 0 2px 8px rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.04);
+            --sh-md: 0 8px 24px rgba(0,0,0,.09),0 2px 8px rgba(0,0,0,.04);
+            --sh-lg: 0 20px 48px rgba(0,0,0,.11),0 8px 16px rgba(0,0,0,.06);
+            --sh-xl: 0 32px 80px rgba(0,0,0,.14),0 12px 24px rgba(0,0,0,.08);
+            --ring: 0 0 0 3px rgba(26,158,117,.22);
         }
-        body {
-            background: radial-gradient(circle at 20% 15%, #ffffff 0, #eef4f2 55%, #dbe7e2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-            padding:1.25rem;
-            display:flex;
-            align-items:flex-start;
-            justify-content:center;
+
+        *,*::before,*::after { box-sizing:border-box; }
+
+        html,body {
+            margin:0; padding:0;
+            font-family:'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+            background:var(--bg-page);
+            color:var(--n900);
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
         }
-        .app-shell { width:100%; max-width:1180px; }
+
+        body::before {
+            content:'';
+            position:fixed; inset:0; pointer-events:none; z-index:0;
+            background:
+                radial-gradient(ellipse 80% 55% at 15% 0%,rgba(26,158,117,.05) 0%,transparent 60%),
+                radial-gradient(ellipse 60% 40% at 85% 100%,rgba(197,137,42,.04) 0%,transparent 55%);
+        }
+
+        .app-shell {
+            position:relative; z-index:1;
+            min-height:100vh; display:flex;
+            align-items:flex-start; justify-content:center;
+            padding:1.5rem;
+        }
+
+        /* ===== WIZARD SHELL ===== */
         .wizard {
-            background:#fff;
-            border:1px solid #e5e9e7;
-            border-radius:var(--radius);
-            box-shadow:0 10px 30px -8px rgba(0,0,0,.08);
+            width:100%; max-width:1260px;
+            display:grid; grid-template-columns:296px 1fr;
+            background:var(--bg-card);
+            border-radius:var(--r-lg);
             overflow:hidden;
-            display:grid;
-            grid-template-columns:320px 1fr;
+            box-shadow:var(--sh-xl);
+            border:1px solid rgba(255,255,255,.75);
+            min-height:680px;
         }
-        @@media (max-width: 992px) { .wizard { grid-template-columns:1fr; } }
+
+        @@media(max-width:992px) { .wizard { grid-template-columns:1fr; } }
+
+        /* ===== SIDEBAR ===== */
         .wizard-aside {
-            background:linear-gradient(160deg,#106e52,#0d8e66 70%,#0aa377);
-            color:#fff;
-            position:relative;
-            display:flex;
-            flex-direction:column;
-            padding:2.25rem 1.75rem 1.75rem;
+            background:linear-gradient(158deg, var(--f950) 0%, var(--f800) 55%, var(--f700) 100%);
+            position:relative; display:flex; flex-direction:column; overflow:hidden;
         }
-        .brand-block { display:flex; align-items:center; gap:.75rem; margin-bottom:1.25rem; }
-        .brand-block i { font-size:1.9rem; opacity:.95; }
-        .brand-block span { font-weight:600; letter-spacing:.5px; }
-        .steps { list-style:none; margin:1.25rem 0 0; padding:0; counter-reset: step; flex:1; }
-        .steps li {
-            position:relative; padding:.75rem .75rem .75rem 2.75rem; margin-bottom:.5rem; border-radius:10px;
-            background:rgba(255,255,255,.08); font-size:.9rem; backdrop-filter:blur(4px); cursor:pointer; transition:background .25s;
+
+        .wizard-aside::before {
+            content:''; position:absolute; inset:0; pointer-events:none;
+            background:
+                radial-gradient(ellipse 130% 55% at -15% 25%,rgba(26,158,117,.2) 0%,transparent 55%),
+                radial-gradient(ellipse 80% 40% at 115% 72%,rgba(201,146,42,.1) 0%,transparent 50%),
+                radial-gradient(circle at 50% 105%,rgba(13,48,35,.7) 0%,transparent 55%);
         }
-        .steps li.active { background:rgba(255,255,255,.18); font-weight:600; }
-        .steps li.done { background:rgba(255,255,255,.28); }
-        .steps li:before {
-            counter-increment: step; content:counter(step); position:absolute; left:.9rem; top:50%; transform:translateY(-50%);
-            width:26px; height:26px; background:#fff; color:#083f30; font-weight:600; font-size:.8rem; border-radius:50%;
-            display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.15);
+
+        .wizard-aside::after {
+            content:''; position:absolute; inset:0; pointer-events:none;
+            background-image:
+                linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),
+                linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
+            background-size:24px 24px;
         }
-        .progress-wrap { margin-top:.75rem; }
-        .progress { height:8px; background:#ffffff30; border-radius:5px; overflow:hidden; }
-        .progress-bar { background:linear-gradient(90deg,#fff,#fefefe); }
-        .wizard-main { padding:2rem 2.25rem 2.25rem; background:var(--bg-soft); }
-        .step-pane { display:none; animation:fadeSlide .45s ease; }
+
+        .aside-inner {
+            position:relative; z-index:1;
+            display:flex; flex-direction:column; height:100%;
+            padding:2rem 1.625rem;
+        }
+
+        /* Brand */
+        .brand-area {
+            padding-bottom:1.75rem;
+            border-bottom:1px solid rgba(255,255,255,.07);
+            margin-bottom:1.75rem;
+        }
+
+        .brand-row {
+            display:flex; align-items:center; gap:.8rem; margin-bottom:.75rem;
+        }
+
+        .brand-icon {
+            width:46px; height:46px; flex-shrink:0;
+            background:linear-gradient(135deg,var(--f400),var(--f500));
+            border-radius:var(--r-sm);
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.25rem; color:#fff;
+            box-shadow:0 4px 16px rgba(26,158,117,.45),0 0 0 1px rgba(255,255,255,.1);
+        }
+
+        .brand-name {
+            font-size:.88rem; font-weight:700; color:#fff; letter-spacing:-.1px; line-height:1.2;
+        }
+
+        .brand-year {
+            display:block; font-size:.62rem; font-weight:400;
+            color:rgba(255,255,255,.4); letter-spacing:1px; text-transform:uppercase; margin-top:.1rem;
+        }
+
+        .brand-divider {
+            font-size:.6rem; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+            color:var(--gold300); display:flex; align-items:center; gap:.5rem;
+        }
+
+        .brand-divider::before,.brand-divider::after {
+            content:''; flex:1; height:1px;
+            background:linear-gradient(90deg,transparent,rgba(201,146,42,.4),transparent);
+        }
+
+        /* Steps */
+        .steps-eyebrow {
+            font-size:.58rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+            color:rgba(255,255,255,.3); margin-bottom:.625rem;
+        }
+
+        .steps { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.35rem; flex:1; }
+
+        .step-item {
+            display:flex; align-items:center; gap:.875rem;
+            padding:.875rem 1rem; border-radius:var(--r-sm); cursor:pointer;
+            border:1px solid transparent;
+            transition:all .3s cubic-bezier(.4,0,.2,1);
+        }
+
+        .step-item:hover { background:rgba(255,255,255,.05); }
+        .step-item.active { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.11); }
+        .step-item.done  { background:rgba(26,158,117,.13); border-color:rgba(26,158,117,.2); }
+
+        .step-num {
+            width:32px; height:32px; flex-shrink:0; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-size:.75rem; font-weight:700;
+            background:rgba(255,255,255,.07); color:rgba(255,255,255,.4);
+            border:1.5px solid rgba(255,255,255,.1);
+            transition:all .3s ease;
+        }
+
+        .step-item.active .step-num {
+            background:var(--gold400); color:var(--f950);
+            border-color:var(--gold300);
+            box-shadow:0 0 0 4px rgba(201,146,42,.22),0 4px 12px rgba(201,146,42,.32);
+        }
+
+        .step-item.done .step-num {
+            background:var(--f400); color:#fff; border-color:var(--f300);
+        }
+
+        .step-text { flex:1; }
+        .step-title { font-size:.8rem; font-weight:500; color:rgba(255,255,255,.45); line-height:1.2; transition:color .3s; }
+        .step-sub   { font-size:.6rem; color:rgba(255,255,255,.26); margin-top:.1rem; transition:color .3s; }
+
+        .step-item.active .step-title { color:rgba(255,255,255,.95); font-weight:600; }
+        .step-item.active .step-sub   { color:rgba(255,255,255,.42); }
+        .step-item.done  .step-title  { color:rgba(255,255,255,.65); }
+
+        /* Progress */
+        .progress-section {
+            margin-top:1.5rem; padding-top:1.5rem;
+            border-top:1px solid rgba(255,255,255,.07);
+        }
+
+        .progress-head {
+            display:flex; justify-content:space-between; align-items:center; margin-bottom:.625rem;
+        }
+
+        .progress-lbl {
+            font-size:.58rem; font-weight:700; letter-spacing:2px;
+            text-transform:uppercase; color:rgba(255,255,255,.32);
+        }
+
+        .progress-pct { font-size:.72rem; font-weight:700; color:var(--gold300); }
+
+        .p-track {
+            height:4px; background:rgba(255,255,255,.1); border-radius:99px; overflow:hidden;
+        }
+
+        .p-fill {
+            height:100%;
+            background:linear-gradient(90deg,var(--f300),var(--gold300));
+            border-radius:99px; transition:width .55s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* Aside footer */
+        .aside-foot {
+            margin-top:1.5rem; padding-top:1rem;
+            border-top:1px solid rgba(255,255,255,.06);
+            font-size:.6rem; color:rgba(255,255,255,.22);
+            text-align:center; line-height:1.7; letter-spacing:.3px;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .wizard-main { background:var(--bg-subtle); display:flex; flex-direction:column; }
+
+        .form-topbar {
+            background:var(--bg-card); border-bottom:1px solid var(--n100);
+            padding:1.125rem 2.25rem;
+            display:flex; align-items:center; justify-content:space-between;
+        }
+
+        .topbar-title {
+            font-size:.68rem; font-weight:700; letter-spacing:1.8px;
+            text-transform:uppercase; color:var(--n500);
+        }
+
+        .topbar-step {
+            font-size:.7rem; color:var(--n400);
+            display:flex; align-items:center; gap:.5rem;
+        }
+
+        .step-dot {
+            width:6px; height:6px; border-radius:50%;
+            background:var(--accent); flex-shrink:0;
+        }
+
+        .form-body { flex:1; padding:2rem 2.25rem; }
+
+        /* Panes */
+        .step-pane { display:none; animation:fadeUp .4s cubic-bezier(.4,0,.2,1); }
         .step-pane.active { display:block; }
-        @@keyframes fadeSlide { from {opacity:0; transform:translateY(12px);} to {opacity:1; transform:translateY(0);} }
+
+        @@keyframes fadeUp {
+            from { opacity:0; transform:translateY(14px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Cards */
+        .form-card {
+            background:var(--bg-card);
+            border-radius:var(--r-md);
+            border:1px solid var(--n100);
+            box-shadow:var(--sh-sm);
+            padding:1.75rem;
+            margin-bottom:1.125rem;
+        }
+
+        .section-hd {
+            display:flex; align-items:flex-start; gap:.875rem;
+            padding-bottom:1.25rem; margin-bottom:1.5rem;
+            border-bottom:1px solid var(--n100);
+        }
+
+        .section-ico {
+            width:38px; height:38px; flex-shrink:0; border-radius:var(--r-sm);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.9rem; color:var(--accent-dk);
+            background:linear-gradient(135deg,rgba(26,158,117,.12),rgba(26,158,117,.05));
+            border:1px solid rgba(26,158,117,.16);
+        }
+
         .section-title {
-            font-size:1.05rem; font-weight:600; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; color:#0b5d46;
+            font-size:.92rem; font-weight:700; color:var(--n900);
+            margin:0; letter-spacing:-.15px;
         }
-        .section-title i { color:var(--accent); }
-        label.form-label {
-            font-weight:500; font-size:.75rem; text-transform:uppercase; letter-spacing:.75px; color:#374741; margin-bottom:.35rem;
+
+        .section-desc {
+            font-size:.7rem; color:var(--n500); margin:.1rem 0 0;
         }
-        .required:after { content:" *"; color:var(--danger); font-weight:600; }
-        .form-control, .form-select {
-            border-radius:10px; border:1px solid #cfd7d4; font-size:.92rem; padding:.62rem .75rem; background:#fff;
-            transition:border-color .25s, box-shadow .25s;
+
+        /* Alert banner */
+        .alert-prem {
+            background:linear-gradient(135deg,rgba(201,146,42,.07),rgba(201,146,42,.02));
+            border:1px solid rgba(201,146,42,.28); border-radius:var(--r-sm);
+            padding:.9rem 1.1rem; margin-bottom:1.375rem;
+            display:flex; align-items:flex-start; gap:.75rem;
         }
-        .form-control:focus, .form-select:focus {
-            border-color:rgba(var(--accent-rgb), .9); box-shadow:0 0 0 3px rgba(var(--accent-rgb), .25);
-        }
-        .file-drop {
-            position:relative; border:2px dashed #c7d3ce; padding:1rem; text-align:center; border-radius:10px;
-            background:#fff; transition:border-color .25s, background .25s; font-size:.8rem; color:#4c5b55;
-        }
-        .file-drop.drag { background:#f2fbf7; border-color:var(--accent); }
-        .helper { font-size:.7rem; color:#6b7a74; margin-top:.25rem; }
-        .actions { display:flex; gap:.75rem; justify-content:flex-end; margin-top:.5rem; flex-wrap:wrap; }
-        .btn-accent {
-            --bs-btn-bg:var(--accent); --bs-btn-border-color:var(--accent); --bs-btn-hover-bg:#0c7552;
-            --bs-btn-hover-border-color:#0c7552; --bs-btn-color:#fff;
-        }
-        .btn-outline-accent {
-            --bs-btn-color:var(--accent); --bs-btn-border-color:var(--accent); --bs-btn-hover-bg:var(--accent);
-            --bs-btn-hover-border-color:var(--accent); --bs-btn-hover-color:#fff;
-        }
-        .alert-inline {
-            background:#fff7f7; border:1px solid #ffd3d3; color:#7a2525; font-size:.75rem; border-radius:10px;
-            padding:.65rem .75rem; margin-bottom:1rem; display:flex; align-items:center; gap:.5rem;
-        }
-        .select2-container .select2-selection--single {
-            height:42px; padding:.4rem .75rem; border-radius:10px; border:1px solid #cfd7d4; display:flex; align-items:center;
-        }
-        .selected-course-card {
-            border:1px solid #cfd7d4; background:#fff; border-radius:12px; padding:.9rem 1rem; margin-top:1rem;
-            box-shadow:0 4px 10px -4px rgba(0,0,0,.08);
-        }
-        .selected-course-card h6 { margin:0 0 .35rem; font-weight:600; }
-        .badge-list { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+
+        .alert-prem-ico { color:var(--gold500); font-size:.85rem; margin-top:.05rem; flex-shrink:0; }
+        .alert-prem-txt { font-size:.78rem; color:#5E4A1A; line-height:1.55; }
+
+        /* Popular badges */
+        .badge-list { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1.25rem; }
+
         .badge-course {
-            background:#0d8e6614; color:#0d8e66; border:1px solid #0d8e6625; padding:.35rem .6rem; font-size:.65rem;
-            border-radius:50px; font-weight:500; cursor:pointer; transition:.25s;
+            background:rgba(26,158,117,.07); color:var(--accent-dk);
+            border:1px solid rgba(26,158,117,.18); border-radius:99px;
+            padding:.32rem .72rem; font-size:.68rem; font-weight:500;
+            cursor:pointer; letter-spacing:.15px;
+            transition:all .2s ease;
         }
-        .badge-course:hover { background:#0d8e6625; }
-        .course-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:.9rem; }
+
+        .badge-course:hover {
+            background:rgba(26,158,117,.14); border-color:rgba(26,158,117,.32);
+            transform:translateY(-1px); box-shadow:var(--sh-xs);
+        }
+
+        /* Labels */
+        label.form-label {
+            display:block; font-size:.65rem; font-weight:700;
+            letter-spacing:.9px; text-transform:uppercase; color:var(--n600);
+            margin-bottom:.4rem;
+        }
+
+        .required::after { content:" *"; color:var(--danger); }
+
+        /* Inputs */
+        .form-control,.form-select {
+            height:46px; padding:0 1rem;
+            border-radius:var(--r-sm); border:1.5px solid var(--n200);
+            font-family:inherit; font-size:.875rem; color:var(--n900);
+            background:var(--bg-card); box-shadow:var(--sh-xs);
+            transition:border-color .2s,box-shadow .2s,background .2s;
+            -webkit-appearance:none;
+        }
+
+        .form-control:focus,.form-select:focus {
+            outline:none; border-color:var(--accent);
+            box-shadow:var(--ring); background:#FDFFFE;
+        }
+
+        .form-control::placeholder { color:var(--n400); font-size:.82rem; }
+
+        .form-control.is-invalid,.form-select.is-invalid {
+            border-color:var(--danger);
+            box-shadow:0 0 0 3px rgba(220,38,38,.12);
+        }
+
+        .form-control[readonly],.form-select[readonly] {
+            background:var(--n050); color:var(--n400); cursor:not-allowed;
+        }
+
+        /* Field hint */
+        .field-hint {
+            font-size:.62rem; color:var(--n400); margin-top:.3rem;
+            display:flex; align-items:center; gap:.3rem; line-height:1.4;
+        }
+
+        /* File drop */
+        .file-drop {
+            position:relative; border:2px dashed var(--n200);
+            border-radius:var(--r-sm); background:var(--bg-card);
+            padding:1.5rem 1rem; text-align:center; cursor:pointer;
+            transition:all .25s ease; overflow:hidden;
+        }
+
+        .file-drop:hover { border-color:var(--accent); background:rgba(26,158,117,.02); }
+
+        .file-drop.drag {
+            border-color:var(--accent); background:rgba(26,158,117,.05);
+            box-shadow:var(--ring);
+        }
+
+        .file-drop input[type="file"] {
+            position:absolute; inset:0; width:100%; height:100%;
+            opacity:0; cursor:pointer;
+        }
+
+        .fd-icon {
+            font-size:1.6rem; color:var(--n300);
+            margin-bottom:.5rem; pointer-events:none;
+            transition:color .25s,transform .25s;
+        }
+
+        .file-drop:hover .fd-icon { color:var(--accent); transform:translateY(-2px); }
+
+        .fd-label {
+            font-size:.74rem; font-weight:600; color:var(--n600);
+            margin-bottom:.15rem; pointer-events:none;
+        }
+
+        .fd-hint {
+            font-size:.62rem; color:var(--n400); pointer-events:none;
+        }
+
+        /* Selected course summary */
+        .course-summary {
+            background:linear-gradient(135deg,rgba(26,158,117,.07),rgba(26,158,117,.02));
+            border:1.5px solid rgba(26,158,117,.22); border-radius:var(--r-md);
+            padding:1.125rem 1.25rem; display:flex; flex-direction:column; gap:.35rem;
+        }
+
+        .cs-title {
+            font-size:.72rem; font-weight:700; color:var(--accent-dk);
+            display:flex; align-items:center; gap:.4rem; margin-bottom:.2rem;
+        }
+
+        .cs-name { font-size:.88rem; font-weight:600; color:var(--n900); }
+        .cs-meta { font-size:.72rem; color:var(--n500); }
+
+        /* Course grid (explorer) */
+        .course-grid {
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.75rem;
+        }
+
         .course-card {
-            background:#fff; border:1px solid #d9e2de; border-radius:12px; padding:.75rem .8rem .8rem; display:flex;
-            flex-direction:column; gap:.4rem; box-shadow:0 3px 10px -4px rgba(0,0,0,.08); cursor:pointer; transition:.25s;
+            background:var(--bg-card); border:1.5px solid var(--n100);
+            border-radius:var(--r-sm); padding:.875rem;
+            display:flex; flex-direction:column; gap:.35rem;
+            cursor:pointer; box-shadow:var(--sh-xs);
+            transition:all .2s ease;
         }
-        .course-card:hover { border-color:#0d8e66; box-shadow:0 6px 18px -6px rgba(0,0,0,.12); }
-        .course-card small { font-size:.65rem; letter-spacing:.5px; text-transform:uppercase; color:#486157; }
-        .course-card .title { font-size:.82rem; font-weight:600; line-height:1.15; min-height:34px; }
-        .course-card .meta { font-size:.65rem; color:#57756c; display:flex; gap:.5rem; flex-wrap:wrap; }
-        .offcanvas-header { background:#0d8e66; color:#fff; }
-        .offcanvas-title { font-weight:600; font-size:.95rem; }
-        .course-search-tools .form-control, .course-search-tools .form-select {
-            font-size:.8rem; padding:.45rem .6rem; border-radius:8px;
+
+        .course-card:hover {
+            border-color:var(--accent); box-shadow:var(--sh-md);
+            transform:translateY(-2px);
         }
-        .footer-note { font-size:.65rem; color:#607068; text-align:right; margin-top:.75rem; }
+
+        .course-card small { font-size:.58rem; letter-spacing:.9px; text-transform:uppercase; color:var(--n400); font-weight:600; }
+        .course-card .title { font-size:.8rem; font-weight:600; color:var(--n900); line-height:1.3; min-height:32px; }
+        .course-card .meta { font-size:.62rem; color:var(--n500); display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.2rem; }
+
+        /* Offcanvas */
+        .offcanvas { border-left:1px solid var(--n100); }
+
+        .offcanvas-header {
+            background:var(--f800); color:#fff; padding:1.25rem 1.5rem;
+            border-bottom:1px solid rgba(255,255,255,.07);
+        }
+
+        .offcanvas-title { font-weight:600; font-size:.88rem; letter-spacing:.1px; }
+
+        .offcanvas-body { background:var(--bg-subtle); padding:0; display:flex; flex-direction:column; }
+
+        .canvas-search { padding:1.125rem 1.25rem; background:var(--bg-card); border-bottom:1px solid var(--n100); }
+        .canvas-search .form-control,.canvas-search .form-select { height:38px; font-size:.8rem; padding:0 .75rem; }
+
+        .canvas-results { flex:1; overflow-y:auto; padding:1.125rem 1.25rem; }
+
+        .canvas-foot {
+            padding:.875rem 1.25rem; background:var(--bg-card);
+            border-top:1px solid var(--n100);
+        }
+
+        /* Actions row */
+        .actions {
+            display:flex; gap:.75rem; justify-content:flex-end;
+            margin-top:1.75rem; padding-top:1.25rem;
+            border-top:1px solid var(--n100); flex-wrap:wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family:inherit; font-size:.83rem; font-weight:600;
+            padding:.72rem 1.75rem; border-radius:99px; border:none; cursor:pointer;
+            display:inline-flex; align-items:center; gap:.45rem; letter-spacing:.1px;
+            transition:all .22s cubic-bezier(.4,0,.2,1);
+        }
+
+        .btn-accent {
+            background:linear-gradient(135deg,var(--f500),var(--f400));
+            color:#fff;
+            box-shadow:0 4px 16px rgba(26,158,117,.38),0 1px 3px rgba(0,0,0,.1);
+        }
+
+        .btn-accent:hover {
+            background:linear-gradient(135deg,var(--f600),var(--f500));
+            color:#fff; transform:translateY(-1px);
+            box-shadow:0 8px 24px rgba(26,158,117,.44),0 2px 6px rgba(0,0,0,.12);
+        }
+
+        .btn-accent:active { transform:translateY(0); box-shadow:0 2px 8px rgba(26,158,117,.3); }
+
+        .btn-outline-accent {
+            background:transparent; color:var(--accent-dk);
+            border:1.5px solid rgba(26,158,117,.3);
+        }
+
+        .btn-outline-accent:hover {
+            background:rgba(26,158,117,.06);
+            border-color:var(--accent); color:var(--accent-dk);
+        }
+
+        .btn-outline-danger {
+            background:transparent; color:var(--danger);
+            border:1.5px solid rgba(220,38,38,.28);
+        }
+
+        .btn-outline-danger:hover {
+            background:#FEE2E2; border-color:rgba(220,38,38,.45); color:var(--danger);
+        }
+
+        .btn-sm { font-size:.73rem; padding:.48rem .95rem; }
+
+        /* Select2 overrides */
+        .select2-container .select2-selection--single {
+            height:46px !important; border-radius:var(--r-sm) !important;
+            border:1.5px solid var(--n200) !important;
+            display:flex !important; align-items:center;
+            box-shadow:var(--sh-xs) !important; background:var(--bg-card) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            padding-left:1rem; font-size:.875rem; color:var(--n900); line-height:46px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height:46px; right:10px;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color:var(--accent) !important; box-shadow:var(--ring) !important;
+        }
+
+        /* Skeleton */
         .skeleton {
-            background:linear-gradient(90deg,#f0f3f2 25%,#e6ece9 37%,#f0f3f2 63%);
-            animation:skeleton 1.4s ease infinite; border-radius:8px;
+            background:linear-gradient(90deg,var(--n100) 25%,var(--n050) 37%,var(--n100) 63%);
+            background-size:400% 100%; animation:skel 1.4s ease infinite;
+            border-radius:6px; display:inline-block;
         }
-        @@keyframes skeleton {
-            0% { background-position:-200px 0; }
-            100% { background-position:calc(200px + 100%) 0; }
+
+        @@keyframes skel {
+            0%   { background-position:100% 50%; }
+            100% { background-position:0% 50%; }
         }
     </style>
 </head>
 <body>
 <div class="app-shell">
-    <div class="wizard">
-        <!-- Sidebar -->
-        <aside class="wizard-aside">
-            <div class="brand-block">
-                <i class="fa fa-file-signature"></i>
-                <span>Forek Online Application<br/><small class="fw-normal">Year @DateTime.UtcNow.Year</small></span>
+<div class="wizard">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="wizard-aside">
+        <div class="aside-inner">
+
+            <!-- Brand -->
+            <div class="brand-area">
+                <div class="brand-row">
+                    <div class="brand-icon">
+                        <i class="fa fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="brand-name">Forek Online Application</div>
+                        <span class="brand-year">Academic Year @DateTime.UtcNow.Year</span>
+                    </div>
+                </div>
+                <div class="brand-divider">Admission Portal</div>
             </div>
+
+            <!-- Steps nav -->
+            <div class="steps-eyebrow">Application Steps</div>
             <ul class="steps" id="stepsNav">
-                <li data-step="0" class="active">Programme & Cycle</li>
-                <li data-step="1">Address & Contact</li>
-                <li data-step="2">Guardian & Medical</li>
+                <li class="step-item active" data-step="0">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        <div class="step-title">Programme &amp; Cycle</div>
+                        <div class="step-sub">Course selection &amp; identity</div>
+                    </div>
+                </li>
+                <li class="step-item" data-step="1">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        <div class="step-title">Address &amp; Contact</div>
+                        <div class="step-sub">Residence &amp; communication</div>
+                    </div>
+                </li>
+                <li class="step-item" data-step="2">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        <div class="step-title">Guardian &amp; Medical</div>
+                        <div class="step-sub">Emergency &amp; health info</div>
+                    </div>
+                </li>
             </ul>
-            <div class="progress-wrap">
-                <div class="progress mt-2">
-                    <div class="progress-bar" id="progressBar" style="width:33%"></div>
+
+            <!-- Progress -->
+            <div class="progress-section">
+                <div class="progress-head">
+                    <span class="progress-lbl">Completion</span>
+                    <span class="progress-pct" id="progressPct">33%</span>
+                </div>
+                <div class="p-track">
+                    <div class="p-fill" id="progressBar" style="width:33%"></div>
                 </div>
             </div>
-            <div class="mt-3 small">
-                <i class="fa fa-info-circle me-1"></i>
-                Complete required fields. Files: clear PDF/JPG (≤ 4MB each).
-            </div>
-            <div class="footer-note">
-                Secure submission • Data privacy • Intake integrity
-            </div>
-        </aside>
 
-        <!-- Main Form -->
-        <div class="wizard-main">
+            <!-- Footer -->
+            <div class="aside-foot">
+                <i class="fa fa-shield-halved"></i>&nbsp; Secure submission &nbsp;&middot;&nbsp; Data privacy protected<br />
+                PDF &nbsp;/&nbsp; JPG &nbsp;/&nbsp; PNG &nbsp;&mdash;&nbsp; max 4 MB per file
+            </div>
+
+        </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <div class="wizard-main">
+
+        <!-- Top bar -->
+        <div class="form-topbar">
+            <span class="topbar-title">Online Application Form</span>
+            <span class="topbar-step">
+                <span class="step-dot"></span>
+                <span id="topbarStepLabel">Step 1 of 3 &mdash; Programme &amp; Cycle</span>
+            </span>
+        </div>
+
+        <div class="form-body">
             <form asp-action="Apply" method="post" enctype="multipart/form-data" id="applicationForm" novalidate>
                 @Html.AntiForgeryToken()
 
-                <!-- Step 0 -->
+                <!-- =============== STEP 0 =============== -->
                 <div class="step-pane active" data-step="0">
-                    <h2 class="section-title">
-                        <i class="fa fa-layer-group"></i> Programme & Application Cycle
-                    </h2>
 
-                    <div class="alert-inline">
-                        <i class="fa fa-exclamation-triangle"></i>
-                        Explore courses first if unsure. Use filters, then select your course.
+                    <div class="alert-prem">
+                        <i class="fa fa-circle-info alert-prem-ico"></i>
+                        <span class="alert-prem-txt">
+                            Not sure which programme to apply for? Use <strong>Browse</strong> to explore our full catalogue with filters, then select your preferred course below.
+                        </span>
                     </div>
 
-                    <!-- Popular / Highlighted Courses (placeholder) -->
-                    <div class="badge-list" id="popularCourses">
-                        <!-- Dynamically populated -->
-                        <span class="badge-course skeleton" style="width:80px;height:22px;"></span>
-                        <span class="badge-course skeleton" style="width:110px;height:22px;"></span>
-                        <span class="badge-course skeleton" style="width:70px;height:22px;"></span>
-                    </div>
+                    <!-- Programme -->
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-layer-group"></i></div>
+                            <div>
+                                <h2 class="section-title">Programme &amp; Application Cycle</h2>
+                                <p class="section-desc">Select your desired programme and funding information</p>
+                            </div>
+                        </div>
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label required">Course Selection</label>
-                            <div class="d-flex gap-2 align-items-start">
-                                <select asp-for="CourseId" class="form-select js-course" required asp-items="ViewBag.CourseId">
-                                    <option value="">Select a course</option>
+                        <div class="badge-list" id="popularCourses">
+                            <span class="skeleton" style="width:80px;height:22px;"></span>
+                            <span class="skeleton" style="width:112px;height:22px;"></span>
+                            <span class="skeleton" style="width:68px;height:22px;"></span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label required">Course Selection</label>
+                                <div class="d-flex gap-2 align-items-start">
+                                    <select asp-for="CourseId" class="form-select js-course" required asp-items="ViewBag.CourseId">
+                                        <option value="">Search or select a programme...</option>
+                                    </select>
+                                    <button type="button"
+                                            class="btn btn-outline-accent btn-sm flex-shrink-0"
+                                            data-bs-toggle="offcanvas"
+                                            data-bs-target="#courseExplorer"
+                                            style="height:46px;border-radius:var(--r-sm);white-space:nowrap;">
+                                        <i class="fa fa-magnifying-glass"></i> Browse
+                                    </button>
+                                </div>
+                                <p class="field-hint"><i class="fa fa-circle-info"></i> Type to search or click Browse to explore the full catalogue.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Funder Type</label>
+                                <select asp-for="FunderType" class="form-select funder" required asp-items="Html.GetEnumSelectList<eFunderType>()">
+                                    <option value="">Select funding type</option>
                                 </select>
-                                <button type="button" class="btn btn-outline-accent btn-sm" data-bs-toggle="offcanvas" data-bs-target="#courseExplorer">
-                                    <i class="fa fa-search"></i> Browse
-                                </button>
                             </div>
-                            <div class="helper">
-                                Use Browse for full catalogue (thousands of courses) or type ahead to search.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Funder Type</label>
-                            <select asp-for="FunderType" class="form-select funder" required asp-items="Html.GetEnumSelectList<eFunderType>()">
-                                <option value="">Funding Type</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Citizenship (RSA)</label>
-                            <select asp-for="Selection" class="form-select citizen" required asp-items="Html.GetEnumSelectList<eChoice>()">
-                                <option value="">Is South African?</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Study Permit Category</label>
-                            <select asp-for="StudyPermitCategory" class="form-select permit" asp-items="Html.GetEnumSelectList<eCategory>()">
-                                <option value="">Select Category</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">ID Number</label>
-                            <input asp-for="IDNumber" class="form-control idNum" type="text" maxlength="13" inputmode="numeric" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Passport Number</label>
-                            <input asp-for="PassportNumber" class="form-control pass" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Highest Qualification</label>
-                            <select asp-for="HighestQualification" class="form-select" required asp-items="Html.GetEnumSelectList<HighestQualification>()">
-                                <option value="">Select Option</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Attach Highest Qualification</label>
-                            <div class="file-drop" data-for="AplicantHighestQualFile">
-                                <input asp-for="AplicantHighestQualFile" type="file" class="form-control" required />
-                                <div class="helper">PDF / JPG / PNG scan</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div id="selectedCourseSummary" class="selected-course-card d-none">
-                                <h6><i class="fa fa-circle-info text-accent me-1"></i> Selected Course</h6>
-                                <div class="small" data-field="name"></div>
-                                <div class="small text-muted" data-field="meta"></div>
-                                <div class="small text-muted" data-field="cycles"></div>
+                            <div class="col-12">
+                                <div id="selectedCourseSummary" class="course-summary d-none">
+                                    <div class="cs-title"><i class="fa fa-circle-check"></i> Selected Programme</div>
+                                    <div class="cs-name" data-field="name"></div>
+                                    <div class="cs-meta" data-field="meta"></div>
+                                    <div class="cs-meta" data-field="cycles"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4" />
-                    <h2 class="section-title">
-                        <i class="fa fa-user"></i> Biographical Information
-                    </h2>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label required">Title</label>
-                            <select asp-for="ApplicantTitle" class="form-select" required asp-items="Html.GetEnumSelectList<eTitle>()">
-                                <option value="">Select Title</option>
-                            </select>
+                    <!-- Identity -->
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-id-card"></i></div>
+                            <div>
+                                <h2 class="section-title">Identity &amp; Qualifications</h2>
+                                <p class="section-desc">Citizenship status, documents, and academic background</p>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label required">First Name</label>
-                            <input asp-for="ApplicantName" class="form-control" required />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label required">Citizenship (RSA)</label>
+                                <select asp-for="Selection" class="form-select citizen" required asp-items="Html.GetEnumSelectList<eChoice>()">
+                                    <option value="">Is applicant South African?</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Study Permit Category</label>
+                                <select asp-for="StudyPermitCategory" class="form-select permit" asp-items="Html.GetEnumSelectList<eCategory>()">
+                                    <option value="">Select category (non-RSA)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">ID Number</label>
+                                <input asp-for="IDNumber" class="form-control idNum" type="text" maxlength="13" inputmode="numeric" placeholder="13-digit RSA ID" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Passport Number</label>
+                                <input asp-for="PassportNumber" class="form-control pass" placeholder="Non-RSA applicants only" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Highest Qualification</label>
+                                <select asp-for="HighestQualification" class="form-select" required asp-items="Html.GetEnumSelectList<HighestQualification>()">
+                                    <option value="">Select qualification</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Attach Highest Qualification</label>
+                                <div class="file-drop" data-for="AplicantHighestQualFile">
+                                    <input asp-for="AplicantHighestQualFile" type="file" class="form-control" required />
+                                    <div class="fd-icon"><i class="fa fa-cloud-arrow-up"></i></div>
+                                    <div class="fd-label">Drop file or click to upload</div>
+                                    <div class="fd-hint" id="hint-qual">PDF &nbsp;/&nbsp; JPG &nbsp;/&nbsp; PNG &nbsp;&middot;&nbsp; Max 4 MB</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label required">Surname</label>
-                            <input asp-for="ApplicantSurname" class="form-control" required />
+                    </div>
+
+                    <!-- Biographical -->
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-user"></i></div>
+                            <div>
+                                <h2 class="section-title">Biographical Information</h2>
+                                <p class="section-desc">Personal details as they appear on your identity document</p>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label required">Gender</label>
-                            <select asp-for="Gender" class="form-select" required asp-items="Html.GetEnumSelectList<eGender>()">
-                                <option value="">Select Gender</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Attach RSA ID</label>
-                            <div class="file-drop" data-for="ApplicantIDPassFile">
-                                <input asp-for="ApplicantIDPassFile" type="file" class="form-control" required />
-                                <div class="helper">Clear PDF/JPG of front/back or card</div>
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label required">Title</label>
+                                <select asp-for="ApplicantTitle" class="form-select" required asp-items="Html.GetEnumSelectList<eTitle>()">
+                                    <option value="">Title</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label required">First Name</label>
+                                <input asp-for="ApplicantName" class="form-control" placeholder="As per ID" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label required">Surname</label>
+                                <input asp-for="ApplicantSurname" class="form-control" placeholder="As per ID" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label required">Gender</label>
+                                <select asp-for="Gender" class="form-select" required asp-items="Html.GetEnumSelectList<eGender>()">
+                                    <option value="">Select</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Attach RSA ID Document</label>
+                                <div class="file-drop" data-for="ApplicantIDPassFile">
+                                    <input asp-for="ApplicantIDPassFile" type="file" class="form-control" required />
+                                    <div class="fd-icon"><i class="fa fa-id-card"></i></div>
+                                    <div class="fd-label">Drop file or click to upload</div>
+                                    <div class="fd-hint" id="hint-id">Front &amp; back of ID card &nbsp;&middot;&nbsp; PDF / JPG</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="actions">
                         <button type="button" class="btn btn-accent btn-next">
-                            Next <i class="fa fa-arrow-right ms-1"></i>
+                            Continue <i class="fa fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 1 -->
+                <!-- =============== STEP 1 =============== -->
                 <div class="step-pane" data-step="1">
-                    <h2 class="section-title">
-                        <i class="fa fa-map-marker-alt"></i> Address & Contact Details
-                    </h2>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label required">Street / Complex No</label>
-                            <input asp-for="Line1" class="form-control" required />
+
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-location-dot"></i></div>
+                            <div>
+                                <h2 class="section-title">Residential Address</h2>
+                                <p class="section-desc">Your current place of residence</p>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Suburb</label>
-                            <input asp-for="StreetName" class="form-control" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">City</label>
-                            <input asp-for="City" class="form-control" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Province</label>
-                            <select asp-for="Province" class="form-select" required asp-items="Html.GetEnumSelectList<eProvince>()">
-                                <option value="">Select Province</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Postal Code</label>
-                            <input asp-for="PostalCode" class="form-control" type="text" inputmode="numeric" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Proof of Residence</label>
-                            <div class="file-drop" data-for="ApplicantResidenceFile">
-                                <input asp-for="ApplicantResidenceFile" type="file" class="form-control" required />
-                                <div class="helper">Utility bill / official letter (≤ 3 months)</div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label required">Street / Complex No</label>
+                                <input asp-for="Line1" class="form-control" placeholder="e.g. 12 Acacia Drive" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Suburb</label>
+                                <input asp-for="StreetName" class="form-control" placeholder="Suburb name" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">City</label>
+                                <input asp-for="City" class="form-control" placeholder="City / Town" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Province</label>
+                                <select asp-for="Province" class="form-select" required asp-items="Html.GetEnumSelectList<eProvince>()">
+                                    <option value="">Select province</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Postal Code</label>
+                                <input asp-for="PostalCode" class="form-control" type="text" inputmode="numeric" maxlength="4" placeholder="4-digit code" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Proof of Residence</label>
+                                <div class="file-drop" data-for="ApplicantResidenceFile">
+                                    <input asp-for="ApplicantResidenceFile" type="file" class="form-control" required />
+                                    <div class="fd-icon"><i class="fa fa-house"></i></div>
+                                    <div class="fd-label">Upload document</div>
+                                    <div class="fd-hint">Utility bill or official letter &mdash; not older than 3 months</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4" />
-                    <h2 class="section-title">
-                        <i class="fa fa-address-book"></i> Contact Info
-                    </h2>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label required">Cellphone Number</label>
-                            <input asp-for="Cellphone" class="form-control" type="text" inputmode="tel" required />
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-phone"></i></div>
+                            <div>
+                                <h2 class="section-title">Contact Details</h2>
+                                <p class="section-desc">How we can reach you regarding your application</p>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label required">Email Address</label>
-                            <input asp-for="Email" class="form-control" type="email" required />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label required">Cellphone Number</label>
+                                <input asp-for="Cellphone" class="form-control" type="text" inputmode="tel" placeholder="e.g. 071 234 5678" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Email Address</label>
+                                <input asp-for="Email" class="form-control" type="email" placeholder="your@email.com" required />
+                            </div>
                         </div>
                     </div>
 
                     <div class="actions">
                         <button type="button" class="btn btn-outline-accent btn-back">
-                            <i class="fa fa-arrow-left me-1"></i> Back
+                            <i class="fa fa-arrow-left"></i> Back
                         </button>
                         <button type="button" class="btn btn-accent btn-next">
-                            Next <i class="fa fa-arrow-right ms-1"></i>
+                            Continue <i class="fa fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 2 -->
+                <!-- =============== STEP 2 =============== -->
                 <div class="step-pane" data-step="2">
-                    <h2 class="section-title">
-                        <i class="fa fa-user-shield"></i> Guardian & Medical Information
-                    </h2>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label required">Guardian First Name</label>
-                            <input asp-for="GuardianFirstName" class="form-control" required />
+
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-user-shield"></i></div>
+                            <div>
+                                <h2 class="section-title">Guardian / Emergency Contact</h2>
+                                <p class="section-desc">Parent or legal guardian information</p>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Guardian Surname</label>
-                            <input asp-for="GuardianLastName" class="form-control" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Relationship</label>
-                            <select asp-for="GuardianRelationship" class="form-select" required asp-items="Html.GetEnumSelectList<eRelationship>()">
-                                <option value="">Select Relationship</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Guardian Cellphone</label>
-                            <input asp-for="GuardianCellphone" class="form-control" type="text" inputmode="tel" required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label required">Guardian RSA ID</label>
-                            <div class="file-drop" data-for="GuardianIDFile">
-                                <input asp-for="GuardianIDFile" type="file" class="form-control" required />
-                                <div class="helper">Clear readable scan</div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label required">First Name</label>
+                                <input asp-for="GuardianFirstName" class="form-control" placeholder="Guardian's first name" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Surname</label>
+                                <input asp-for="GuardianLastName" class="form-control" placeholder="Guardian's surname" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Relationship</label>
+                                <select asp-for="GuardianRelationship" class="form-select" required asp-items="Html.GetEnumSelectList<eRelationship>()">
+                                    <option value="">Select relationship</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Guardian Cellphone</label>
+                                <input asp-for="GuardianCellphone" class="form-control" type="text" inputmode="tel" placeholder="Guardian's cell number" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label required">Guardian ID Document</label>
+                                <div class="file-drop" data-for="GuardianIDFile">
+                                    <input asp-for="GuardianIDFile" type="file" class="form-control" required />
+                                    <div class="fd-icon"><i class="fa fa-id-badge"></i></div>
+                                    <div class="fd-label">Upload guardian's ID</div>
+                                    <div class="fd-hint">Clear readable scan required</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4" />
-                    <h2 class="section-title">
-                        <i class="fa fa-medkit"></i> Medical Aid (Optional)
-                    </h2>
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Medical Aid Name</label>
-                            <input asp-for="MedicalName" class="form-control" />
+                    <div class="form-card">
+                        <div class="section-hd">
+                            <div class="section-ico"><i class="fa fa-kit-medical"></i></div>
+                            <div>
+                                <h2 class="section-title">
+                                    Medical Aid
+                                    <span style="font-size:.72rem;font-weight:400;color:var(--n400);margin-left:.4rem;">(Optional)</span>
+                                </h2>
+                                <p class="section-desc">Medical aid details if applicable</p>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Member Number</label>
-                            <input asp-for="MemberNumber" class="form-control" />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Disability</label>
-                            <input asp-for="Disability" class="form-control" />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Telephone</label>
-                            <input asp-for="Telephone" class="form-control" />
+
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Medical Aid Name</label>
+                                <input asp-for="MedicalName" class="form-control" placeholder="e.g. Discovery" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Member Number</label>
+                                <input asp-for="MemberNumber" class="form-control" placeholder="Membership number" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Disability</label>
+                                <input asp-for="Disability" class="form-control" placeholder="If applicable" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Telephone</label>
+                                <input asp-for="Telephone" class="form-control" placeholder="Landline number" />
+                            </div>
                         </div>
                     </div>
 
                     <div class="actions">
                         <button type="button" class="btn btn-outline-accent btn-back">
-                            <i class="fa fa-arrow-left me-1"></i> Back
-                        </button>
-                        <button type="submit" class="btn btn-accent">
-                            <i class="fa fa-save me-1"></i> Submit Application
+                            <i class="fa fa-arrow-left"></i> Back
                         </button>
                         <button type="reset" class="btn btn-outline-danger">
-                            <i class="fa fa-rotate-left me-1"></i> Reset
+                            <i class="fa fa-rotate-left"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fa fa-paper-plane"></i> Submit Application
                         </button>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-    <div id="validationSummary" class="mt-3"></div>
-</div>
 
-<!-- Offcanvas Course Explorer -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="courseExplorer">
+            </form>
+        </div><!-- /form-body -->
+    </div><!-- /wizard-main -->
+</div><!-- /wizard -->
+<div id="validationSummary" class="mt-3"></div>
+</div><!-- /app-shell -->
+
+<!-- ===== Course Explorer Offcanvas ===== -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="courseExplorer" style="width:480px;">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title"><i class="fa fa-search me-1"></i> Explore Courses</h5>
+        <h5 class="offcanvas-title"><i class="fa fa-magnifying-glass me-2"></i>Explore Programmes</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body d-flex flex-column">
-        <div class="course-search-tools mb-3">
+    <div class="offcanvas-body">
+        <div class="canvas-search">
             <div class="row g-2">
                 <div class="col-6">
                     <input type="text" id="courseSearchInput" class="form-control" placeholder="Search by name..." />
                 </div>
                 <div class="col-3">
                     <select id="courseCategoryFilter" class="form-select">
-                        <option value="">All Categories</option>
+                        <option value="">All Fields</option>
                     </select>
                 </div>
                 <div class="col-3">
                     <select id="courseFundingFilter" class="form-select">
-                        <option value="">Funding: Any</option>
+                        <option value="">Funding</option>
                         <option value="funded">Funded</option>
                         <option value="self">Self-Pay</option>
                     </select>
                 </div>
             </div>
         </div>
-        <div id="courseResults" class="course-grid mb-3">
-            <!-- Dynamic course cards -->
+        <div class="canvas-results">
+            <div id="courseResults" class="course-grid"></div>
+            <div class="d-grid mt-3">
+                <button type="button" class="btn btn-outline-accent btn-sm" id="loadMoreCourses">Load More Results</button>
+            </div>
+            <p class="field-hint mt-2" id="courseTotals"></p>
         </div>
-        <div class="d-grid mb-2">
-            <button type="button" class="btn btn-outline-accent btn-sm" id="loadMoreCourses">Load More</button>
-        </div>
-        <div class="small text-muted" id="courseTotals"></div>
-        <div class="mt-auto pt-3 small text-secondary">
-            Tip: Narrow results with category + search. Only partial list shown for performance.
+        <div class="canvas-foot">
+            <p class="field-hint mb-0"><i class="fa fa-circle-info"></i>&nbsp; Click any programme card to select it. Use filters to narrow results.</p>
         </div>
     </div>
 </div>
@@ -479,72 +1023,78 @@
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-(function() {
-    const steps = Array.from(document.querySelectorAll('.step-pane'));
-    const navItems = Array.from(document.querySelectorAll('#stepsNav li'));
-    const progressBar = document.getElementById('progressBar');
+(function () {
+    'use strict';
+
+    const steps     = Array.from(document.querySelectorAll('.step-pane'));
+    const navItems  = Array.from(document.querySelectorAll('#stepsNav .step-item'));
+    const pBar      = document.getElementById('progressBar');
+    const pPct      = document.getElementById('progressPct');
+    const topLabel  = document.getElementById('topbarStepLabel');
+    const stepLabels = [
+        'Step 1 of 3 &mdash; Programme &amp; Cycle',
+        'Step 2 of 3 &mdash; Address &amp; Contact',
+        'Step 3 of 3 &mdash; Guardian &amp; Medical'
+    ];
     let current = 0;
 
     function updateUI() {
-        steps.forEach(s => s.classList.remove('active'));
-        steps[current].classList.add('active');
-        navItems.forEach((li, idx) => {
-            li.classList.remove('active','done');
-            if (idx < current) li.classList.add('done');
-            if (idx === current) li.classList.add('active');
+        steps.forEach((s, i) => s.classList.toggle('active', i === current));
+        navItems.forEach((li, i) => {
+            li.classList.remove('active', 'done');
+            const numEl = li.querySelector('.step-num');
+            if (i < current) {
+                li.classList.add('done');
+                numEl.innerHTML = '<i class="fa fa-check" style="font-size:.65rem;"></i>';
+            } else {
+                numEl.textContent = i + 1;
+                if (i === current) li.classList.add('active');
+            }
         });
-        progressBar.style.width = (((current + 1) / steps.length) * 100) + '%';
+        const pct = Math.round(((current + 1) / steps.length) * 100);
+        pBar.style.width = pct + '%';
+        pPct.textContent = pct + '%';
+        if (topLabel) topLabel.innerHTML = stepLabels[current];
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    document.querySelectorAll('.btn-next').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (current < steps.length - 1) {
-                current++;
-                updateUI();
-            }
-        });
-    });
-    document.querySelectorAll('.btn-back').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (current > 0) {
-                current--;
-                updateUI();
-            }
-        });
-    });
-    navItems.forEach(li => {
+    document.querySelectorAll('.btn-next').forEach(btn =>
+        btn.addEventListener('click', () => { if (current < steps.length - 1) { current++; updateUI(); } })
+    );
+    document.querySelectorAll('.btn-back').forEach(btn =>
+        btn.addEventListener('click', () => { if (current > 0) { current--; updateUI(); } })
+    );
+    navItems.forEach(li =>
         li.addEventListener('click', () => {
-            const target = parseInt(li.getAttribute('data-step'));
-            if (target <= current || formSectionValid(current)) {
-                current = target;
-                updateUI();
-            }
-        });
-    });
+            const t = parseInt(li.dataset.step, 10);
+            if (t <= current || sectionValid(current)) { current = t; updateUI(); }
+        })
+    );
 
-    function formSectionValid(stepIndex) {
-        const pane = steps[stepIndex];
-        const requiredInputs = pane.querySelectorAll('[required]');
-        for (const input of requiredInputs) {
+    function sectionValid(idx) {
+        const pane = steps[idx];
+        let ok = true;
+        pane.querySelectorAll('[required]').forEach(input => {
             if (!input.value) {
                 input.classList.add('is-invalid');
-                input.addEventListener('input', () => input.classList.remove('is-invalid'), { once:true });
-                return false;
+                input.addEventListener('input', () => input.classList.remove('is-invalid'), { once: true });
+                ok = false;
             }
-        }
-        return true;
+        });
+        return ok;
     }
 
-    // Funding logic
+    /* Funding guard */
     $('.funder').on('change', function () {
-        const txt = $(this).find('option:selected').text();
-        if (txt === 'No Funding') {
+        if ($(this).find('option:selected').text() === 'No Funding') {
             Swal.fire({
-                icon:'error',
-                title:'Unable to proceed',
-                text:'All programmes require valid funding.',
-                footer:'Contact support for funding opportunities.'
+                icon: 'error',
+                title: 'Unable to Proceed',
+                text: 'All programmes require valid funding to continue.',
+                footer: 'Contact the admissions office for funding opportunities.',
+                confirmButtonColor: '#1A9E75'
             });
             $('#applicationForm :input').prop('disabled', true);
             $('.funder').prop('disabled', false);
@@ -553,179 +1103,163 @@
         }
     });
 
-    // Citizenship toggle
+    /* Citizenship toggle */
     $('.citizen').on('change', function () {
         const txt = $(this).find('option:selected').text().trim();
         if (txt === 'Yes') {
-            $('.pass,.permit').prop('readonly', true).addClass('bg-warning-subtle');
-            $('.idNum').prop('readonly', false).removeClass('bg-warning-subtle');
+            $('.pass,.permit').prop('readonly', true)
+                .css({ background: 'var(--n050)', color: 'var(--n400)' });
+            $('.idNum').prop('readonly', false)
+                .css({ background: '', color: '' });
         } else if (txt === 'No') {
-            $('.pass,.permit').prop('readonly', false).removeClass('bg-warning-subtle');
-            $('.idNum').prop('readonly', true).addClass('bg-warning-subtle');
+            $('.pass,.permit').prop('readonly', false)
+                .css({ background: '', color: '' });
+            $('.idNum').prop('readonly', true)
+                .css({ background: 'var(--n050)', color: 'var(--n400)' });
         }
     });
 
-    // Select2 (Local or convert to remote)
+    /* Select2 */
     $('.js-course').select2({
-        placeholder:'Search course',
-        allowClear:true,
-        width:'100%'
-        // Uncomment for remote (after creating endpoint):
-        // ajax: {
-        //   url: '/Course/Search',
-        //   dataType: 'json',
-        //   delay: 250,
-        //   data: params => ({ q: params.term, page: params.page || 1, pageSize: 20 }),
-        //   processResults: data => ({
-        //     results: data.items.map(c => ({ id: c.courseId, text: c.name })),
-        //     pagination: { more: (data.page * data.pageSize) < data.total }
-        //   })
-        // }
-    });
-
-    // Selected course summary (on change)
-    $('.js-course').on('change', function() {
-        const selectedText = $(this).find('option:selected').text();
-        if (!this.value) {
-            $('#selectedCourseSummary').addClass('d-none');
-            return;
+        placeholder: 'Search or select a programme',
+        allowClear: true,
+        width: '100%',
+        ajax: {
+          url: '/Course/Search',
+          dataType: 'json',
+          delay: 250,
+          data: p => ({ q: p.term, page: p.page || 1, pageSize: 20 }),
+          processResults: d => ({
+            results: d.items.map(c => ({ id: c.courseId, text: c.name })),
+            pagination: { more: (d.page * d.pageSize) < d.total }
+          })
         }
-        // If remote: fetch metadata by ID
-        // For now just display name placeholder
-        $('#selectedCourseSummary').removeClass('d-none')
-            .find('[data-field="name"]').text(selectedText);
-        $('#selectedCourseSummary').find('[data-field="meta"]').text('Category / Type / Duration (populate after selection)');
-        $('#selectedCourseSummary').find('[data-field="cycles"]').text('Available cycles: (fetch if needed)');
     });
 
-    // Course Explorer
-    let coursePage = 1;
-    let loadingCourses = false;
+    $('.js-course').on('change', function () {
+        const text = $(this).find('option:selected').text();
+        if (!this.value) { $('#selectedCourseSummary').addClass('d-none'); return; }
+        $('#selectedCourseSummary').removeClass('d-none')
+            .find('[data-field="name"]').text(text);
+        $('#selectedCourseSummary [data-field="meta"]').text('Category · Type · Duration (fetched on selection)');
+        $('#selectedCourseSummary [data-field="cycles"]').text('Available intake cycles will appear here.');
+    });
+
+    /* Course explorer */
+    let coursePage = 1, loading = false;
     const pageSize = 20;
-    const $results = $('#courseResults');
+    const $res   = $('#courseResults');
     const $total = $('#courseTotals');
 
-    function skeletonCards(count) {
-        let html = '';
-        for (let i=0;i<count;i++) {
-            html += `<div class="course-card">
-                <div class="skeleton" style="height:16px;width:55%;"></div>
-                <div class="skeleton" style="height:38px;width:100%;"></div>
-                <div class="skeleton" style="height:12px;width:70%;"></div>
+    function skeletonCards(n) {
+        let h = '';
+        for (let i = 0; i < n; i++) {
+            h += `<div class="course-card" style="pointer-events:none;">
+                <div class="skeleton" style="height:11px;width:48%;"></div>
+                <div class="skeleton" style="height:34px;width:100%;margin-top:6px;"></div>
+                <div class="skeleton" style="height:10px;width:62%;margin-top:6px;"></div>
             </div>`;
         }
-        return html;
+        return h;
     }
 
-    function loadCourses(reset=false) {
-        if (loadingCourses) return;
-        loadingCourses = true;
-        if (reset) {
-            coursePage = 1;
-            $results.html(skeletonCards(6));
-        } else {
-            $results.append(skeletonCards(3));
-        }
-        const q = $('#courseSearchInput').val() || '';
-        const cat = $('#courseCategoryFilter').val() || '';
+    function loadCourses(reset) {
+        if (loading) return;
+        loading = true;
+        if (reset) { coursePage = 1; $res.html(skeletonCards(6)); }
+        else { $res.append(skeletonCards(3)); }
+        const q    = $('#courseSearchInput').val() || '';
+        const cat  = $('#courseCategoryFilter').val() || '';
         const fund = $('#courseFundingFilter').val() || '';
         $.getJSON('/Course/Search', { q, category: cat, funding: fund, page: coursePage, pageSize })
             .done(data => {
-                if (reset) $results.empty();
-                data.items.forEach(c => {
-                    const card = $(`
-                        <div class="course-card" data-id="${c.courseId}">
-                            <small>${c.category || 'Uncategorized'}</small>
-                            <div class="title">${c.name}</div>
-                            <div class="meta">
-                                <span><i class="fa fa-clock"></i> ${c.duration || 'TBA'}</span>
-                                ${c.isFunded ? '<span><i class="fa fa-coins"></i> Funded</span>' : '<span><i class="fa fa-wallet"></i> Self-Pay</span>'}
-                            </div>
-                        </div>
-                    `);
-                    card.on('click', () => selectCourseFromExplorer(c));
-                    $results.append(card);
-                });
+                if (reset) $res.empty();
                 if (data.items.length === 0 && coursePage === 1) {
-                    $results.html('<div class="text-center text-muted small">No courses match your filters.</div>');
+                    $res.html('<div class="text-center text-muted small py-4">No programmes match your search criteria.</div>');
                 }
-                $total.text(`Showing page ${data.page} • ${(data.page - 1) * data.pageSize + data.items.length} of ${data.total} potential matches`);
+                data.items.forEach(c => {
+                    const card = $(`<div class="course-card" data-id="${c.courseId}">
+                        <small>${c.category || 'Uncategorized'}</small>
+                        <div class="title">${c.name}</div>
+                        <div class="meta">
+                            <span><i class="fa fa-clock"></i> ${c.duration || 'TBA'}</span>
+                            ${c.isFunded
+                                ? '<span><i class="fa fa-coins"></i> Funded</span>'
+                                : '<span><i class="fa fa-wallet"></i> Self-Pay</span>'}
+                        </div>
+                    </div>`);
+                    card.on('click', () => selectCourse(c));
+                    $res.append(card);
+                });
+                $total.html(`<i class="fa fa-list"></i>&nbsp; Page ${data.page} &mdash; ${(data.page - 1) * data.pageSize + data.items.length} of ${data.total} programmes`);
                 coursePage++;
             })
-            .fail(() => {
-                if (reset) $results.html('<div class="text-danger small">Error loading courses.</div>');
-            })
-            .always(() => {
-                loadingCourses = false;
-            });
+            .fail(() => { if (reset) $res.html('<div class="text-danger small">Unable to load programmes. Please try again.</div>'); })
+            .always(() => { loading = false; });
     }
 
-    function selectCourseFromExplorer(c) {
-        // Ensure option exists or add dynamically
-        let existing = $('.js-course option[value="' + c.courseId + '"]').length;
-        if (!existing) {
+    function selectCourse(c) {
+        if (!$('.js-course option[value="' + c.courseId + '"]').length) {
             $('.js-course').append(`<option value="${c.courseId}">${c.name}</option>`);
         }
         $('.js-course').val(c.courseId).trigger('change');
-        $('#courseExplorer').offcanvas && bootstrap.Offcanvas.getInstance(document.getElementById('courseExplorer'))?.hide();
+        bootstrap.Offcanvas.getInstance(document.getElementById('courseExplorer'))?.hide();
         $('#selectedCourseSummary').removeClass('d-none')
             .find('[data-field="name"]').text(c.name);
-        $('#selectedCourseSummary').find('[data-field="meta"]').text(`${c.category || 'Category'} • ${c.type || 'Type'} • ${c.duration || 'Duration'}`);
-        $('#selectedCourseSummary').find('[data-field="cycles"]').text(`Cycles: ${(c.cycleNames || []).join(', ') || 'Not listed'}`);
+        $('#selectedCourseSummary [data-field="meta"]').text(
+            `${c.category || 'Category'} · ${c.type || 'Type'} · ${c.duration || 'Duration'}`
+        );
+        $('#selectedCourseSummary [data-field="cycles"]').text(
+            `Intake cycles: ${(c.cycleNames || []).join(', ') || 'Not listed'}`
+        );
     }
 
-    $('#courseSearchInput, #courseCategoryFilter, #courseFundingFilter').on('input change', function() {
-        coursePage = 1;
-        loadCourses(true);
-    });
-    $('#loadMoreCourses').on('click', function() {
-        loadCourses(false);
-    });
+    $('#courseSearchInput, #courseCategoryFilter, #courseFundingFilter')
+        .on('input change', () => loadCourses(true));
 
-    // Load categories & popular (optional endpoints)
+    $('#loadMoreCourses').on('click', () => loadCourses(false));
+
     function loadPopular() {
         $.getJSON('/Course/Popular')
             .done(list => {
                 const $pop = $('#popularCourses').empty();
                 list.forEach(p => {
-                    const badge = $(`<span class="badge-course">${p.name}</span>`);
-                    badge.on('click', () => {
-                        selectCourseFromExplorer(p);
-                    });
-                    $pop.append(badge);
+                    $('<span class="badge-course"></span>')
+                        .text(p.name)
+                        .on('click', () => selectCourse(p))
+                        .appendTo($pop);
                 });
             })
             .fail(() => {
-                $('#popularCourses').html('<span class="small text-muted">Popular courses unavailable.</span>');
+                $('#popularCourses').html('<span class="field-hint">Popular programmes unavailable.</span>');
             });
     }
+
     function loadCategories() {
-        $.getJSON('/Course/Categories')
-            .done(list => {
-                const sel = $('#courseCategoryFilter');
-                sel.empty().append('<option value="">All Categories</option>');
-                list.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
-            });
+        $.getJSON('/Course/Categories').done(list => {
+            const sel = $('#courseCategoryFilter').empty().append('<option value="">All Fields</option>');
+            list.forEach(c => sel.append(`<option value="${c}">${c}</option>`));
+        });
     }
 
     document.getElementById('courseExplorer')
-        .addEventListener('shown.bs.offcanvas', function() {
-            if ($results.children().length === 0) {
-                loadCourses(true);
-                loadPopular();
-                loadCategories();
+        .addEventListener('shown.bs.offcanvas', () => {
+            if ($res.children().length === 0) {
+                loadCourses(true); loadPopular(); loadCategories();
             }
         });
 
-    // Drag highlight for file inputs
+    /* File drop interactions */
     document.querySelectorAll('.file-drop input[type="file"]').forEach(input => {
-        const wrapper = input.closest('.file-drop');
-        input.addEventListener('dragenter', () => wrapper.classList.add('drag'));
-        input.addEventListener('dragleave', () => wrapper.classList.remove('drag'));
-        input.addEventListener('drop', () => wrapper.classList.remove('drag'));
+        const wrap = input.closest('.file-drop');
+        const hint = wrap.querySelector('.fd-hint');
+        input.addEventListener('dragenter', () => wrap.classList.add('drag'));
+        input.addEventListener('dragleave', () => wrap.classList.remove('drag'));
+        input.addEventListener('drop',      () => wrap.classList.remove('drag'));
         input.addEventListener('change', () => {
-            if (input.files?.length) {
-                wrapper.querySelector('.helper').textContent = input.files[0].name;
+            if (input.files?.length && hint) {
+                hint.innerHTML = `<i class="fa fa-file-circle-check" style="color:var(--accent);"></i>&nbsp;${input.files[0].name}`;
+                wrap.style.borderColor = 'var(--accent)';
             }
         });
     });
@@ -733,7 +1267,5 @@
     updateUI();
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
-

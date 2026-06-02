@@ -317,9 +317,7 @@ namespace ElecPOE.Controllers
                 return RedirectToAction("RouteNotFound", "Global");
             }
 
-            var studentList = await _studentService.GetStudentListAsync();
-
-            var student = studentList.FirstOrDefault(s => s.StudentNumber == StudentNumber);
+            var student = await _studentService.GetStudentAsync(StudentNumber);
 
             if (student == null)
             {
@@ -333,6 +331,35 @@ namespace ElecPOE.Controllers
             ViewData["role"] = currentUser?.Role?.ToString() ?? eSysRole.None.ToString();
 
             return View(student);
+        }
+
+        /// <summary>
+        /// Displays the student search form and returns matching students based on search criteria.
+        /// </summary>
+        /// <param name="searchType">The field to search by: StudentNumber, IDNumber, or PassportNumber.</param>
+        /// <param name="searchValue">The search term to match against the selected field.</param>
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin,Facilitator")]
+        public async Task<IActionResult> SearchStudent(string? searchType = null, string? searchValue = null)
+        {
+            ViewData["searchType"]  = searchType;
+            ViewData["searchValue"] = searchValue;
+
+            if (string.IsNullOrWhiteSpace(searchType) || string.IsNullOrWhiteSpace(searchValue))
+                return View(new List<Student>());
+
+            var all  = await _studentService.GetStudentListAsync();
+            var term = searchValue.Trim();
+
+            IEnumerable<Student> results = searchType switch
+            {
+                "StudentNumber"  => all.Where(s => (s.StudentNumber  ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)),
+                "IDNumber"       => all.Where(s => (s.IDNumber       ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)),
+                "PassportNumber" => all.Where(s => (s.PassportNumber ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)),
+                _                => Enumerable.Empty<Student>()
+            };
+
+            return View(results.OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToList());
         }
 
         /// <summary>

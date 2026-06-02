@@ -1,549 +1,700 @@
-﻿@model ForekOnline.Domain.ViewModels.UserViewModel
+@model ForekOnline.Domain.ViewModels.UserViewModel
 @{
     Layout = null;
-    const string AppVersion = "v2.0.0"; // Displayed version tag
+    const string AppVersion = "v2.0.0";
 }
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sign In • Forek Online @AppVersion</title>
+    <title>Sign In · Forek Online @AppVersion</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
+        /* ── Tokens ─────────────────────────────────── */
         :root {
-            --auth-dr: #320606;
-            --auth-red: #9d1117;
-            --auth-red-strong: #b31217;
-            --auth-orange: #ff7a18;
-            --auth-orange-soft: #ff9c55;
-            --auth-bg: #ffffff;
-            --auth-bg-alt: #f4f6f8;
-            --auth-soft: #fff5f3;
-            --auth-border: #e1e3e6;
-            --auth-border-alt: #cfd2d6;
-            --auth-grad: linear-gradient(92deg, #320606, #b31217 60%, #ff7a18);
-            --auth-radius-xl: 34px;
-            --auth-radius-lg: 22px;
-            --auth-shadow: 0 4px 14px -4px rgba(50, 6, 6, .22), 0 2px 6px -2px rgba(50, 6, 6, .15);
-            font-family: 'Inter', system-ui, sans-serif;
+            --bg:    #09090d;
+            --r9:    #320606;
+            --r6:    #b31217;
+            --r4:    #e52328;
+            --or:    #ff7a18;
+            --org:   #ff9547;
+            --ga:    linear-gradient(135deg, #320606 0%, #b31217 48%, #ff7a18 100%);
+            --gah:   linear-gradient(135deg, #b31217 0%, #ff7a18 60%, #ff9547 100%);
+            --gcard: rgba(255,255,255,.045);
+            --gcardh:rgba(255,255,255,.07);
+            --gb:    rgba(255,255,255,.08);
+            --gbh:   rgba(255,255,255,.18);
+            --gi:    rgba(255,255,255,.06);
+            --gib:   rgba(255,255,255,.13);
+            --t1:    #f2f2f5;
+            --t5:    rgba(255,255,255,.55);
+            --t7:    rgba(255,255,255,.28);
+            --ease:  cubic-bezier(.4,0,.2,1);
+            --spring:cubic-bezier(.34,1.56,.64,1);
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html,
-        body {
+        html, body {
             height: 100%;
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* ── Dark background + grain ─────────────────── */
         body {
-            margin: 0;
-            background: var(--auth-bg-alt);
-            color: #222;
-            -webkit-font-smoothing: antialiased;
+            background: var(--bg);
+            color: var(--t1);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.2rem;
+            padding: 1.5rem;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .auth-wrapper {
-            width: 100%;
-            max-width: 1060px;
+        /* SVG noise grain overlay */
+        body::after {
+            content: "";
+            position: fixed; inset: 0;
+            pointer-events: none; z-index: 9999;
+            opacity: .038;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 220px 220px;
+        }
+
+        /* ── Animated orbs ───────────────────────────── */
+        .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(88px);
+            animation: drift 14s ease-in-out infinite;
+        }
+        .orb-1 {
+            width: 680px; height: 680px;
+            background: radial-gradient(circle, rgba(179,18,23,.42) 0%, transparent 70%);
+            top: -220px; left: -180px;
+            animation-duration: 16s;
+        }
+        .orb-2 {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, rgba(255,122,24,.28) 0%, transparent 70%);
+            bottom: -160px; right: -140px;
+            animation-duration: 20s;
+            animation-delay: -6s;
+        }
+        .orb-3 {
+            width: 440px; height: 440px;
+            background: radial-gradient(circle, rgba(50,6,6,.55) 0%, transparent 70%);
+            top: 40%; left: 45%;
+            animation-duration: 22s;
+            animation-delay: -11s;
+        }
+
+        @@keyframes drift {
+            0%,100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(40px,-30px) scale(1.06); }
+            66%      { transform: translate(-25px,20px) scale(.94); }
+        }
+
+        /* Mouse-reactive glow */
+        .mouse-glow {
+            position: fixed; width: 340px; height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,122,24,.13) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+            transform: translate(-50%,-50%);
+            transition: transform .08s linear;
+            filter: blur(40px);
+        }
+
+        /* Canvas particles */
+        #ptx {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+
+        /* ── Layout ──────────────────────────────────── */
+        .aw {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 1060px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-            gap: 1.75rem;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 1.5rem;
             align-items: stretch;
         }
 
-        /* Panels */
-        .panel {
-            background: var(--auth-bg);
-            border: 1px solid var(--auth-border);
-            border-radius: var(--auth-radius-xl);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--auth-shadow);
-        }
-
-        /* Brand panel */
-        .brand-panel {
-            padding: 2.1rem 2rem 1.9rem;
-            justify-content: space-between;
-        }
-
-        .brand-head {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        .logo-mark {
-            width: 70px;
-            height: 70px;
-            border-radius: 22px;
-            background: var(--auth-grad);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.6rem;
-            box-shadow: 0 4px 12px -4px rgba(179, 18, 23, .55);
-        }
-
-        .version-chip {
-            font-size: .58rem;
-            letter-spacing: .23rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            background: var(--auth-soft);
-            color: var(--auth-red-strong);
-            padding: .5rem .9rem;
+        /* ── Glass card base ─────────────────────────── */
+        .gc {
+            background: var(--gcard);
+            border: 1px solid var(--gb);
             border-radius: 32px;
-            display: inline-flex;
-            align-items: center;
-            gap: .45rem;
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: border-color .4s var(--ease), box-shadow .4s;
+        }
+        .gc::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.06) 0%, transparent 55%);
+            pointer-events: none;
+        }
+        .gc:hover {
+            border-color: var(--gbh);
+            box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 60px rgba(179,18,23,.1);
         }
 
-        .brand-heading {
-            font-size: 1.65rem;
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: .4px;
+        /* ── Brand panel ─────────────────────────────── */
+        .bp {
+            padding: 2.6rem 2.2rem 2rem;
+            justify-content: space-between;
+            animation: slideLeft .6s var(--ease) both;
         }
 
-        .brand-sub {
-            font-size: .72rem;
-            line-height: 1.25rem;
-            color: #555;
-            max-width: 360px;
-            margin: 0;
+        @@keyframes slideLeft {
+            from { opacity:0; transform:translateX(-28px); }
+            to   { opacity:1; transform:none; }
         }
 
-        .brand-ill img {
-            width: 100%;
-            max-width: 360px;
-            display: block;
-            margin-top: .6rem;
-        }
+        .bp-top { display: flex; flex-direction: column; gap: 1.5rem; }
 
-        .meta-footer {
-            font-size: .5rem;
-            letter-spacing: .16rem;
-            text-transform: uppercase;
-            font-weight: 600;
-            color: #777;
-            margin-top: 1.4rem;
-        }
-
-        .version-watermark {
-            position: absolute;
-            top: 10px;
-            right: 14px;
-            font-size: .5rem;
-            letter-spacing: .18rem;
-            font-weight: 700;
-            color: #b3121795;
-            text-transform: uppercase;
-        }
-
-        /* Form panel */
-        .form-panel {
-            padding: 2.1rem 2rem 1.9rem;
-        }
-
-        .form-head {
-            margin: 0 0 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: .6rem;
-        }
-
-            .form-head h1 {
-                font-size: 1.45rem;
-                font-weight: 600;
-                letter-spacing: .5px;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                gap: .55rem;
-            }
-
-                .form-head h1 .ico {
-                    background: var(--auth-grad);
-                    color: #fff;
-                    width: 50px;
-                    height: 50px;
-                    border-radius: 16px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.05rem;
-                    box-shadow: 0 4px 11px -3px rgba(179, 18, 23, .45);
-                }
-
-            .form-head p {
-                font-size: .64rem;
-                line-height: 1.05rem;
-                color: #555;
-                margin: 0;
-            }
-
-        .alert {
-            border: 1px solid #f0b7bc;
-            background: #ffecee;
-            color: #7d1418;
-            padding: .7rem .85rem;
-            border-radius: 12px;
-            font-size: .6rem;
-            letter-spacing: .4px;
-            font-weight: 500;
-            display: flex;
-            gap: .55rem;
-            align-items: flex-start;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: .95rem;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: .4rem;
-        }
-
-            .field label {
-                font-size: .52rem;
-                letter-spacing: .17rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                color: #4f5458;
-                display: flex;
-                gap: .4rem;
-                align-items: center;
-            }
-
-        .input-wrap {
+        /* Logo */
+        .logo-ring {
+            width: 72px; height: 72px; border-radius: 24px;
+            background: var(--ga);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.7rem;
+            box-shadow: 0 12px 32px -12px rgba(179,18,23,.7),
+                        0 0 0 1px rgba(255,255,255,.1),
+                        inset 0 1px 0 rgba(255,255,255,.2);
             position: relative;
+            transition: transform .45s var(--spring);
+        }
+        .logo-ring:hover { transform: scale(1.08) rotate(6deg); }
+        .logo-ring::after {
+            content: "";
+            position: absolute; inset: -4px; border-radius: 28px;
+            background: var(--gah); opacity: 0;
+            transition: opacity .4s; z-index: -1;
+        }
+        .logo-ring:hover::after { opacity: .7; filter: blur(8px); }
+
+        /* Version chip */
+        .v-chip {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-size: .5rem; letter-spacing: .22rem; font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(179,18,23,.18);
+            color: rgba(255,150,150,.9);
+            border: 1px solid rgba(179,18,23,.3);
+            padding: .42rem .9rem; border-radius: 50px;
+        }
+        .v-chip .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--or);
+            animation: blink 2s ease-in-out infinite;
+        }
+        @@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        /* Headline */
+        .bp-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.35rem; font-weight: 800;
+            line-height: 1.08; letter-spacing: -.6px;
+            color: var(--t1);
+        }
+        .bp-title span {
+            background: var(--ga);
+            -webkit-background-clip: text;
+            background-clip: text; color: transparent;
         }
 
-            .input-wrap .fa {
-                position: absolute;
-                top: 50%;
-                left: .75rem;
-                transform: translateY(-50%);
-                font-size: .65rem;
-                color: #9aa0a5;
-            }
+        .bp-sub {
+            font-size: .72rem; line-height: 1.65;
+            color: var(--t5); max-width: 300px;
+        }
 
-            .input-wrap input {
-                width: 100%;
-                padding: .7rem .8rem .7rem 2.3rem;
-                font-size: .7rem;
-                letter-spacing: .3px;
-                border: 1px solid var(--auth-border);
-                border-radius: 12px;
-                background: #fff;
-                color: #222;
-                transition: .2s;
-                font-family: inherit;
-            }
+        /* Feature list */
+        .feats { display: flex; flex-direction: column; gap: .7rem; margin-top: .3rem; }
+        .feat-item {
+            display: flex; align-items: center; gap: .75rem;
+            font-size: .66rem; font-weight: 500; color: var(--t5);
+            opacity: 0;
+            animation: featIn .5s var(--ease) forwards;
+        }
+        .feat-item:nth-child(1) { animation-delay: .25s; }
+        .feat-item:nth-child(2) { animation-delay: .38s; }
+        .feat-item:nth-child(3) { animation-delay: .51s; }
+        @@keyframes featIn {
+            from { opacity:0; transform:translateX(-14px); }
+            to   { opacity:1; transform:none; }
+        }
+        .feat-icon {
+            width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+            background: rgba(255,122,24,.12); color: var(--or);
+            border: 1px solid rgba(255,122,24,.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .7rem;
+        }
 
-                .input-wrap input:focus {
-                    outline: none;
-                    border-color: var(--auth-red-strong);
-                    box-shadow: 0 0 0 .12rem #b3121716;
-                }
+        /* Brand footer */
+        .bp-foot {
+            font-size: .48rem; letter-spacing: .18rem; text-transform: uppercase;
+            font-weight: 600; color: var(--t7); padding-top: 1.8rem;
+        }
 
-        .toggle-pass {
-            position: absolute;
-            top: 50%;
-            right: .6rem;
+        /* ── Form panel ──────────────────────────────── */
+        .fp {
+            padding: 2.6rem 2.4rem 2.2rem;
+            animation: slideRight .6s var(--ease) .08s both;
+        }
+        @@keyframes slideRight {
+            from { opacity:0; transform:translateX(28px); }
+            to   { opacity:1; transform:none; }
+        }
+
+        /* Form head */
+        .fh { margin-bottom: 1.8rem; }
+        .fh-top {
+            display: flex; align-items: center; gap: .85rem; margin-bottom: .6rem;
+        }
+        .fh-ico {
+            width: 54px; height: 54px; border-radius: 18px;
+            background: var(--ga);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.1rem;
+            box-shadow: 0 8px 22px -8px rgba(179,18,23,.65),
+                        inset 0 1px 0 rgba(255,255,255,.2);
+        }
+        .fh-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.7rem; font-weight: 800; letter-spacing: -.4px;
+        }
+        .fh-sub { font-size: .65rem; color: var(--t5); line-height: 1.5; }
+
+        /* Error alert */
+        .err-alert {
+            display: flex; align-items: flex-start; gap: .65rem;
+            background: rgba(220,30,30,.1);
+            border: 1px solid rgba(220,30,30,.25);
+            color: rgba(255,140,140,.9);
+            padding: .75rem .9rem; border-radius: 14px;
+            font-size: .62rem; font-weight: 500;
+            margin-bottom: 1.1rem;
+            animation: shakeX .4s var(--ease);
+        }
+        @@keyframes shakeX {
+            0%,100%{transform:none} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+        }
+
+        /* Auth form */
+        .af { display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Field */
+        .field { display: flex; flex-direction: column; gap: .45rem; }
+        .field label {
+            font-size: .5rem; letter-spacing: .18rem; font-weight: 700;
+            text-transform: uppercase; color: var(--t5);
+            display: flex; align-items: center; gap: .42rem;
+        }
+
+        /* Input wrap */
+        .iw { position: relative; }
+        .iw .fi {
+            position: absolute; top: 50%; left: .9rem;
             transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #8d9398;
-            font-size: .65rem;
-            display: flex;
-            align-items: center;
-            padding: .15rem;
+            font-size: .65rem; color: rgba(255,255,255,.3);
+            transition: color .25s;
+            pointer-events: none;
+        }
+        .iw:focus-within .fi { color: var(--or); }
+
+        .iw input {
+            width: 100%; padding: .82rem .85rem .82rem 2.5rem;
+            font-size: .72rem; font-family: inherit;
+            letter-spacing: .25px;
+            background: var(--gi);
+            border: 1px solid var(--gib);
+            border-radius: 14px; color: var(--t1);
+            transition: border-color .25s, box-shadow .25s, background .25s;
+            outline: none;
+        }
+        .iw input::placeholder { color: rgba(255,255,255,.22); }
+        .iw input:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.2); }
+        .iw input:focus {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,122,24,.55);
+            box-shadow: 0 0 0 3px rgba(255,122,24,.12),
+                        0 0 20px rgba(255,122,24,.08);
         }
 
-            .toggle-pass:hover {
-                color: var(--auth-red-strong);
-            }
+        /* Toggle pass */
+        .tp {
+            position: absolute; top: 50%; right: .7rem;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: rgba(255,255,255,.3); font-size: .65rem;
+            padding: .2rem; transition: color .25s;
+            display: flex; align-items: center;
+        }
+        .tp:hover { color: var(--or); }
 
-        .actions-row {
-            display: flex;
-            flex-direction: column;
-            gap: .75rem;
+        /* Submit button */
+        .btn-submit {
+            background: var(--ga);
+            border: none; border-radius: 16px;
+            color: #fff; font-family: inherit;
+            font-size: .72rem; letter-spacing: .18rem; font-weight: 700;
+            text-transform: uppercase;
+            padding: .9rem 1.2rem;
+            display: flex; align-items: center; justify-content: center; gap: .55rem;
+            cursor: pointer; position: relative; overflow: hidden;
+            transition: transform .2s var(--spring), box-shadow .3s var(--ease), filter .25s;
+            box-shadow: 0 8px 24px -8px rgba(179,18,23,.6),
+                        inset 0 1px 0 rgba(255,255,255,.18);
+            width: 100%; margin-top: .3rem;
+        }
+        .btn-submit::before {
+            content: ""; position: absolute; inset: 0;
+            background: var(--gah); opacity: 0; transition: opacity .3s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 14px 36px -8px rgba(179,18,23,.7),
+                        0 0 40px rgba(255,122,24,.2),
+                        inset 0 1px 0 rgba(255,255,255,.18);
+            filter: brightness(1.05);
+        }
+        .btn-submit:hover::before { opacity: 1; }
+        .btn-submit:active { transform: translateY(-1px) scale(.98); }
+        .btn-submit i, .btn-submit span { position: relative; z-index: 1; }
+
+        /* Ripple */
+        .ripple-circle {
+            position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,.25);
+            transform: scale(0); animation: rippleAnim .55s ease-out forwards;
+            pointer-events: none;
+        }
+        @@keyframes rippleAnim {
+            to { transform: scale(4.5); opacity: 0; }
+        }
+
+        /* Alt links */
+        .alt {
+            display: flex; flex-wrap: wrap; gap: .5rem;
+            font-size: .56rem; color: var(--t5); letter-spacing: .02rem;
+        }
+        .alt a {
+            color: var(--or); font-weight: 600; text-decoration: none;
+            transition: color .2s;
+        }
+        .alt a:hover { color: var(--org); text-decoration: underline; }
+
+        /* Divider */
+        .div-line {
+            display: flex; align-items: center; gap: .7rem;
+            font-size: .48rem; letter-spacing: .16rem; text-transform: uppercase;
+            color: rgba(255,255,255,.2); font-weight: 600;
+            margin: .8rem 0 .2rem;
+        }
+        .div-line::before, .div-line::after {
+            content: ""; flex: 1; height: 1px;
+            background: rgba(255,255,255,.08);
+        }
+
+        /* Quick action buttons */
+        .qa-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .btn-qa {
+            font-size: .56rem; letter-spacing: .1rem; font-weight: 600;
+            text-transform: uppercase;
+            padding: .52rem .85rem; border-radius: 11px;
+            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(255,255,255,.05); color: rgba(255,255,255,.5);
+            cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
+            transition: all .25s var(--ease);
+        }
+        .btn-qa:hover {
+            background: rgba(255,255,255,.1); color: var(--t1);
+            border-color: rgba(255,255,255,.18);
+            transform: translateY(-1px);
+        }
+
+        /* App callout */
+        .callout {
+            border: 1px solid rgba(255,122,24,.18);
+            background: rgba(255,122,24,.06);
+            border-radius: 18px;
+            padding: 1rem 1.05rem;
+            display: flex; gap: .8rem; align-items: flex-start;
             margin-top: .4rem;
         }
+        .callout .co-ico {
+            width: 42px; height: 42px; border-radius: 14px;
+            background: var(--ga); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .9rem; flex-shrink: 0;
+            box-shadow: 0 6px 16px -8px rgba(179,18,23,.6);
+        }
+        .callout h3 {
+            margin: 0 0 .28rem;
+            font-size: .62rem; letter-spacing: .14rem; text-transform: uppercase;
+            font-weight: 700; color: var(--t5);
+        }
+        .callout p {
+            margin: 0; font-size: .6rem; line-height: 1.6; color: var(--t7);
+        }
+        .callout a { color: var(--or); font-weight: 700; text-decoration: none; }
+        .callout a:hover { text-decoration: underline; }
 
-        .btn-primary-auth {
-            background: var(--auth-grad);
-            border: none;
-            color: #fff;
-            font-weight: 600;
-            font-size: .7rem;
-            letter-spacing: .14rem;
-            padding: .75rem .95rem;
-            border-radius: 14px;
-            display: inline-flex;
-            justify-content: center;
-            gap: .5rem;
-            align-items: center;
-            cursor: pointer;
-            transition: .28s;
+        /* ── Decorative ring on brand panel ──────────── */
+        .deco-ring {
+            position: absolute;
+            width: 320px; height: 320px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.04);
+            bottom: -100px; right: -120px;
+            pointer-events: none;
+        }
+        .deco-ring::after {
+            content: ""; position: absolute;
+            width: 200px; height: 200px; border-radius: 50%;
+            border: 1px solid rgba(179,18,23,.12);
+            top: 60px; left: 60px;
         }
 
-            .btn-primary-auth:hover {
-                filter: brightness(.94);
-                box-shadow: 0 6px 16px -6px rgba(179, 18, 23, .5);
-            }
-
-        .alt-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .45rem;
-            font-size: .54rem;
-            letter-spacing: .04rem;
-            color: #555;
+        /* ── Responsive ──────────────────────────────── */
+        @@media (max-width: 960px) {
+            .aw { grid-template-columns: 1fr; max-width: 520px; }
+            .bp { display: none; }
         }
-
-            .alt-links a {
-                color: var(--auth-red-strong);
-                font-weight: 600;
-                text-decoration: none;
-            }
-
-                .alt-links a:hover {
-                    text-decoration: underline;
-                }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            font-size: .5rem;
-            letter-spacing: .14rem;
-            text-transform: uppercase;
-            color: #7a7f83;
-            font-weight: 600;
-            margin: 1.2rem 0 .15rem;
-        }
-
-            .divider:before,
-            .divider:after {
-                content: "";
-                flex: 1;
-                height: 1px;
-                background: #dfe2e5;
-            }
-
-        .inline-btns {
-            display: flex;
-            gap: .45rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-act,
-        .btn-outline {
-            font-size: .55rem;
-            letter-spacing: .12rem;
-            font-weight: 600;
-            padding: .55rem .85rem;
-            border-radius: 11px;
-            border: 1px solid var(--auth-border);
-            background: #fff;
-            color: var(--auth-red-strong);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            transition: .25s;
-        }
-
-            .btn-act:hover,
-            .btn-outline:hover {
-                background: var(--auth-red-strong);
-                color: #fff;
-                border-color: var(--auth-red-strong);
-            }
-
-        .app-callout {
-            margin-top: .25rem;
-            border: 1px solid #ffd6c3;
-            background: linear-gradient(180deg, #fff7f2, #ffffff);
-            border-radius: 16px;
-            padding: .85rem .9rem;
-            display: flex;
-            gap: .75rem;
-            align-items: flex-start;
-        }
-
-            .app-callout .badge {
-                width: 44px;
-                height: 44px;
-                border-radius: 14px;
-                background: var(--auth-grad);
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex: 0 0 auto;
-                box-shadow: 0 4px 12px -6px rgba(179, 18, 23, .55);
-            }
-
-            .app-callout h3 {
-                margin: 0 0 .25rem;
-                font-size: .68rem;
-                letter-spacing: .12rem;
-                text-transform: uppercase;
-                font-weight: 700;
-                color: #4f5458;
-            }
-
-            .app-callout p {
-                margin: 0;
-                font-size: .62rem;
-                line-height: 1.05rem;
-                color: #5a5f63;
-                font-weight: 500;
-            }
-
-            .app-callout a {
-                color: var(--auth-red-strong);
-                font-weight: 700;
-                text-decoration: none;
-            }
-
-                .app-callout a:hover {
-                    text-decoration: underline;
-                }
-
-        @@media (max-width: 1020px) {
-            .auth-wrapper {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 620px) {
-            .panel {
-                border-radius: 26px;
-            }
-
-            .brand-panel,
-            .form-panel {
-                padding: 1.7rem 1.4rem 1.5rem;
-            }
-
-            .brand-ill img {
-                max-width: 300px;
-            }
+        @@media (max-width: 580px) {
+            body { padding: 1rem; }
+            .fp { padding: 1.8rem 1.4rem 1.6rem; }
         }
     </style>
 </head>
-
 <body>
-    <div class="auth-wrapper">
-        <div class="panel brand-panel">
-            <div class="version-watermark">@AppVersion</div>
-            <div class="brand-head">
-                <div class="logo-mark"><i class="fa fa-layer-group"></i></div>
-                <span class="version-chip"><i class="fa fa-circle-up"></i> Forek Online @AppVersion</span>
-                <h2 class="brand-heading">Precise. Fast. Secure.</h2>
-                <p class="brand-sub">Access the Forek Online platform with your student or employee number. This crisp redesign removes visual blur for sharper focus and faster interaction.</p>
-                <div class="brand-ill">
-                    <img src="~/Images/v2Launcher.png" alt="Application Illustration" />
+
+    <!-- Orbs -->
+    <div class="orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Mouse glow -->
+    <div class="mouse-glow" id="mouseGlow" aria-hidden="true"></div>
+
+    <!-- Particle canvas -->
+    <canvas id="ptx" aria-hidden="true"></canvas>
+
+    <!-- Layout -->
+    <div class="aw">
+
+        <!-- ═══════ BRAND PANEL ═══════ -->
+        <div class="gc bp">
+            <div class="deco-ring" aria-hidden="true"></div>
+            <div class="bp-top">
+                <div class="logo-ring" title="Forek Online"><i class="fa fa-layer-group"></i></div>
+                <span class="v-chip"><span class="dot"></span> Forek Online @AppVersion</span>
+                <h2 class="bp-title">
+                    Precise.<br/>
+                    Fast.<br/>
+                    <span>Secure.</span>
+                </h2>
+                <p class="bp-sub">The academic management platform trusted by Forek Institute — built for speed, built for clarity.</p>
+                <div class="feats">
+                    <div class="feat-item">
+                        <div class="feat-icon"><i class="fa fa-shield-check"></i></div>
+                        Secure single-sign-on with JWT authentication
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon"><i class="fa fa-chart-line"></i></div>
+                        Real-time course results &amp; progress tracking
+                    </div>
+                    <div class="feat-item">
+                        <div class="feat-icon"><i class="fa fa-clock-rotate-left"></i></div>
+                        24 / 7 access from any device, anywhere
+                    </div>
                 </div>
             </div>
-            <div class="meta-footer">© @DateTime.UtcNow.Year • Forek Institute • @AppVersion</div>
+            <div class="bp-foot">© @DateTime.UtcNow.Year &nbsp;·&nbsp; Forek Institute of Technology &nbsp;·&nbsp; @AppVersion</div>
         </div>
 
-        <div class="panel form-panel">
-            <div class="form-head">
-                <h1><span class="ico"><i class="fa fa-lock"></i></span> Sign In</h1>
-                <p>Enter your credentials to continue.</p>
+        <!-- ═══════ FORM PANEL ═══════ -->
+        <div class="gc fp">
+
+            <div class="fh">
+                <div class="fh-top">
+                    <div class="fh-ico"><i class="fa fa-lock"></i></div>
+                    <h1 class="fh-title">Sign In</h1>
+                </div>
+                <p class="fh-sub">Enter your credentials to access the platform.</p>
             </div>
 
             @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert" role="alert"><i class="fa fa-triangle-exclamation"></i> @TempData["ErrorMessage"]</div>
+            <div class="err-alert" role="alert">
+                <i class="fa fa-triangle-exclamation"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
             }
 
-            <form asp-action="SignIn" method="post" class="auth-form" autocomplete="off">
+            <form asp-action="SignIn" method="post" class="af" autocomplete="off" id="signInForm">
                 <div class="field">
-                    <label for="StudentNumber"><i class="fa fa-id-card"></i> Student / Employee Number</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-user"></i>
-                        <input asp-for="StudentNumber" id="StudentNumber" placeholder="e.g. STU12345" required autofocus />
+                    <label for="StudentNumber">
+                        <i class="fa fa-id-card"></i> Student / Employee Number
+                    </label>
+                    <div class="iw">
+                        <i class="fi fa fa-user"></i>
+                        <input asp-for="StudentNumber" id="StudentNumber"
+                               placeholder="e.g. STU-2024-00142"
+                               required autofocus />
                     </div>
                 </div>
+
                 <div class="field">
-                    <label for="Password"><i class="fa fa-key"></i> Password</label>
-                    <div class="input-wrap">
-                        <i class="fa fa-lock"></i>
-                        <input asp-for="Password" id="Password" type="password" placeholder="Your password" required />
-                        <button type="button" class="toggle-pass" aria-label="Toggle password visibility" title="Show/Hide"
-                                id="togglePass">
+                    <label for="Password">
+                        <i class="fa fa-key"></i> Password
+                    </label>
+                    <div class="iw">
+                        <i class="fi fa fa-lock"></i>
+                        <input asp-for="Password" id="Password"
+                               type="password" placeholder="Your password"
+                               required />
+                        <button type="button" class="tp" id="togglePass" aria-label="Toggle password">
                             <i class="fa fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="actions-row">
-                    <button type="submit" class="btn-primary-auth"><i class="fa fa-right-to-bracket"></i> Login</button>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fa fa-right-to-bracket"></i>
+                    <span>Sign In</span>
+                </button>
 
-                    <div class="alt-links">
-                        <span>Need an account? <a asp-action="SignUp">Sign up</a></span>
-                        <span>Forgot password? <a asp-action="Recover" asp-controller="Auth">Recover</a></span>
-                    </div>
+                <div class="alt">
+                    <span>No account? <a asp-action="SignUp">Sign up</a></span>
+                    <span>·</span>
+                    <span>Forgot password? <a asp-action="Recover" asp-controller="Auth">Recover</a></span>
+                </div>
 
-                    <div class="app-callout" role="note" aria-label="Online applications">
-                        <div class="badge"><i class="fa fa-file-signature"></i></div>
-                        <div>
-                            <h3>Applying Online?</h3>
-                            <p>
-                                This sign-in page is for registered learners and internal staff.
-                                To submit a new application, use the official application form:
-                                <a href="https://forekonline.co.za/Applications/Apply" target="_blank" rel="noopener">Start an online application</a>.
-                            </p>
-                        </div>
+                <div class="callout" role="note">
+                    <div class="co-ico"><i class="fa fa-file-signature"></i></div>
+                    <div>
+                        <h3>Applying for the first time?</h3>
+                        <p>
+                            This sign-in is for registered learners &amp; staff.
+                            New applicants → <a href="https://forekonline.co.za/Applications/Apply" target="_blank" rel="noopener">Start an application</a>
+                        </p>
                     </div>
                 </div>
 
-                <div class="divider">quick</div>
-                <div class="inline-btns">
-                    <button type="button" class="btn-act" onclick="location.href='/'"><i class="fa fa-home"></i> Home</button>
-                    <button type="button" class="btn-outline" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
+                <div class="div-line">quick</div>
+                <div class="qa-btns">
+                    <button type="button" class="btn-qa" onclick="location.href='/'">
+                        <i class="fa fa-home"></i> Home
+                    </button>
+                    <button type="button" class="btn-qa" onclick="location.reload()">
+                        <i class="fa fa-rotate"></i> Refresh
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        (function () {
-            const t = document.getElementById('togglePass');
-            const p = document.getElementById('Password');
-            t?.addEventListener('click', () => {
-                const is = p.type === 'password';
-                p.type = is ? 'text' : 'password';
-                t.innerHTML = '<i class="fa ' + (is ? 'fa-eye-slash' : 'fa-eye') + '"></i>';
+    (function () {
+        /* ── Mouse glow ── */
+        const glow = document.getElementById('mouseGlow');
+        document.addEventListener('mousemove', function (e) {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top  = e.clientY + 'px';
+        });
+
+        /* ── Password toggle ── */
+        const tp = document.getElementById('togglePass');
+        const pw = document.getElementById('Password');
+        if (tp && pw) {
+            tp.addEventListener('click', function () {
+                const show = pw.type === 'password';
+                pw.type = show ? 'text' : 'password';
+                this.querySelector('i').className = 'fa ' + (show ? 'fa-eye-slash' : 'fa-eye');
             });
-        })();
+        }
+
+        /* ── Ripple on submit button ── */
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function (e) {
+                const rect = this.getBoundingClientRect();
+                const r = document.createElement('span');
+                const size = Math.max(rect.width, rect.height);
+                r.className = 'ripple-circle';
+                r.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (e.clientX - rect.left - size / 2) + 'px;top:' + (e.clientY - rect.top - size / 2) + 'px';
+                this.appendChild(r);
+                setTimeout(() => r.remove(), 600);
+            });
+        }
+
+        /* ── Loading state on form submit ── */
+        const form = document.getElementById('signInForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> <span>Signing in...</span>';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '.8';
+                }
+            });
+        }
+
+        /* ── Canvas particles ── */
+        const canvas = document.getElementById('ptx');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            let W = canvas.width  = window.innerWidth;
+            let H = canvas.height = window.innerHeight;
+
+            const P = Array.from({length: 55}, () => ({
+                x:  Math.random() * W,
+                y:  Math.random() * H,
+                r:  Math.random() * 1.4 + 0.4,
+                vx: (Math.random() - .5) * .25,
+                vy: (Math.random() - .5) * .25,
+                a:  Math.random() * .35 + .06
+            }));
+
+            const colors = ['rgba(255,122,24,', 'rgba(179,18,23,', 'rgba(255,149,71,'];
+
+            (function tick() {
+                ctx.clearRect(0, 0, W, H);
+                P.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > W) p.vx *= -1;
+                    if (p.y < 0 || p.y > H) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = colors[i % 3] + p.a + ')';
+                    ctx.fill();
+                });
+                requestAnimationFrame(tick);
+            })();
+
+            window.addEventListener('resize', () => {
+                W = canvas.width  = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            });
+        }
+    })();
     </script>
 </body>
 </html>

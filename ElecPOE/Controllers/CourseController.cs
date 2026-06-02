@@ -34,6 +34,7 @@ namespace ElecPOE.Controllers
         private IWebHostEnvironment _hostEnvironment;
         private IHelperService _helperService;
         private readonly IUserService _userService;
+        private readonly ICourseService _courseService;
         #endregion
 
         /// <summary>
@@ -41,13 +42,15 @@ namespace ElecPOE.Controllers
         /// </summary>
         /// <param name="context">Repository for course-related operations.</param>
         /// <param name="logger">Logger for logging information, warnings, and errors.</param>
-        public CourseController(IUnitOfWork context,IWebHostEnvironment hostEnvironment,ILogger<CourseController> logger, IHelperService helperService, IUserService userService)
+        /// <param name="courseService">Service for advanced course queries, search, and popular listings.</param>
+        public CourseController(IUnitOfWork context, IWebHostEnvironment hostEnvironment, ILogger<CourseController> logger, IHelperService helperService, IUserService userService, ICourseService courseService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _helperService = helperService ?? throw new ArgumentNullException(nameof(helperService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _courseService = courseService ?? throw new ArgumentNullException(nameof(courseService));
         }
 
         /// <summary>
@@ -422,6 +425,119 @@ namespace ElecPOE.Controllers
 
             }
             return RedirectToAction("OnCourse", "Course", new { CourseId = model.CourseIdFK });
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Search(
+            string? q        = null,
+            string? category = null,
+            string? funding  = null,
+            int     page     = 1,
+            int     pageSize = 20)
+        {
+            page     = page < 1 ? 1 : page;
+            pageSize = Math.Clamp(pageSize, 5, 100);
+
+            bool? isFunded = funding?.Trim().ToLowerInvariant() switch
+            {
+                "true"    or "funded"  or "yes" => true,
+                "false"   or "selfpay" or "no"  => false,
+                _                               => null
+            };
+
+            try
+            {
+                var result = await _courseService.SearchCoursesAsync(
+                    q:        q,
+                    type:     null,
+                    category: category,
+                    isFunded: isFunded,
+                    nqfMin:   null,
+                    nqfMax:   null,
+                    page:     page,
+                    pageSize: pageSize);
+
+                var items = (result.Items ?? Enumerable.Empty<CourseSearchResult>())
+                    .Select(c => new
+                    {
+                        courseId   = c.CourseId,
+                        name       = c.Name,
+                        category   = c.Category,
+                        type       = c.Type.ToString(),
+                        isFunded   = c.IsFunded,
+                        duration   = (string?)null,   // not modelled yet — placeholder
+                        cycleNames = Array.Empty<string>()
+                    });
+
+                return Json(new
+                {
+                    page,
+                    pageSize,
+                    total = result.TotalCount,
+                    items
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Course/Search (q={Q}, category={Cat}, funding={Fund}, page={Page}).",
+                    q, category, funding, page);
+                return Json(new { page, pageSize, total = 0, items = Array.Empty<object>() });
+            }
+        }
+
+        /// <summary>
+        /// Returns the top popular / featured courses for the Apply form's
+        /// "Popular Programmes" badge list.
+        /// </summary>
+        /// <remarks>
+        /// Response shape: JSON array
+        /// [{ "courseId": "...", "name": "...", "type": "...", "isFunded": true }]
+        /// </remarks>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Popular(int top = 12)
+        {
+            try
+            {
+                var list = await _courseService.GetPopularCoursesAsync(top);
+
+                var items = (list ?? Enumerable.Empty<ForekOnline.Domain.ViewModels.CourseModuleViewModel>())
+                    .Select(c => new
+                    {
+                        courseId = c.CourseId,
+                        name     = c.Name,
+                        type     = c.Type.ToString()
+                    });
+
+                return Json(items);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Course/Popular.");
+                return Json(Array.Empty<object>());
+            }
+        }
+
+        /// <summary>
+        /// Returns the distinct list of course category names used to populate
+        /// the category filter drop-down inside the course explorer.
+        /// </summary>
+        /// <remarks>Response shape: JSON string array  ["Artisan", "Business", ...]</remarks>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Categories()
+        {
+            try
+            {
+                var list = await _courseService.GetDistinctCategoriesAsync();
+                return Json(list ?? Array.Empty<string>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Course/Categories.");
+                return Json(Array.Empty<string>());
+            }
         }
 
         #region Private Methods

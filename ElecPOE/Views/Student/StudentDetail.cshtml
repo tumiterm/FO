@@ -1,767 +1,755 @@
-﻿@model ForekOnline.Domain.Entities.Student
+@model ForekOnline.Domain.Entities.Student
 @{
-    var enroll = Model.EnrollmentHistory?.FirstOrDefault();
-    string courseTitle = enroll?.CourseTitle ?? "N/A";
-    string courseType = enroll?.CourseType ?? "N/A";
+    var enroll = Model.EnrollmentHistory?.FirstOrDefault(e => e.IsActive)
+               ?? Model.EnrollmentHistory?.FirstOrDefault();
+    string courseTitle  = enroll?.CourseTitle     ?? "N/A";
+    string courseType   = enroll?.CourseType      ?? "N/A";
+    string enrollStatus = enroll?.EnrollmentStatus ?? "N/A";
     DateTime? admission = Model.AdmissionDate == DateTime.MinValue ? null : Model.AdmissionDate;
+    string statusLabel  = Model.Deregistered ? "Deregistered"
+                        : (Model.IsActive    ? "Active" : "Inactive");
+    string statusCls    = Model.Deregistered ? "badge-dereg"
+                        : (Model.IsActive    ? "badge-active" : "badge-idle");
+    bool hasGuardian    = Model.Guardian != null && !string.IsNullOrWhiteSpace(Model.Guardian?.FirstName);
+    var  allEnrolls     = Model.EnrollmentHistory ?? new List<ForekOnline.Domain.Entities.EnrollmentHistory>();
+    bool hasQual = Model.Documents?.Any(d => d.DocumentType == ForekOnline.Domain.Enums.EnumRegistry.eStudentDocumentType.HighestQualification) ?? false;
+    bool hasPerm = Model.Documents?.Any(d => d.DocumentType == ForekOnline.Domain.Enums.EnumRegistry.eStudentDocumentType.StudyPermit) ?? false;
+    int  docCount = (Model.HasUploadedID ? 1 : 0) + (hasQual ? 1 : 0) + (hasPerm ? 1 : 0);
+    int  docPct   = (int)Math.Round(docCount / 3.0 * 100);
 }
 
 <style>
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
     :root {
-        --sd-dr: #320606;
-        --sd-red: #9d1117;
-        --sd-red-strong: #b31217;
-        --sd-orange: #ff7a18;
-        --sd-orange-glow: #ff9547;
-        --sd-soft: #fff7f6;
-        --sd-border: #e8eaed;
-        --sd-border-alt: #d8dade;
-        --sd-bg: #ffffff;
-        --sd-shadow-sm: 0 2px 8px rgba(50, 6, 6, .06);
-        --sd-shadow-md: 0 8px 24px rgba(50, 6, 6, .10);
-        --sd-shadow-lg: 0 16px 48px rgba(50, 6, 6, .14);
-        --sd-shadow-glow: 0 0 40px rgba(255, 122, 24, .15);
-        --grad-accent: linear-gradient(135deg, #320606 0%, #b31217 45%, #ff7a18 100%);
-        --grad-accent-hover: linear-gradient(135deg, #b31217 0%, #ff7a18 55%, #ff9547 100%);
-        --grad-soft: linear-gradient(135deg, rgba(50, 6, 6, .04) 0%, rgba(179, 18, 23, .08) 50%, rgba(255, 122, 24, .12) 100%);
-        --grad-glass: linear-gradient(135deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .88));
-        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-        --transition-smooth: cubic-bezier(.4, 0, .2, 1);
+        --dr:   #320606;
+        --red:  #9d1117;
+        --reds: #b31217;
+        --or:   #ff7a18;
+        --org:  #ff9547;
+        --soft: #fff7f6;
+        --bdr:  #e8eaed;
+        --bdr2: #d8dade;
+        --card: #ffffff;
+        --t9:   #1a0a0a;
+        --t6:   #4a2222;
+        --t4:   #7a5252;
+        --t2:   #b08888;
+        --ga:   linear-gradient(135deg, #320606 0%, #b31217 45%, #ff7a18 100%);
+        --gah:  linear-gradient(135deg, #b31217 0%, #ff7a18 55%, #ff9547 100%);
+        --gsoft:linear-gradient(135deg, rgba(50,6,6,.03), rgba(179,18,23,.07) 50%, rgba(255,122,24,.11) 100%);
+        --gl:   linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,255,255,.90));
+        --ss:   0 2px 8px  rgba(50,6,6,.06);
+        --sm:   0 8px 28px rgba(50,6,6,.10);
+        --sl:   0 20px 56px rgba(50,6,6,.14);
+        --sg:   0 0 44px rgba(255,122,24,.16);
+        --ease: cubic-bezier(.4,0,.2,1);
+        --rsm: 12px; --rmd: 20px; --rlg: 28px; --rxl: 36px;
     }
-
-    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-        background: linear-gradient(135deg, #f8f9fc 0%, #f0f2f5 100%);
-        min-height: 100vh;
+        background: linear-gradient(135deg, #fafafa 0%, #f7f0ef 100%);
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        color: var(--t9); -webkit-font-smoothing: antialiased; min-height: 100vh;
     }
+    .pg { max-width: 1380px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }
 
-    .page-shell {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 1.6rem 1.2rem 3.5rem;
+    /* ── Header ─────────────────────────────────── */
+    .hd {
+        background: var(--gl); border: 1px solid rgba(255,255,255,.75);
+        border-radius: var(--rxl); padding: 1.4rem 1.8rem;
+        display: flex; flex-wrap: wrap; gap: 1.1rem; align-items: center;
+        position: relative; overflow: hidden;
+        box-shadow: var(--sm), inset 0 1px 0 rgba(255,255,255,.9);
+        animation: slideD .5s var(--ease) both;
     }
+    .hd::before { content:""; position:absolute; inset:0; background:var(--gsoft); opacity:.65; pointer-events:none; }
+    .hd::after  { content:""; position:absolute; inset:-60%; background:radial-gradient(circle at 28% 52%, rgba(255,122,24,.18), transparent 55%); animation:glow 9s ease-in-out infinite; pointer-events:none; }
+    @@keyframes slideD  { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:none} }
+    @@keyframes slideU  { from{opacity:0;transform:translateY(18px)}  to{opacity:1;transform:none} }
+    @@keyframes scaleIn { from{opacity:0;transform:scale(.94)}        to{opacity:1;transform:scale(1)} }
+    @@keyframes glow    { 0%,100%{transform:translate(0,0)scale(1);opacity:.5} 50%{transform:translate(18px,-12px)scale(1.08);opacity:.72} }
 
-    .header-band {
-        background: var(--grad-glass);
-        border: 1px solid rgba(255, 255, 255, .6);
-        border-radius: 32px;
-        padding: 1.4rem 1.6rem 1.3rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.2rem;
-        align-items: center;
-        position: relative;
-        overflow: hidden;
-        box-shadow: var(--sd-shadow-md), inset 0 1px 0 rgba(255, 255, 255, .8);
-        animation: slideInDown .5s var(--transition-smooth) both;
+    .hd-ico {
+        width:72px; height:72px; border-radius:24px;
+        background:var(--ga); color:#fff; font-size:1.75rem;
+        display:flex; align-items:center; justify-content:center;
+        flex-shrink:0; position:relative; z-index:1;
+        box-shadow:0 12px 28px -12px rgba(179,18,23,.55),inset 0 1px 0 rgba(255,255,255,.2);
+        transition:transform .4s var(--ease);
     }
-
-    @@keyframes slideInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .hd-ico:hover { transform:translateY(-2px) scale(1.04); }
+    .hd-text { position:relative; z-index:1; }
+    .hd-text h1 { font-size:1.55rem; font-weight:800; letter-spacing:-.3px; color:var(--t9); display:flex; align-items:center; gap:.6rem; }
+    .hd-chip {
+        margin-top:.42rem; display:inline-flex; align-items:center; gap:.4rem;
+        font-size:.5rem; letter-spacing:.22rem; font-weight:800; text-transform:uppercase;
+        background:var(--soft); color:var(--reds);
+        padding:.4rem .85rem; border-radius:50px;
+        border:1px solid rgba(179,18,23,.1);
     }
+    .hd-tools { margin-left:auto; display:flex; gap:.6rem; flex-wrap:wrap; position:relative; z-index:1; }
 
-    .header-band::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: var(--grad-soft);
-        opacity: .6;
-        pointer-events: none;
+    /* ── Buttons ─────────────────────────────────── */
+    .btn {
+        font-size:.6rem; letter-spacing:.14rem; font-weight:700; text-transform:uppercase;
+        padding:.62rem 1.05rem; border-radius:var(--rsm);
+        border:1px solid var(--bdr2); background:#fff; color:var(--reds);
+        display:inline-flex; align-items:center; gap:.45rem;
+        text-decoration:none; transition:all .3s var(--ease);
+        box-shadow:var(--ss); position:relative; overflow:hidden; cursor:pointer; white-space:nowrap;
     }
+    .btn::before { content:""; position:absolute; inset:0; background:var(--ga); opacity:0; transition:opacity .3s; }
+    .btn:hover   { color:#fff; border-color:var(--reds); transform:translateY(-2px); box-shadow:0 8px 22px -8px rgba(179,18,23,.4); }
+    .btn:hover::before { opacity:1; }
+    .btn i, .btn span { position:relative; z-index:1; }
+    .btn-fill { background:var(--ga); color:#fff; border-color:var(--reds); box-shadow:0 6px 18px -8px rgba(179,18,23,.5); }
+    .btn-fill::before { background:var(--gah); }
 
-    .header-band::after {
-        content: "";
-        position: absolute;
-        inset: -50%;
-        background: radial-gradient(circle at 30% 50%, rgba(255, 122, 24, .18), transparent 65%);
-        animation: floatGlow 8s ease-in-out infinite;
-        pointer-events: none;
+    /* ── Layout ──────────────────────────────────── */
+    .shell { display:flex; gap:1.4rem; margin-top:1.4rem; align-items:flex-start; animation:slideU .55s var(--ease) .08s both; }
+
+    /* ── Sidebar ─────────────────────────────────── */
+    .sidebar {
+        width:230px; flex-shrink:0; position:sticky; top:1rem;
+        background:var(--gl); border:1px solid rgba(255,255,255,.75);
+        border-radius:var(--rlg); padding:1.1rem .85rem 1.3rem;
+        box-shadow:var(--sm); display:flex; flex-direction:column; gap:.3rem;
     }
-
-    @@keyframes floatGlow {
-        0%, 100% {
-            transform: translate(0, 0) scale(1);
-            opacity: .5;
-        }
-
-        50% {
-            transform: translate(20px, -15px) scale(1.1);
-            opacity: .7;
-        }
+    .sb-head {
+        display:flex; align-items:center; gap:.65rem;
+        padding:.5rem .7rem .8rem; border-bottom:2px solid var(--soft);
+        margin-bottom:.35rem; position:relative;
     }
+    .sb-head::after { content:""; position:absolute; bottom:-2px; left:.7rem; width:36px; height:2px; background:var(--ga); }
+    .sb-ico  { width:40px; height:40px; border-radius:14px; background:var(--ga); color:#fff; font-size:.95rem; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px -8px rgba(179,18,23,.5); flex-shrink:0; }
+    .sb-name { font-size:.6rem; letter-spacing:.18rem; font-weight:800; text-transform:uppercase; color:var(--reds); }
+    .sb-sub  { font-size:.58rem; color:var(--t4); margin-top:.1rem; font-weight:500; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-    .icon-pill {
-        width: 72px;
-        height: 72px;
-        border-radius: 24px;
-        background: var(--grad-accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 1.75rem;
-        box-shadow: 0 12px 28px -12px rgba(179, 18, 23, .55), 0 0 24px rgba(255, 122, 24, .25), inset 0 1px 0 rgba(255, 255, 255, .2);
-        position: relative;
-        z-index: 1;
-        transition: transform .4s var(--transition-smooth), box-shadow .4s;
+    .nav-item {
+        display:flex; align-items:center; gap:.65rem;
+        padding:.62rem .85rem; border-radius:14px; cursor:pointer;
+        transition:all .25s var(--ease); border:1px solid transparent;
+        color:var(--t4); font-size:.66rem; font-weight:600; letter-spacing:.04rem; user-select:none;
     }
+    .nav-item:hover { background:var(--soft); color:var(--reds); border-color:rgba(179,18,23,.08); }
+    .nav-item.active { background:var(--soft); color:var(--reds); border-color:rgba(179,18,23,.15); box-shadow:0 4px 14px -6px rgba(179,18,23,.22); }
+    .nav-item.active .ni-ico { background:var(--ga); color:#fff; box-shadow:0 4px 12px -6px rgba(179,18,23,.5); }
+    .ni-ico { width:32px; height:32px; border-radius:10px; background:rgba(179,18,23,.07); color:var(--reds); display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0; transition:all .25s var(--ease); }
+    .ni-badge { margin-left:auto; font-size:.44rem; font-weight:800; letter-spacing:.1rem; background:rgba(179,18,23,.1); color:var(--reds); padding:.2rem .45rem; border-radius:50px; }
+    .nav-item.active .ni-badge { background:var(--reds); color:#fff; }
+    .sb-dl { margin-top:.7rem; padding-top:.7rem; border-top:2px solid var(--soft); }
 
-        .icon-pill::before {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: 26px;
-            background: var(--grad-accent-hover);
-            opacity: 0;
-            transition: opacity .4s;
-            z-index: -1;
-        }
+    /* ── Content + sections ──────────────────────── */
+    .content { flex:1; min-width:0; display:flex; flex-direction:column; gap:1.2rem; }
+    .section { display:none; flex-direction:column; gap:1.2rem; animation:scaleIn .35s var(--ease) both; }
+    .section.active { display:flex; }
 
-        .icon-pill:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 16px 36px -12px rgba(179, 18, 23, .65), 0 0 32px rgba(255, 122, 24, .35);
-        }
-
-            .icon-pill:hover::before {
-                opacity: 1;
-            }
-
-    .header-band h1 {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 800;
-        letter-spacing: -.3px;
-        display: flex;
-        align-items: center;
-        gap: .7rem;
-        color: #1a1a2e;
-        position: relative;
-        z-index: 1;
+    /* ── Panel ───────────────────────────────────── */
+    .pnl {
+        background:var(--card); border:1px solid var(--bdr);
+        border-radius:var(--rlg); padding:1.3rem 1.25rem;
+        display:flex; flex-direction:column; gap:.9rem;
+        box-shadow:var(--ss); position:relative; overflow:hidden;
+        transition:all .4s var(--ease);
     }
-
-    .chip {
-        margin-top: .5rem;
-        font-size: .52rem;
-        letter-spacing: .2rem;
-        font-weight: 800;
-        background: var(--sd-soft);
-        color: var(--sd-red-strong);
-        padding: .5rem .9rem;
-        border-radius: 50px;
-        display: inline-flex;
-        gap: .45rem;
-        align-items: center;
-        text-transform: uppercase;
-        box-shadow: 0 2px 6px rgba(179, 18, 23, .1);
-        border: 1px solid rgba(179, 18, 23, .08);
+    .pnl::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% -5%, rgba(255,122,24,.05), transparent 55%); opacity:0; transition:opacity .4s; pointer-events:none; }
+    .pnl:hover { border-color:var(--bdr2); box-shadow:var(--sm); transform:translateY(-2px); }
+    .pnl:hover::before { opacity:1; }
+    .pnl-h {
+        font-size:.58rem; letter-spacing:.22rem; font-weight:800; text-transform:uppercase; color:var(--reds);
+        display:flex; align-items:center; gap:.55rem;
+        padding-bottom:.7rem; border-bottom:2px solid var(--soft); position:relative;
     }
+    .pnl-h::after { content:""; position:absolute; bottom:-2px; left:0; width:40px; height:2px; background:var(--ga); }
 
-    .toolbar {
-        margin-left: auto;
-        display: flex;
-        gap: .6rem;
-        flex-wrap: wrap;
-        position: relative;
-        z-index: 1;
+    /* ── Hero cards ──────────────────────────────── */
+    .hgrid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit,minmax(198px,1fr)); }
+    .hc {
+        background:var(--card); border:1px solid var(--bdr);
+        border-radius:var(--rlg); padding:1.15rem 1.2rem;
+        display:flex; gap:.85rem; align-items:flex-start;
+        position:relative; overflow:hidden;
+        transition:all .4s var(--ease); box-shadow:var(--ss);
     }
+    .hc::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 88% 12%, rgba(255,122,24,.1), transparent 65%); }
+    .hc::after  { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--ga); transform:scaleX(0); transform-origin:left; transition:transform .4s var(--ease); }
+    .hc:hover   { transform:translateY(-5px); box-shadow:var(--sl),var(--sg); border-color:var(--bdr2); }
+    .hc:hover::after { transform:scaleX(1); }
+    .hc-ico  { width:48px; height:48px; border-radius:16px; background:var(--ga); color:#fff; font-size:1.1rem; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 18px -10px rgba(179,18,23,.55),inset 0 1px 0 rgba(255,255,255,.2); transition:transform .3s var(--ease); position:relative; z-index:1; }
+    .hc:hover .hc-ico { transform:scale(1.1) rotate(4deg); }
+    .hc-body { position:relative; z-index:1; min-width:0; }
+    .hc-lbl  { font-size:.5rem; letter-spacing:.2rem; font-weight:800; text-transform:uppercase; color:var(--t2); margin-bottom:.28rem; }
+    .hc-val  { font-size:1.02rem; font-weight:700; line-height:1.2; background:var(--ga); -webkit-background-clip:text; background-clip:text; color:transparent; word-break:break-word; }
+    .hc-sub  { margin-top:.42rem; display:inline-flex; align-items:center; gap:.38rem; font-size:.5rem; font-weight:700; letter-spacing:.1rem; background:var(--soft); color:var(--reds); padding:.28rem .6rem; border-radius:40px; border:1px solid rgba(179,18,23,.1); }
 
-    .btn-act {
-        font-size: .62rem;
-        letter-spacing: .15rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: .6rem 1rem;
-        border-radius: 14px;
-        border: 1px solid var(--sd-border);
-        background: #fff;
-        color: var(--sd-red-strong);
-        display: inline-flex;
-        align-items: center;
-        gap: .5rem;
-        text-decoration: none;
-        transition: all .3s var(--transition-smooth);
-        box-shadow: var(--sd-shadow-sm);
-        position: relative;
-        overflow: hidden;
+    /* ── Status ──────────────────────────────────── */
+    .badge-active { background:rgba(10,120,50,.08); color:#0a7832; border:1px solid rgba(10,120,50,.15); }
+    .badge-idle   { background:#f5f5f5; color:#666; border:1px solid #e0e0e0; }
+    .badge-dereg  { background:var(--soft); color:var(--reds); border:1px solid rgba(179,18,23,.15); }
+    .badge-pill   { display:inline-flex; align-items:center; gap:.38rem; font-size:.5rem; font-weight:800; letter-spacing:.12rem; text-transform:uppercase; padding:.28rem .62rem; border-radius:50px; margin-top:.4rem; }
+    .bdot { width:7px; height:7px; border-radius:50%; }
+    .badge-active .bdot { background:#0a7832; animation:pulse 2.4s ease-in-out infinite; }
+    .badge-idle   .bdot { background:#888; }
+    .badge-dereg  .bdot { background:var(--reds); animation:pulse 2.4s ease-in-out infinite; }
+    @@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
+
+    /* ── Meta list ───────────────────────────────── */
+    .ml { list-style:none; display:flex; flex-direction:column; gap:.5rem; font-size:.7rem; }
+    .ml li { display:flex; gap:.6rem; align-items:baseline; padding:.48rem .7rem; border-radius:12px; transition:background .2s; }
+    .ml li:hover { background:var(--soft); }
+    .ml li strong { color:var(--t6); font-weight:700; min-width:120px; flex-shrink:0; font-size:.66rem; }
+    .ml li span   { color:var(--t4); word-break:break-word; }
+    .ml li span.hi { color:var(--reds); font-weight:700; }
+
+    /* ── Inline badges ───────────────────────────── */
+    .ib    { display:inline-flex; align-items:center; gap:.35rem; font-size:.52rem; font-weight:700; letter-spacing:.1rem; padding:.28rem .65rem; border-radius:50px; }
+    .ib-r  { background:var(--soft); color:var(--reds); border:1px solid rgba(179,18,23,.12); }
+    .ib-g  { background:rgba(10,120,50,.07); color:#0a7832; border:1px solid rgba(10,120,50,.15); }
+    .ib-gr { background:#f5f5f5; color:#666; border:1px solid #e0e0e0; }
+    .ib-rd { background:#fdf1f1; color:#b31e1e; border:1px solid rgba(179,30,30,.15); }
+
+    /* ── Avatar ──────────────────────────────────── */
+    .av-wrap { display:flex; flex-direction:column; align-items:center; gap:.75rem; padding:.5rem 0 .3rem; }
+    .av-ring { width:148px; height:148px; border-radius:50%; padding:3px; background:var(--ga); box-shadow:var(--sm),var(--sg); transition:transform .4s var(--ease); position:relative; flex-shrink:0; }
+    .av-ring:hover { transform:scale(1.04); }
+    .av-inner { width:100%; height:100%; border-radius:50%; background:#fff; overflow:hidden; border:3px solid #fff; display:flex; align-items:center; justify-content:center; }
+    .av-inner img { width:88%; height:88%; object-fit:contain; }
+    .av-est  { position:absolute; bottom:4px; right:4px; background:var(--ga); color:#fff; font-size:.42rem; font-weight:900; letter-spacing:.18rem; text-transform:uppercase; padding:.26rem .52rem; border-radius:50px; box-shadow:0 4px 12px -4px rgba(179,18,23,.6); border:2px solid #fff; }
+    .av-name { font-size:1.08rem; font-weight:800; color:var(--t9); text-align:center; line-height:1.25; }
+    .av-num  { font-size:.54rem; letter-spacing:.2rem; font-weight:700; color:var(--t2); text-transform:uppercase; display:flex; align-items:center; gap:.38rem; }
+
+    /* ── Two-col ─────────────────────────────────── */
+    .two-col { display:grid; gap:1.1rem; grid-template-columns:1fr 1fr; }
+
+    /* ── Enrollment row ──────────────────────────── */
+    .enr-row { display:flex; align-items:center; gap:.75rem; padding:.68rem .9rem; border-radius:16px; border:1px solid var(--bdr); background:#fafafa; transition:all .25s var(--ease); }
+    .enr-row:hover { background:var(--soft); border-color:rgba(179,18,23,.1); }
+    .enr-ico { width:36px; height:36px; border-radius:12px; background:var(--ga); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.8rem; flex-shrink:0; }
+    .enr-title { font-size:.7rem; font-weight:700; color:var(--t6); line-height:1.35; }
+    .enr-meta  { font-size:.6rem; color:var(--t2); margin-top:.15rem; }
+
+    /* ── Doc compliance ──────────────────────────── */
+    .doc-item { display:flex; align-items:center; gap:.85rem; padding:.65rem .9rem; border-radius:16px; border:1px solid var(--bdr); background:#fafafa; transition:all .25s var(--ease); }
+    .doc-item:hover { background:var(--soft); border-color:rgba(179,18,23,.1); }
+    .doc-chk { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+    .doc-chk.ok  { background:rgba(10,120,50,.08); color:#0a7832; border:2px solid rgba(10,120,50,.2); }
+    .doc-chk.nok { background:#f5f5f5; color:#bbb; border:2px solid #e0e0e0; }
+    .doc-lbl { font-size:.7rem; font-weight:700; color:var(--t6); }
+    .doc-sub { font-size:.6rem; color:var(--t2); margin-top:.1rem; }
+    .prog-label { display:flex; justify-content:space-between; font-size:.6rem; font-weight:700; color:var(--t4); margin-bottom:.42rem; }
+    .prog-label span { color:var(--reds); font-weight:800; }
+    .prog-track { height:8px; border-radius:50px; background:var(--soft); border:1px solid rgba(179,18,23,.1); overflow:hidden; }
+    .prog-fill  { height:100%; border-radius:50px; background:var(--ga); transition:width .85s var(--ease); }
+
+    /* ── Alert ───────────────────────────────────── */
+    .alert-r { display:flex; align-items:flex-start; gap:.85rem; padding:.9rem 1.1rem; border-radius:16px; background:linear-gradient(135deg,rgba(179,18,23,.05),rgba(255,122,24,.09)); border:1px solid rgba(179,18,23,.15); }
+    .alert-r i { color:var(--or); font-size:1rem; margin-top:.1rem; flex-shrink:0; }
+    .alert-r-t { font-size:.68rem; font-weight:800; color:var(--reds); text-transform:uppercase; letter-spacing:.1rem; }
+    .alert-r-b { font-size:.68rem; color:var(--t4); margin-top:.2rem; }
+
+    /* ── Mobile tabs ─────────────────────────────── */
+    .mob-tabs { display:none; overflow-x:auto; gap:.45rem; background:var(--gl); border:1px solid rgba(255,255,255,.75); border-radius:var(--rlg); padding:.75rem .85rem; box-shadow:var(--ss); -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .mob-tabs::-webkit-scrollbar { display:none; }
+    .mob-tab { font-size:.56rem; letter-spacing:.12rem; font-weight:700; text-transform:uppercase; padding:.5rem .9rem; border-radius:50px; border:1px solid transparent; background:transparent; color:var(--t4); white-space:nowrap; cursor:pointer; transition:all .25s var(--ease); display:flex; align-items:center; gap:.4rem; }
+    .mob-tab.active { background:var(--ga); color:#fff; box-shadow:0 4px 14px -6px rgba(179,18,23,.45); }
+    .mob-tab:not(.active):hover { background:var(--soft); color:var(--reds); }
+
+    /* ── Responsive ──────────────────────────────── */
+    @@media (max-width:1024px) {
+        .sidebar { display:none; }
+        .mob-tabs { display:flex !important; }
+        .shell { flex-direction:column; }
+        .content { width:100%; }
+        .two-col { grid-template-columns:1fr; }
     }
-
-        .btn-act::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: var(--grad-accent);
-            opacity: 0;
-            transition: opacity .3s;
-        }
-
-        .btn-act:hover {
-            color: #fff;
-            border-color: var(--sd-red-strong);
-            box-shadow: 0 8px 20px -8px rgba(179, 18, 23, .45);
-            transform: translateY(-2px);
-        }
-
-            .btn-act:hover::before {
-                opacity: 1;
-            }
-
-        .btn-act i {
-            position: relative;
-            z-index: 1;
-        }
-
-        .btn-act span {
-            position: relative;
-            z-index: 1;
-        }
-
-    .btn-accent {
-        background: var(--grad-accent);
-        color: #fff;
-        border: 1px solid var(--sd-red-strong);
-        box-shadow: 0 6px 16px -8px rgba(179, 18, 23, .45);
+    @@media (max-width:640px) {
+        .hgrid { grid-template-columns:1fr 1fr; }
+        .hd-text h1 { font-size:1.3rem; }
+        .hd-ico { width:58px; height:58px; font-size:1.45rem; }
     }
-
-        .btn-accent::before {
-            background: var(--grad-accent-hover);
-        }
-
-        .btn-accent:hover {
-            box-shadow: 0 10px 24px -10px rgba(179, 18, 23, .55);
-        }
-
-    .actions-bar {
-        margin-top: 1.2rem;
-        background: var(--grad-glass);
-        border: 1px solid rgba(255, 255, 255, .6);
-        border-radius: 28px;
-        padding: 1rem 1.1rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: .6rem;
-        box-shadow: var(--sd-shadow-md);
-        animation: slideInUp .6s var(--transition-smooth) .1s both;
-    }
-
-    @@keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .actions-bar a {
-        flex: 1 1 auto;
-        justify-content: center;
-        min-width: 140px;
-    }
-
-        .actions-bar a i {
-            font-size: .85rem;
-        }
-
-    .summary-grid {
-        margin-top: 1.5rem;
-        display: grid;
-        gap: 1.1rem;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-
-    .summary-card {
-        background: #fff;
-        border: 1px solid var(--sd-border);
-        border-radius: 24px;
-        padding: 1.1rem 1.2rem 1rem;
-        display: flex;
-        gap: .85rem;
-        align-items: flex-start;
-        position: relative;
-        overflow: hidden;
-        transition: all .4s var(--transition-smooth);
-        box-shadow: var(--sd-shadow-sm);
-        animation: fadeInScale .5s var(--transition-smooth) both;
-        animation-delay: calc(var(--card-index, 0) * .08s);
-    }
-
-    @@keyframes fadeInScale {
-        from {
-            opacity: 0;
-            transform: scale(.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    .summary-card:nth-child(1) {
-        --card-index: 1;
-    }
-
-    .summary-card:nth-child(2) {
-        --card-index: 2;
-    }
-
-    .summary-card:nth-child(3) {
-        --card-index: 3;
-    }
-
-    .summary-card:nth-child(4) {
-        --card-index: 4;
-    }
-
-    .summary-card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 85% 15%, rgba(255, 122, 24, .12), transparent 68%);
-        opacity: .7;
-    }
-
-    .summary-card::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: var(--grad-accent);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform .4s var(--transition-smooth);
-    }
-
-    .summary-card:hover {
-        transform: translateY(-6px);
-        border-color: var(--sd-border-alt);
-        box-shadow: var(--sd-shadow-lg), var(--sd-shadow-glow);
-    }
-
-        .summary-card:hover::after {
-            transform: scaleX(1);
-        }
-
-    .sc-ico {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
-        background: var(--grad-accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 1.15rem;
-        flex-shrink: 0;
-        box-shadow: 0 8px 18px -10px rgba(179, 18, 23, .55), inset 0 1px 0 rgba(255, 255, 255, .2);
-        transition: transform .3s var(--transition-smooth);
-    }
-
-    .summary-card:hover .sc-ico {
-        transform: scale(1.08) rotate(3deg);
-    }
-
-    .sc-label {
-        font-size: .54rem;
-        letter-spacing: .18rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: #888;
-    }
-
-    .sc-value {
-        font-size: 1.05rem;
-        font-weight: 700;
-        background: var(--grad-accent);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        line-height: 1.2;
-        margin-top: .35rem;
-    }
-
-    .sc-sub {
-        font-size: .52rem;
-        margin-top: .45rem;
-        background: var(--sd-soft);
-        color: var(--sd-red-strong);
-        padding: .32rem .6rem;
-        border-radius: 40px;
-        font-weight: 700;
-        letter-spacing: .1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        border: 1px solid rgba(179, 18, 23, .08);
-    }
-
-    .detail-layout {
-        margin-top: 1.5rem;
-        display: grid;
-        gap: 1.3rem;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    }
-
-    .panel {
-        background: #fff;
-        border: 1px solid var(--sd-border);
-        border-radius: 26px;
-        padding: 1.3rem 1.2rem 1.2rem;
-        display: flex;
-        flex-direction: column;
-        gap: .9rem;
-        position: relative;
-        overflow: hidden;
-        transition: all .4s var(--transition-smooth);
-        box-shadow: var(--sd-shadow-sm);
-        animation: fadeInScale .6s var(--transition-smooth) .15s both;
-    }
-
-        .panel::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 0%, rgba(255, 122, 24, .06), transparent 60%);
-            opacity: 0;
-            transition: opacity .4s;
-        }
-
-        .panel:hover {
-            border-color: var(--sd-border-alt);
-            box-shadow: var(--sd-shadow-md);
-            transform: translateY(-4px);
-        }
-
-            .panel:hover::before {
-                opacity: 1;
-            }
-
-        .panel h3 {
-            margin: 0;
-            font-size: .62rem;
-            letter-spacing: .2rem;
-            text-transform: uppercase;
-            font-weight: 800;
-            color: var(--sd-red-strong);
-            display: flex;
-            gap: .55rem;
-            align-items: center;
-            padding-bottom: .6rem;
-            border-bottom: 2px solid var(--sd-soft);
-            position: relative;
-        }
-
-            .panel h3::after {
-                content: "";
-                position: absolute;
-                bottom: -2px;
-                left: 0;
-                width: 48px;
-                height: 2px;
-                background: var(--grad-accent);
-            }
-
-    .meta-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: .7rem;
-        font-size: .68rem;
-        line-height: 1.5;
-        color: #555;
-    }
-
-        .meta-list li {
-            display: flex;
-            gap: .5rem;
-        }
-
-            .meta-list li strong {
-                color: #222;
-                font-weight: 700;
-                min-width: 110px;
-            }
-
-    .avatar-wrap {
-        width: 140px;
-        height: 140px;
-        border-radius: 32px;
-        overflow: hidden;
-        margin: .4rem auto .7rem;
-        position: relative;
-        box-shadow: 0 12px 28px -10px rgba(179, 18, 23, .35), 0 0 20px rgba(255, 122, 24, .15), inset 0 0 0 2px rgba(255, 255, 255, .4);
-        border: 3px solid #fff;
-        transition: transform .4s var(--transition-smooth), box-shadow .4s;
-    }
-
-        .avatar-wrap:hover {
-            transform: scale(1.05);
-            box-shadow: 0 16px 36px -10px rgba(179, 18, 23, .45), 0 0 28px rgba(255, 122, 24, .25);
-        }
-
-        .avatar-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: #fff;
-        }
-
-    .attach-bar {
-        margin-top: 1.6rem;
-        background: var(--grad-glass);
-        border: 1px solid rgba(255, 255, 255, .6);
-        border-radius: 28px;
-        padding: 1.1rem 1.2rem 1rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: .75rem;
-        align-items: center;
-        box-shadow: var(--sd-shadow-md);
-        animation: slideInUp .7s var(--transition-smooth) .2s both;
-    }
-
-        .attach-bar h4 {
-            margin: 0;
-            font-size: .62rem;
-            letter-spacing: .2rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: var(--sd-red-strong);
-            display: flex;
-            gap: .5rem;
-            align-items: center;
-        }
-
-    .attach-chip {
-        width: 64px;
-        height: 64px;
-        border-radius: 20px;
-        background: var(--grad-accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 1.15rem;
-        position: relative;
-        text-decoration: none;
-        transition: all .4s var(--transition-smooth);
-        box-shadow: 0 8px 18px -10px rgba(179, 18, 23, .55), inset 0 1px 0 rgba(255, 255, 255, .2);
-    }
-
-        .attach-chip::before {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: 22px;
-            background: var(--grad-accent-hover);
-            opacity: 0;
-            transition: opacity .4s;
-            z-index: -1;
-        }
-
-        .attach-chip span {
-            position: absolute;
-            bottom: 6px;
-            font-size: .5rem;
-            letter-spacing: .12rem;
-            font-weight: 800;
-        }
-
-        .attach-chip:hover {
-            transform: translateY(-6px) scale(1.05);
-            box-shadow: 0 12px 28px -10px rgba(179, 18, 23, .65), 0 0 24px rgba(255, 122, 24, .25);
-        }
-
-            .attach-chip:hover::before {
-                opacity: 1;
-            }
-
-    @@media (max-width: 840px) {
-        .actions-bar a {
-            flex: 1 1 45%;
-        }
-
-        .summary-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .detail-layout {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (max-width: 640px) {
-        .header-band {
-            padding: 1.2rem 1rem;
-        }
-
-        .icon-pill {
-            width: 60px;
-            height: 60px;
-            font-size: 1.45rem;
-        }
-
-        .header-band h1 {
-            font-size: 1.3rem;
-        }
-
-        .actions-bar a {
-            flex: 1 1 100%;
-        }
-    }
+    @@media (max-width:420px) { .hgrid { grid-template-columns:1fr; } }
 </style>
 
-<div class="page-shell">
-    <div class="header-band">
-        <div class="icon-pill"><i class="fa fa-id-card"></i></div>
-        <div>
-            <h1>Student Profile</h1>
-            <div class="chip"><i class="fa fa-layer-group"></i> RECORD</div>
-        </div>
-        <div class="toolbar">
-            <a asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber" class="btn-act btn-accent">
-                <i class="fa fa-folder-open"></i> <span>Docs</span>
-            </a>
-            <a asp-action="StudentList" asp-controller="Student" class="btn-act">
-                <i class="fa fa-list"></i> <span>List</span>
-            </a>
-        </div>
-    </div>
+<div class="pg">
 
-    <div class="actions-bar">
-        <a class="btn-act" asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-pencil"></i> Learner Documents</a>
-        <a class="btn-act" asp-action="AttachAssessment" asp-controller="Assessment" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-book"></i> Assessments</a>
-        <a class="btn-act" asp-action="TrainingMaterial" asp-controller="TrainingAssessment" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-school"></i> Training</a>
-        <a class="btn-act" asp-action="UploadEvidence" asp-controller="Evidence" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-camera"></i> Evidence</a>
-        <a class="btn-act" asp-action="StudentResults" asp-controller="Results" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-list-alt"></i> Results</a>
-        <a class="btn-act" asp-action="UploadStudentStatement" asp-controller="StudentFinance" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-money-bill"></i> Finance</a>
-        <a class="btn-act" asp-action="PlacementDetails" asp-controller="LearnerPlacement" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-helmet-safety"></i> Workplace</a>
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="hd">
+    <div class="hd-ico"><i class="fa fa-id-badge"></i></div>
+    <div class="hd-text">
+        <h1><i class="fa fa-user-graduate" style="color:var(--or);font-size:1.2rem;"></i>&nbsp;Student Profile</h1>
+        <span class="hd-chip"><i class="fa fa-layer-group"></i> RECORD</span>
     </div>
-
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="sc-ico"><i class="fa fa-user"></i></div>
-            <div>
-                <div class="sc-label">Student</div>
-                <div class="sc-value" style="font-size:1.05rem;">@Model.FirstName @Model.LastName</div>
-                <div class="sc-sub"><i class="fa fa-hashtag"></i>@Model.StudentNumber</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="sc-ico"><i class="fa fa-book"></i></div>
-            <div>
-                <div class="sc-label">Course</div>
-                <div class="sc-value">@courseTitle</div>
-                <div class="sc-sub"><i class="fa fa-layer-group"></i>@courseType</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="sc-ico"><i class="fa fa-calendar"></i></div>
-            <div>
-                <div class="sc-label">Admission</div>
-                <div class="sc-value">@(admission?.ToString("yyyy-MM-dd") ?? "N/A")</div>
-                <div class="sc-sub"><i class="fa fa-graduation-cap"></i>@Model.AdmissionCategory</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="sc-ico"><i class="fa fa-venus-mars"></i></div>
-            <div>
-                <div class="sc-label">Gender</div>
-                <div class="sc-value">@Model.Gender</div>
-                <div class="sc-sub"><i class="fa fa-school"></i>@Model.HighestGrade</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="detail-layout">
-        <div class="panel">
-            <h3><i class="fa fa-id-card"></i> Profile</h3>
-            <div class="avatar-wrap">
-                <img src="~/Theme/images/logob-removebg-preview.png" alt="Profile" />
-            </div>
-            <ul class="meta-list">
-                <li><strong>Full Name:</strong> <span>@Model.FirstName @Model.LastName</span></li>
-                <li><strong>Student #:</strong> <span>@Model.StudentNumber</span></li>
-                <li><strong>National ID:</strong> <span>@Model.IDNumber</span></li>
-                <li><strong>Cellphone:</strong> <span>@Model.Cellphone</span></li>
-                <li><strong>Course:</strong> <span>@courseTitle</span></li>
-            </ul>
-        </div>
-        <div class="panel">
-            <h3><i class="fa fa-circle-info"></i> Academic</h3>
-            <ul class="meta-list">
-                <li><strong>Course Type:</strong> <span>@courseType</span></li>
-                <li><strong>Admission Category:</strong> <span>@Model.AdmissionCategory</span></li>
-                <li><strong>Admission Year:</strong> <span>@(admission?.Year.ToString() ?? "N/A")</span></li>
-                <li><strong>Highest Grade:</strong> <span>@Model.HighestGrade</span></li>
-                <li><strong>School:</strong> <span>@Model.NameOfSchool</span></li>
-            </ul>
-        </div>
-        <div class="panel">
-            <h3><i class="fa fa-location-dot"></i> Contact & Address</h3>
-            <ul class="meta-list">
-                <li><strong>Cell:</strong> <span>@Model.Cellphone</span></li>
-                <li><strong>Address:</strong> <span>@Model.StreetAddressLine1 @Model.StreetAddressLine2</span></li>
-                <li><strong>Gender:</strong> <span>@Model.Gender</span></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="attach-bar">
-        <h4><i class="fa fa-paperclip"></i> Quick Links</h4>
-        <a class="attach-chip" asp-action="StudentDocuments" asp-route-StudentNumber="@Model.StudentNumber">
-            <i class="fa fa-folder-open"></i><span>DOCS</span>
+    <div class="hd-tools">
+        <a class="btn btn-fill"
+           asp-action="PrintStudentDetailsPdf" asp-controller="Student"
+           asp-route-studentNumber="@Model.StudentNumber">
+            <i class="fa fa-download"></i><span>Proof of Reg.</span>
         </a>
-        <a class="attach-chip" asp-action="StudentResults" asp-route-StudentNumber="@Model.StudentNumber">
-            <i class="fa fa-list-alt"></i><span>RES</span>
+        <a class="btn" asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber">
+            <i class="fa fa-folder-open"></i><span>Docs</span>
         </a>
-        <a class="attach-chip" asp-action="UploadEvidence" asp-controller="Evidence" asp-route-StudentNumber="@Model.StudentNumber">
-            <i class="fa fa-camera"></i><span>EVD</span>
-        </a>
-        <a class="attach-chip" asp-action="PlacementDetails" asp-controller="LearnerPlacement" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId">
-            <i class="fa fa-helmet-safety"></i><span>WRK</span>
-        </a>
-        <a class="attach-chip" asp-action="UploadStudentStatement" asp-controller="StudentFinance" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId">
-            <i class="fa fa-money-bill"></i><span>FIN</span>
+        <a class="btn" asp-action="StudentList" asp-controller="Student">
+            <i class="fa fa-list"></i><span>List</span>
         </a>
     </div>
 </div>
 
+<!-- ═══════════════ MOBILE TABS ═══════════════ -->
+<div class="mob-tabs" style="margin-top:1.2rem;">
+    <button class="mob-tab active" onclick="showSec('s-overview',this)"><i class="fa fa-th-large"></i> Overview</button>
+    <button class="mob-tab"        onclick="showSec('s-identity',this)"><i class="fa fa-id-card"></i> Identity</button>
+    <button class="mob-tab"        onclick="showSec('s-academic',this)"><i class="fa fa-graduation-cap"></i> Academic</button>
+    <button class="mob-tab"        onclick="showSec('s-contact',this)"><i class="fa fa-address-book"></i> Contact</button>
+    @if (hasGuardian) {
+    <button class="mob-tab"        onclick="showSec('s-guardian',this)"><i class="fa fa-users"></i> Guardian</button>
+    }
+    <button class="mob-tab"        onclick="showSec('s-docs',this)"><i class="fa fa-shield-check"></i> Docs</button>
+    <button class="mob-tab"        onclick="showSec('s-record',this)"><i class="fa fa-database"></i> Record</button>
+</div>
+
+<!-- ═══════════════ SHELL ═══════════════ -->
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-head">
+        <div class="sb-ico"><i class="fa fa-id-badge"></i></div>
+        <div>
+            <div class="sb-name">Student</div>
+            <div class="sb-sub">@Model.FirstName @Model.LastName</div>
+        </div>
+    </div>
+
+    <div class="nav-item active" onclick="showSec('s-overview',this)">
+        <span class="ni-ico"><i class="fa fa-th-large"></i></span><span>Overview</span>
+    </div>
+    <div class="nav-item" onclick="showSec('s-identity',this)">
+        <span class="ni-ico"><i class="fa fa-id-card"></i></span><span>Identity</span>
+    </div>
+    <div class="nav-item" onclick="showSec('s-academic',this)">
+        <span class="ni-ico"><i class="fa fa-graduation-cap"></i></span><span>Academic</span>
+    </div>
+    <div class="nav-item" onclick="showSec('s-contact',this)">
+        <span class="ni-ico"><i class="fa fa-address-book"></i></span><span>Contact &amp; Address</span>
+    </div>
+    @if (hasGuardian) {
+    <div class="nav-item" onclick="showSec('s-guardian',this)">
+        <span class="ni-ico"><i class="fa fa-users"></i></span><span>Guardian</span>
+    </div>
+    }
+    <div class="nav-item" onclick="showSec('s-docs',this)">
+        <span class="ni-ico"><i class="fa fa-shield-check"></i></span><span>Documents</span>
+        <span class="ni-badge">@docCount/3</span>
+    </div>
+    <div class="nav-item" onclick="showSec('s-record',this)">
+        <span class="ni-ico"><i class="fa fa-database"></i></span><span>Record Info</span>
+    </div>
+
+    <div class="sb-dl">
+        <a class="btn btn-fill" style="width:100%;justify-content:center;"
+           asp-action="PrintStudentDetailsPdf" asp-controller="Student"
+           asp-route-studentNumber="@Model.StudentNumber">
+            <i class="fa fa-download"></i><span>Download Proof</span>
+        </a>
+    </div>
+  </aside>
+
+  <!-- ── CONTENT ── -->
+  <div class="content">
+
+    <!-- ╔══ OVERVIEW ══╗ -->
+    <div id="s-overview" class="section active">
+        <div class="hgrid">
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-user"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Student</div>
+                    <div class="hc-val">@Model.FullName</div>
+                    <div class="hc-sub"><i class="fa fa-hashtag"></i>@Model.StudentNumber</div>
+                </div>
+            </div>
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-graduation-cap"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Course</div>
+                    <div class="hc-val" style="font-size:.88rem;">@courseTitle</div>
+                    <div class="hc-sub"><i class="fa fa-layer-group"></i>@courseType</div>
+                </div>
+            </div>
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-calendar-check"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Admitted</div>
+                    <div class="hc-val">@(admission?.ToString("dd MMM yyyy") ?? "N/A")</div>
+                    <div class="hc-sub"><i class="fa fa-tag"></i>@Model.AdmissionCategory</div>
+                </div>
+            </div>
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-birthday-cake"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Age / D.O.B</div>
+                    <div class="hc-val">@Model.Age <span style="font-size:.72rem;font-weight:500;color:var(--t4);">yrs</span></div>
+                    <div class="hc-sub"><i class="fa fa-calendar"></i>@Model.DateOfBirth.ToString("dd MMM yyyy")</div>
+                </div>
+            </div>
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-circle-check"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Status</div>
+                    <div class="hc-val">@statusLabel</div>
+                    <span class="badge-pill @statusCls"><span class="bdot"></span>@statusLabel</span>
+                </div>
+            </div>
+            <div class="hc">
+                <div class="hc-ico"><i class="fa fa-shield-check"></i></div>
+                <div class="hc-body">
+                    <div class="hc-lbl">Compliance</div>
+                    <div class="hc-val">@docCount <span style="font-size:.72rem;font-weight:500;color:var(--t4);">/ 3</span></div>
+                    <div class="hc-sub">
+                        <i class="fa @(Model.IsDocumentationComplete ? "fa-check" : "fa-exclamation")"></i>
+                        @(Model.IsDocumentationComplete ? "Complete" : "Incomplete")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-bolt"></i> Quick Navigation</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.55rem;">
+                <a class="btn" asp-action="StudentDocuments"    asp-controller="Student"          asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-folder-open"></i><span>Documents</span></a>
+                <a class="btn" asp-action="AttachAssessment"    asp-controller="Assessment"        asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-book-open"></i><span>Assessments</span></a>
+                <a class="btn" asp-action="TrainingMaterial"    asp-controller="TrainingAssessment" asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-chalkboard-teacher"></i><span>Training</span></a>
+                <a class="btn" asp-action="UploadEvidence"      asp-controller="Evidence"          asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-camera"></i><span>Evidence</span></a>
+                <a class="btn" asp-action="StudentResults"      asp-controller="Results"           asp-route-StudentNumber="@Model.StudentNumber"><i class="fa fa-chart-bar"></i><span>Results</span></a>
+                <a class="btn" asp-action="UploadStudentStatement" asp-controller="StudentFinance" asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-money-bill-wave"></i><span>Finance</span></a>
+                <a class="btn" asp-action="PlacementDetails"    asp-controller="LearnerPlacement"  asp-route-StudentNumber="@Model.StudentNumber" asp-route-StudentId="@Model.StudentId"><i class="fa fa-hard-hat"></i><span>Workplace</span></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ╔══ IDENTITY ══╗ -->
+    <div id="s-identity" class="section">
+        <div class="two-col">
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-id-card"></i> Profile Card</div>
+                <div class="av-wrap">
+                    <div class="av-ring">
+                        <div class="av-inner"><img src="~/Theme/images/logob-removebg-preview.png" alt="Forek" /></div>
+                        <span class="av-est">EST. 2009</span>
+                    </div>
+                    <div class="av-name">@Model.FullName</div>
+                    <div class="av-num"><i class="fa fa-hashtag"></i>@Model.StudentNumber</div>
+                    <div style="display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-top:.3rem;">
+                        <span class="ib ib-r"><i class="fa fa-venus-mars"></i> @Model.Gender</span>
+                        <span class="badge-pill @statusCls" style="margin-top:0;"><span class="bdot"></span>@statusLabel</span>
+                    </div>
+                </div>
+            </div>
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-user"></i> Personal Details</div>
+                <ul class="ml">
+                    <li><strong>Full Name</strong>      <span class="hi">@Model.FullName</span></li>
+                    <li><strong>Date of Birth</strong>  <span>@Model.DateOfBirth.ToString("dd MMMM yyyy")</span></li>
+                    <li><strong>Age</strong>            <span>@Model.Age years</span></li>
+                    <li><strong>Gender</strong>         <span>@Model.Gender</span></li>
+                    @if (!string.IsNullOrWhiteSpace(Model.PlaceOfBirth))
+                    {
+                    <li><strong>Place of Birth</strong> <span>@Model.PlaceOfBirth</span></li>
+                    }
+                    <li><strong>Nationality</strong>    <span>@(string.IsNullOrWhiteSpace(Model.Nationality) ? "N/A" : Model.Nationality)</span></li>
+                    @if (!string.IsNullOrWhiteSpace(Model.Language))
+                    {
+                    <li><strong>Home Language</strong>  <span>@Model.Language</span></li>
+                    }
+                </ul>
+                @if (Model.HasDisability == true)
+                {
+                <div class="alert-r">
+                    <i class="fa fa-info-circle"></i>
+                    <div>
+                        <div class="alert-r-t">Disability Disclosed</div>
+                        <div class="alert-r-b">@(string.IsNullOrWhiteSpace(Model.Disability) ? "No further detail provided." : Model.Disability)</div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-fingerprint"></i> Identification Documents</div>
+            <ul class="ml">
+                @if (!string.IsNullOrWhiteSpace(Model.IDNumber))
+                {
+                <li><strong>ID Number</strong>        <span class="hi">@Model.IDNumber</span></li>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.PassportNumber))
+                {
+                <li><strong>Passport No.</strong>     <span>@Model.PassportNumber</span></li>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.StudyPermitNumber))
+                {
+                <li><strong>Study Permit</strong>     <span>@Model.StudyPermitNumber
+                    @if (Model.StudyPermitExpiry.HasValue)
+                    {
+                        <span class="ib @(Model.StudyPermitExpiry.Value < DateTime.Today ? "ib-rd" : "ib-gr")" style="margin-left:.4rem;">
+                            Exp @Model.StudyPermitExpiry.Value.ToString("dd MMM yyyy")
+                        </span>
+                    }
+                </span></li>
+                }
+                @if (string.IsNullOrWhiteSpace(Model.IDNumber) && string.IsNullOrWhiteSpace(Model.PassportNumber))
+                {
+                <li><strong>ID / Passport</strong>    <span style="color:var(--t2);">Not yet captured</span></li>
+                }
+            </ul>
+        </div>
+        @if (Model.Deregistered)
+        {
+        <div class="alert-r">
+            <i class="fa fa-user-slash"></i>
+            <div>
+                <div class="alert-r-t">Deregistered</div>
+                <div class="alert-r-b">
+                    @if (Model.DeregistrationDate.HasValue) { <span>Date: @Model.DeregistrationDate.Value.ToString("dd MMM yyyy"). </span> }
+                    @Model.DeregistrationReason
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- ╔══ ACADEMIC ══╗ -->
+    <div id="s-academic" class="section">
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-graduation-cap"></i> Enrollment &amp; Course</div>
+            <ul class="ml">
+                <li><strong>Course Title</strong>        <span class="hi">@courseTitle</span></li>
+                <li><strong>Course Type</strong>         <span>@courseType</span></li>
+                <li><strong>Enrollment Status</strong>   <span><span class="ib @(enrollStatus == "Active" ? "ib-g" : "ib-gr")">@enrollStatus</span></span></li>
+                <li><strong>Admission Category</strong>  <span>@Model.AdmissionCategory</span></li>
+                <li><strong>Admission Date</strong>      <span>@(admission?.ToString("dd MMM yyyy") ?? "N/A")</span></li>
+                <li><strong>Reg. Source</strong>         <span>@(string.IsNullOrWhiteSpace(Model.RegistrationSource) ? "N/A" : Model.RegistrationSource)</span></li>
+            </ul>
+        </div>
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-school"></i> Education Background</div>
+            <ul class="ml">
+                <li><strong>Highest Grade</strong>   <span>@(string.IsNullOrWhiteSpace(Model.HighestGrade)  ? "N/A" : Model.HighestGrade)</span></li>
+                <li><strong>School</strong>           <span>@(string.IsNullOrWhiteSpace(Model.NameOfSchool) ? "N/A" : Model.NameOfSchool)</span></li>
+            </ul>
+        </div>
+        @if (allEnrolls.Any())
+        {
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-history"></i> Enrollment History</div>
+            <div style="display:flex;flex-direction:column;gap:.55rem;">
+                @foreach (var e in allEnrolls)
+                {
+                <div class="enr-row">
+                    <div class="enr-ico"><i class="fa fa-book"></i></div>
+                    <div style="min-width:0;">
+                        <div class="enr-title">@e.CourseTitle</div>
+                        <div class="enr-meta">
+                            @e.CourseType &nbsp;&middot;&nbsp; Started @e.StartDate.ToString("MMM yyyy")
+                            @if (e.DateCompleted.HasValue) { <span>&nbsp;&middot;&nbsp; Completed @e.DateCompleted.Value.ToString("MMM yyyy")</span> }
+                        </div>
+                    </div>
+                    <span class="ib @(e.IsActive ? "ib-g" : "ib-gr")" style="margin-left:auto;flex-shrink:0;">
+                        @(e.IsActive ? "Active" : e.EnrollmentStatus)
+                    </span>
+                </div>
+                }
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- ╔══ CONTACT ══╗ -->
+    <div id="s-contact" class="section">
+        <div class="two-col">
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-phone"></i> Contact Details</div>
+                <ul class="ml">
+                    @if (!string.IsNullOrWhiteSpace(Model.Email))
+                    {
+                    <li><strong>Email</strong>       <span class="hi" style="word-break:break-all;">@Model.Email</span></li>
+                    }
+                    <li><strong>Cellphone</strong>   <span>@(string.IsNullOrWhiteSpace(Model.Cellphone) ? "Not captured" : Model.Cellphone)</span></li>
+                    @if (!string.IsNullOrWhiteSpace(Model.AlternativePhone))
+                    {
+                    <li><strong>Alt. Phone</strong>  <span>@Model.AlternativePhone</span></li>
+                    }
+                </ul>
+            </div>
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-location-dot"></i> Physical Address</div>
+                <ul class="ml">
+                    @if (!string.IsNullOrWhiteSpace(Model.StreetAddressLine1))
+                    {
+                    <li><strong>Street</strong>        <span>@Model.StreetAddressLine1 @Model.StreetAddressLine2</span></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.City))
+                    {
+                    <li><strong>City / Town</strong>   <span class="hi">@Model.City</span></li>
+                    }
+                    @if (Model.Province.HasValue)
+                    {
+                    <li><strong>Province</strong>      <span>@Model.Province</span></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.PostalCode))
+                    {
+                    <li><strong>Postal Code</strong>   <span>@Model.PostalCode</span></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Country))
+                    {
+                    <li><strong>Country</strong>       <span>@Model.Country</span></li>
+                    }
+                    @if (string.IsNullOrWhiteSpace(Model.StreetAddressLine1) && !Model.Province.HasValue)
+                    {
+                    <li><strong>Address</strong>       <span style="color:var(--t2);">Not yet captured</span></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ╔══ GUARDIAN ══╗ -->
+    @if (hasGuardian)
+    {
+    <div id="s-guardian" class="section">
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-users"></i> Guardian / Next of Kin</div>
+            <ul class="ml">
+                <li><strong>Full Name</strong>     <span class="hi">@Model.Guardian!.FirstName @Model.Guardian.LastName</span></li>
+                <li><strong>Relationship</strong>  <span>@Model.Guardian.Relationship</span></li>
+                <li><strong>Cellphone</strong>     <span>@Model.Guardian.Cellphone</span></li>
+            </ul>
+        </div>
+    </div>
+    }
+
+    <!-- ╔══ DOCUMENTS ══╗ -->
+    <div id="s-docs" class="section">
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-shield-check"></i> Document Compliance</div>
+            <div>
+                <div class="prog-label">Completion <span>@docCount / 3 documents</span></div>
+                <div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:.3rem;">
+                <div class="doc-item">
+                    <div class="doc-chk @(Model.HasUploadedID ? "ok" : "nok")"><i class="fa @(Model.HasUploadedID ? "fa-check" : "fa-times")"></i></div>
+                    <div><div class="doc-lbl">National ID / Passport</div><div class="doc-sub">@(Model.HasUploadedID ? "Uploaded &amp; verified" : "Not yet uploaded")</div></div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-chk @(hasQual ? "ok" : "nok")"><i class="fa @(hasQual ? "fa-check" : "fa-times")"></i></div>
+                    <div><div class="doc-lbl">Highest Qualification</div><div class="doc-sub">@(hasQual ? "Uploaded &amp; verified" : "Not yet uploaded")</div></div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-chk @(hasPerm ? "ok" : "nok")"><i class="fa @(hasPerm ? "fa-check" : "fa-times")"></i></div>
+                    <div><div class="doc-lbl">Study Permit</div><div class="doc-sub">@(hasPerm ? "Uploaded &amp; verified" : "Not yet uploaded")</div></div>
+                </div>
+            </div>
+            @if (Model.IsDocumentationComplete)
+            {
+            <div style="display:flex;align-items:center;gap:.65rem;padding:.7rem .9rem;border-radius:14px;background:rgba(10,120,50,.07);border:1px solid rgba(10,120,50,.15);">
+                <i class="fa fa-circle-check" style="color:#0a7832;font-size:1.1rem;"></i>
+                <div>
+                    <div style="font-size:.68rem;font-weight:700;color:#0a7832;">Documentation Complete</div>
+                    <div style="font-size:.62rem;color:var(--t4);margin-top:.1rem;">All required documents are on file.</div>
+                </div>
+            </div>
+            }
+        </div>
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-folder-open"></i> Manage Documents</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.55rem;">
+                <a class="btn btn-fill" asp-action="StudentDocuments" asp-controller="Student" asp-route-StudentNumber="@Model.StudentNumber">
+                    <i class="fa fa-upload"></i><span>Upload Documents</span>
+                </a>
+                <a class="btn btn-fill" asp-action="PrintStudentDetailsPdf" asp-controller="Student" asp-route-studentNumber="@Model.StudentNumber">
+                    <i class="fa fa-download"></i><span>Download Proof of Registration</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ╔══ RECORD ══╗ -->
+    <div id="s-record" class="section">
+        <div class="two-col">
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-database"></i> System Record</div>
+                <ul class="ml">
+                    <li><strong>Student ID</strong>     <span style="font-size:.6rem;word-break:break-all;color:var(--t2);">@Model.StudentId</span></li>
+                    <li><strong>Student No.</strong>    <span class="hi">@Model.StudentNumber</span></li>
+                    <li><strong>Active</strong>         <span><span class="ib @(Model.IsActive ? "ib-g" : "ib-gr")">@(Model.IsActive ? "Yes" : "No")</span></span></li>
+                    <li><strong>Deregistered</strong>   <span><span class="ib @(Model.Deregistered ? "ib-r" : "ib-gr")">@(Model.Deregistered ? "Yes" : "No")</span></span></li>
+                </ul>
+            </div>
+            <div class="pnl">
+                <div class="pnl-h"><i class="fa fa-clock-rotate-left"></i> Audit Trail</div>
+                <ul class="ml">
+                    @if (!string.IsNullOrWhiteSpace(Model.CreatedBy))
+                    {
+                    <li><strong>Created By</strong>    <span>@Model.CreatedBy</span></li>
+                    }
+                    <li><strong>Created At</strong>    <span>@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></li>
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                    <li><strong>Last Updated</strong>  <span>@Model.UpdatedAt.Value.ToString("dd MMM yyyy, HH:mm")</span></li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.UpdatedBy))
+                    {
+                    <li><strong>Updated By</strong>    <span>@Model.UpdatedBy</span></li>
+                    }
+                </ul>
+            </div>
+        </div>
+        @if (enroll != null)
+        {
+        <div class="pnl">
+            <div class="pnl-h"><i class="fa fa-book"></i> Current Enrollment</div>
+            <ul class="ml">
+                <li><strong>Start Date</strong>    <span>@enroll.StartDate.ToString("dd MMM yyyy")</span></li>
+                @if (enroll.DateCompleted.HasValue)
+                {
+                <li><strong>Completed</strong>     <span class="hi">@enroll.DateCompleted.Value.ToString("dd MMM yyyy")</span></li>
+                }
+                <li><strong>Status</strong>         <span><span class="ib @(enroll.IsActive ? "ib-g" : "ib-gr")">@enroll.EnrollmentStatus</span></span></li>
+            </ul>
+        </div>
+        }
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /shell -->
+</div><!-- /pg -->
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    (function(){
-       const role='@ViewData["role"]';
-       if(role==='Student'){
-           Swal.fire({
-               position:'center',
-               icon:'success',
-               title:'Welcome @ViewData["CurrentUser"]',
-               showConfirmButton:false,
-               timer:3000,
-               footer:'Forek Online V2',
-               backdrop: `
-                   rgba(50, 6, 6, 0.4)
-                   left top
-                   no-repeat
-               `
-           });
-       }
+    function showSec(id, el) {
+        document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
+        var t = document.getElementById(id);
+        if (t) t.classList.add('active');
+        document.querySelectorAll('.nav-item, .mob-tab').forEach(function (n) { n.classList.remove('active'); });
+        if (el) el.classList.add('active');
+        if (id === 's-docs') {
+            setTimeout(function () { var pf = document.getElementById('pf'); if (pf) pf.style.width = '@docPct%'; }, 150);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    (function () {
+        var role = '@ViewData["role"]';
+        if (role === 'Student') {
+            Swal.fire({
+                position: 'center', icon: 'success',
+                title: 'Welcome @ViewData["CurrentUser"]',
+                showConfirmButton: false, timer: 3200,
+                footer: 'Forek Online V2',
+                background: '#fff', color: '#320606',
+                backdrop: 'rgba(50,6,6,.35) left top no-repeat'
+            });
+        }
     })();
 </script>
