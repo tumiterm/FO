@@ -1,576 +1,707 @@
-﻿@{
-    int formative = (int?)ViewData["Formative"] ?? 0;
-    int summative = (int?)ViewData["Summative"] ?? 0;
-    int practical = (int?)ViewData["Practical"] ?? 0;
-    int iisa = (int?)ViewData["IISA"] ?? 0;
+@{
+    int formative  = (int?)ViewData["Formative"]      ?? 0;
+    int summative  = (int?)ViewData["Summative"]      ?? 0;
+    int practical  = (int?)ViewData["Practical"]      ?? 0;
+    int iisa       = (int?)ViewData["IISA"]           ?? 0;
 
-    int idDocs = (int?)ViewData["ID"] ?? 0;
-    int cvDocs = (int?)ViewData["CV"] ?? 0;
-    int matric = (int?)ViewData["Matric"] ?? 0;
-    int guardian = (int?)ViewData["Guardian"] ?? 0;
+    int idDocs     = (int?)ViewData["ID"]             ?? 0;
+    int cvDocs     = (int?)ViewData["CV"]             ?? 0;
+    int matric     = (int?)ViewData["Matric"]         ?? 0;
+    int guardian   = (int?)ViewData["Guardian"]       ?? 0;
 
     int enrollForms = (int?)ViewData["EnrollmentForm"] ?? 0;
-    int induction = (int?)ViewData["InductionForm"] ?? 0;
-    int declaration = (int?)ViewData["Declaration"] ?? 0;
-    int conduct = (int?)ViewData["Conduct"] ?? 0;
+    int induction   = (int?)ViewData["InductionForm"]  ?? 0;
+    int declaration = (int?)ViewData["Declaration"]    ?? 0;
+    int conduct     = (int?)ViewData["Conduct"]        ?? 0;
 
-    int nated = (int?)ViewData["NATED"] ?? 0;
-    int electrician = (int?)ViewData["Electrician"] ?? 0;
-    int welder = (int?)ViewData["Welder"] ?? 0;
-    int plumber = (int?)ViewData["Plumber"] ?? 0;
+    int nated       = (int?)ViewData["NATED"]         ?? 0;
+    int electrician = (int?)ViewData["Electrician"]   ?? 0;
+    int welder      = (int?)ViewData["Welder"]        ?? 0;
+    int plumber     = (int?)ViewData["Plumber"]       ?? 0;
 
-    int totalAssess = formative + summative + practical + iisa;
-    int totalLearnerDocs = idDocs + cvDocs + matric + guardian;
-    int totalTraining = enrollForms + induction + declaration + conduct;
-    int totalReports = nated + electrician + welder + plumber;
+    int totalAssess     = formative  + summative  + practical + iisa;
+    int totalLearnerDocs = idDocs    + cvDocs     + matric    + guardian;
+    int totalTraining   = enrollForms + induction + declaration + conduct;
+    int totalReports    = nated      + electrician + welder    + plumber;
+    int grandTotal      = totalAssess + totalLearnerDocs + totalTraining + totalReports;
 
-    int grandTotal = totalAssess + totalLearnerDocs + totalTraining + totalReports;
     double pct(int part, int whole) => whole == 0 ? 0 : (double)part / whole * 100;
 }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+/* ===== NOTIFICATION MODAL (preserved) ===== */
+:root {
+    --ap-red: #B41C22;
+    --ap-grad: linear-gradient(95deg,#3D0608,#B41C22 55%,#EA580C);
+}
 
-    :root {
-        --ap-grad: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
-        --ap-red-strong: #b31217;
-    }
+#dynamicNotificationsModal .modal-header {
+    background: var(--ap-grad); color: #fff;
+    padding: .9rem 1.05rem; border-bottom: none;
+}
 
-    #dynamicNotificationsModal .modal-header {
-        background: var(--ap-grad);
-        color: #fff;
-        padding: .9rem 1.05rem;
-        border-bottom: none;
-    }
+#dynamicNotificationsModal .modal-header .modal-title {
+    margin: 0; font-weight: 600; letter-spacing: .5px;
+    font-size: .9rem; display: flex; align-items: center; gap: .55rem;
+}
 
-        #dynamicNotificationsModal .modal-header .modal-title {
-            margin: 0;
-            font-weight: 600;
-            letter-spacing: .5px;
-            font-size: .9rem;
-            display: flex;
-            align-items: center;
-            gap: .55rem;
-        }
+#dynamicNotificationsModal .modal-header i {
+    font-size: .95rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
 
-        #dynamicNotificationsModal .modal-header i {
-            font-size: .95rem;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
-        }
+#dynamicNotificationsModal .btn-act {
+    font-size: .6rem; letter-spacing: .14rem; font-weight: 600;
+    text-transform: uppercase; padding: .55rem .9rem; border-radius: 14px;
+    border: 1px solid #e2e5e9; background: #fff; color: var(--ap-red);
+    display: inline-flex; align-items: center; gap: .45rem;
+    text-decoration: none; transition: .28s;
+    box-shadow: 0 2px 6px -2px rgba(0,0,0,.15);
+}
 
-    /* Base button style reinstated (was removed when dashboard refactored) */
-    #dynamicNotificationsModal .btn-act {
-        font-size: .6rem;
-        letter-spacing: .14rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        padding: .55rem .9rem;
-        border-radius: 14px;
-        border: 1px solid #e2e5e9;
-        background: #fff;
-        color: var(--ap-red-strong);
-        display: inline-flex;
-        align-items: center;
-        gap: .45rem;
-        text-decoration: none;
-        transition: .28s;
-        box-shadow: 0 2px 6px -2px rgba(0,0,0,.15);
-    }
+#dynamicNotificationsModal .btn-act:hover {
+    background: var(--ap-grad); color: #fff;
+    border-color: var(--ap-red); box-shadow: 0 6px 16px -8px rgba(180,28,34,.45);
+}
 
-        #dynamicNotificationsModal .btn-act:hover {
-            background: var(--ap-grad);
-            color: #fff;
-            border-color: var(--ap-red-strong);
-            box-shadow: 0 6px 16px -8px rgba(179,18,23,.45);
-        }
+#dynamicNotificationsModal .btn-act.btn-primary {
+    background: var(--ap-grad) !important; color: #fff !important;
+    border-color: var(--ap-red) !important;
+}
 
-        /* Primary action override (inline style from JS may have undefined vars; enforce palette) */
-        #dynamicNotificationsModal .btn-act.btn-primary {
-            background: var(--ap-grad) !important;
-            color: #fff !important;
-            border-color: var(--ap-red-strong) !important;
-        }
+#dynamicNotificationsModal .btn-act.btn-primary:hover { filter: brightness(.92); }
 
-            #dynamicNotificationsModal .btn-act.btn-primary:hover {
-                filter: brightness(.92);
-            }
+#dynamicNotificationsModal .carousel-indicators [data-bs-target] {
+    background: #B41C22; width: 10px; height: 10px; border-radius: 50%;
+}
 
-    /* Optional carousel indicators tweak (keeps theme consistent) */
-    #dynamicNotificationsModal .carousel-indicators [data-bs-target] {
-        background: #b31217;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-    }
-
-    #dynamicNotificationsModal .carousel-indicators .active {
-        background: #ff7a18;
-    }
+#dynamicNotificationsModal .carousel-indicators .active { background: #EA580C; }
 
 
-
-
+/* ===== ADMIN DASHBOARD 2026 ===== */
 .admin-dash {
-    --clr-red:#b31217;
-    --clr-orange:#ff7a18;
-    --clr-blue:#156fd6;
-    --clr-green:#2ba66e;
-    --clr-purple:#6e42c4;
-    --clr-teal:#1aa9a2;
-    --clr-yellow:#e9b312;
-    --clr-gray:#6b7280;
-    --grad-main:linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
-    --grad-blue:linear-gradient(95deg,#0f3e82,#156fd6 55%,#4ba5ff);
-    --grad-green:linear-gradient(95deg,#135b3a,#2ba66e 55%,#58d49b);
-    --grad-purple:linear-gradient(95deg,#402269,#6e42c4 55%,#9c6df2);
-    --grad-teal:linear-gradient(95deg,#0a4c55,#1aa9a2 55%,#33d4cd);
-    --grad-yellow:linear-gradient(95deg,#7a5200,#e9b312 55%,#ffdd5c);
-    --panel:#ffffff;
-    --panel-alt:#f5f7fa;
-    --border:#e2e5e9;
-    --border-alt:#d1d5db;
-    --shadow:0 10px 30px -14px rgba(50,6,6,.28),0 4px 14px -6px rgba(50,6,6,.16);
-    font-family:'Segoe UI',system-ui,sans-serif;
-    background:#f5f7fa;
-    padding:2rem 1.25rem 3.2rem;
-    max-width:1480px;
-    margin:0 auto;
+    /* Color tokens */
+    --red:    #B41C22;   --red-lt:    rgba(180,28,34,.09);
+    --orange: #EA580C;   --orange-lt: rgba(234,88,12,.09);
+    --blue:   #2563EB;   --blue-lt:   rgba(37,99,235,.09);
+    --green:  #059669;   --green-lt:  rgba(5,150,105,.09);
+    --violet: #7C3AED;   --violet-lt: rgba(124,58,237,.09);
+    --teal:   #0891B2;   --teal-lt:   rgba(8,145,178,.09);
+    --amber:  #D97706;   --amber-lt:  rgba(217,119,6,.09);
+    /* Surface */
+    --bg:     #F3F2ED;
+    --card:   #FFFFFF;
+    --border: #E5E4DF;
+    --bd-dk:  #CFCEC8;
+    /* Text */
+    --t1: #1A1918;
+    --t2: #54534C;
+    --t3: #908F88;
+    /* Shadows */
+    --sh-xs: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+    --sh-sm: 0 2px 8px rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.04);
+    --sh-md: 0 8px 24px rgba(0,0,0,.09),0 2px 8px rgba(0,0,0,.04);
+    --sh-lg: 0 20px 48px rgba(0,0,0,.11),0 8px 16px rgba(0,0,0,.06);
+
+    font-family: 'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--bg);
+    padding: 2rem 1.5rem 3.5rem;
+    max-width: 1480px;
+    margin: 0 auto;
 }
 
-/* Hero */
-.admin-dash .hero-band {
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:40px;
-    padding:1.9rem 2rem 1.65rem;
-    display:flex;
-    flex-wrap:wrap;
-    gap:1.8rem;
-    align-items:center;
-    position:relative;
-    overflow:hidden;
-    box-shadow:var(--shadow);
+/* ===== HERO ===== */
+.admin-dash .dash-hero {
+    border-radius: 28px;
+    background: linear-gradient(148deg,#0B0608 0%,#190609 38%,#0E0812 72%,#07040F 100%);
+    padding: 2.5rem 2.75rem;
+    display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+    position: relative; overflow: hidden;
+    box-shadow:
+        0 24px 64px -20px rgba(0,0,0,.6),
+        0 8px 24px -8px rgba(180,28,34,.22),
+        0 0 0 1px rgba(255,255,255,.04);
 }
-.admin-dash .hero-band:before {
-    content:"";
-    position:absolute;
-    inset:0;
+
+.admin-dash .dash-hero::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
     background:
-        radial-gradient(circle at 78% 22%,rgba(255,122,24,.18),transparent 70%),
-        radial-gradient(circle at 18% 78%,rgba(50,6,6,.18),transparent 65%);
-    pointer-events:none;
+        radial-gradient(ellipse 110% 65% at -5% 55%,rgba(180,28,34,.25) 0%,transparent 52%),
+        radial-gradient(ellipse 70% 55% at 105% 15%,rgba(234,88,12,.13) 0%,transparent 50%),
+        radial-gradient(ellipse 55% 40% at 65% 105%,rgba(124,58,237,.09) 0%,transparent 45%);
 }
+
+.admin-dash .dash-hero::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:
+        linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
+    background-size:28px 28px;
+}
+
 .admin-dash .hero-icon {
-    width:100px;height:100px;
-    border-radius:32px;
-    background:var(--grad-main);
-    display:flex;align-items:center;justify-content:center;
-    font-size:2.6rem;color:#fff;
-    box-shadow:0 24px 52px -22px rgba(179,18,23,.55);
+    position:relative; z-index:1; flex-shrink:0;
+    width:84px; height:84px; border-radius:24px;
+    background:linear-gradient(135deg,#8E0F14,#B41C22 50%,#D43030);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.1rem; color:#fff;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.07),
+        0 8px 32px rgba(180,28,34,.55),
+        0 0 56px rgba(180,28,34,.22);
 }
-.admin-dash h1.hero-title {
-    margin:0;
-    font-size:2rem;
-    font-weight:600;
-    letter-spacing:.75px;
-    background:linear-gradient(90deg,#320606,#b31217 55%,#ff7a18);
-    -webkit-background-clip:text;
-    color:transparent;
+
+.admin-dash .hero-body {
+    position:relative; z-index:1; flex:1; min-width:200px;
 }
+
+.admin-dash .hero-title {
+    margin:0; font-size:1.85rem; font-weight:800;
+    color:#FFFFFF; letter-spacing:-.6px; line-height:1.12;
+}
+
 .admin-dash .hero-sub {
-    margin:.55rem 0 0;
-    font-size:.85rem;
-    letter-spacing:.4px;
-    color:var(--clr-gray);
-    max-width:640px;
-    font-weight:500;
+    margin:.45rem 0 0; font-size:.8rem; font-weight:400;
+    color:rgba(255,255,255,.44); line-height:1.6; max-width:520px;
 }
 
-.meta-pills {
-    display:flex;
-    flex-wrap:wrap;
-    gap:.55rem;
-    margin-top:.85rem;
-}
-.meta-pill {
-    font-size:.55rem;
-    letter-spacing:.22rem;
-    font-weight:700;
-    text-transform:uppercase;
-    background:var(--panel-alt);
-    color:var(--clr-red);
-    padding:.55rem 1rem;
-    border-radius:46px;
-    border:1px solid var(--border);
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
+.admin-dash .hero-tags {
+    display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem;
 }
 
-.toolbar {
-    margin-left:auto;
-    display:flex;
-    gap:.65rem;
-    flex-wrap:wrap;
-}
-.tb-btn {
-    font-size:.6rem;
-    letter-spacing:.16rem;
-    font-weight:700;
-    text-transform:uppercase;
-    padding:.7rem 1.1rem;
-    border-radius:18px;
-    border:1px solid var(--border);
-    background:var(--panel-alt);
-    color:var(--clr-red);
-    display:inline-flex;
-    align-items:center;
-    gap:.5rem;
-    cursor:pointer;
-    transition:.3s;
-    text-decoration:none;
-}
-.tb-btn:hover {
-    background:var(--grad-main);
-    color:#fff;
-    border-color:var(--clr-red);
-    box-shadow:0 8px 22px -10px rgba(179,18,23,.5);
+.admin-dash .hero-tag {
+    font-size:.58rem; font-weight:700; letter-spacing:1.3px; text-transform:uppercase;
+    padding:.34rem .8rem; border-radius:99px;
+    background:rgba(255,255,255,.07); color:rgba(255,255,255,.5);
+    border:1px solid rgba(255,255,255,.1);
+    display:inline-flex; align-items:center; gap:.4rem;
 }
 
-/* Summary cards */
-.summary-grid {
-    margin-top:2.1rem;
-    display:grid;
-    gap:1.35rem;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-}
-.stat-card {
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:30px;
-    padding:1.05rem 1.1rem .95rem;
-    display:flex;
-    flex-direction:column;
-    gap:.55rem;
-    position:relative;
-    overflow:hidden;
-    transition:.4s;
-}
-.stat-card:before {
-    content:"";
-    position:absolute;
-    inset:0;
-    background:radial-gradient(circle at 84% 18%,rgba(255,122,24,.23),transparent 70%);
-    opacity:.55;
-}
-.stat-card:hover {
-    transform:translateY(-6px);
-    border-color:var(--border-alt);
-    box-shadow:0 10px 30px -14px rgba(0,0,0,.28);
-}
-.sc-label {
-    font-size:.56rem;
-    letter-spacing:.18rem;
-    font-weight:700;
-    text-transform:uppercase;
-    color:var(--clr-gray);
-}
-.sc-value {
-    font-size:1.55rem;
-    font-weight:600;
-    background:var(--grad-main);
-    -webkit-background-clip:text;
-    color:transparent;
-    display:flex;
-    align-items:center;
-    gap:.55rem;
-}
-.small-chip {
-    font-size:.48rem;
-    letter-spacing:.14rem;
-    font-weight:700;
-    text-transform:uppercase;
-    padding:.38rem .65rem;
-    border-radius:30px;
-    background:var(--panel-alt);
-    border:1px solid var(--border);
-    color:var(--clr-red);
-}
-.sc-foot {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-top:auto;
+/* Live pulse tag */
+.admin-dash .tag-live {
+    background:rgba(5,150,105,.18); color:#34D399;
+    border-color:rgba(52,211,153,.25);
 }
 
-.donut {
-    width:60px;height:60px;
-    border-radius:50%;
-    background:conic-gradient(var(--donut-color,#ff7a18) calc(var(--pct,0)*1%),#e3e7eb 0);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:.58rem;
-    font-weight:700;
-    color:#222;
-    box-shadow:0 4px 12px -6px rgba(0,0,0,.25);
+.admin-dash .tag-live::before {
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:#34D399; box-shadow:0 0 6px #34D399;
+    animation:ap-pulse 1.6s ease-in-out infinite;
 }
 
-/* Sections */
-.sections-wrap {
-    margin-top:2.75rem;
-    display:grid;
-    gap:1.6rem;
+@@keyframes ap-pulse {
+    0%,100% { opacity:1; }
+    50%      { opacity:.3; }
 }
-@@media (min-width:1100px) {
-    .sections-wrap { grid-template-columns:1fr 1fr; }
+
+/* Glass toolbar buttons */
+.admin-dash .hero-toolbar {
+    position:relative; z-index:1;
+    display:flex; gap:.625rem; flex-wrap:wrap; flex-shrink:0;
 }
-.block-area {
-    background:var(--panel);
+
+.admin-dash .htb-btn {
+    font-family:inherit; font-size:.68rem; font-weight:600;
+    letter-spacing:.5px; text-transform:uppercase;
+    padding:.68rem 1.2rem; border-radius:99px;
+    border:1px solid rgba(255,255,255,.13);
+    background:rgba(255,255,255,.07);
+    color:rgba(255,255,255,.68);
+    display:inline-flex; align-items:center; gap:.45rem;
+    cursor:pointer; text-decoration:none;
+    transition:all .25s ease; backdrop-filter:blur(10px);
+}
+
+.admin-dash .htb-btn:hover {
+    background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.26);
+    color:#fff; transform:translateY(-1px);
+    box-shadow:0 6px 20px rgba(0,0,0,.28);
+}
+
+/* ===== OVERVIEW STRIP (4 metric cards) ===== */
+.admin-dash .overview-row {
+    margin-top:1.75rem;
+    display:grid; gap:1.125rem;
+    grid-template-columns:repeat(4,1fr);
+}
+
+@@media(max-width:1100px) { .admin-dash .overview-row { grid-template-columns:repeat(2,1fr); } }
+@@media(max-width:580px)  { .admin-dash .overview-row { grid-template-columns:1fr; } }
+
+.admin-dash .ov-card {
+    background:var(--card); border-radius:20px;
     border:1px solid var(--border);
-    border-radius:42px;
-    padding:1.25rem 1.25rem 1.15rem;
-    display:flex;
-    flex-direction:column;
-    gap:1.05rem;
-    position:relative;
-    overflow:hidden;
-    box-shadow:var(--shadow);
+    padding:1.5rem 1.5rem 1.375rem;
+    display:flex; flex-direction:column; gap:.75rem;
+    position:relative; overflow:hidden;
+    box-shadow:var(--sh-sm);
+    transition:transform .3s ease,box-shadow .3s ease;
 }
-.block-area:before {
-    content:"";
-    position:absolute;
-    inset:0;
-    background:var(--grad-main);
-    opacity:.06;
+
+.admin-dash .ov-card:hover { transform:translateY(-4px); box-shadow:var(--sh-md); }
+
+/* Color top bar */
+.admin-dash .ov-card::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:3px; background:var(--ov-color,var(--red));
+    border-radius:20px 20px 0 0;
+}
+
+/* Subtle tint wash */
+.admin-dash .ov-card::after {
+    content:''; position:absolute; top:0; right:0;
+    width:80px; height:80px; border-radius:50%;
+    background:var(--ov-color,var(--red));
+    opacity:.04; transform:translate(30px,-30px);
     pointer-events:none;
 }
-.ba-head {
-    display:flex;
-    align-items:center;
-    gap:.7rem;
+
+.admin-dash .ov-label {
+    font-size:.58rem; font-weight:700; letter-spacing:1.4px;
+    text-transform:uppercase; color:var(--t3);
+    display:flex; align-items:center; gap:.5rem;
 }
-.ba-head h2 {
-    margin:0;
-    font-size:.72rem;
-    letter-spacing:.24rem;
-    font-weight:700;
-    text-transform:uppercase;
-    color:var(--clr-red);
-    display:flex;
-    align-items:center;
-    gap:.55rem;
+
+.admin-dash .ov-ico {
+    width:22px; height:22px; border-radius:6px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.62rem; color:var(--ov-color,var(--red));
+    background:var(--ov-lt,rgba(180,28,34,.09));
 }
-.kpi-grid {
-    display:grid;
-    gap:1rem;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+
+.admin-dash .ov-num-row {
+    display:flex; align-items:flex-end; justify-content:space-between; gap:.5rem;
 }
-.kpi-box {
+
+.admin-dash .ov-number {
+    font-size:2.5rem; font-weight:800; line-height:1;
+    color:var(--t1); letter-spacing:-2px;
+}
+
+/* CSS-only donut */
+.admin-dash .donut {
+    width:52px; height:52px; flex-shrink:0; border-radius:50%;
+    background:conic-gradient(
+        var(--ov-color,var(--red)) calc(var(--pct,0) * 1%),
+        var(--border) 0
+    );
     position:relative;
-    background:var(--panel-alt);
+    display:flex; align-items:center; justify-content:center;
+}
+
+.admin-dash .donut::before {
+    content:''; position:absolute;
+    width:36px; height:36px; border-radius:50%;
+    background:var(--card);
+}
+
+.admin-dash .donut-pct {
+    position:relative; z-index:1;
+    font-size:.5rem; font-weight:700; color:var(--t2);
+}
+
+.admin-dash .ov-break {
+    padding-top:.75rem; border-top:1px solid var(--border);
+}
+
+.admin-dash .ov-tags-lbl {
+    font-size:.54rem; font-weight:700; letter-spacing:.6px;
+    color:var(--t3); text-transform:uppercase;
+}
+
+.admin-dash .ov-vals {
+    font-size:.62rem; color:var(--t2); margin-top:.2rem;
+    font-variant-numeric:tabular-nums;
+}
+
+/* ===== DETAIL PANELS (2×2 grid) ===== */
+.admin-dash .detail-grid {
+    margin-top:1.75rem;
+    display:grid; gap:1.125rem;
+    grid-template-columns:1fr 1fr;
+}
+
+@@media(max-width:900px) { .admin-dash .detail-grid { grid-template-columns:1fr; } }
+
+.admin-dash .det-panel {
+    background:var(--card); border-radius:20px;
     border:1px solid var(--border);
-    border-radius:24px;
-    padding:.8rem .85rem .75rem;
-    display:flex;
-    flex-direction:column;
-    gap:.4rem;
-    overflow:hidden;
-    transition:.3s;
-}
-.kpi-box:hover {
-    border-color:var(--border-alt);
-    box-shadow:0 6px 18px -10px rgba(0,0,0,.18);
-}
-.kpi-box small {
-    font-size:.5rem;
-    letter-spacing:.18rem;
-    font-weight:700;
-    opacity:.85;
-    color:var(--clr-gray);
-}
-.kpi-box span {
-    font-size:1.25rem;
-    font-weight:600;
-    line-height:1;
-    color:#222;
-}
-.spark {
-    width:100%;
-    height:46px;
-    display:flex;
-    align-items:flex-end;
-    gap:3px;
-    overflow:hidden;
-    margin:.25rem 0 0;
-}
-.spark span {
-    flex:1;
-    display:block;
-    background:linear-gradient(180deg,var(--clr-top,#ff7a18),var(--clr-bottom,#b31217));
-    border-radius:5px 5px 0 0;
-    animation:grow .9s ease forwards;
-    transform:scaleY(0);
-    transform-origin:bottom;
-}
-@@keyframes grow { to { transform:scaleY(1); } }
-
-.kpi-note {
-    font-size:.5rem;
-    letter-spacing:.1rem;
-    color:var(--clr-gray);
+    padding:1.625rem 1.625rem 1.375rem;
+    display:flex; flex-direction:column; gap:1.25rem;
+    position:relative; overflow:hidden;
+    box-shadow:var(--sh-sm);
 }
 
-/* Color variants for KPI boxes */
-.kpi-red    { --clr-top:#ff7a18; --clr-bottom:#b31217; }
-.kpi-blue   { --clr-top:#4ba5ff; --clr-bottom:#156fd6; }
-.kpi-green  { --clr-top:#58d49b; --clr-bottom:#2ba66e; }
-.kpi-purple { --clr-top:#9c6df2; --clr-bottom:#6e42c4; }
-.kpi-teal   { --clr-top:#33d4cd; --clr-bottom:#1aa9a2; }
-.kpi-yellow { --clr-top:#ffe176; --clr-bottom:#e9b312; }
+/* Left accent bar */
+.admin-dash .det-panel::before {
+    content:''; position:absolute; left:0; top:0; bottom:0;
+    width:3px; background:var(--pc,var(--red));
+    border-radius:20px 0 0 20px;
+}
 
-/* Responsive tweaks */
-@@media (max-width:740px) {
-    .toolbar { width:100%; }
-    .hero-icon { width:80px; height:80px; font-size:2.1rem; }
+.admin-dash .det-head {
+    display:flex; align-items:center; gap:.875rem;
+}
+
+.admin-dash .det-ico {
+    width:38px; height:38px; flex-shrink:0; border-radius:11px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; color:var(--pc,var(--red));
+    background:var(--pc-lt,rgba(180,28,34,.09));
+}
+
+.admin-dash .det-title {
+    font-size:.65rem; font-weight:800; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--pc,var(--red));
+}
+
+.admin-dash .det-sub {
+    font-size:.62rem; color:var(--t3); margin-top:.12rem;
+}
+
+/* KPI grid inside panels */
+.admin-dash .kpi-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:.75rem;
+}
+
+.admin-dash .kpi-box {
+    background:var(--bg); border:1px solid var(--border); border-radius:14px;
+    padding:.875rem 1rem .75rem;
+    display:flex; flex-direction:column; gap:.5rem;
+    position:relative; overflow:hidden;
+    transition:border-color .2s,box-shadow .2s;
+}
+
+.admin-dash .kpi-box:hover {
+    border-color:var(--kc,var(--red));
+    box-shadow:0 4px 14px rgba(0,0,0,.07);
+}
+
+/* Left color stripe */
+.admin-dash .kpi-box::before {
+    content:''; position:absolute; left:0; top:0; bottom:0;
+    width:3px; background:var(--kc,var(--red)); border-radius:14px 0 0 14px;
+    opacity:.65;
+}
+
+.admin-dash .kpi-lbl {
+    font-size:.52rem; font-weight:700; letter-spacing:1.4px;
+    text-transform:uppercase; color:var(--t3);
+}
+
+.admin-dash .kpi-val {
+    font-size:1.75rem; font-weight:800; line-height:1;
+    color:var(--kc,var(--red)); letter-spacing:-1.2px;
+    font-variant-numeric:tabular-nums;
+}
+
+/* Spark bars */
+.admin-dash .spark {
+    width:100%; height:34px;
+    display:flex; align-items:flex-end; gap:3px;
+    margin-top:.3rem;
+}
+
+.admin-dash .spark b {
+    flex:1; display:block; border-radius:3px 3px 0 0;
+    background:var(--kc,var(--red)); opacity:.3;
+    animation:ap-grow .75s ease forwards;
+    transform:scaleY(0); transform-origin:bottom;
+}
+
+.admin-dash .spark b:nth-child(1) { animation-delay:.04s; }
+.admin-dash .spark b:nth-child(2) { animation-delay:.12s; opacity:.5; }
+.admin-dash .spark b:nth-child(3) { animation-delay:.20s; opacity:.7; }
+.admin-dash .spark b:nth-child(4) { animation-delay:.28s; opacity:.9; }
+
+@@keyframes ap-grow { to { transform:scaleY(1); } }
+
+.admin-dash .det-note {
+    font-size:.59rem; color:var(--t3); letter-spacing:.3px;
+    padding-top:.75rem; border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:.4rem;
+}
+
+/* KPI color helpers */
+.k-red    { --kc:var(--red);    }
+.k-blue   { --kc:var(--blue);   }
+.k-green  { --kc:var(--green);  }
+.k-violet { --kc:var(--violet); }
+.k-teal   { --kc:var(--teal);   }
+.k-amber  { --kc:var(--amber);  }
+.k-orange { --kc:var(--orange); }
+
+@@media(max-width:740px) {
+    .admin-dash .dash-hero { padding:1.5rem 1.375rem; }
+    .admin-dash .hero-title { font-size:1.45rem; }
+    .admin-dash .hero-icon  { width:68px; height:68px; font-size:1.75rem; }
 }
 </style>
 
 <div class="admin-dash">
-    <!-- HERO -->
-    <div class="hero-band">
+
+    <!-- ===== HERO ===== -->
+    <header class="dash-hero">
         <div class="hero-icon"><i class="fa fa-gauge-high"></i></div>
-        <div class="header-text">
+
+        <div class="hero-body">
             <h1 class="hero-title">Administrative Intelligence</h1>
             <p class="hero-sub">
-                Graphical snapshot of document flow, assessment workload and departmental reporting output.
+                Real-time snapshot of document flow, assessment workload, and departmental reporting output.
             </p>
-            <div class="meta-pills">
-                <span class="meta-pill"><i class="fa fa-layer-group"></i> PLATFORM v2</span>
-                <span class="meta-pill"><i class="fa fa-database"></i> TOTAL @grandTotal</span>
+            <div class="hero-tags">
+                <span class="hero-tag tag-live">Live</span>
+                <span class="hero-tag"><i class="fa fa-layer-group"></i>&nbsp;Platform v2</span>
+                <span class="hero-tag"><i class="fa fa-database"></i>&nbsp;@grandTotal Records</span>
+                <span class="hero-tag"><i class="fa fa-calendar-days"></i>&nbsp;@DateTime.Now.ToString("dd MMM yyyy")</span>
             </div>
         </div>
-        <div class="toolbar">
-            <button class="tb-btn" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
-            <button class="tb-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop2"><i class="fa fa-circle-info"></i> What's New</button>
-        </div>
-    </div>
 
-    <!-- SUMMARY -->
-    <div class="summary-grid">
-        <div class="stat-card" style="--donut-color:var(--clr-red);--pct:@(Math.Round(pct(totalAssess, grandTotal)))">
-            <div class="sc-label">Assessments</div>
-            <div class="sc-value">
-                @totalAssess
-                <div class="donut" aria-label="Assessments share">@Math.Round(pct(totalAssess, grandTotal))%</div>
-            </div>
-            <div class="sc-foot">
-                <span class="small-chip">FORM / SUM / PRAC / IISA</span>
-                <span style="font-size:.5rem;color:var(--clr-gray);">@formative / @summative / @practical / @iisa</span>
-            </div>
+        <div class="hero-toolbar">
+            <button class="htb-btn" onclick="location.reload()">
+                <i class="fa fa-rotate"></i> Refresh
+            </button>
+            <button class="htb-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">
+                <i class="fa fa-circle-info"></i> What's New
+            </button>
         </div>
-        <div class="stat-card" style="--donut-color:var(--clr-blue);--pct:@(Math.Round(pct(totalLearnerDocs, grandTotal)))">
-            <div class="sc-label">Learner Docs</div>
-            <div class="sc-value">
-                @totalLearnerDocs
-                <div class="donut" aria-label="Learner docs share">@Math.Round(pct(totalLearnerDocs, grandTotal))%</div>
-            </div>
-            <div class="sc-foot">
-                <span class="small-chip">ID • CV • MAT • GUARD</span>
-                <span style="font-size:.5rem;color:var(--clr-gray);">@idDocs / @cvDocs / @matric / @guardian</span>
-            </div>
-        </div>
-        <div class="stat-card" style="--donut-color:var(--clr-teal);--pct:@(Math.Round(pct(totalTraining, grandTotal)))">
-            <div class="sc-label">Training Docs</div>
-            <div class="sc-value">
-                @totalTraining
-                <div class="donut" aria-label="Training docs share">@Math.Round(pct(totalTraining, grandTotal))%</div>
-            </div>
-            <div class="sc-foot">
-                <span class="small-chip">ENR • IND • DEC • CON</span>
-                <span style="font-size:.5rem;color:var(--clr-gray);">@enrollForms / @induction / @declaration / @conduct</span>
-            </div>
-        </div>
-        <div class="stat-card" style="--donut-color:var(--clr-purple);--pct:@(Math.Round(pct(totalReports, grandTotal)))">
-            <div class="sc-label">Reports</div>
-            <div class="sc-value">
-                @totalReports
-                <div class="donut" aria-label="Reports share">@Math.Round(pct(totalReports, grandTotal))%</div>
-            </div>
-            <div class="sc-foot">
-                <span class="small-chip">NAT • ELEC • WELD • PLMB</span>
-                <span style="font-size:.5rem;color:var(--clr-gray);">@nated / @electrician / @welder / @plumber</span>
-            </div>
-        </div>
-    </div>
+    </header>
 
-    <!-- SECTIONS -->
-    <div class="sections-wrap">
-        <div class="block-area">
-            <div class="ba-head"><i class="fa fa-file-pen text-danger"></i><h2>Assessment Uploads</h2></div>
-            <div class="kpi-grid">
-                <div class="kpi-box kpi-red">
-                    <small>FORMATIVES</small><span>@formative</span>
-                    <div class="spark">
-                        <span style="height:40%;"></span><span style="height:70%;"></span><span style="height:55%;"></span><span style="height:85%;"></span>
-                    </div>
-                </div>
-                <div class="kpi-box kpi-purple">
-                    <small>SUMMATIVES</small><span>@summative</span>
-                    <div class="spark">
-                        <span style="height:30%;"></span><span style="height:90%;"></span><span style="height:60%;"></span><span style="height:40%;"></span>
-                    </div>
-                </div>
-                <div class="kpi-box kpi-teal">
-                    <small>PRACTICALS</small><span>@practical</span>
-                    <div class="spark">
-                        <span style="height:25%;"></span><span style="height:55%;"></span><span style="height:75%;"></span><span style="height:35%;"></span>
-                    </div>
-                </div>
-                <div class="kpi-box kpi-yellow">
-                    <small>IISA</small><span>@iisa</span>
-                    <div class="spark">
-                        <span style="height:60%;"></span><span style="height:40%;"></span><span style="height:80%;"></span><span style="height:50%;"></span>
-                    </div>
+    <!-- ===== OVERVIEW STRIP ===== -->
+    <div class="overview-row">
+
+        <!-- Assessments -->
+        <div class="ov-card"
+             style="--ov-color:var(--red);--ov-lt:var(--red-lt);--pct:@((int)Math.Round(pct(totalAssess, grandTotal)))">
+            <div class="ov-label">
+                <span class="ov-ico"><i class="fa fa-file-pen"></i></span>
+                Assessments
+            </div>
+            <div class="ov-num-row">
+                <div class="ov-number">@totalAssess</div>
+                <div class="donut" title="@Math.Round(pct(totalAssess, grandTotal))% of total records">
+                    <span class="donut-pct">@((int)Math.Round(pct(totalAssess, grandTotal)))%</span>
                 </div>
             </div>
-            <div class="kpi-note">Forek Spark Bars</div>
+            <div class="ov-break">
+                <div class="ov-tags-lbl">Form &nbsp;·&nbsp; Sum &nbsp;·&nbsp; Prac &nbsp;·&nbsp; IISA</div>
+                <div class="ov-vals">@formative &nbsp;/&nbsp; @summative &nbsp;/&nbsp; @practical &nbsp;/&nbsp; @iisa</div>
+            </div>
         </div>
 
-        <div class="block-area">
-            <div class="ba-head"><i class="fa fa-id-card text-danger"></i><h2>Learner Documents</h2></div>
-            <div class="kpi-grid">
-                <div class="kpi-box kpi-blue"><small>ID DOCS</small><span>@idDocs</span></div>
-                <div class="kpi-box kpi-green"><small>CVS</small><span>@cvDocs</span></div>
-                <div class="kpi-box kpi-purple"><small>MATRICS</small><span>@matric</span></div>
-                <div class="kpi-box kpi-teal"><small>GUARDIANS</small><span>@guardian</span></div>
+        <!-- Learner Docs -->
+        <div class="ov-card"
+             style="--ov-color:var(--blue);--ov-lt:var(--blue-lt);--pct:@((int)Math.Round(pct(totalLearnerDocs, grandTotal)))">
+            <div class="ov-label">
+                <span class="ov-ico"><i class="fa fa-id-card"></i></span>
+                Learner Docs
             </div>
-            <div class="kpi-note">Identity & academic baseline artifacts.</div>
+            <div class="ov-num-row">
+                <div class="ov-number">@totalLearnerDocs</div>
+                <div class="donut" title="@Math.Round(pct(totalLearnerDocs, grandTotal))% of total records">
+                    <span class="donut-pct">@((int)Math.Round(pct(totalLearnerDocs, grandTotal)))%</span>
+                </div>
+            </div>
+            <div class="ov-break">
+                <div class="ov-tags-lbl">ID &nbsp;·&nbsp; CV &nbsp;·&nbsp; Matric &nbsp;·&nbsp; Guardian</div>
+                <div class="ov-vals">@idDocs &nbsp;/&nbsp; @cvDocs &nbsp;/&nbsp; @matric &nbsp;/&nbsp; @guardian</div>
+            </div>
         </div>
 
-        <div class="block-area">
-            <div class="ba-head"><i class="fa fa-school text-danger"></i><h2>Training Documents</h2></div>
-            <div class="kpi-grid">
-                <div class="kpi-box kpi-green"><small>ENROLLMENT</small><span>@enrollForms</span></div>
-                <div class="kpi-box kpi-yellow"><small>INDUCTION</small><span>@induction</span></div>
-                <div class="kpi-box kpi-blue"><small>DECLARATIONS</small><span>@declaration</span></div>
-                <div class="kpi-box kpi-purple"><small>CONDUCTS</small><span>@conduct</span></div>
+        <!-- Training Docs -->
+        <div class="ov-card"
+             style="--ov-color:var(--teal);--ov-lt:var(--teal-lt);--pct:@((int)Math.Round(pct(totalTraining, grandTotal)))">
+            <div class="ov-label">
+                <span class="ov-ico"><i class="fa fa-school"></i></span>
+                Training Docs
             </div>
-            <div class="kpi-note">Onboarding compliance confirmations.</div>
+            <div class="ov-num-row">
+                <div class="ov-number">@totalTraining</div>
+                <div class="donut" title="@Math.Round(pct(totalTraining, grandTotal))% of total records">
+                    <span class="donut-pct">@((int)Math.Round(pct(totalTraining, grandTotal)))%</span>
+                </div>
+            </div>
+            <div class="ov-break">
+                <div class="ov-tags-lbl">Enr &nbsp;·&nbsp; Ind &nbsp;·&nbsp; Dec &nbsp;·&nbsp; Conduct</div>
+                <div class="ov-vals">@enrollForms &nbsp;/&nbsp; @induction &nbsp;/&nbsp; @declaration &nbsp;/&nbsp; @conduct</div>
+            </div>
         </div>
 
-        <div class="block-area">
-            <div class="ba-head"><i class="fa fa-chart-line text-danger"></i><h2>Progress Reports</h2></div>
-            <div class="kpi-grid">
-                <div class="kpi-box kpi-orange"><small>NATED</small><span>@nated</span></div>
-                <div class="kpi-box kpi-purple"><small>ELECTRICAL</small><span>@electrician</span></div>
-                <div class="kpi-box kpi-green"><small>WELDING</small><span>@welder</span></div>
-                <div class="kpi-box kpi-teal"><small>PLUMBING</small><span>@plumber</span></div>
+        <!-- Reports -->
+        <div class="ov-card"
+             style="--ov-color:var(--violet);--ov-lt:var(--violet-lt);--pct:@((int)Math.Round(pct(totalReports, grandTotal)))">
+            <div class="ov-label">
+                <span class="ov-ico"><i class="fa fa-chart-line"></i></span>
+                Progress Reports
             </div>
-            <div class="kpi-note">Departmental / trade progression snapshots.</div>
+            <div class="ov-num-row">
+                <div class="ov-number">@totalReports</div>
+                <div class="donut" title="@Math.Round(pct(totalReports, grandTotal))% of total records">
+                    <span class="donut-pct">@((int)Math.Round(pct(totalReports, grandTotal)))%</span>
+                </div>
+            </div>
+            <div class="ov-break">
+                <div class="ov-tags-lbl">Nated &nbsp;·&nbsp; Elec &nbsp;·&nbsp; Weld &nbsp;·&nbsp; Plmb</div>
+                <div class="ov-vals">@nated &nbsp;/&nbsp; @electrician &nbsp;/&nbsp; @welder &nbsp;/&nbsp; @plumber</div>
+            </div>
         </div>
-    </div>
-</div>
+
+    </div><!-- /overview-row -->
+
+    <!-- ===== DETAIL PANELS ===== -->
+    <div class="detail-grid">
+
+        <!-- Assessment Uploads -->
+        <div class="det-panel" style="--pc:var(--red);--pc-lt:var(--red-lt);">
+            <div class="det-head">
+                <div class="det-ico"><i class="fa fa-file-pen"></i></div>
+                <div>
+                    <div class="det-title">Assessment Uploads</div>
+                    <div class="det-sub">Formative, summative, practical &amp; IISA workload</div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-box k-red">
+                    <div class="kpi-lbl">Formatives</div>
+                    <div class="kpi-val">@formative</div>
+                    <div class="spark">
+                        <b style="height:40%;"></b><b style="height:68%;"></b>
+                        <b style="height:52%;"></b><b style="height:88%;"></b>
+                    </div>
+                </div>
+                <div class="kpi-box k-violet">
+                    <div class="kpi-lbl">Summatives</div>
+                    <div class="kpi-val">@summative</div>
+                    <div class="spark">
+                        <b style="height:32%;"></b><b style="height:88%;"></b>
+                        <b style="height:58%;"></b><b style="height:42%;"></b>
+                    </div>
+                </div>
+                <div class="kpi-box k-teal">
+                    <div class="kpi-lbl">Practicals</div>
+                    <div class="kpi-val">@practical</div>
+                    <div class="spark">
+                        <b style="height:28%;"></b><b style="height:58%;"></b>
+                        <b style="height:78%;"></b><b style="height:38%;"></b>
+                    </div>
+                </div>
+                <div class="kpi-box k-amber">
+                    <div class="kpi-lbl">IISA</div>
+                    <div class="kpi-val">@iisa</div>
+                    <div class="spark">
+                        <b style="height:62%;"></b><b style="height:42%;"></b>
+                        <b style="height:82%;"></b><b style="height:52%;"></b>
+                    </div>
+                </div>
+            </div>
+            <div class="det-note">
+                <i class="fa fa-chart-bar"></i> Spark bars show illustrative relative volume trends.
+            </div>
+        </div>
+
+        <!-- Learner Documents -->
+        <div class="det-panel" style="--pc:var(--blue);--pc-lt:var(--blue-lt);">
+            <div class="det-head">
+                <div class="det-ico"><i class="fa fa-id-card"></i></div>
+                <div>
+                    <div class="det-title">Learner Documents</div>
+                    <div class="det-sub">Identity &amp; academic baseline artifacts</div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-box k-blue">
+                    <div class="kpi-lbl">ID Docs</div>
+                    <div class="kpi-val">@idDocs</div>
+                </div>
+                <div class="kpi-box k-green">
+                    <div class="kpi-lbl">CVs</div>
+                    <div class="kpi-val">@cvDocs</div>
+                </div>
+                <div class="kpi-box k-violet">
+                    <div class="kpi-lbl">Matrics</div>
+                    <div class="kpi-val">@matric</div>
+                </div>
+                <div class="kpi-box k-teal">
+                    <div class="kpi-lbl">Guardians</div>
+                    <div class="kpi-val">@guardian</div>
+                </div>
+            </div>
+            <div class="det-note">
+                <i class="fa fa-folder-open"></i> All mandatory learner onboarding documents.
+            </div>
+        </div>
+
+        <!-- Training Documents -->
+        <div class="det-panel" style="--pc:var(--teal);--pc-lt:var(--teal-lt);">
+            <div class="det-head">
+                <div class="det-ico"><i class="fa fa-school"></i></div>
+                <div>
+                    <div class="det-title">Training Documents</div>
+                    <div class="det-sub">Onboarding &amp; compliance confirmations</div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-box k-green">
+                    <div class="kpi-lbl">Enrollment</div>
+                    <div class="kpi-val">@enrollForms</div>
+                </div>
+                <div class="kpi-box k-amber">
+                    <div class="kpi-lbl">Induction</div>
+                    <div class="kpi-val">@induction</div>
+                </div>
+                <div class="kpi-box k-blue">
+                    <div class="kpi-lbl">Declarations</div>
+                    <div class="kpi-val">@declaration</div>
+                </div>
+                <div class="kpi-box k-violet">
+                    <div class="kpi-lbl">Conducts</div>
+                    <div class="kpi-val">@conduct</div>
+                </div>
+            </div>
+            <div class="det-note">
+                <i class="fa fa-clipboard-check"></i> Onboarding compliance &amp; code-of-conduct records.
+            </div>
+        </div>
+
+        <!-- Progress Reports -->
+        <div class="det-panel" style="--pc:var(--violet);--pc-lt:var(--violet-lt);">
+            <div class="det-head">
+                <div class="det-ico"><i class="fa fa-chart-line"></i></div>
+                <div>
+                    <div class="det-title">Progress Reports</div>
+                    <div class="det-sub">Departmental &amp; trade progression snapshots</div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-box k-orange">
+                    <div class="kpi-lbl">NATED</div>
+                    <div class="kpi-val">@nated</div>
+                </div>
+                <div class="kpi-box k-blue">
+                    <div class="kpi-lbl">Electrical</div>
+                    <div class="kpi-val">@electrician</div>
+                </div>
+                <div class="kpi-box k-green">
+                    <div class="kpi-lbl">Welding</div>
+                    <div class="kpi-val">@welder</div>
+                </div>
+                <div class="kpi-box k-teal">
+                    <div class="kpi-lbl">Plumbing</div>
+                    <div class="kpi-val">@plumber</div>
+                </div>
+            </div>
+            <div class="det-note">
+                <i class="fa fa-graduation-cap"></i> Departmental &amp; trade progression snapshots.
+            </div>
+        </div>
+
+    </div><!-- /detail-grid -->
+
+</div><!-- /admin-dash -->
 
 @await Html.PartialAsync("_DynamicNotifications")
-<script>window.__notificationsEndpoint='/Notification/Index';</script>
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script>window.__notificationsEndpoint = '/Notification/Index';</script>
+<script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
 <script src="~/js/notifications.js"></script>

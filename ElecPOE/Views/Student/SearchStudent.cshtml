@@ -1,0 +1,801 @@
+@model List<ForekOnline.Domain.Entities.Student>
+@{
+    string? searchType  = ViewData["searchType"]  as string;
+    string? searchValue = ViewData["searchValue"] as string;
+    bool   hasSearched  = !string.IsNullOrWhiteSpace(searchType) && !string.IsNullOrWhiteSpace(searchValue);
+    bool   hasResults   = Model != null && Model.Count > 0;
+    string typeLabel    = searchType switch {
+        "IDNumber"       => "ID Number",
+        "PassportNumber" => "Passport Number",
+        _                => "Student Number"
+    };
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    /* ─── Tokens ───────────────────────────────────── */
+    :root {
+        --e9:  #071F18;
+        --e8:  #0A3D2F;
+        --e7:  #0D5740;
+        --e5:  #1A8A62;
+        --e3:  #4DB896;
+        --e1:  #C4E8D8;
+        --e0:  #EBF7F1;
+        --g1:  #F4FAF7;
+        --or5: #D94E26;
+        --or4: #E8693E;
+        --or1: #FDEAE0;
+        --gd5: #B8952A;   /* warm gold */
+        --gd1: #FDF5E0;
+        --bg:  linear-gradient(145deg, #F7FAF8 0%, #F0F5EE 50%, #F6F3EE 100%);
+        --card:#FFFFFF;
+        --t9:  #0D1F18;
+        --t7:  #2A4238;
+        --t5:  #4F6B5E;
+        --t3:  #8BA898;
+        --t1:  #C5D8CE;
+        --bdr: rgba(10,61,47,.10);
+        --bds: rgba(10,61,47,.16);
+        --sh-xs: 0 1px 4px  rgba(10,61,47,.05);
+        --sh-sm: 0 2px 10px rgba(10,61,47,.07);
+        --sh-md: 0 8px 32px rgba(10,61,47,.10);
+        --sh-lg: 0 20px 60px rgba(10,61,47,.13);
+        --sh-xl: 0 32px 80px rgba(10,61,47,.16);
+        --sh-glow: 0 0 48px rgba(26,138,98,.18);
+        --sh-glow-or: 0 0 44px rgba(217,78,38,.14);
+        --ge:  linear-gradient(135deg, #0A3D2F 0%, #1A8A62 100%);
+        --gem: linear-gradient(135deg, #0D5740 0%, #4DB896 100%);
+        --gor: linear-gradient(135deg, #B83418 0%, #E8693E 100%);
+        --ggd: linear-gradient(135deg, #B8952A 0%, #E8C76A 100%);
+        --gl:  linear-gradient(135deg, rgba(255,255,255,.97) 0%, rgba(255,255,255,.91) 100%);
+        --gsoft: linear-gradient(135deg, rgba(10,61,47,.02) 0%, rgba(26,138,98,.05) 50%, rgba(217,78,38,.07) 100%);
+        --ease: cubic-bezier(.4,0,.2,1);
+        --spring: cubic-bezier(.34,1.56,.64,1);
+        --r-xs: 10px; --r-sm: 14px; --r-md: 20px;
+        --r-lg: 28px; --r-xl: 36px; --r-2xl: 48px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: var(--bg);
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        color: var(--t9);
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+    }
+
+    /* ─── Page shell ───────────────────────────────── */
+    .pg {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1.4rem 5rem;
+    }
+
+    /* ─── Keyframes ────────────────────────────────── */
+    @@keyframes slideDown  { from{opacity:0;transform:translateY(-24px)} to{opacity:1;transform:none} }
+    @@keyframes slideUp    { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:none} }
+    @@keyframes fadeIn     { from{opacity:0}                              to{opacity:1} }
+    @@keyframes scaleUp    { from{opacity:0;transform:scale(.93)}         to{opacity:1;transform:scale(1)} }
+    @@keyframes rowSlide   { from{opacity:0;transform:translateX(-16px)}  to{opacity:1;transform:none} }
+    @@keyframes hintIn     { from{opacity:0;transform:translateY(18px)}   to{opacity:1;transform:none} }
+    @@keyframes glowFloat  { 0%,100%{transform:translate(0,0)scale(1);opacity:.45} 50%{transform:translate(22px,-16px)scale(1.1);opacity:.65} }
+    @@keyframes spinFade   { from{opacity:0;transform:rotate(-90deg)scale(.7)} to{opacity:1;transform:none} }
+
+    /* ─── Header ───────────────────────────────────── */
+    .hd {
+        background: var(--gl);
+        border: 1px solid rgba(255,255,255,.8);
+        border-radius: var(--r-2xl);
+        padding: 1.6rem 2rem;
+        display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center;
+        position: relative; overflow: hidden;
+        box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,.95);
+        animation: slideDown .55s var(--ease) both;
+    }
+    .hd::before {
+        content:""; position:absolute; inset:0;
+        background: var(--gsoft); pointer-events:none;
+    }
+    .hd::after {
+        content:""; position:absolute; inset:-55%;
+        background: radial-gradient(ellipse at 22% 58%, rgba(26,138,98,.16), transparent 50%),
+                    radial-gradient(ellipse at 78% 35%, rgba(184,149,42,.1), transparent 50%);
+        animation: glowFloat 10s ease-in-out infinite;
+        pointer-events:none;
+    }
+
+    /* Header icon */
+    .hd-icon {
+        width: 78px; height: 78px;
+        border-radius: 26px;
+        background: var(--ge);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.85rem;
+        flex-shrink: 0; position: relative; z-index: 1;
+        box-shadow: 0 14px 36px -12px rgba(10,61,47,.6),
+                    inset 0 1px 0 rgba(255,255,255,.22),
+                    0 0 0 4px rgba(10,61,47,.06);
+        transition: transform .45s var(--spring), box-shadow .4s var(--ease);
+    }
+    .hd-icon::after {
+        content:""; position:absolute; inset:0; border-radius:inherit;
+        background: var(--gem); opacity:0; transition:opacity .4s;
+    }
+    .hd-icon:hover { transform: translateY(-3px) scale(1.06); box-shadow: 0 20px 44px -12px rgba(10,61,47,.7), 0 0 0 6px rgba(10,61,47,.08); }
+    .hd-icon:hover::after { opacity:1; }
+    .hd-icon i { position:relative; z-index:1; }
+
+    /* Header text */
+    .hd-text { position:relative; z-index:1; }
+    .hd-text h1 {
+        font-size: 1.6rem; font-weight: 900;
+        letter-spacing: -.45px; color: var(--t9);
+        display: flex; align-items: center; gap: .65rem; line-height: 1.1;
+    }
+    .hd-text h1 i { color: var(--e5); font-size: 1.35rem; }
+
+    .hd-pill {
+        display: inline-flex; align-items: center; gap: .42rem;
+        margin-top: .48rem;
+        font-size: .49rem; letter-spacing: .24rem; font-weight: 900;
+        text-transform: uppercase;
+        background: var(--e0); color: var(--e8);
+        padding: .42rem .92rem; border-radius: 50px;
+        border: 1px solid rgba(10,61,47,.14);
+        box-shadow: 0 2px 8px rgba(10,61,47,.08);
+    }
+    .hd-pill i { font-size: .7rem; }
+
+    .hd-tools { margin-left: auto; display:flex; gap:.65rem; position:relative; z-index:1; }
+
+    /* ─── Buttons ──────────────────────────────────── */
+    .btn {
+        font-size: .6rem; letter-spacing: .13rem; font-weight: 700; text-transform: uppercase;
+        padding: .66rem 1.15rem; border-radius: var(--r-sm);
+        border: 1px solid var(--bds); background: #fff; color: var(--e8);
+        display: inline-flex; align-items: center; gap: .48rem;
+        text-decoration: none; white-space: nowrap; cursor: pointer;
+        transition: all .3s var(--ease);
+        box-shadow: var(--sh-sm); position: relative; overflow: hidden;
+    }
+    .btn::before { content:""; position:absolute; inset:0; background:var(--ge); opacity:0; transition:opacity .3s; }
+    .btn:hover   { color:#fff; border-color:var(--e7); transform:translateY(-2px); box-shadow:0 8px 24px -8px rgba(10,61,47,.4); }
+    .btn:hover::before { opacity:1; }
+    .btn i, .btn span { position:relative; z-index:1; }
+
+    /* ─── Search card ──────────────────────────────── */
+    .search-card {
+        margin-top: 1.6rem;
+        background: var(--gl);
+        border: 1px solid rgba(255,255,255,.8);
+        border-radius: var(--r-2xl);
+        padding: 2.4rem 2.2rem 2rem;
+        position: relative; overflow: hidden;
+        box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,.95);
+        animation: slideUp .6s var(--ease) .1s both;
+    }
+    .search-card::before {
+        content:""; position:absolute; inset:0;
+        background: var(--gsoft); opacity:.6; pointer-events:none;
+    }
+    .search-card::after {
+        content:""; position:absolute; inset:-55%;
+        background: radial-gradient(ellipse at 75% 45%, rgba(184,149,42,.1), transparent 55%);
+        animation: glowFloat 11s ease-in-out infinite reverse; pointer-events:none;
+    }
+    .sc-inner { position:relative; z-index:1; }
+
+    /* Section heading */
+    .sec-hd {
+        display: flex; align-items: center; gap: .65rem;
+        font-size: .55rem; letter-spacing: .25rem; font-weight: 900;
+        text-transform: uppercase; color: var(--e8);
+        margin-bottom: 1.8rem;
+    }
+    .sec-hd i { font-size: .9rem; color: var(--e5); }
+    .sec-hd::after {
+        content:""; flex:1; height: 1.5px;
+        background: linear-gradient(90deg, rgba(10,61,47,.22) 0%, transparent 100%);
+    }
+
+    /* Form fields */
+    .sf { display:flex; gap:.9rem; flex-wrap:wrap; align-items:flex-end; }
+
+    .fld { display:flex; flex-direction:column; gap:.5rem; }
+    .fld-lbl {
+        font-size: .52rem; letter-spacing: .2rem; font-weight: 800;
+        text-transform: uppercase; color: var(--t5);
+        display: flex; align-items: center; gap: .38rem;
+    }
+    .fld-lbl i { color: var(--e5); font-size: .75rem; }
+    .fld-type { flex: 0 0 226px; }
+    .fld-val  { flex: 1 1 270px; }
+
+    /* Inputs */
+    .sel, .inp {
+        height: 50px; border-radius: 15px;
+        border: 1.5px solid var(--bdr);
+        background: rgba(255,255,255,.95);
+        font-family: 'Inter', sans-serif;
+        font-size: .8rem; font-weight: 500; color: var(--t9);
+        padding: 0 1.1rem; outline: none;
+        transition: all .3s var(--ease);
+        box-shadow: var(--sh-xs);
+        -webkit-appearance: none; appearance: none;
+    }
+    .sel {
+        background: rgba(255,255,255,.95)
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%230A3D2F' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+            no-repeat right 15px center;
+        padding-right: 2.6rem; cursor: pointer;
+    }
+    .sel:focus, .inp:focus {
+        border-color: var(--e5);
+        box-shadow: 0 0 0 4px rgba(26,138,98,.12), var(--sh-xs);
+        background: #fff;
+    }
+    .sel:hover:not(:focus), .inp:hover:not(:focus) {
+        border-color: var(--e3);
+    }
+    /* Gold accent ring on the type select */
+    #searchType:focus {
+        border-color: var(--gd5);
+        box-shadow: 0 0 0 4px rgba(184,149,42,.12), var(--sh-xs);
+    }
+
+    /* Search + Clear buttons */
+    .sbtn {
+        height: 50px; padding: 0 2rem;
+        border-radius: 15px; border: none; cursor: pointer;
+        background: var(--ge); color: #fff;
+        font-family: 'Inter', sans-serif;
+        font-size: .62rem; letter-spacing: .15rem; font-weight: 800; text-transform: uppercase;
+        display: flex; align-items: center; gap: .5rem; white-space: nowrap;
+        box-shadow: 0 8px 24px -8px rgba(10,61,47,.55),
+                    inset 0 1px 0 rgba(255,255,255,.15);
+        transition: all .3s var(--ease); position:relative; overflow:hidden;
+    }
+    .sbtn::before { content:""; position:absolute; inset:0; background:var(--gem); opacity:0; transition:opacity .3s; }
+    .sbtn:hover   { transform:translateY(-3px); box-shadow:0 14px 32px -8px rgba(10,61,47,.65), var(--sh-glow); }
+    .sbtn:hover::before { opacity:1; }
+    .sbtn:active  { transform:translateY(-1px); }
+    .sbtn i, .sbtn span { position:relative; z-index:1; }
+
+    .cbtn {
+        height: 50px; padding: 0 1.3rem; border-radius: 15px;
+        border: 1.5px solid var(--bdr); background: transparent; color: var(--t5);
+        font-family: 'Inter', sans-serif;
+        font-size: .6rem; letter-spacing: .12rem; font-weight: 700; text-transform: uppercase;
+        display: flex; align-items: center; gap: .42rem; white-space: nowrap;
+        text-decoration: none; cursor: pointer;
+        transition: all .28s var(--ease); box-shadow: var(--sh-xs);
+    }
+    .cbtn:hover { background: var(--e0); color: var(--e8); border-color: var(--e1); transform:translateY(-1px); }
+
+    /* ─── Active search summary bar ────────────────── */
+    .search-summary {
+        display: flex; align-items: center; gap: .75rem;
+        margin-top: 1.4rem;
+        padding: .9rem 1.2rem;
+        background: var(--e0); border: 1px solid var(--e1);
+        border-radius: var(--r-md);
+        font-size: .7rem; color: var(--e8);
+        animation: slideUp .4s var(--ease) both;
+    }
+    .search-summary i  { color: var(--e5); font-size: .9rem; }
+    .search-summary em { font-weight: 800; font-style: normal; }
+
+    /* ─── Results ──────────────────────────────────── */
+    .results-hd {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: .65rem;
+        margin: 1.6rem 0 1rem;
+        animation: fadeIn .4s var(--ease) both;
+    }
+    .results-title {
+        font-size: .55rem; letter-spacing: .25rem; font-weight: 900;
+        text-transform: uppercase; color: var(--e8);
+        display: flex; align-items: center; gap: .55rem;
+    }
+    .results-title i { color: var(--e5); }
+    .results-count {
+        display: inline-flex; align-items: center; gap: .4rem;
+        font-size: .52rem; font-weight: 800; letter-spacing: .12rem; text-transform: uppercase;
+        background: var(--e0); color: var(--e8); padding:.34rem .8rem; border-radius:50px;
+        border: 1px solid var(--e1);
+    }
+
+    /* Result rows */
+    .r-row {
+        background: var(--card);
+        border: 1px solid var(--bdr);
+        border-radius: var(--r-lg);
+        padding: 1.1rem 1.3rem 1.1rem 1.1rem;
+        display: flex; align-items: center; gap: 1.1rem;
+        text-decoration: none; color: inherit;
+        position: relative; overflow: hidden;
+        margin-bottom: .7rem;
+        transition: all .38s var(--ease);
+        box-shadow: var(--sh-sm);
+        animation: rowSlide .4s var(--ease) both;
+    }
+    .r-row:nth-child(1)  { animation-delay:.05s }
+    .r-row:nth-child(2)  { animation-delay:.09s }
+    .r-row:nth-child(3)  { animation-delay:.13s }
+    .r-row:nth-child(4)  { animation-delay:.17s }
+    .r-row:nth-child(5)  { animation-delay:.21s }
+    .r-row:nth-child(6)  { animation-delay:.25s }
+    .r-row:nth-child(7)  { animation-delay:.29s }
+    .r-row:nth-child(8)  { animation-delay:.33s }
+    .r-row:nth-child(9)  { animation-delay:.37s }
+    .r-row:nth-child(10) { animation-delay:.41s }
+
+    /* Left accent line */
+    .r-row::before {
+        content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+        background: var(--ge); border-radius:0 0 0 0;
+        transform: scaleY(0); transform-origin: bottom;
+        transition: transform .35s var(--ease);
+    }
+    /* Top shimmer */
+    .r-row::after {
+        content:""; position:absolute; inset:0;
+        background: radial-gradient(ellipse at 92% 10%, rgba(26,138,98,.07), transparent 60%);
+        pointer-events:none;
+    }
+    .r-row:hover {
+        transform: translateX(8px);
+        box-shadow: var(--sh-lg), var(--sh-glow);
+        border-color: var(--e1);
+    }
+    .r-row:hover::before { transform: scaleY(1); }
+
+    /* Avatar circle */
+    .r-av {
+        width: 52px; height: 52px; border-radius: 18px;
+        background: var(--ge); color: #fff; font-size: 1.2rem;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; position: relative; z-index: 1;
+        box-shadow: 0 8px 20px -10px rgba(10,61,47,.6),
+                    inset 0 1px 0 rgba(255,255,255,.2);
+        transition: transform .3s var(--spring);
+    }
+    .r-row:hover .r-av { transform: scale(1.1) rotate(5deg); }
+
+    /* Body */
+    .r-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
+    .r-name {
+        font-size: .9rem; font-weight: 800; color: var(--t9);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        letter-spacing: -.1px;
+    }
+    .r-meta { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.35rem; }
+    .r-tag  {
+        font-size: .56rem; font-weight: 600; color: var(--t5);
+        display: inline-flex; align-items: center; gap: .32rem;
+    }
+    .r-tag i { color: var(--e5); }
+
+    /* Badges */
+    .r-bgs { display:flex; flex-direction:column; align-items:flex-end; gap:.38rem; position:relative; z-index:1; flex-shrink:0; }
+    .ib { display:inline-flex; align-items:center; gap:.32rem; font-size:.5rem; font-weight:700; letter-spacing:.1rem; padding:.26rem .65rem; border-radius:50px; }
+    .ib-e  { background:var(--e0);  color:var(--e8);  border:1px solid var(--e1); }
+    .ib-g  { background:rgba(10,120,50,.07); color:#0a7832; border:1px solid rgba(10,120,50,.18); }
+    .ib-gr { background:#f4f4f4; color:#5a6b64; border:1px solid #e0e0e0; }
+    .ib-r  { background:var(--or1); color:#b83418; border:1px solid rgba(184,52,24,.15); }
+
+    /* Chevron */
+    .r-arrow { color:var(--e5); font-size:.85rem; position:relative; z-index:1; flex-shrink:0; transition:transform .3s var(--spring); }
+    .r-row:hover .r-arrow { transform:translateX(5px); }
+
+    /* ─── Empty state ──────────────────────────────── */
+    .empty {
+        text-align: center; padding: 4rem 2rem;
+        background: var(--card); border: 1px solid var(--bdr);
+        border-radius: var(--r-2xl); box-shadow: var(--sh-sm);
+        animation: scaleUp .5s var(--ease) .08s both;
+    }
+    .empty-ico {
+        width: 88px; height: 88px; border-radius: 32px;
+        background: var(--ge); color: #fff; font-size: 2.1rem;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.4rem;
+        box-shadow: 0 14px 36px -12px rgba(10,61,47,.55);
+        animation: spinFade .6s var(--spring) .2s both;
+    }
+    .empty h3 { font-size: 1.08rem; font-weight: 800; color: var(--t9); margin-bottom: .55rem; }
+    .empty p  { font-size: .72rem; color: var(--t5); max-width: 340px; margin: 0 auto; line-height: 1.7; }
+    .empty-tag {
+        display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.2rem;
+        font-size: .54rem; font-weight: 700; letter-spacing: .12rem;
+        background: var(--e0); color: var(--e8); padding: .38rem .9rem;
+        border-radius: 50px; border: 1px solid var(--e1);
+        cursor: pointer; transition: all .25s var(--ease); text-decoration:none;
+    }
+    .empty-tag:hover { background: var(--e8); color: #fff; }
+
+    /* ─── How-to section ───────────────────────────── */
+    .how-section { margin-top: 1.8rem; animation: slideUp .65s var(--ease) .15s both; }
+    .how-divider {
+        display: flex; align-items: center; gap: .7rem;
+        font-size: .52rem; letter-spacing: .22rem; font-weight: 800;
+        text-transform: uppercase; color: var(--t3); margin-bottom: 1.1rem;
+    }
+    .how-divider::before, .how-divider::after { content:""; flex:1; height:1px; background:var(--t1); }
+
+    .hints { display:grid; gap:1rem; grid-template-columns:repeat(3,1fr); }
+
+    .hint {
+        background: var(--card); border: 1px solid var(--bdr);
+        border-radius: var(--r-lg); padding: 1.3rem 1.2rem 1.2rem;
+        display: flex; flex-direction: column; gap: .85rem;
+        box-shadow: var(--sh-sm); position: relative; overflow: hidden;
+        transition: all .38s var(--ease);
+        animation: hintIn .5s var(--ease) both;
+    }
+    .hint:nth-child(1) { animation-delay:.1s }
+    .hint:nth-child(2) { animation-delay:.17s }
+    .hint:nth-child(3) { animation-delay:.24s }
+    /* Top highlight stripe */
+    .hint::before {
+        content:""; position:absolute; top:0; left:0; right:0; height:3px;
+        background: var(--ge);
+        transform: scaleX(0); transform-origin: left;
+        transition: transform .38s var(--ease);
+    }
+    /* Soft ambient glow corner */
+    .hint::after {
+        content:""; position:absolute; inset:0;
+        background: radial-gradient(ellipse at 90% 0%, rgba(26,138,98,.07), transparent 65%);
+        pointer-events:none;
+    }
+    .hint:hover { transform:translateY(-6px); box-shadow:var(--sh-lg),var(--sh-glow); border-color:var(--e1); }
+    .hint:hover::before { transform:scaleX(1); }
+
+    .hint-ico-wrap {
+        width: 50px; height: 50px; border-radius: 17px;
+        background: var(--ge); color: #fff; font-size: 1.15rem;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 20px -10px rgba(10,61,47,.55),
+                    inset 0 1px 0 rgba(255,255,255,.2);
+        transition: transform .3s var(--spring);
+        position: relative; z-index: 1;
+    }
+    .hint:hover .hint-ico-wrap { transform: scale(1.12) rotate(6deg); }
+
+    .hint-body { position:relative; z-index:1; }
+    .hint-title { font-size:.78rem; font-weight:800; color:var(--t9); margin-bottom:.35rem; letter-spacing:-.1px; }
+    .hint-desc  { font-size:.65rem; color:var(--t5); line-height:1.65; }
+    .hint-ex {
+        display: inline-flex; align-items:center; gap:.32rem;
+        font-size: .54rem; font-weight: 700; letter-spacing:.1rem;
+        background: var(--e0); color: var(--e8);
+        padding: .28rem .65rem; border-radius: 50px;
+        border: 1px solid var(--e1); margin-top:.55rem;
+    }
+    .hint-ex i { font-size:.65rem; }
+
+    /* ─── Decorative background mesh ──────────────── */
+    .bg-mesh {
+        position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden;
+    }
+    .bg-mesh::before {
+        content:""; position:absolute;
+        width:700px; height:700px; border-radius:50%;
+        background: radial-gradient(circle, rgba(10,61,47,.055) 0%, transparent 70%);
+        top:-180px; left:-200px;
+    }
+    .bg-mesh::after {
+        content:""; position:absolute;
+        width:600px; height:600px; border-radius:50%;
+        background: radial-gradient(circle, rgba(184,149,42,.04) 0%, transparent 70%);
+        bottom:-150px; right:-150px;
+    }
+
+    /* ─── Responsive ───────────────────────────────── */
+    @@media (max-width:700px) {
+        .sf       { flex-direction:column; }
+        .fld-type, .fld-val { flex:1 1 100%; }
+        .hints    { grid-template-columns:1fr; }
+        .r-bgs    { display:none; }
+        .hd       { padding:1.2rem 1.2rem; }
+        .hd-icon  { width:60px; height:60px; font-size:1.45rem; }
+        .hd-text h1 { font-size:1.3rem; }
+        .search-card { padding:1.6rem 1.3rem 1.4rem; }
+    }
+    @@media (max-width:480px) {
+        .pg { padding:1.2rem .9rem 3rem; }
+        .hints { grid-template-columns:1fr; }
+    }
+</style>
+
+<!-- Background mesh -->
+<div class="bg-mesh"></div>
+
+<div class="pg">
+
+    <!-- ══════════════════════════════════════════
+         HEADER
+    ══════════════════════════════════════════ -->
+    <div class="hd">
+        <div class="hd-icon">
+            <i class="fa fa-magnifying-glass"></i>
+        </div>
+        <div class="hd-text">
+            <h1>
+                <i class="fa fa-user-graduate"></i>
+                Search Student
+            </h1>
+            <span class="hd-pill">
+                <i class="fa fa-circle-nodes"></i> LOOKUP
+            </span>
+        </div>
+        <div class="hd-tools">
+            <a class="btn" asp-action="StudentList" asp-controller="Student">
+                <i class="fa fa-users-line"></i><span>Student List</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SEARCH CARD
+    ══════════════════════════════════════════ -->
+    <div class="search-card">
+        <div class="sc-inner">
+            <div class="sec-hd">
+                <i class="fa fa-sliders"></i> Search Criteria
+            </div>
+
+            <form method="get" asp-action="SearchStudent" asp-controller="Student" autocomplete="off">
+                <div class="sf">
+
+                    <!-- Search-by dropdown -->
+                    <div class="fld fld-type">
+                        <label class="fld-lbl" for="searchType">
+                            <i class="fa fa-filter"></i> Search By
+                        </label>
+                   <select id="searchType" name="searchType" class="sel"
+        onchange="syncPlaceholder(this)">
+
+    <option value="StudentNumber" selected="@(searchType == "StudentNumber")">
+        Student Number
+    </option>
+
+    <option value="IDNumber" selected="@(searchType == "IDNumber")">
+        ID Number
+    </option>
+
+    <option value="PassportNumber" selected="@(searchType == "PassportNumber")">
+        Passport Number
+    </option>
+
+</select>
+                    </div>
+
+                    <!-- Value input -->
+                    <div class="fld fld-val">
+                        <label class="fld-lbl" for="searchValue">
+                            <i class="fa fa-keyboard"></i> Value
+                        </label>
+                        <input id="searchValue" name="searchValue" type="text"
+                               class="inp" value="@searchValue"
+                               placeholder="Enter student number…"
+                               spellcheck="false" />
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="sbtn">
+                        <i class="fa fa-magnifying-glass"></i><span>Search</span>
+                    </button>
+
+                    @if (hasSearched)
+                    {
+                    <a href="@Url.Action("SearchStudent","Student")" class="cbtn">
+                        <i class="fa fa-xmark"></i><span>Clear</span>
+                    </a>
+                    }
+
+                </div>
+            </form>
+
+            @if (hasSearched)
+            {
+            <div class="search-summary">
+                <i class="fa fa-circle-info"></i>
+                Searching by <em>@typeLabel</em> for
+                &ldquo;<em>@searchValue</em>&rdquo;
+                @if (hasResults)
+                {
+                <span style="margin-left:auto;font-size:.62rem;font-weight:700;color:var(--e5);">
+                    <i class="fa fa-check-circle"></i> @Model!.Count @(Model.Count == 1 ? "record" : "records") found
+                </span>
+                }
+                else
+                {
+                <span style="margin-left:auto;font-size:.62rem;font-weight:700;color:var(--or5);">
+                    <i class="fa fa-circle-xmark"></i> No records found
+                </span>
+                }
+            </div>
+            }
+
+        </div><!-- /sc-inner -->
+    </div><!-- /search-card -->
+
+
+    @if (hasSearched)
+    {
+
+    <!-- ══════════════════════════════════════════
+         RESULTS
+    ══════════════════════════════════════════ -->
+    <div class="results-hd">
+        <div class="results-title">
+            <i class="fa fa-list-check"></i> Results
+        </div>
+        @if (hasResults)
+        {
+        <span class="results-count">
+            <i class="fa fa-users"></i>
+            @Model!.Count @(Model.Count == 1 ? "student" : "students") found
+        </span>
+        }
+    </div>
+
+    @if (hasResults)
+    {
+        @foreach (var s in Model!)
+        {
+            var enr = s.EnrollmentHistory?.FirstOrDefault(e => e.IsActive)
+                   ?? s.EnrollmentHistory?.FirstOrDefault();
+            string course = enr?.CourseTitle ?? "";
+            if (course.Length > 42) course = course[..42] + "…";
+
+        <a class="r-row"
+           asp-action="StudentDetail" asp-controller="Student"
+           asp-route-StudentNumber="@s.StudentNumber">
+            <div class="r-av"><i class="fa fa-user"></i></div>
+            <div class="r-body">
+                <div class="r-name">@s.FullName</div>
+                <div class="r-meta">
+                    <span class="r-tag"><i class="fa fa-hashtag"></i>@s.StudentNumber</span>
+                    @if (!string.IsNullOrWhiteSpace(s.IDNumber))
+                    {
+                    <span class="r-tag"><i class="fa fa-id-card"></i>@s.IDNumber</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(s.Cellphone))
+                    {
+                    <span class="r-tag"><i class="fa fa-phone"></i>@s.Cellphone</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(course))
+                    {
+                    <span class="r-tag"><i class="fa fa-graduation-cap"></i>@course</span>
+                    }
+                </div>
+            </div>
+            <div class="r-bgs">
+                <span class="ib @(s.IsActive && !s.Deregistered ? "ib-g" : s.Deregistered ? "ib-r" : "ib-gr")">
+                    <i class="fa fa-circle" style="font-size:.45rem;"></i>
+                    @(s.Deregistered ? "Deregistered" : (s.IsActive ? "Active" : "Inactive"))
+                </span>
+                @if (!string.IsNullOrWhiteSpace(s.Gender.ToString()))
+                {
+                <span class="ib ib-e"><i class="fa fa-venus-mars"></i>@s.Gender</span>
+                }
+            </div>
+            <i class="fa fa-chevron-right r-arrow"></i>
+        </a>
+
+        }
+    }
+    else
+    {
+    <!-- Empty state -->
+    <div class="empty">
+        <div class="empty-ico"><i class="fa fa-user-magnifying-glass"></i></div>
+        <h3>No Students Found</h3>
+        <p>
+            No records matched
+            <strong>&ldquo;@searchValue&rdquo;</strong>
+            when searching by <strong>@typeLabel</strong>.
+            Double-check the value or try a different search type.
+        </p>
+        <a href="@Url.Action("SearchStudent","Student")" class="empty-tag">
+            <i class="fa fa-rotate-left"></i> New Search
+        </a>
+    </div>
+    }
+
+    }
+    else
+    {
+
+    <!-- ══════════════════════════════════════════
+         HOW-TO GUIDANCE  (shown before first search)
+    ══════════════════════════════════════════ -->
+    <div class="how-section">
+        <div class="how-divider">How to search</div>
+        <div class="hints">
+
+            <div class="hint">
+                <div class="hint-ico-wrap">
+                    <i class="fa fa-hashtag"></i>
+                </div>
+                <div class="hint-body">
+                    <div class="hint-title">Student Number</div>
+                    <div class="hint-desc">
+                        The unique alphanumeric identifier assigned to each learner
+                        at the time of enrollment in the Forek system.
+                    </div>
+                    <span class="hint-ex">
+                        <i class="fa fa-lightbulb"></i> e.g. STU-2024-00142
+                    </span>
+                </div>
+            </div>
+
+            <div class="hint">
+                <div class="hint-ico-wrap">
+                    <i class="fa fa-id-card"></i>
+                </div>
+                <div class="hint-body">
+                    <div class="hint-title">ID Number</div>
+                    <div class="hint-desc">
+                        The 13-digit South African national identity number printed
+                        on the learner's green ID book or smart ID card.
+                    </div>
+                    <span class="hint-ex">
+                        <i class="fa fa-lightbulb"></i> e.g. 9001015800082
+                    </span>
+                </div>
+            </div>
+
+            <div class="hint">
+                <div class="hint-ico-wrap">
+                    <i class="fa fa-passport"></i>
+                </div>
+                <div class="hint-body">
+                    <div class="hint-title">Passport Number</div>
+                    <div class="hint-desc">
+                        The international travel document number used for foreign
+                        national learners who do not hold a South African ID.
+                    </div>
+                    <span class="hint-ex">
+                        <i class="fa fa-lightbulb"></i> e.g. A12345678
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    }
+
+</div><!-- /pg -->
+
+<script>
+    /* Placeholder sync when dropdown changes */
+    var ph = {
+        StudentNumber:  'Enter student number…',
+        IDNumber:       'Enter 13-digit SA ID number…',
+        PassportNumber: 'Enter passport number…'
+    };
+    function syncPlaceholder(sel) {
+        var inp = document.getElementById('searchValue');
+        if (inp) inp.placeholder = ph[sel.value] || '';
+    }
+    /* Run on page load */
+    (function () {
+        var sel = document.getElementById('searchType');
+        var inp = document.getElementById('searchValue');
+        if (sel) syncPlaceholder(sel);
+        /* Auto-focus the value input if not already filled */
+        if (inp && !inp.value) inp.focus();
+        /* Allow Enter to submit from the input */
+        if (inp) inp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') inp.closest('form').submit();
+        });
+    })();
+</script>

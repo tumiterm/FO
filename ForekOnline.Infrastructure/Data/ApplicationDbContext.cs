@@ -311,6 +311,22 @@ namespace ForekOnline.Infrastructure.Data
             #region Academics
             modelBuilder.Entity<StudentEntity>(entity =>
             {
+                // ── Enum columns: live DB uses TINYINT, EF defaults to INT. ──────
+                // HasConversion<byte>() makes EF call GetByte() instead of GetInt32()
+                // so the InvalidCastException on read is eliminated without a migration.
+                entity.Property(e => e.AdmissionCategory)
+                    .HasConversion<byte>()
+                    .HasColumnType("tinyint");
+
+                entity.Property(e => e.Gender)
+                    .HasConversion<byte>()
+                    .HasColumnType("tinyint");
+
+                // Province is nullable — use the nullable byte converter
+                entity.Property(e => e.Province)
+                    .HasConversion<byte?>()
+                    .HasColumnType("tinyint");
+
                 //entity.HasIndex(e => e.StudentNumber)
                 //    .IsUnique()
                 //    .HasDatabaseName("UX_Student_StudentNumber");

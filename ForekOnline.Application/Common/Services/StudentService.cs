@@ -44,10 +44,14 @@ namespace ForekOnline.Application.Common.Services
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNameCaseInsensitive = true,   
+            PropertyNameCaseInsensitive = true,
+            // Accept PascalCase enum names (e.g. "FullTime") as serialised by the legacy API.
+            // Previously JsonNamingPolicy.CamelCase was set here, which caused a JsonException
+            // whenever the API returned "FullTime" instead of "fullTime".
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
             Converters =
             {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) 
+                new JsonStringEnumConverter()
             }
         };
 
@@ -104,40 +108,65 @@ namespace ForekOnline.Application.Common.Services
                 return cached;
             }
 
+            // ── 1. SQL Server (primary — API-independent) ─────────────────────
             try
             {
-                var student = await SendGetAsync<Student>($"Student", new Dictionary<string, string>
+                var entity = await _unitOfWork.Students.GetAsync(
+                    filter: s => s.StudentNumber == studentNumber,
+                    includeProperties: new[] { nameof(StudentEntity.Enrollments) },
+                    asNoTracking: true);
+
+                if (entity != null)
+                {
+                    _logger.LogDebug("SQL Server hit for student {StudentNumber}.", studentNumber);
+                    var mapped = MapToStudent(entity);
+                    SetCache(cacheKey, mapped);
+                    return mapped;
+                }
+
+                _logger.LogDebug("Student {StudentNumber} not found in SQL Server; trying legacy API.", studentNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "SQL Server lookup failed for student {StudentNumber}; trying legacy API.", studentNumber);
+            }
+
+            // ── 2. Legacy API (to be retired) ──────────────────────────────────
+            try
+            {
+                var student = await SendGetAsync<Student>("Student", new Dictionary<string, string>
                 {
                     ["StudentNumber"] = studentNumber
                 });
 
-                if (student == null)
+                if (student != null)
                 {
-                    _logger.LogWarning("Student not found. StudentNumber={StudentNumber}", studentNumber);
-                    return null; 
+                    SetCache(cacheKey, student);
+                    return student;
                 }
 
-                SetCache(cacheKey, student);
-                return student;
+                _logger.LogWarning("Student not found in API. StudentNumber={StudentNumber}", studentNumber);
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogWarning(ex, "API unavailable for student {StudentNumber}, falling back to SQLite cache.", studentNumber);
-                var fallback = await _cacheStore.GetCachedStudentAsync(studentNumber);
-                if (fallback != null)
-                {
-                    _logger.LogInformation("SQLite cache hit for student {StudentNumber}.", studentNumber);
-                    SetCache(cacheKey, fallback);
-                    return fallback;
-                }
-                _logger.LogError(ex, "HTTP failure retrieving student {StudentNumber} and no SQLite cache available.", studentNumber);
-                throw new InvalidOperationException("Failed to retrieve student.", ex);
+                _logger.LogWarning(ex, "API unavailable for student {StudentNumber}; trying SQLite cache.", studentNumber);
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, "Invalid JSON retrieving student {StudentNumber}", studentNumber);
-                throw new InvalidOperationException("Invalid data returned for student.", ex);
+                _logger.LogWarning(ex, "API returned invalid JSON for student {StudentNumber}; trying SQLite cache.", studentNumber);
             }
+
+            // ── 3. SQLite fallback ─────────────────────────────────────────────
+            var fallback = await _cacheStore.GetCachedStudentAsync(studentNumber);
+            if (fallback != null)
+            {
+                _logger.LogInformation("SQLite cache hit for student {StudentNumber}.", studentNumber);
+                SetCache(cacheKey, fallback);
+                return fallback;
+            }
+
+            _logger.LogWarning("Student {StudentNumber} not found in SQL Server, API, or SQLite cache.", studentNumber);
+            return null;
         }
 
 
@@ -234,36 +263,65 @@ namespace ForekOnline.Application.Common.Services
             }
 
             List<Student> students;
+
+            // ── 1. SQL Server (primary — no API dependency) ────────────────────
+            try
+            {
+                var entities = await _unitOfWork.Students.GetAllAsync(
+                    includeProperties: new[] { nameof(StudentEntity.Enrollments) },
+                    asNoTracking: true);
+
+                if (entities != null && entities.Count > 0)
+                {
+                    students = entities.Select(MapToStudent).ToList();
+
+                    _logger.LogInformation(
+                        "Loaded {Count} students from SQL Server (primary).", students.Count);
+
+                    // Keep SQLite in sync in the background for offline resilience
+                    EnqueueSqliteSync(students);
+
+                    _cache.Set(listKey, students, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = ListAbsolute
+                    });
+                    return students;
+                }
+
+                _logger.LogWarning(
+                    "SQL Server returned no students; falling through to legacy API.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "SQL Server query failed; falling through to legacy API.");
+            }
+
+            // ── 2. Legacy API (to be retired) ──────────────────────────────────
             try
             {
                 students = await SendGetAsync<List<Student>>("Students") ?? new List<Student>();
 
                 if (students.Count > 0)
                 {
-                    var studentsToSync = students;
+                    _logger.LogInformation(
+                        "Loaded {Count} students from legacy API.", students.Count);
 
-                    _ = Task.Run(async () =>
+                    EnqueueSqliteSync(students);
+
+                    _cache.Set(listKey, students, new MemoryCacheEntryOptions
                     {
-                        using var scope = _scopeFactory.CreateScope();
-                        var scopedCacheStore = scope.ServiceProvider.GetRequiredService<IStudentCacheStore>();
-
-                        try
-                        {
-                            await scopedCacheStore.SyncStudentsAsync(studentsToSync);
-                        }
-                        catch (Exception syncEx)
-                        {
-                            _logger.LogError(syncEx, "Background SQLite sync failed.");
-                        }
+                        AbsoluteExpirationRelativeToNow = ListAbsolute
                     });
+                    return students;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Primary API call failed, falling back to SQLite cache.");
-
-                students = await GetStudentsFromSqliteFallbackAsync();
+                _logger.LogWarning(ex, "Legacy API call failed; falling back to SQLite cache.");
             }
+
+            // ── 3. SQLite fallback ─────────────────────────────────────────────
+            students = await GetStudentsFromSqliteFallbackAsync();
 
             _cache.Set(listKey, students, new MemoryCacheEntryOptions
             {
@@ -961,6 +1019,128 @@ namespace ForekOnline.Application.Common.Services
 
             return new StudentPrintDetailsViewModel(student, placement);
         }
+
+        #region SQL Server mapper
+
+        /// <summary>
+        /// Maps a SQL-Server-owned <see cref="StudentEntity"/> (Academics schema) to the
+        /// shared <see cref="Student"/> domain model that the rest of the application uses.
+        /// This is the canonical projection used when SQL Server is the primary source.
+        /// </summary>
+        private static Student MapToStudent(StudentEntity e)
+        {
+            return new Student
+            {
+                // ── Identity ──────────────────────────────────────────────────
+                Id            = e.Id,
+                StudentId     = e.Id,
+                StudentNumber = e.StudentNumber,
+                FirstName     = e.Name,           // StudentEntity.Name = first name
+                MiddleName    = e.MiddleName,
+                LastName      = e.LastName,
+                Name          = e.Name,
+                Code          = e.Code,
+                RowVersion    = e.RowVersion,
+
+                // ── Personal ──────────────────────────────────────────────────
+                DateOfBirth   = e.DateOfBirth,
+                Gender        = e.Gender,
+                PlaceOfBirth  = e.PlaceOfBirth,
+                Nationality   = e.Nationality,
+                Language      = e.Language,
+                HasDisability = e.HasDisability,
+                Disability    = e.Disability,
+
+                // ── Identification ────────────────────────────────────────────
+                IDNumber            = e.IDNumber,
+                PassportNumber      = e.PassportNumber,
+                StudyPermitNumber   = e.StudyPermitNumber,
+                StudyPermitExpiry   = e.StudyPermitExpiry,
+
+                // ── Contact ───────────────────────────────────────────────────
+                Email            = e.Email,
+                Cellphone        = e.Cellphone,
+                AlternativePhone = e.AlternativePhone,
+
+                // ── Address ───────────────────────────────────────────────────
+                StreetAddressLine1 = e.StreetAddressLine1,
+                StreetAddressLine2 = e.StreetAddressLine2,
+                City               = e.City,
+                Province           = e.Province,
+                PostalCode         = e.PostalCode,
+                Country            = e.Country,
+
+                // ── Admission ─────────────────────────────────────────────────
+                AdmissionDate      = e.AdmissionDate,
+                AdmissionCategory  = e.AdmissionCategory,
+                RegistrationSource = e.RegistrationSource,
+                HighestGrade       = e.HighestGrade,
+                NameOfSchool       = e.NameOfSchool,
+
+                // ── Academic status ───────────────────────────────────────────
+                IsActive             = e.IsActive,
+                Deregistered         = e.Deregistered || e.IsDeregistered,
+                DeregistrationDate   = e.DeregistrationDate,
+                DeregistrationReason = e.DeregistrationReason,
+                IsDeleted            = e.IsDeleted,
+                DateDeleted          = e.DateDeleted.HasValue ? e.DateDeleted.Value.DateTime : (DateTime?)null,
+
+                // ── Placement & enrollment ────────────────────────────────────
+                PlacementId       = e.PlacementId,
+                Placement         = e.Placement,
+                EnrollmentHistory = e.Enrollments?
+                    .Select(en => new EnrollmentHistory
+                    {
+                        EnrollmentId     = en.Id,
+                        StudentId        = e.Id,
+                        CourseId         = en.CourseId,
+                        CourseTitle      = en.CourseTitle      ?? string.Empty,
+                        CourseType       = en.CourseType       ?? string.Empty,
+                        EnrollmentStatus = en.EnrollmentStatus ?? "Active",
+                        StartDate        = en.StartDate,
+                        DateCompleted    = en.DateCompleted,
+                        IsActive         = en.IsActive,
+                    })
+                    .ToList(),
+
+                // ── Guardian ──────────────────────────────────────────────────
+                Guardian   = e.Guardian,
+                GuardianId = e.GuardianId,
+
+                // ── Documents ─────────────────────────────────────────────────
+                Documents = e.Documents,
+
+                // ── Audit ─────────────────────────────────────────────────────
+                CreatedAt  = e.DateCreated.DateTime,
+                UpdatedAt  = e.DateModified == default ? null : e.DateModified.DateTime,
+                CreatedBy  = e.UserCreated,
+                UpdatedBy  = e.UserModified,
+            };
+        }
+
+        /// <summary>
+        /// Fires-and-forgets a background task that syncs the given student list into the
+        /// SQLite resilience cache so it remains available for offline/fallback scenarios.
+        /// </summary>
+        private void EnqueueSqliteSync(List<Student> students)
+        {
+            var snapshot = students; // capture before lambda closes over it
+            _ = Task.Run(async () =>
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var store = scope.ServiceProvider.GetRequiredService<IStudentCacheStore>();
+                try
+                {
+                    await store.SyncStudentsAsync(snapshot);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Background SQLite sync failed.");
+                }
+            });
+        }
+
+        #endregion
 
         #region HTTP + Helpers
 

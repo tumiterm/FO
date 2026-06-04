@@ -87,6 +87,7 @@ namespace ForekOnline.Application.Common.Services
                 if (payload.CourseId.HasValue)
                 {
                     await EnsureEnrollmentAsync(uow, existing.Id, payload.CourseId.Value, ct);
+                    await uow.SaveAsync();
                 }
                 return;
             }
@@ -120,12 +121,16 @@ namespace ForekOnline.Application.Common.Services
 
             await uow.Students.AddAsync(foStudent, ct);
 
+            // ── Commit the student row first so all FK constraints that reference
+            //    Academics.Students.Id are satisfied before enrollment children arrive.
+            await uow.SaveAsync();
+
             if (payload.CourseId.HasValue)
             {
                 await CreateEnrollmentAsync(uow, foStudent.Id, payload.CourseId.Value, ct);
+                await uow.SaveAsync();
             }
 
-            await uow.SaveAsync();
             _logger.LogInformation("Created FoStudent {StudentNumber} from direct form data.", studentNumber);
         }
 
@@ -288,10 +293,15 @@ namespace ForekOnline.Application.Common.Services
                 DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
                 DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
                 IsDeleted = false,
-
             };
 
             await uow.Students.AddAsync(foStudent, ct);
+
+            // ── Flush the student row to the database before adding enrollment
+            //    children. Any FK constraint that points to Academics.Students.Id
+            //    (including manually-added ones like FK_EnrollmentHistory_Students)
+            //    requires the parent row to exist first.
+            await uow.SaveAsync();
 
             if (student.EnrollmentHistory is { Count: > 0 })
             {
@@ -299,6 +309,9 @@ namespace ForekOnline.Application.Common.Services
                 {
                     await CreateEnrollmentAsync(uow, foStudent.Id, eh.CourseId, eh, ct);
                 }
+                // Enrollments are committed by the caller's SaveAsync on success,
+                // but save here to keep the contract clear for future maintainers.
+                await uow.SaveAsync();
             }
 
             return UpsertResult.Created;
