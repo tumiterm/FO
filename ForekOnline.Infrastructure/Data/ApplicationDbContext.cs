@@ -577,6 +577,35 @@ namespace ForekOnline.Infrastructure.Data
             });
 
             modelBuilder.ApplyEntityConventions();
+
+            // The deployed Academics.Students table predates the shared audit convention and
+            // stores its audit timestamps as datetime2. Convert only this legacy entity so EF
+            // reads DateTime values without trying to cast them directly to DateTimeOffset.
+            var sastOffset = TimeSpan.FromHours(2);
+            modelBuilder.Entity<StudentEntity>(entity =>
+            {
+                entity.Property(e => e.DateCreated)
+                    .HasConversion(
+                        value => value.ToOffset(sastOffset).DateTime,
+                        value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Unspecified), sastOffset))
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("SYSDATETIME()");
+
+                entity.Property(e => e.DateModified)
+                    .HasConversion(
+                        value => value.ToOffset(sastOffset).DateTime,
+                        value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Unspecified), sastOffset))
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("SYSDATETIME()");
+
+                entity.Property(e => e.DateDeleted)
+                    .HasConversion(
+                        value => value.HasValue ? value.Value.ToOffset(sastOffset).DateTime : (DateTime?)null,
+                        value => value.HasValue
+                            ? new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Unspecified), sastOffset)
+                            : (DateTimeOffset?)null)
+                    .HasColumnType("datetime2");
+            });
         }
 
         /// <summary>
