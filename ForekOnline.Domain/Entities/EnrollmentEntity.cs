@@ -33,11 +33,11 @@ namespace ForekOnline.Domain.Entities
         public string? CourseType { get; set; }
 
         /// <summary>
-        /// Active | Completed | Dropped Out | Suspended
+        /// Active | Completed | Dropped Out | Suspended. Use <see cref="global::ForekOnline.Domain.Entities.EnrollmentStatus.Normalize"/> for external values.
         /// </summary>
         [Required]
         [MaxLength(30)]
-        public string EnrollmentStatus { get; set; } = "Active";
+        public string EnrollmentStatus { get; set; } = global::ForekOnline.Domain.Entities.EnrollmentStatus.Active;
 
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }

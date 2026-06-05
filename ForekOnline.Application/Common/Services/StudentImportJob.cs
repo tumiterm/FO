@@ -290,8 +290,8 @@ namespace ForekOnline.Application.Common.Services
                 IsDeregistered = student.Deregistered,
                 RegistrationSource = source,
                 OriginalApplicationId = applicationId,
-                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
-                DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset(),
                 IsDeleted = false,
             };
 
@@ -356,7 +356,7 @@ namespace ForekOnline.Application.Common.Services
                 CourseId = courseId,
                 CourseTitle = eh?.CourseTitle,
                 CourseType = eh?.CourseType,
-                EnrollmentStatus = eh?.EnrollmentStatus ?? "Active",
+                EnrollmentStatus = EnrollmentStatus.Normalize(eh?.EnrollmentStatus, eh?.IsActive, eh?.DateCompleted),
                 StartDate = eh?.StartDate ?? DateTime.UtcNow,
                 DateCompleted = eh?.DateCompleted,
                 IsActive = eh?.IsActive ?? true
