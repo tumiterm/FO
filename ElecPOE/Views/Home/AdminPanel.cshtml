@@ -1,707 +1,639 @@
 @{
-    int formative  = (int?)ViewData["Formative"]      ?? 0;
-    int summative  = (int?)ViewData["Summative"]      ?? 0;
-    int practical  = (int?)ViewData["Practical"]      ?? 0;
-    int iisa       = (int?)ViewData["IISA"]           ?? 0;
+    ViewData["Title"] = "Admin Command Centre";
+    ViewData["MetaDescription"] = "Forek Online administration command centre.";
 
-    int idDocs     = (int?)ViewData["ID"]             ?? 0;
-    int cvDocs     = (int?)ViewData["CV"]             ?? 0;
-    int matric     = (int?)ViewData["Matric"]         ?? 0;
-    int guardian   = (int?)ViewData["Guardian"]       ?? 0;
-
+    int formative   = (int?)ViewData["Formative"] ?? 0;
+    int summative   = (int?)ViewData["Summative"] ?? 0;
+    int practical   = (int?)ViewData["Practical"] ?? 0;
+    int iisa        = (int?)ViewData["IISA"] ?? 0;
+    int idDocs      = (int?)ViewData["ID"] ?? 0;
+    int cvDocs      = (int?)ViewData["CV"] ?? 0;
+    int matric      = (int?)ViewData["Matric"] ?? 0;
+    int guardian    = (int?)ViewData["Guardian"] ?? 0;
     int enrollForms = (int?)ViewData["EnrollmentForm"] ?? 0;
-    int induction   = (int?)ViewData["InductionForm"]  ?? 0;
-    int declaration = (int?)ViewData["Declaration"]    ?? 0;
-    int conduct     = (int?)ViewData["Conduct"]        ?? 0;
+    int induction   = (int?)ViewData["InductionForm"] ?? 0;
+    int declaration = (int?)ViewData["Declaration"] ?? 0;
+    int conduct     = (int?)ViewData["Conduct"] ?? 0;
+    int nated       = (int?)ViewData["NATED"] ?? 0;
+    int electrician = (int?)ViewData["Electrician"] ?? 0;
+    int welder      = (int?)ViewData["Welder"] ?? 0;
+    int plumber     = (int?)ViewData["Plumber"] ?? 0;
 
-    int nated       = (int?)ViewData["NATED"]         ?? 0;
-    int electrician = (int?)ViewData["Electrician"]   ?? 0;
-    int welder      = (int?)ViewData["Welder"]        ?? 0;
-    int plumber     = (int?)ViewData["Plumber"]       ?? 0;
+    int totalAssess      = formative + summative + practical + iisa;
+    int totalLearnerDocs = idDocs + cvDocs + matric + guardian;
+    int totalTraining    = enrollForms + induction + declaration + conduct;
+    int totalReports     = nated + electrician + welder + plumber;
+    int grandTotal       = totalAssess + totalLearnerDocs + totalTraining + totalReports;
 
-    int totalAssess     = formative  + summative  + practical + iisa;
-    int totalLearnerDocs = idDocs    + cvDocs     + matric    + guardian;
-    int totalTraining   = enrollForms + induction + declaration + conduct;
-    int totalReports    = nated      + electrician + welder    + plumber;
-    int grandTotal      = totalAssess + totalLearnerDocs + totalTraining + totalReports;
-
-    double pct(int part, int whole) => whole == 0 ? 0 : (double)part / whole * 100;
+    string currentUser = ViewData["CurrentUser"]?.ToString()?.Trim() ?? "Administrator";
+    string role = ViewData["role"]?.ToString() ?? "Administrator";
+    string firstName = currentUser.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Administrator";
+    string greeting = DateTime.Now.Hour < 12 ? "Good morning" : DateTime.Now.Hour < 18 ? "Good afternoon" : "Good evening";
+    double share(int part, int whole) => whole == 0 ? 0 : (double)part / whole * 100;
 }
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+@section Styles {
 <style>
-/* ===== NOTIFICATION MODAL (preserved) ===== */
-:root {
-    --ap-red: #B41C22;
-    --ap-grad: linear-gradient(95deg,#3D0608,#B41C22 55%,#EA580C);
-}
-
-#dynamicNotificationsModal .modal-header {
-    background: var(--ap-grad); color: #fff;
-    padding: .9rem 1.05rem; border-bottom: none;
-}
-
-#dynamicNotificationsModal .modal-header .modal-title {
-    margin: 0; font-weight: 600; letter-spacing: .5px;
-    font-size: .9rem; display: flex; align-items: center; gap: .55rem;
-}
-
-#dynamicNotificationsModal .modal-header i {
-    font-size: .95rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
-}
-
-#dynamicNotificationsModal .btn-act {
-    font-size: .6rem; letter-spacing: .14rem; font-weight: 600;
-    text-transform: uppercase; padding: .55rem .9rem; border-radius: 14px;
-    border: 1px solid #e2e5e9; background: #fff; color: var(--ap-red);
-    display: inline-flex; align-items: center; gap: .45rem;
-    text-decoration: none; transition: .28s;
-    box-shadow: 0 2px 6px -2px rgba(0,0,0,.15);
-}
-
-#dynamicNotificationsModal .btn-act:hover {
-    background: var(--ap-grad); color: #fff;
-    border-color: var(--ap-red); box-shadow: 0 6px 16px -8px rgba(180,28,34,.45);
-}
-
-#dynamicNotificationsModal .btn-act.btn-primary {
-    background: var(--ap-grad) !important; color: #fff !important;
-    border-color: var(--ap-red) !important;
-}
-
-#dynamicNotificationsModal .btn-act.btn-primary:hover { filter: brightness(.92); }
-
-#dynamicNotificationsModal .carousel-indicators [data-bs-target] {
-    background: #B41C22; width: 10px; height: 10px; border-radius: 50%;
-}
-
-#dynamicNotificationsModal .carousel-indicators .active { background: #EA580C; }
-
-
-/* ===== ADMIN DASHBOARD 2026 ===== */
-.admin-dash {
-    /* Color tokens */
-    --red:    #B41C22;   --red-lt:    rgba(180,28,34,.09);
-    --orange: #EA580C;   --orange-lt: rgba(234,88,12,.09);
-    --blue:   #2563EB;   --blue-lt:   rgba(37,99,235,.09);
-    --green:  #059669;   --green-lt:  rgba(5,150,105,.09);
-    --violet: #7C3AED;   --violet-lt: rgba(124,58,237,.09);
-    --teal:   #0891B2;   --teal-lt:   rgba(8,145,178,.09);
-    --amber:  #D97706;   --amber-lt:  rgba(217,119,6,.09);
-    /* Surface */
-    --bg:     #F3F2ED;
-    --card:   #FFFFFF;
-    --border: #E5E4DF;
-    --bd-dk:  #CFCEC8;
-    /* Text */
-    --t1: #1A1918;
-    --t2: #54534C;
-    --t3: #908F88;
-    /* Shadows */
-    --sh-xs: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
-    --sh-sm: 0 2px 8px rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.04);
-    --sh-md: 0 8px 24px rgba(0,0,0,.09),0 2px 8px rgba(0,0,0,.04);
-    --sh-lg: 0 20px 48px rgba(0,0,0,.11),0 8px 16px rgba(0,0,0,.06);
-
-    font-family: 'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    -webkit-font-smoothing: antialiased;
-    background: var(--bg);
-    padding: 2rem 1.5rem 3.5rem;
-    max-width: 1480px;
-    margin: 0 auto;
-}
-
-/* ===== HERO ===== */
-.admin-dash .dash-hero {
-    border-radius: 28px;
-    background: linear-gradient(148deg,#0B0608 0%,#190609 38%,#0E0812 72%,#07040F 100%);
-    padding: 2.5rem 2.75rem;
-    display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
-    position: relative; overflow: hidden;
-    box-shadow:
-        0 24px 64px -20px rgba(0,0,0,.6),
-        0 8px 24px -8px rgba(180,28,34,.22),
-        0 0 0 1px rgba(255,255,255,.04);
-}
-
-.admin-dash .dash-hero::before {
-    content:''; position:absolute; inset:0; pointer-events:none;
-    background:
-        radial-gradient(ellipse 110% 65% at -5% 55%,rgba(180,28,34,.25) 0%,transparent 52%),
-        radial-gradient(ellipse 70% 55% at 105% 15%,rgba(234,88,12,.13) 0%,transparent 50%),
-        radial-gradient(ellipse 55% 40% at 65% 105%,rgba(124,58,237,.09) 0%,transparent 45%);
-}
-
-.admin-dash .dash-hero::after {
-    content:''; position:absolute; inset:0; pointer-events:none;
-    background-image:
-        linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
-    background-size:28px 28px;
-}
-
-.admin-dash .hero-icon {
-    position:relative; z-index:1; flex-shrink:0;
-    width:84px; height:84px; border-radius:24px;
-    background:linear-gradient(135deg,#8E0F14,#B41C22 50%,#D43030);
-    display:flex; align-items:center; justify-content:center;
-    font-size:2.1rem; color:#fff;
-    box-shadow:
-        0 0 0 1px rgba(255,255,255,.07),
-        0 8px 32px rgba(180,28,34,.55),
-        0 0 56px rgba(180,28,34,.22);
-}
-
-.admin-dash .hero-body {
-    position:relative; z-index:1; flex:1; min-width:200px;
-}
-
-.admin-dash .hero-title {
-    margin:0; font-size:1.85rem; font-weight:800;
-    color:#FFFFFF; letter-spacing:-.6px; line-height:1.12;
-}
-
-.admin-dash .hero-sub {
-    margin:.45rem 0 0; font-size:.8rem; font-weight:400;
-    color:rgba(255,255,255,.44); line-height:1.6; max-width:520px;
-}
-
-.admin-dash .hero-tags {
-    display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem;
-}
-
-.admin-dash .hero-tag {
-    font-size:.58rem; font-weight:700; letter-spacing:1.3px; text-transform:uppercase;
-    padding:.34rem .8rem; border-radius:99px;
-    background:rgba(255,255,255,.07); color:rgba(255,255,255,.5);
-    border:1px solid rgba(255,255,255,.1);
-    display:inline-flex; align-items:center; gap:.4rem;
-}
-
-/* Live pulse tag */
-.admin-dash .tag-live {
-    background:rgba(5,150,105,.18); color:#34D399;
-    border-color:rgba(52,211,153,.25);
-}
-
-.admin-dash .tag-live::before {
-    content:''; width:6px; height:6px; border-radius:50%;
-    background:#34D399; box-shadow:0 0 6px #34D399;
-    animation:ap-pulse 1.6s ease-in-out infinite;
-}
-
-@@keyframes ap-pulse {
-    0%,100% { opacity:1; }
-    50%      { opacity:.3; }
-}
-
-/* Glass toolbar buttons */
-.admin-dash .hero-toolbar {
-    position:relative; z-index:1;
-    display:flex; gap:.625rem; flex-wrap:wrap; flex-shrink:0;
-}
-
-.admin-dash .htb-btn {
-    font-family:inherit; font-size:.68rem; font-weight:600;
-    letter-spacing:.5px; text-transform:uppercase;
-    padding:.68rem 1.2rem; border-radius:99px;
-    border:1px solid rgba(255,255,255,.13);
-    background:rgba(255,255,255,.07);
-    color:rgba(255,255,255,.68);
-    display:inline-flex; align-items:center; gap:.45rem;
-    cursor:pointer; text-decoration:none;
-    transition:all .25s ease; backdrop-filter:blur(10px);
-}
-
-.admin-dash .htb-btn:hover {
-    background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.26);
-    color:#fff; transform:translateY(-1px);
-    box-shadow:0 6px 20px rgba(0,0,0,.28);
-}
-
-/* ===== OVERVIEW STRIP (4 metric cards) ===== */
-.admin-dash .overview-row {
-    margin-top:1.75rem;
-    display:grid; gap:1.125rem;
-    grid-template-columns:repeat(4,1fr);
-}
-
-@@media(max-width:1100px) { .admin-dash .overview-row { grid-template-columns:repeat(2,1fr); } }
-@@media(max-width:580px)  { .admin-dash .overview-row { grid-template-columns:1fr; } }
-
-.admin-dash .ov-card {
-    background:var(--card); border-radius:20px;
-    border:1px solid var(--border);
-    padding:1.5rem 1.5rem 1.375rem;
-    display:flex; flex-direction:column; gap:.75rem;
-    position:relative; overflow:hidden;
-    box-shadow:var(--sh-sm);
-    transition:transform .3s ease,box-shadow .3s ease;
-}
-
-.admin-dash .ov-card:hover { transform:translateY(-4px); box-shadow:var(--sh-md); }
-
-/* Color top bar */
-.admin-dash .ov-card::before {
-    content:''; position:absolute; top:0; left:0; right:0;
-    height:3px; background:var(--ov-color,var(--red));
-    border-radius:20px 20px 0 0;
-}
-
-/* Subtle tint wash */
-.admin-dash .ov-card::after {
-    content:''; position:absolute; top:0; right:0;
-    width:80px; height:80px; border-radius:50%;
-    background:var(--ov-color,var(--red));
-    opacity:.04; transform:translate(30px,-30px);
-    pointer-events:none;
-}
-
-.admin-dash .ov-label {
-    font-size:.58rem; font-weight:700; letter-spacing:1.4px;
-    text-transform:uppercase; color:var(--t3);
-    display:flex; align-items:center; gap:.5rem;
-}
-
-.admin-dash .ov-ico {
-    width:22px; height:22px; border-radius:6px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.62rem; color:var(--ov-color,var(--red));
-    background:var(--ov-lt,rgba(180,28,34,.09));
-}
-
-.admin-dash .ov-num-row {
-    display:flex; align-items:flex-end; justify-content:space-between; gap:.5rem;
-}
-
-.admin-dash .ov-number {
-    font-size:2.5rem; font-weight:800; line-height:1;
-    color:var(--t1); letter-spacing:-2px;
-}
-
-/* CSS-only donut */
-.admin-dash .donut {
-    width:52px; height:52px; flex-shrink:0; border-radius:50%;
-    background:conic-gradient(
-        var(--ov-color,var(--red)) calc(var(--pct,0) * 1%),
-        var(--border) 0
-    );
-    position:relative;
-    display:flex; align-items:center; justify-content:center;
-}
-
-.admin-dash .donut::before {
-    content:''; position:absolute;
-    width:36px; height:36px; border-radius:50%;
-    background:var(--card);
-}
-
-.admin-dash .donut-pct {
-    position:relative; z-index:1;
-    font-size:.5rem; font-weight:700; color:var(--t2);
-}
-
-.admin-dash .ov-break {
-    padding-top:.75rem; border-top:1px solid var(--border);
-}
-
-.admin-dash .ov-tags-lbl {
-    font-size:.54rem; font-weight:700; letter-spacing:.6px;
-    color:var(--t3); text-transform:uppercase;
-}
-
-.admin-dash .ov-vals {
-    font-size:.62rem; color:var(--t2); margin-top:.2rem;
-    font-variant-numeric:tabular-nums;
-}
-
-/* ===== DETAIL PANELS (2×2 grid) ===== */
-.admin-dash .detail-grid {
-    margin-top:1.75rem;
-    display:grid; gap:1.125rem;
-    grid-template-columns:1fr 1fr;
-}
-
-@@media(max-width:900px) { .admin-dash .detail-grid { grid-template-columns:1fr; } }
-
-.admin-dash .det-panel {
-    background:var(--card); border-radius:20px;
-    border:1px solid var(--border);
-    padding:1.625rem 1.625rem 1.375rem;
-    display:flex; flex-direction:column; gap:1.25rem;
-    position:relative; overflow:hidden;
-    box-shadow:var(--sh-sm);
-}
-
-/* Left accent bar */
-.admin-dash .det-panel::before {
-    content:''; position:absolute; left:0; top:0; bottom:0;
-    width:3px; background:var(--pc,var(--red));
-    border-radius:20px 0 0 20px;
-}
-
-.admin-dash .det-head {
-    display:flex; align-items:center; gap:.875rem;
-}
-
-.admin-dash .det-ico {
-    width:38px; height:38px; flex-shrink:0; border-radius:11px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.9rem; color:var(--pc,var(--red));
-    background:var(--pc-lt,rgba(180,28,34,.09));
-}
-
-.admin-dash .det-title {
-    font-size:.65rem; font-weight:800; letter-spacing:1.5px;
-    text-transform:uppercase; color:var(--pc,var(--red));
-}
-
-.admin-dash .det-sub {
-    font-size:.62rem; color:var(--t3); margin-top:.12rem;
-}
-
-/* KPI grid inside panels */
-.admin-dash .kpi-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:.75rem;
-}
-
-.admin-dash .kpi-box {
-    background:var(--bg); border:1px solid var(--border); border-radius:14px;
-    padding:.875rem 1rem .75rem;
-    display:flex; flex-direction:column; gap:.5rem;
-    position:relative; overflow:hidden;
-    transition:border-color .2s,box-shadow .2s;
-}
-
-.admin-dash .kpi-box:hover {
-    border-color:var(--kc,var(--red));
-    box-shadow:0 4px 14px rgba(0,0,0,.07);
-}
-
-/* Left color stripe */
-.admin-dash .kpi-box::before {
-    content:''; position:absolute; left:0; top:0; bottom:0;
-    width:3px; background:var(--kc,var(--red)); border-radius:14px 0 0 14px;
-    opacity:.65;
-}
-
-.admin-dash .kpi-lbl {
-    font-size:.52rem; font-weight:700; letter-spacing:1.4px;
-    text-transform:uppercase; color:var(--t3);
-}
-
-.admin-dash .kpi-val {
-    font-size:1.75rem; font-weight:800; line-height:1;
-    color:var(--kc,var(--red)); letter-spacing:-1.2px;
-    font-variant-numeric:tabular-nums;
-}
-
-/* Spark bars */
-.admin-dash .spark {
-    width:100%; height:34px;
-    display:flex; align-items:flex-end; gap:3px;
-    margin-top:.3rem;
-}
-
-.admin-dash .spark b {
-    flex:1; display:block; border-radius:3px 3px 0 0;
-    background:var(--kc,var(--red)); opacity:.3;
-    animation:ap-grow .75s ease forwards;
-    transform:scaleY(0); transform-origin:bottom;
-}
-
-.admin-dash .spark b:nth-child(1) { animation-delay:.04s; }
-.admin-dash .spark b:nth-child(2) { animation-delay:.12s; opacity:.5; }
-.admin-dash .spark b:nth-child(3) { animation-delay:.20s; opacity:.7; }
-.admin-dash .spark b:nth-child(4) { animation-delay:.28s; opacity:.9; }
-
-@@keyframes ap-grow { to { transform:scaleY(1); } }
-
-.admin-dash .det-note {
-    font-size:.59rem; color:var(--t3); letter-spacing:.3px;
-    padding-top:.75rem; border-top:1px solid var(--border);
-    display:flex; align-items:center; gap:.4rem;
-}
-
-/* KPI color helpers */
-.k-red    { --kc:var(--red);    }
-.k-blue   { --kc:var(--blue);   }
-.k-green  { --kc:var(--green);  }
-.k-violet { --kc:var(--violet); }
-.k-teal   { --kc:var(--teal);   }
-.k-amber  { --kc:var(--amber);  }
-.k-orange { --kc:var(--orange); }
-
-@@media(max-width:740px) {
-    .admin-dash .dash-hero { padding:1.5rem 1.375rem; }
-    .admin-dash .hero-title { font-size:1.45rem; }
-    .admin-dash .hero-icon  { width:68px; height:68px; font-size:1.75rem; }
-}
+    :root {
+        --ap-red: #b41c22;
+        --ap-red-strong: #8f1119;
+        --ap-grad: linear-gradient(110deg, #3d0608, #b41c22 58%, #d65a20);
+    }
+
+    .admin-command {
+        --ap-red: #d92632;
+        --ap-red-soft: rgba(217, 38, 50, .14);
+        --ap-gold: #f1a94e;
+        --ap-green: #55d6a5;
+        --ap-blue: #73a7ff;
+        --ap-violet: #b193ff;
+        --ap-text: #f7f4f5;
+        --ap-muted: #9b98a6;
+        --ap-panel: rgba(18, 18, 29, .88);
+        --ap-line: rgba(255, 255, 255, .085);
+        width: min(1440px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 42px 0 72px;
+        color: var(--ap-text);
+        font-family: Inter, sans-serif;
+    }
+
+    .admin-command * { box-sizing: border-box; }
+
+    .admin-command a:focus-visible,
+    .admin-command button:focus-visible {
+        outline: 3px solid rgba(241, 169, 78, .7);
+        outline-offset: 3px;
+    }
+
+    .admin-command .command-hero {
+        position: relative;
+        min-height: 410px;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(330px, .75fr);
+        border: 1px solid rgba(255, 255, 255, .09);
+        border-radius: 32px;
+        background:
+            radial-gradient(circle at 88% 12%, rgba(217, 38, 50, .25), transparent 34%),
+            radial-gradient(circle at 20% 115%, rgba(128, 50, 121, .21), transparent 38%),
+            linear-gradient(135deg, #18101a 0%, #10101a 52%, #0c0c14 100%);
+        box-shadow: 0 36px 90px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 255, 255, .04);
+    }
+
+    .admin-command .command-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: .22;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: linear-gradient(90deg, #000, transparent 75%);
+    }
+
+    .admin-command .hero-copy {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 58px 64px;
+    }
+
+    .admin-command .eyebrow,
+    .admin-command .section-kicker {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        color: #d9a7aa;
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+    }
+
+    .admin-command .eyebrow::before,
+    .admin-command .section-kicker::before {
+        content: "";
+        width: 28px;
+        height: 1px;
+        background: linear-gradient(90deg, var(--ap-red), var(--ap-gold));
+    }
+
+    .admin-command .hero-copy h1 {
+        max-width: 760px;
+        margin: 0;
+        font-family: "Space Grotesk", Inter, sans-serif;
+        font-size: clamp(2.35rem, 5vw, 4.85rem);
+        font-weight: 700;
+        letter-spacing: -.055em;
+        line-height: .98;
+    }
+
+    .admin-command .hero-copy h1 span {
+        color: transparent;
+        background: linear-gradient(105deg, #ffffff 4%, #d5a4a9 52%, #f1a94e 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+
+    .admin-command .hero-copy p {
+        max-width: 630px;
+        margin: 24px 0 0;
+        color: #aaa6b2;
+        font-size: .98rem;
+        line-height: 1.75;
+    }
+
+    .admin-command .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    .admin-command .primary-action,
+    .admin-command .secondary-action {
+        min-height: 48px;
+        padding: 0 20px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #fff;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .035em;
+        text-decoration: none;
+        transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    .admin-command .primary-action {
+        background: linear-gradient(135deg, #e32c38, #a80f1b);
+        box-shadow: 0 14px 30px rgba(190, 24, 35, .28), inset 0 1px rgba(255,255,255,.18);
+    }
+
+    .admin-command .secondary-action {
+        border-color: rgba(255,255,255,.11);
+        background: rgba(255,255,255,.055);
+    }
+
+    .admin-command .primary-action:hover,
+    .admin-command .secondary-action:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,.22);
+    }
+
+    .admin-command .hero-status {
+        position: relative;
+        z-index: 1;
+        margin: 22px;
+        padding: 28px;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 24px;
+        background: linear-gradient(155deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+        box-shadow: inset 0 1px rgba(255,255,255,.07);
+        backdrop-filter: blur(22px);
+    }
+
+    .admin-command .status-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .admin-command .profile {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .admin-command .avatar {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        border-radius: 15px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(145deg, #e12d39, #76101b);
+        box-shadow: 0 10px 24px rgba(182, 24, 36, .28);
+    }
+
+    .admin-command .profile strong,
+    .admin-command .profile span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-command .profile strong { font-size: .84rem; }
+    .admin-command .profile span { margin-top: 3px; color: var(--ap-muted); font-size: .66rem; }
+
+    .admin-command .live-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 10px;
+        border: 1px solid rgba(85, 214, 165, .2);
+        border-radius: 99px;
+        color: #71e8b8;
+        background: rgba(85, 214, 165, .08);
+        font-size: .6rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .admin-command .live-pill::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #55d6a5;
+        box-shadow: 0 0 10px #55d6a5;
+    }
+
+    .admin-command .record-total { margin: 40px 0 26px; }
+    .admin-command .record-total span { color: var(--ap-muted); font-size: .67rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .admin-command .record-total strong { display: block; margin-top: 8px; font-family: "Space Grotesk", sans-serif; font-size: clamp(3.2rem, 5vw, 5.35rem); letter-spacing: -.07em; line-height: .92; }
+    .admin-command .record-total small { display: block; margin-top: 12px; color: #aaa6b2; font-size: .72rem; }
+
+    .admin-command .status-foot {
+        padding-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-top: 1px solid rgba(255,255,255,.08);
+        color: var(--ap-muted);
+        font-size: .68rem;
+    }
+
+    .admin-command .status-foot strong { color: #e1dee5; font-weight: 700; }
+
+    .admin-command .section-heading {
+        margin: 58px 0 22px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .admin-command .section-kicker { margin-bottom: 9px; }
+    .admin-command .section-heading h2 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(1.55rem, 3vw, 2.2rem); letter-spacing: -.035em; }
+    .admin-command .section-heading p { max-width: 470px; margin: 0; color: var(--ap-muted); font-size: .78rem; line-height: 1.65; text-align: right; }
+
+    .admin-command .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .admin-command .quick-card {
+        position: relative;
+        min-height: 210px;
+        overflow: hidden;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--ap-line);
+        border-radius: 22px;
+        color: var(--ap-text);
+        background: var(--ap-panel);
+        text-decoration: none;
+        box-shadow: inset 0 1px rgba(255,255,255,.025);
+        transition: transform .25s ease, border-color .25s ease, background .25s ease, box-shadow .25s ease;
+    }
+
+    .admin-command .quick-card::after {
+        content: "";
+        position: absolute;
+        right: -50px;
+        bottom: -65px;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: var(--card-glow);
+        filter: blur(35px);
+        opacity: .22;
+        transition: opacity .25s ease, transform .25s ease;
+    }
+
+    .admin-command .quick-card:hover {
+        color: #fff;
+        transform: translateY(-5px);
+        border-color: rgba(255,255,255,.18);
+        background: rgba(23,23,36,.98);
+        box-shadow: 0 24px 48px rgba(0,0,0,.25);
+    }
+
+    .admin-command .quick-card:hover::after { opacity: .42; transform: scale(1.15); }
+
+    .admin-command .quick-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border: 1px solid color-mix(in srgb, var(--card-color), transparent 65%);
+        border-radius: 14px;
+        color: var(--card-color);
+        background: color-mix(in srgb, var(--card-color), transparent 89%);
+        font-size: 1rem;
+    }
+
+    .admin-command .quick-card h3 { margin: auto 0 7px; font-size: .96rem; font-weight: 800; }
+    .admin-command .quick-card p { margin: 0; color: var(--ap-muted); font-size: .72rem; line-height: 1.55; }
+    .admin-command .quick-link { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; color: #d8d4dc; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .admin-command .quick-link i { transition: transform .2s ease; }
+    .admin-command .quick-card:hover .quick-link i { transform: translateX(4px); }
+
+    .admin-command .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .admin-command .metric-card {
+        --metric: var(--ap-red);
+        position: relative;
+        overflow: hidden;
+        padding: 24px;
+        border: 1px solid var(--ap-line);
+        border-radius: 22px;
+        background: linear-gradient(145deg, rgba(24,24,37,.94), rgba(15,15,25,.96));
+    }
+
+    .admin-command .metric-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 24px;
+        right: 24px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--metric), transparent);
+    }
+
+    .admin-command .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .admin-command .metric-head span { color: var(--ap-muted); font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .admin-command .metric-head i { color: var(--metric); }
+    .admin-command .metric-value { margin-top: 24px; display: flex; align-items: end; justify-content: space-between; gap: 14px; }
+    .admin-command .metric-value strong { font-family: "Space Grotesk", sans-serif; font-size: 2.65rem; letter-spacing: -.06em; line-height: 1; }
+    .admin-command .metric-value span { color: var(--metric); font-size: .68rem; font-weight: 800; }
+    .admin-command .meter { height: 4px; margin-top: 20px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.06); }
+    .admin-command .meter span { display: block; width: calc(var(--share) * 1%); height: 100%; border-radius: inherit; background: var(--metric); box-shadow: 0 0 14px var(--metric); }
+    .admin-command .metric-card > p { margin: 13px 0 0; color: #777482; font-size: .66rem; }
+
+    .admin-command .operations-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .admin-command .operation-panel {
+        padding: 28px;
+        border: 1px solid var(--ap-line);
+        border-radius: 24px;
+        background: rgba(18,18,29,.76);
+    }
+
+    .admin-command .operation-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--ap-line); }
+    .admin-command .operation-title { display: flex; align-items: center; gap: 13px; }
+    .admin-command .operation-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--panel-color); background: color-mix(in srgb, var(--panel-color), transparent 88%); }
+    .admin-command .operation-title h3 { margin: 0; font-size: .9rem; }
+    .admin-command .operation-title span { display: block; margin-top: 4px; color: var(--ap-muted); font-size: .65rem; }
+    .admin-command .operation-total { color: var(--panel-color); font-family: "Space Grotesk", sans-serif; font-size: 1.5rem; font-weight: 700; }
+
+    .admin-command .breakdown { display: grid; gap: 17px; margin-top: 23px; }
+    .admin-command .breakdown-row { display: grid; grid-template-columns: 105px minmax(0,1fr) 44px; align-items: center; gap: 13px; }
+    .admin-command .breakdown-label { color: #bbb7c2; font-size: .69rem; white-space: nowrap; }
+    .admin-command .breakdown-track { height: 6px; overflow: hidden; border-radius: 10px; background: rgba(255,255,255,.055); }
+    .admin-command .breakdown-track span { display: block; width: max(4px, calc(var(--row-share) * 1%)); height: 100%; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--panel-color), #fff 14%), var(--panel-color)); }
+    .admin-command .breakdown-value { color: #ebe8ee; font-size: .72rem; font-weight: 800; text-align: right; }
+
+    #dynamicNotificationsModal .modal-header { color: #fff; border-bottom: 0; background: linear-gradient(110deg, #3d0608, #b41c22 58%, #d65a20); }
+
+    @@media (max-width: 1120px) {
+        .admin-command .command-hero { grid-template-columns: 1fr; }
+        .admin-command .hero-status { min-height: 280px; }
+        .admin-command .quick-grid, .admin-command .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @@media (max-width: 760px) {
+        .admin-command { width: min(100% - 22px, 1440px); padding-top: 24px; }
+        .admin-command .command-hero { border-radius: 24px; }
+        .admin-command .hero-copy { padding: 38px 26px 28px; }
+        .admin-command .hero-status { margin: 10px; padding: 23px; }
+        .admin-command .section-heading { margin-top: 44px; display: block; }
+        .admin-command .section-heading p { margin-top: 10px; text-align: left; }
+        .admin-command .operations-grid { grid-template-columns: 1fr; }
+    }
+
+    @@media (max-width: 540px) {
+        .admin-command .quick-grid, .admin-command .metric-grid { grid-template-columns: 1fr; }
+        .admin-command .quick-card { min-height: 180px; }
+        .admin-command .hero-actions > * { width: 100%; }
+        .admin-command .status-top { align-items: flex-start; }
+        .admin-command .live-pill { padding: 7px; font-size: 0; }
+        .admin-command .operation-panel { padding: 22px 18px; }
+        .admin-command .breakdown-row { grid-template-columns: 86px minmax(0,1fr) 36px; gap: 8px; }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .admin-command *, .admin-command *::before, .admin-command *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
 </style>
+}
 
-<div class="admin-dash">
-
-    <!-- ===== HERO ===== -->
-    <header class="dash-hero">
-        <div class="hero-icon"><i class="fa fa-gauge-high"></i></div>
-
-        <div class="hero-body">
-            <h1 class="hero-title">Administrative Intelligence</h1>
-            <p class="hero-sub">
-                Real-time snapshot of document flow, assessment workload, and departmental reporting output.
+<main class="admin-command">
+    <section class="command-hero" aria-labelledby="admin-welcome-title">
+        <div class="hero-copy">
+            <div class="eyebrow">Forek administration suite</div>
+            <h1 id="admin-welcome-title">@greeting, <span>@firstName.</span></h1>
+            <p>
+                Your operational command centre for people, learning, assessments and compliance.
+                Start a priority task or review the platform-wide record position below.
             </p>
-            <div class="hero-tags">
-                <span class="hero-tag tag-live">Live</span>
-                <span class="hero-tag"><i class="fa fa-layer-group"></i>&nbsp;Platform v2</span>
-                <span class="hero-tag"><i class="fa fa-database"></i>&nbsp;@grandTotal Records</span>
-                <span class="hero-tag"><i class="fa fa-calendar-days"></i>&nbsp;@DateTime.Now.ToString("dd MMM yyyy")</span>
+            <div class="hero-actions">
+                <a class="primary-action" asp-controller="Student" asp-action="SearchStudent">
+                    <i class="fa-solid fa-magnifying-glass"></i> Find a learner
+                </a>
+                <a class="secondary-action" asp-controller="Student" asp-action="EnrollStudent">
+                    <i class="fa-solid fa-user-plus"></i> Enrol new learner
+                </a>
             </div>
         </div>
 
-        <div class="hero-toolbar">
-            <button class="htb-btn" onclick="location.reload()">
-                <i class="fa fa-rotate"></i> Refresh
-            </button>
-            <button class="htb-btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">
-                <i class="fa fa-circle-info"></i> What's New
-            </button>
-        </div>
-    </header>
-
-    <!-- ===== OVERVIEW STRIP ===== -->
-    <div class="overview-row">
-
-        <!-- Assessments -->
-        <div class="ov-card"
-             style="--ov-color:var(--red);--ov-lt:var(--red-lt);--pct:@((int)Math.Round(pct(totalAssess, grandTotal)))">
-            <div class="ov-label">
-                <span class="ov-ico"><i class="fa fa-file-pen"></i></span>
-                Assessments
-            </div>
-            <div class="ov-num-row">
-                <div class="ov-number">@totalAssess</div>
-                <div class="donut" title="@Math.Round(pct(totalAssess, grandTotal))% of total records">
-                    <span class="donut-pct">@((int)Math.Round(pct(totalAssess, grandTotal)))%</span>
+        <aside class="hero-status" aria-label="Administrator and platform status">
+            <div class="status-top">
+                <div class="profile">
+                    <span class="avatar" aria-hidden="true"><i class="fa-solid fa-user-shield"></i></span>
+                    <span>
+                        <strong>@currentUser</strong>
+                        <span>@role access</span>
+                    </span>
                 </div>
+                <span class="live-pill">Live</span>
             </div>
-            <div class="ov-break">
-                <div class="ov-tags-lbl">Form &nbsp;·&nbsp; Sum &nbsp;·&nbsp; Prac &nbsp;·&nbsp; IISA</div>
-                <div class="ov-vals">@formative &nbsp;/&nbsp; @summative &nbsp;/&nbsp; @practical &nbsp;/&nbsp; @iisa</div>
+            <div class="record-total">
+                <span>Records under management</span>
+                <strong>@grandTotal.ToString("N0")</strong>
+                <small>Across four core administration areas</small>
             </div>
-        </div>
+            <div class="status-foot">
+                <span><i class="fa-regular fa-calendar me-2"></i>@DateTime.Now.ToString("dddd, dd MMMM")</span>
+                <strong>Platform v2</strong>
+            </div>
+        </aside>
+    </section>
 
-        <!-- Learner Docs -->
-        <div class="ov-card"
-             style="--ov-color:var(--blue);--ov-lt:var(--blue-lt);--pct:@((int)Math.Round(pct(totalLearnerDocs, grandTotal)))">
-            <div class="ov-label">
-                <span class="ov-ico"><i class="fa fa-id-card"></i></span>
-                Learner Docs
+    <section aria-labelledby="quick-actions-title">
+        <div class="section-heading">
+            <div>
+                <div class="section-kicker">Priority workspace</div>
+                <h2 id="quick-actions-title">Where would you like to begin?</h2>
             </div>
-            <div class="ov-num-row">
-                <div class="ov-number">@totalLearnerDocs</div>
-                <div class="donut" title="@Math.Round(pct(totalLearnerDocs, grandTotal))% of total records">
-                    <span class="donut-pct">@((int)Math.Round(pct(totalLearnerDocs, grandTotal)))%</span>
-                </div>
-            </div>
-            <div class="ov-break">
-                <div class="ov-tags-lbl">ID &nbsp;·&nbsp; CV &nbsp;·&nbsp; Matric &nbsp;·&nbsp; Guardian</div>
-                <div class="ov-vals">@idDocs &nbsp;/&nbsp; @cvDocs &nbsp;/&nbsp; @matric &nbsp;/&nbsp; @guardian</div>
-            </div>
+            <p>Direct access to the areas administrators use most, without navigating through multiple menus.</p>
         </div>
 
-        <!-- Training Docs -->
-        <div class="ov-card"
-             style="--ov-color:var(--teal);--ov-lt:var(--teal-lt);--pct:@((int)Math.Round(pct(totalTraining, grandTotal)))">
-            <div class="ov-label">
-                <span class="ov-ico"><i class="fa fa-school"></i></span>
-                Training Docs
+        <div class="quick-grid">
+            <a class="quick-card" style="--card-color:#73a7ff;--card-glow:#397ae5" asp-controller="Student" asp-action="StudentAnalytics">
+                <span class="quick-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+                <h3>Learner management</h3>
+                <p>Review learner profiles, enrolments and supporting documentation.</p>
+                <span class="quick-link">Open learners <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+            <a class="quick-card" style="--card-color:#f07880;--card-glow:#d92632" asp-controller="Assessment" asp-action="List">
+                <span class="quick-icon"><i class="fa-solid fa-file-signature"></i></span>
+                <h3>Assessments</h3>
+                <p>Manage assessment activity, uploads and learner evidence.</p>
+                <span class="quick-link">Open assessments <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+            <a class="quick-card" style="--card-color:#55d6a5;--card-glow:#1d9d70" asp-controller="Employee" asp-action="AdminEmployeePortal">
+                <span class="quick-icon"><i class="fa-solid fa-id-badge"></i></span>
+                <h3>Employee portal</h3>
+                <p>Access employee records and administrative workforce tools.</p>
+                <span class="quick-link">Open employees <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+            <a class="quick-card" style="--card-color:#f1a94e;--card-glow:#c7791d" asp-controller="Auth" asp-action="RetrieveUsers">
+                <span class="quick-icon"><i class="fa-solid fa-users-gear"></i></span>
+                <h3>User administration</h3>
+                <p>Control user accounts, roles and access to the platform.</p>
+                <span class="quick-link">Manage users <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+        </div>
+    </section>
+
+    <section aria-labelledby="portfolio-title">
+        <div class="section-heading">
+            <div>
+                <div class="section-kicker">Portfolio pulse</div>
+                <h2 id="portfolio-title">Administration at a glance</h2>
             </div>
-            <div class="ov-num-row">
-                <div class="ov-number">@totalTraining</div>
-                <div class="donut" title="@Math.Round(pct(totalTraining, grandTotal))% of total records">
-                    <span class="donut-pct">@((int)Math.Round(pct(totalTraining, grandTotal)))%</span>
-                </div>
-            </div>
-            <div class="ov-break">
-                <div class="ov-tags-lbl">Enr &nbsp;·&nbsp; Ind &nbsp;·&nbsp; Dec &nbsp;·&nbsp; Conduct</div>
-                <div class="ov-vals">@enrollForms &nbsp;/&nbsp; @induction &nbsp;/&nbsp; @declaration &nbsp;/&nbsp; @conduct</div>
-            </div>
+            <p>A current distribution of records already captured across the platform's primary administration areas.</p>
         </div>
 
-        <!-- Reports -->
-        <div class="ov-card"
-             style="--ov-color:var(--violet);--ov-lt:var(--violet-lt);--pct:@((int)Math.Round(pct(totalReports, grandTotal)))">
-            <div class="ov-label">
-                <span class="ov-ico"><i class="fa fa-chart-line"></i></span>
-                Progress Reports
+        <div class="metric-grid">
+            <article class="metric-card" style="--metric:#f07880;--share:@share(totalAssess, grandTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="metric-head"><span>Assessments</span><i class="fa-solid fa-file-pen"></i></div>
+                <div class="metric-value"><strong>@totalAssess.ToString("N0")</strong><span>@share(totalAssess, grandTotal).ToString("0")%</span></div>
+                <div class="meter"><span></span></div>
+                <p>Formative, summative, practical and IISA records</p>
+            </article>
+            <article class="metric-card" style="--metric:#73a7ff;--share:@share(totalLearnerDocs, grandTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="metric-head"><span>Learner documents</span><i class="fa-solid fa-folder-open"></i></div>
+                <div class="metric-value"><strong>@totalLearnerDocs.ToString("N0")</strong><span>@share(totalLearnerDocs, grandTotal).ToString("0")%</span></div>
+                <div class="meter"><span></span></div>
+                <p>Identity, CV, matric and guardian documents</p>
+            </article>
+            <article class="metric-card" style="--metric:#55d6a5;--share:@share(totalTraining, grandTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="metric-head"><span>Training records</span><i class="fa-solid fa-clipboard-check"></i></div>
+                <div class="metric-value"><strong>@totalTraining.ToString("N0")</strong><span>@share(totalTraining, grandTotal).ToString("0")%</span></div>
+                <div class="meter"><span></span></div>
+                <p>Enrolment, induction and compliance records</p>
+            </article>
+            <article class="metric-card" style="--metric:#b193ff;--share:@share(totalReports, grandTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="metric-head"><span>Progress reports</span><i class="fa-solid fa-chart-line"></i></div>
+                <div class="metric-value"><strong>@totalReports.ToString("N0")</strong><span>@share(totalReports, grandTotal).ToString("0")%</span></div>
+                <div class="meter"><span></span></div>
+                <p>NATED and trade progression results</p>
+            </article>
+        </div>
+    </section>
+
+    <section aria-labelledby="operations-title">
+        <div class="section-heading">
+            <div>
+                <div class="section-kicker">Operational detail</div>
+                <h2 id="operations-title">Record composition</h2>
             </div>
-            <div class="ov-num-row">
-                <div class="ov-number">@totalReports</div>
-                <div class="donut" title="@Math.Round(pct(totalReports, grandTotal))% of total records">
-                    <span class="donut-pct">@((int)Math.Round(pct(totalReports, grandTotal)))%</span>
-                </div>
-            </div>
-            <div class="ov-break">
-                <div class="ov-tags-lbl">Nated &nbsp;·&nbsp; Elec &nbsp;·&nbsp; Weld &nbsp;·&nbsp; Plmb</div>
-                <div class="ov-vals">@nated &nbsp;/&nbsp; @electrician &nbsp;/&nbsp; @welder &nbsp;/&nbsp; @plumber</div>
-            </div>
+            <p>See exactly where the current record volume sits within each administration category.</p>
         </div>
 
-    </div><!-- /overview-row -->
+        <div class="operations-grid">
+            <article class="operation-panel" style="--panel-color:#f07880">
+                <div class="operation-head">
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-file-pen"></i></span><span><h3>Assessment records</h3><span>Evidence and submissions</span></span></div>
+                    <strong class="operation-total">@totalAssess.ToString("N0")</strong>
+                </div>
+                <div class="breakdown">
+                    <div class="breakdown-row"><span class="breakdown-label">Formative</span><span class="breakdown-track"><span style="--row-share:@share(formative,totalAssess).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@formative</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Summative</span><span class="breakdown-track"><span style="--row-share:@share(summative,totalAssess).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@summative</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Practical</span><span class="breakdown-track"><span style="--row-share:@share(practical,totalAssess).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@practical</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">IISA</span><span class="breakdown-track"><span style="--row-share:@share(iisa,totalAssess).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@iisa</strong></div>
+                </div>
+            </article>
 
-    <!-- ===== DETAIL PANELS ===== -->
-    <div class="detail-grid">
+            <article class="operation-panel" style="--panel-color:#73a7ff">
+                <div class="operation-head">
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-folder-open"></i></span><span><h3>Learner documents</h3><span>Onboarding and identity</span></span></div>
+                    <strong class="operation-total">@totalLearnerDocs.ToString("N0")</strong>
+                </div>
+                <div class="breakdown">
+                    <div class="breakdown-row"><span class="breakdown-label">Identity</span><span class="breakdown-track"><span style="--row-share:@share(idDocs,totalLearnerDocs).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@idDocs</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">CV</span><span class="breakdown-track"><span style="--row-share:@share(cvDocs,totalLearnerDocs).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@cvDocs</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Matric</span><span class="breakdown-track"><span style="--row-share:@share(matric,totalLearnerDocs).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@matric</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Guardian ID</span><span class="breakdown-track"><span style="--row-share:@share(guardian,totalLearnerDocs).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@guardian</strong></div>
+                </div>
+            </article>
 
-        <!-- Assessment Uploads -->
-        <div class="det-panel" style="--pc:var(--red);--pc-lt:var(--red-lt);">
-            <div class="det-head">
-                <div class="det-ico"><i class="fa fa-file-pen"></i></div>
-                <div>
-                    <div class="det-title">Assessment Uploads</div>
-                    <div class="det-sub">Formative, summative, practical &amp; IISA workload</div>
+            <article class="operation-panel" style="--panel-color:#55d6a5">
+                <div class="operation-head">
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-clipboard-check"></i></span><span><h3>Training administration</h3><span>Onboarding and compliance</span></span></div>
+                    <strong class="operation-total">@totalTraining.ToString("N0")</strong>
                 </div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-box k-red">
-                    <div class="kpi-lbl">Formatives</div>
-                    <div class="kpi-val">@formative</div>
-                    <div class="spark">
-                        <b style="height:40%;"></b><b style="height:68%;"></b>
-                        <b style="height:52%;"></b><b style="height:88%;"></b>
-                    </div>
+                <div class="breakdown">
+                    <div class="breakdown-row"><span class="breakdown-label">Enrolment</span><span class="breakdown-track"><span style="--row-share:@share(enrollForms,totalTraining).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@enrollForms</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Induction</span><span class="breakdown-track"><span style="--row-share:@share(induction,totalTraining).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@induction</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Declaration</span><span class="breakdown-track"><span style="--row-share:@share(declaration,totalTraining).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@declaration</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Conduct</span><span class="breakdown-track"><span style="--row-share:@share(conduct,totalTraining).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@conduct</strong></div>
                 </div>
-                <div class="kpi-box k-violet">
-                    <div class="kpi-lbl">Summatives</div>
-                    <div class="kpi-val">@summative</div>
-                    <div class="spark">
-                        <b style="height:32%;"></b><b style="height:88%;"></b>
-                        <b style="height:58%;"></b><b style="height:42%;"></b>
-                    </div>
+            </article>
+
+            <article class="operation-panel" style="--panel-color:#b193ff">
+                <div class="operation-head">
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-chart-line"></i></span><span><h3>Progress reporting</h3><span>Programme and trade results</span></span></div>
+                    <strong class="operation-total">@totalReports.ToString("N0")</strong>
                 </div>
-                <div class="kpi-box k-teal">
-                    <div class="kpi-lbl">Practicals</div>
-                    <div class="kpi-val">@practical</div>
-                    <div class="spark">
-                        <b style="height:28%;"></b><b style="height:58%;"></b>
-                        <b style="height:78%;"></b><b style="height:38%;"></b>
-                    </div>
+                <div class="breakdown">
+                    <div class="breakdown-row"><span class="breakdown-label">NATED</span><span class="breakdown-track"><span style="--row-share:@share(nated,totalReports).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@nated</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Electrician</span><span class="breakdown-track"><span style="--row-share:@share(electrician,totalReports).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@electrician</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Welder</span><span class="breakdown-track"><span style="--row-share:@share(welder,totalReports).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@welder</strong></div>
+                    <div class="breakdown-row"><span class="breakdown-label">Plumber</span><span class="breakdown-track"><span style="--row-share:@share(plumber,totalReports).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)"></span></span><strong class="breakdown-value">@plumber</strong></div>
                 </div>
-                <div class="kpi-box k-amber">
-                    <div class="kpi-lbl">IISA</div>
-                    <div class="kpi-val">@iisa</div>
-                    <div class="spark">
-                        <b style="height:62%;"></b><b style="height:42%;"></b>
-                        <b style="height:82%;"></b><b style="height:52%;"></b>
-                    </div>
-                </div>
-            </div>
-            <div class="det-note">
-                <i class="fa fa-chart-bar"></i> Spark bars show illustrative relative volume trends.
-            </div>
+            </article>
         </div>
-
-        <!-- Learner Documents -->
-        <div class="det-panel" style="--pc:var(--blue);--pc-lt:var(--blue-lt);">
-            <div class="det-head">
-                <div class="det-ico"><i class="fa fa-id-card"></i></div>
-                <div>
-                    <div class="det-title">Learner Documents</div>
-                    <div class="det-sub">Identity &amp; academic baseline artifacts</div>
-                </div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-box k-blue">
-                    <div class="kpi-lbl">ID Docs</div>
-                    <div class="kpi-val">@idDocs</div>
-                </div>
-                <div class="kpi-box k-green">
-                    <div class="kpi-lbl">CVs</div>
-                    <div class="kpi-val">@cvDocs</div>
-                </div>
-                <div class="kpi-box k-violet">
-                    <div class="kpi-lbl">Matrics</div>
-                    <div class="kpi-val">@matric</div>
-                </div>
-                <div class="kpi-box k-teal">
-                    <div class="kpi-lbl">Guardians</div>
-                    <div class="kpi-val">@guardian</div>
-                </div>
-            </div>
-            <div class="det-note">
-                <i class="fa fa-folder-open"></i> All mandatory learner onboarding documents.
-            </div>
-        </div>
-
-        <!-- Training Documents -->
-        <div class="det-panel" style="--pc:var(--teal);--pc-lt:var(--teal-lt);">
-            <div class="det-head">
-                <div class="det-ico"><i class="fa fa-school"></i></div>
-                <div>
-                    <div class="det-title">Training Documents</div>
-                    <div class="det-sub">Onboarding &amp; compliance confirmations</div>
-                </div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-box k-green">
-                    <div class="kpi-lbl">Enrollment</div>
-                    <div class="kpi-val">@enrollForms</div>
-                </div>
-                <div class="kpi-box k-amber">
-                    <div class="kpi-lbl">Induction</div>
-                    <div class="kpi-val">@induction</div>
-                </div>
-                <div class="kpi-box k-blue">
-                    <div class="kpi-lbl">Declarations</div>
-                    <div class="kpi-val">@declaration</div>
-                </div>
-                <div class="kpi-box k-violet">
-                    <div class="kpi-lbl">Conducts</div>
-                    <div class="kpi-val">@conduct</div>
-                </div>
-            </div>
-            <div class="det-note">
-                <i class="fa fa-clipboard-check"></i> Onboarding compliance &amp; code-of-conduct records.
-            </div>
-        </div>
-
-        <!-- Progress Reports -->
-        <div class="det-panel" style="--pc:var(--violet);--pc-lt:var(--violet-lt);">
-            <div class="det-head">
-                <div class="det-ico"><i class="fa fa-chart-line"></i></div>
-                <div>
-                    <div class="det-title">Progress Reports</div>
-                    <div class="det-sub">Departmental &amp; trade progression snapshots</div>
-                </div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-box k-orange">
-                    <div class="kpi-lbl">NATED</div>
-                    <div class="kpi-val">@nated</div>
-                </div>
-                <div class="kpi-box k-blue">
-                    <div class="kpi-lbl">Electrical</div>
-                    <div class="kpi-val">@electrician</div>
-                </div>
-                <div class="kpi-box k-green">
-                    <div class="kpi-lbl">Welding</div>
-                    <div class="kpi-val">@welder</div>
-                </div>
-                <div class="kpi-box k-teal">
-                    <div class="kpi-lbl">Plumbing</div>
-                    <div class="kpi-val">@plumber</div>
-                </div>
-            </div>
-            <div class="det-note">
-                <i class="fa fa-graduation-cap"></i> Departmental &amp; trade progression snapshots.
-            </div>
-        </div>
-
-    </div><!-- /detail-grid -->
-
-</div><!-- /admin-dash -->
+    </section>
+</main>
 
 @await Html.PartialAsync("_DynamicNotifications")
 <script>window.__notificationsEndpoint = '/Notification/Index';</script>
-<script src="https://code.jquery.com/jquery-3.7.1.js"
-        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
-        crossorigin="anonymous"></script>
-<script src="~/js/notifications.js"></script>
+<script src="~/js/notifications.js" asp-append-version="true"></script>
