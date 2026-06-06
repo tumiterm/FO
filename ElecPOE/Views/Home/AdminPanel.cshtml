@@ -526,6 +526,73 @@
             text-align: center;
         }
 
+
+    .admin-command .pulse-strip {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1.15fr repeat(4, 1fr);
+        gap: 1px;
+        width: calc(100% - 64px);
+        margin: -34px auto 56px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 22px;
+        background: rgba(255,255,255,.08);
+        box-shadow: 0 24px 55px rgba(0,0,0,.3);
+        backdrop-filter: blur(18px);
+    }
+
+    .admin-command .pulse-item {
+        min-width: 0;
+        padding: 18px 20px;
+        background: rgba(18,18,29,.94);
+    }
+
+    .admin-command .pulse-item:first-child {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(217,38,50,.92), rgba(143,17,25,.94));
+    }
+
+    .admin-command .pulse-item > i {
+        display: grid;
+        place-items: center;
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: rgba(255,255,255,.12);
+        color: #fff;
+    }
+
+    .admin-command .pulse-label {
+        display: block;
+        overflow: hidden;
+        color: rgba(255,255,255,.44);
+        font-size: .63rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .admin-command .pulse-item:first-child .pulse-label { color: rgba(255,255,255,.68); }
+    .admin-command .pulse-value { display: block; margin-top: 5px; color: #fff; font-size: 1.05rem; font-weight: 800; }
+    .admin-command .pulse-value small { margin-left: 5px; color: var(--ap-green); font-size: .62rem; font-weight: 700; }
+
+    @@media (max-width: 900px) {
+        .admin-command .pulse-strip { grid-template-columns: repeat(2, 1fr); width: calc(100% - 28px); }
+        .admin-command .pulse-item:first-child { grid-column: 1 / -1; }
+    }
+
+    @@media (max-width: 520px) {
+        .admin-command .pulse-strip { grid-template-columns: 1fr; margin-top: -20px; }
+        .admin-command .pulse-item:first-child { grid-column: auto; }
+    }
+
         @@keyframes nav-spin {
             to {
                 transform: rotate(360deg);
@@ -575,6 +642,17 @@
             </div>
         </aside>
     </section>
+
+    <div class="pulse-strip" aria-label="Administration record summary">
+        <div class="pulse-item">
+            <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+            <span><span class="pulse-label">Portfolio pulse</span><strong class="pulse-value">Live overview</strong></span>
+        </div>
+        <div class="pulse-item"><span class="pulse-label">Assessments</span><strong class="pulse-value">@totalAssess.ToString("N0") <small>@share(totalAssess, grandTotal).ToString("0")%</small></strong></div>
+        <div class="pulse-item"><span class="pulse-label">Learner documents</span><strong class="pulse-value">@totalLearnerDocs.ToString("N0") <small>@share(totalLearnerDocs, grandTotal).ToString("0")%</small></strong></div>
+        <div class="pulse-item"><span class="pulse-label">Training records</span><strong class="pulse-value">@totalTraining.ToString("N0") <small>@share(totalTraining, grandTotal).ToString("0")%</small></strong></div>
+        <div class="pulse-item"><span class="pulse-label">Trade reports</span><strong class="pulse-value">@totalReports.ToString("N0") <small>@share(totalReports, grandTotal).ToString("0")%</small></strong></div>
+    </div>
 
     <section aria-labelledby="quick-actions-title">
         <div class="section-heading">
