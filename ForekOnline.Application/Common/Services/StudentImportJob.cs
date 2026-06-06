@@ -38,12 +38,15 @@ namespace ForekOnline.Application.Common.Services
         {
             using var scope = _scopeFactory.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var schemaService = scope.ServiceProvider.GetRequiredService<IStudentImportSchemaService>();
 
             _logger.LogInformation("StudentImportJob started. Source={Source}, SingleIdentity={Identity}",
                 payload.Source, payload.SingleIdentity ?? "(bulk)");
 
             try
             {
+                await schemaService.EnsureCompatibleAsync(ct);
+
                 if (payload.Source == "Direct" && payload.DirectData is not null)
                 {
                     await ImportDirectAsync(payload, unitOfWork, ct);
