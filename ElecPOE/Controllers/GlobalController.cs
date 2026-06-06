@@ -1,9 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using ForekOnline.Domain.Entities;
+using ForekOnline.Domain.ViewModels;
+using ForekOnline.Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ElecPOE.Controllers
 {
     public class GlobalController : Controller
     {
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<GlobalController> _logger;
+
+        public GlobalController(ApplicationDbContext dbContext, ILogger<GlobalController> logger)
+        {
+            _dbContext = dbContext;
+            _logger = logger;
+        }
+
         public IActionResult RouteNotFound()
         {
             return View();
@@ -14,9 +27,81 @@ namespace ElecPOE.Controllers
             return View();
         }
 
-        public IActionResult Acknowledgement()
+        public async Task<IActionResult> Acknowledgement(
+            Guid? applicationId,
+            CancellationToken cancellationToken)
         {
+            var showRatingPrompt = applicationId.HasValue &&
+                await _dbContext.Applications
+                    .AsNoTracking()
+                    .AnyAsync(application => application.ApplicationId == applicationId.Value, cancellationToken);
+
+            ViewData["ShowRatingPrompt"] = showRatingPrompt;
+            ViewData["RatingApplicationId"] = showRatingPrompt ? applicationId : null;
+
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitApplicationRating(
+            ApplicationRatingViewModel model,
+            CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                var error = ModelState.Values
+                    .SelectMany(value => value.Errors)
+                    .Select(value => value.ErrorMessage)
+                    .FirstOrDefault() ?? "Please check your feedback and try again.";
+
+                return BadRequest(new { message = error });
+            }
+
+            if (model.ApplicationId == Guid.Empty)
+            {
+                return BadRequest(new { message = "The application reference is missing." });
+            }
+
+            var applicationExists = await _dbContext.Applications
+                .AsNoTracking()
+                .AnyAsync(application => application.ApplicationId == model.ApplicationId, cancellationToken);
+
+            if (!applicationExists)
+            {
+                return NotFound(new { message = "The related application could not be found." });
+            }
+
+            var ratingExists = await _dbContext.ApplicationRatings
+                .AsNoTracking()
+                .AnyAsync(rating => rating.ApplicationId == model.ApplicationId, cancellationToken);
+
+            if (ratingExists)
+            {
+                return Conflict(new { message = "Feedback has already been submitted for this application." });
+            }
+
+            var rating = new ApplicationRating
+            {
+                ApplicationRatingId = Guid.NewGuid(),
+                ApplicationId = model.ApplicationId,
+                Rating = model.Rating,
+                Comment = string.IsNullOrWhiteSpace(model.Comment) ? null : model.Comment.Trim(),
+                SubmittedOnUtc = DateTime.UtcNow
+            };
+
+            try
+            {
+                _dbContext.ApplicationRatings.Add(rating);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return Ok(new { message = "Thank you for helping us improve." });
+            }
+            catch (DbUpdateException exception)
+            {
+                _logger.LogError(exception, "Unable to save application feedback for {ApplicationId}.", model.ApplicationId);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "We could not save your feedback right now. Please try again." });
+            }
         }
     }
 }

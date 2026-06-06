@@ -1,9 +1,11 @@
-﻿@{
+@{
     Layout = null; // Keep standalone. Remove this line if you want to use the shared layout.
     string applicant = (ViewData["ApplicantName"] as string) ?? (TempData["ApplicantName"] as string) ?? "Applicant";
     string reference = (ViewData["Reference"] as string) ?? (TempData["Reference"] as string) ?? "";
     bool autoRedirect = false; // set true if you want timed redirect
     int redirectSeconds = 8;
+    bool showRatingPrompt = ViewData["ShowRatingPrompt"] is true;
+    Guid? ratingApplicationId = ViewData["RatingApplicationId"] is Guid applicationId ? applicationId : null;
 }
 
 <!DOCTYPE html>
@@ -93,6 +95,47 @@ p.lead{
   h1{font-size:1.35rem;}
   .icon-wrap{width:80px;height:80px;font-size:2rem;}
 }
+
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+.rating-overlay{
+  position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:1.25rem;
+  background:rgba(20,10,10,.56);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease;
+}
+.rating-overlay.is-open{opacity:1;visibility:visible;}
+.rating-modal{
+  width:min(100%,480px);background:#fff;border:1px solid rgba(255,255,255,.72);border-radius:28px;
+  padding:2rem;position:relative;box-shadow:0 28px 80px rgba(31,6,6,.32);
+  transform:translateY(18px) scale(.97);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.rating-overlay.is-open .rating-modal{transform:translateY(0) scale(1);}
+.rating-close{
+  position:absolute;right:1rem;top:1rem;width:38px;height:38px;border:0;border-radius:50%;
+  color:#6b6161;background:#f6f2f2;cursor:pointer;font-size:1rem;transition:.2s;
+}
+.rating-close:hover{background:#efe4e4;color:var(--ack-red);transform:rotate(5deg);}
+.rating-kicker{margin:0 0 .55rem;color:var(--ack-orange);font-size:.68rem;font-weight:800;letter-spacing:.16rem;text-transform:uppercase;}
+.rating-modal h2{margin:0;color:#241a1a;font-size:1.55rem;line-height:1.2;}
+.rating-copy{margin:.7rem 0 1.25rem;color:#6c6262;font-size:.85rem;line-height:1.5;}
+.star-rating{display:flex;flex-direction:row-reverse;justify-content:center;gap:.35rem;margin:.2rem 0 .7rem;}
+.star-rating input{position:absolute;opacity:0;pointer-events:none;}
+.star-rating label{color:#ddd5c6;font-size:2.45rem;cursor:pointer;line-height:1;filter:drop-shadow(0 5px 8px rgba(115,77,0,.08));transition:color .15s,transform .15s;}
+.star-rating label:hover,.star-rating label:hover~label,.star-rating input:checked~label{color:#f7bd2a;}
+.star-rating label:hover{transform:translateY(-3px) scale(1.06);}
+.star-rating input:focus-visible+label{outline:3px solid rgba(247,189,42,.35);outline-offset:4px;border-radius:6px;}
+.rating-label{display:block;margin:.9rem 0 .45rem;color:#3e3434;font-size:.75rem;font-weight:700;}
+.rating-textarea{width:100%;min-height:112px;resize:vertical;border:1px solid #ddd7d7;border-radius:16px;padding:.85rem 1rem;font:inherit;font-size:.82rem;color:#302727;background:#fcfbfb;outline:none;transition:.2s;}
+.rating-textarea:focus{border-color:#e58a32;box-shadow:0 0 0 4px rgba(255,122,24,.12);background:#fff;}
+.rating-meta{display:flex;justify-content:space-between;gap:1rem;margin:.4rem .15rem 1rem;color:#8a8181;font-size:.65rem;}
+.rating-error{display:none;margin:0 0 .8rem;color:#a20f13;font-size:.72rem;font-weight:600;}
+.rating-error.is-visible{display:block;}
+.rating-submit{width:100%;justify-content:center;border:0;padding:.9rem 1rem;font-size:.7rem;}
+.rating-submit:disabled{opacity:.65;cursor:wait;}
+.rating-success{text-align:center;padding:1rem 0 .35rem;}
+.rating-success i{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 1rem;border-radius:22px;background:#fff6d9;color:#e3a511;font-size:1.7rem;}
+.rating-success h2{margin-bottom:.55rem;}
+.rating-success p{margin:0;color:#6c6262;font-size:.85rem;}
+@media (max-width:520px){.rating-modal{padding:1.6rem 1.25rem;border-radius:24px}.star-rating label{font-size:2.15rem;}}
 </style>
 </head>
 <body>
@@ -117,6 +160,10 @@ p.lead{
         <a class="btn btn-accent" href="@Url.Action("Index","Home")"><i class="fa fa-house"></i> Home</a>
         <a class="btn" href="javascript:window.print()"><i class="fa fa-print"></i> Print</a>
         <a class="btn" href="@Url.Action("SignIn","Auth")"><i class="fa fa-right-to-bracket"></i> Sign In</a>
+        @if (showRatingPrompt)
+        {
+            <button class="btn" id="openRatingButton" type="button"><i class="fa fa-star"></i> Rate experience</button>
+        }
         <a class="btn" href="mailto:support@forek.online?subject=App%20Follow-up%20@reference"><i class="fa fa-envelope"></i> Support</a>
     </div>
 
@@ -125,25 +172,128 @@ p.lead{
     </p>
   </main>
 
+
+  @if (showRatingPrompt)
+  {
+    <div class="rating-overlay" id="ratingOverlay" aria-hidden="true">
+      <section class="rating-modal" role="dialog" aria-modal="true" aria-labelledby="ratingTitle" aria-describedby="ratingDescription">
+        <button class="rating-close" id="ratingClose" type="button" aria-label="Close feedback form"><i class="fa fa-xmark"></i></button>
+        <div id="ratingFormContent">
+          <p class="rating-kicker">One last thing</p>
+          <h2 id="ratingTitle">How was your application experience?</h2>
+          <p class="rating-copy" id="ratingDescription">Your feedback helps us make applying simpler and better for everyone.</p>
+
+          <form id="ratingForm" asp-controller="Global" asp-action="SubmitApplicationRating" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ApplicationId" value="@ratingApplicationId" />
+            <div class="star-rating" role="radiogroup" aria-label="Choose a rating from one to five stars">
+              @for (var star = 5; star >= 1; star--)
+              {
+                <input type="radio" id="rating-@star" name="Rating" value="@star" required />
+                <label for="rating-@star" title="@star star@(star == 1 ? "" : "s")"><i class="fa-solid fa-star" aria-hidden="true"></i><span class="visually-hidden">@star star@(star == 1 ? "" : "s")</span></label>
+              }
+            </div>
+            <label class="rating-label" for="ratingComment">Tell us more <span style="font-weight:400;color:#8a8181;">(optional)</span></label>
+            <textarea class="rating-textarea" id="ratingComment" name="Comment" maxlength="1000" placeholder="What worked well, or what could we improve?"></textarea>
+            <div class="rating-meta"><span>Be as brief or detailed as you like.</span><span id="ratingCount">0 / 1000</span></div>
+            <p class="rating-error" id="ratingError" role="alert"></p>
+            <button class="btn btn-accent rating-submit" id="ratingSubmit" type="submit"><i class="fa fa-paper-plane"></i> Send feedback</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  }
+
 <script>
 (function(){
   const auto = @autoRedirect.ToString().ToLower();
   const seconds = @redirectSeconds;
-  if(!auto) return;
-  const span = document.getElementById('redirectTimer');
-  span.classList.add('show');
-  let left = seconds;
-  span.textContent = 'Redirecting in ' + left + 's';
-  const iv = setInterval(()=>{
-     left--;
-     if(left <= 0){
-        clearInterval(iv);
-        span.textContent = 'Redirecting...';
-        window.location = '@Url.Action("Index","Home")';
-     } else {
-        span.textContent = 'Redirecting in ' + left + 's';
-     }
-  },1000);
+  if(auto){
+    const span = document.getElementById('redirectTimer');
+    span.classList.add('show');
+    let left = seconds;
+    span.textContent = 'Redirecting in ' + left + 's';
+    const iv = setInterval(()=>{
+       left--;
+       if(left <= 0){
+          clearInterval(iv);
+          span.textContent = 'Redirecting...';
+          window.location = '@Url.Action("Index","Home")';
+       } else {
+          span.textContent = 'Redirecting in ' + left + 's';
+       }
+    },1000);
+  }
+
+  const overlay = document.getElementById('ratingOverlay');
+  if(!overlay) return;
+
+  const modal = overlay.querySelector('.rating-modal');
+  const closeButton = document.getElementById('ratingClose');
+  const openButton = document.getElementById('openRatingButton');
+  const form = document.getElementById('ratingForm');
+  const comment = document.getElementById('ratingComment');
+  const count = document.getElementById('ratingCount');
+  const error = document.getElementById('ratingError');
+  const submit = document.getElementById('ratingSubmit');
+
+  const open = ()=>{
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden','false');
+    document.getElementById('rating-5')?.focus();
+  };
+
+  const close = ()=>{
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden','true');
+    openButton?.focus();
+  };
+
+  window.setTimeout(open,350);
+
+  openButton?.addEventListener('click', open);
+  closeButton.addEventListener('click', close);
+  overlay.addEventListener('click', event=>{ if(event.target === overlay) close(); });
+  document.addEventListener('keydown', event=>{
+    if(event.key === 'Escape' && overlay.classList.contains('is-open')) close();
+  });
+  modal.addEventListener('click', event=>event.stopPropagation());
+  comment.addEventListener('input', ()=>{ count.textContent = comment.value.length + ' / 1000'; });
+
+  form.addEventListener('submit', async event=>{
+    event.preventDefault();
+    error.classList.remove('is-visible');
+    const selectedRating = form.querySelector('input[name="Rating"]:checked');
+    if(!selectedRating){
+      error.textContent = 'Please choose a star rating before sending your feedback.';
+      error.classList.add('is-visible');
+      return;
+    }
+
+    submit.disabled = true;
+    submit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sending...';
+
+    try{
+      const response = await fetch(form.action, {
+        method:'POST',
+        body:new FormData(form),
+        headers:{'X-Requested-With':'XMLHttpRequest'}
+      });
+      const result = await response.json().catch(()=>({}));
+      if(!response.ok) throw new Error(result.message || 'We could not save your feedback right now.');
+
+      document.getElementById('ratingFormContent').innerHTML =
+        '<div class="rating-success"><i class="fa fa-star"></i><h2>Thank you!</h2><p>' +
+        (result.message || 'Your feedback has been received.') + '</p></div>';
+      closeButton.focus();
+      window.setTimeout(close,2200);
+    }catch(exception){
+      error.textContent = exception.message;
+      error.classList.add('is-visible');
+      submit.disabled = false;
+      submit.innerHTML = '<i class="fa fa-paper-plane"></i> Send feedback';
+    }
+  });
 })();
 </script>
 </body>
