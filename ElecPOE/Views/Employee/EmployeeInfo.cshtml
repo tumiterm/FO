@@ -1023,6 +1023,219 @@
         .employee-utility-dock__label { grid-column: auto; }
     }
 
+    /* Settings-inspired profile dashboard refresh */
+    .hub-hero {
+        position: relative;
+        grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr);
+        gap: 0;
+        min-height: 390px;
+        border-radius: 34px;
+        background:
+            radial-gradient(circle at 8% 110%, rgba(255,122,24,.34), transparent 36%),
+            radial-gradient(circle at 92% 0%, rgba(179,18,23,.46), transparent 38%),
+            linear-gradient(135deg, #22090b 0%, #560b10 48%, #171319 100%);
+        box-shadow: 0 30px 80px rgba(59,7,10,.22);
+    }
+
+    .hub-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .16;
+        background-image: radial-gradient(rgba(255,255,255,.75) .7px, transparent .7px);
+        background-size: 18px 18px;
+        -webkit-mask-image: linear-gradient(90deg, #000, transparent 72%);
+        mask-image: linear-gradient(90deg, #000, transparent 72%);
+    }
+
+    .hero-panel,
+    .profile-panel {
+        z-index: 1;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .hero-panel::before,
+    .profile-panel::before { display: none; }
+
+    .hero-panel__inner {
+        justify-content: center;
+        padding: clamp(2.2rem, 5vw, 4.2rem);
+    }
+
+    .hero-topline {
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #ffbd8a;
+        letter-spacing: .16em;
+    }
+
+    .hero-topline::before {
+        content: "";
+        width: 25px;
+        height: 2px;
+        border-radius: 99px;
+        background: var(--emp-orange);
+    }
+
+    .hero-title {
+        max-width: 820px;
+        color: #fff;
+        font-size: clamp(2.25rem, 4.2vw, 4.15rem);
+        line-height: .99;
+        letter-spacing: -.05em;
+    }
+
+    .hero-copy { color: rgba(255,255,255,.67); }
+
+    .hero-commandbar .btn-act {
+        border-color: rgba(255,255,255,.16);
+        background: rgba(255,255,255,.1);
+        color: #fff;
+        box-shadow: none;
+        backdrop-filter: blur(10px);
+    }
+
+    .hero-commandbar .btn-act:hover,
+    .hero-commandbar .btn-act-primary {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--emp-orange), var(--emp-red-strong));
+        color: #fff;
+    }
+
+    .hero-metrics { gap: .7rem; }
+    .metric-card {
+        min-height: 102px;
+        border-color: rgba(255,255,255,.1);
+        background: rgba(255,255,255,.065);
+        box-shadow: none;
+        backdrop-filter: blur(12px);
+    }
+    .metric-card:hover { background: rgba(255,255,255,.1); box-shadow: none; }
+    .metric-label { color: rgba(255,255,255,.42); }
+    .metric-value { color: #fff; }
+    .metric-sub { color: #ffbd8a; }
+
+    .profile-panel {
+        margin: 18px;
+        border: 1px solid rgba(255,255,255,.11);
+        border-radius: 25px;
+        background: rgba(16,13,18,.66);
+        backdrop-filter: blur(14px);
+    }
+
+    .profile-panel__inner { padding: 1.65rem; align-content: center; }
+    .profile-name { color: #fff; }
+    .profile-meta__row { color: rgba(255,255,255,.52); }
+    .profile-badge--primary { border-color: rgba(255,155,81,.18); background: rgba(255,122,24,.14); color: #ffbd8a; }
+    .profile-badge--dark { border-color: rgba(255,255,255,.08); background: rgba(255,255,255,.06); color: rgba(255,255,255,.72); }
+    .profile-panel .quick-tile { border-color: rgba(255,255,255,.08); background: rgba(255,255,255,.045); box-shadow: none; }
+    .profile-panel .quick-tile:hover { background: rgba(255,255,255,.075); box-shadow: none; }
+    .profile-panel .quick-label { color: rgba(255,255,255,.38); }
+    .profile-panel .quick-value { color: #fff; }
+
+    .workspace-panel {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .workspace-panel::before { display: none; }
+    .workspace-panel__inner { padding: 1.2rem 0 0; }
+    .workspace-head { margin-bottom: 1.25rem; }
+    .workspace-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        color: var(--emp-red-strong);
+        font-size: .7rem;
+        font-weight: 800;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+    }
+    .workspace-title { margin-top: .38rem; font-size: clamp(1.55rem, 2.6vw, 2.25rem); letter-spacing: -.035em; }
+
+    .command-grid { gap: 15px; }
+    .command-card {
+        --module: var(--emp-red-strong);
+        min-height: 245px;
+        gap: 0;
+        padding: 24px;
+        border-color: #ebe7eb;
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: 0 12px 35px rgba(40,26,35,.055);
+    }
+    .command-card::before {
+        inset: auto -38px auto auto;
+        top: -38px;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--module) 13%, transparent);
+        opacity: 1;
+        transition: transform .3s ease;
+    }
+    .command-card::after { display: none; }
+    .command-card:hover {
+        border-color: color-mix(in srgb, var(--module) 35%, #fff);
+        box-shadow: 0 24px 55px rgba(40,26,35,.11);
+    }
+    .command-card:hover::before { transform: scale(1.25); }
+    .command-card--green { --module: #45b97c; }
+    .command-card--blue { --module: #4e81dc; }
+    .command-card--purple { --module: #8a61cf; }
+    .command-card--yellow { --module: #dfa52f; }
+    .command-card--orange { --module: #ff7a18; }
+    .command-card--rose { --module: #d34d6f; }
+
+    .command-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 17px;
+        background: color-mix(in srgb, var(--module) 12%, #fff);
+        box-shadow: none;
+        color: var(--module);
+        font-size: 1.15rem;
+    }
+    .command-status { border-color: transparent; background: #f6f3f5; color: #7f7882; }
+    .command-body { margin-top: 26px; }
+    .command-title { font-size: 1.12rem; letter-spacing: -.02em; }
+    .command-desc { font-size: .8rem; line-height: 1.65; }
+    .command-footer { margin-top: auto; padding-top: 20px; }
+    .command-go { border: 0; background: transparent; color: var(--module); padding: 0; }
+    .command-card:hover .command-go { border: 0; background: transparent; color: var(--module); }
+    .command-card:hover .command-go i { transform: translateX(4px); }
+    .command-go i { transition: transform .2s ease; }
+    .check-list i { color: var(--module); }
+
+    .section-panel {
+        border-color: #ebe7eb;
+        border-radius: 24px;
+        background: #fff;
+        box-shadow: 0 12px 35px rgba(40,26,35,.055);
+    }
+    .section-panel::before { opacity: .45; }
+
+    @@media (max-width: 1200px) {
+        .hub-hero { grid-template-columns: 1fr; }
+        .profile-panel { min-height: 250px; }
+    }
+
+    @@media (max-width: 720px) {
+        .hub-hero { border-radius: 25px; }
+        .hero-panel__inner { padding: 2.1rem 1.5rem; }
+        .hero-title { font-size: clamp(2rem, 12vw, 3rem); }
+        .profile-panel { margin: 0 12px 12px; }
+        .profile-panel__inner { padding: 1.3rem; }
+        .workspace-head { align-items: flex-start; }
+    }
+
 </style>
 
 <div class="page-shell">
@@ -1169,6 +1382,7 @@
         <div class="workspace-panel__inner">
             <div class="workspace-head">
                 <div>
+                    <div class="workspace-kicker"><i class="fa-solid fa-grid-2"></i> Employee toolkit</div>
                     <h3 class="workspace-title">Workspace actions</h3>
                     <p class="workspace-copy">
                         High-frequency actions are surfaced first, while specialist tools remain one click away.
@@ -1183,7 +1397,7 @@
             </div>
 
             <div class="command-grid">
-                <div class="command-card span-3" data-link="contacts" tabindex="0" title="View Colleagues" onclick="$('#modalContacts').modal('show')">
+                <div class="command-card command-card--green span-3" data-link="contacts" tabindex="0" title="View Colleagues" onclick="$('#modalContacts').modal('show')">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-address-book"></i></div>
                         <span class="command-status">Live</span>
@@ -1198,7 +1412,7 @@
                     </div>
                 </div>
 
-                <div class="command-card span-3" data-link="reports" tabindex="0" title="Go to Reports" onclick="window.location.href='@Url.Action("UserReports", "Report", new { IdPass = Encrypt(Model.User.IDPass) })'">
+                <div class="command-card command-card--blue span-3" data-link="reports" tabindex="0" title="Go to Reports" onclick="window.location.href='@Url.Action("UserReports", "Report", new { IdPass = Encrypt(Model.User.IDPass) })'">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-file-lines"></i></div>
                         <span class="command-status">Active</span>
@@ -1213,7 +1427,7 @@
                     </div>
                 </div>
 
-                <div class="command-card span-3" data-link="payslip" tabindex="0" title="Request Payslip/IRP5" onclick="$('#modalPayslip').modal('show')">
+                <div class="command-card command-card--orange span-3" data-link="payslip" tabindex="0" title="Request Payslip/IRP5" onclick="$('#modalPayslip').modal('show')">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-wallet"></i></div>
                         <span class="command-status">Form</span>
@@ -1228,7 +1442,7 @@
                     </div>
                 </div>
 
-                <div class="command-card span-3" data-link="dashboard" tabindex="0" title="Open Dashboard" onclick="window.location.href='@Url.Action("EmployeeFiles", "Employee", new { EmployeeId = Encrypt(Model.User.IDPass) })'">
+                <div class="command-card command-card--purple span-3" data-link="dashboard" tabindex="0" title="Open Dashboard" onclick="window.location.href='@Url.Action("EmployeeFiles", "Employee", new { EmployeeId = Encrypt(Model.User.IDPass) })'">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-gauge"></i></div>
                         <span class="command-status">Storage</span>
@@ -1243,7 +1457,7 @@
                     </div>
                 </div>
 
-                <div class="command-card span-4" data-link="lesson" tabindex="0" title="Create Lesson Plan" onclick="window.location.href='@Url.Action("OnCreatePlan", "LessonPlanConfig", new { IdPass = Model.User.IDPass })'">
+                <div class="command-card command-card--yellow span-4" data-link="lesson" tabindex="0" title="Create Lesson Plan" onclick="window.location.href='@Url.Action("OnCreatePlan", "LessonPlanConfig", new { IdPass = Model.User.IDPass })'">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-chalkboard-teacher"></i></div>
                         <span class="command-status">Tools</span>
@@ -1258,7 +1472,7 @@
                     </div>
                 </div>
 
-                <div class="command-card @(hasSignature ? "" : "is-disabled") span-4" data-link="signature" tabindex="0" title="Email Signature" onclick="openSignatureCard()">
+                <div class="command-card command-card--rose @(hasSignature ? "" : "is-disabled") span-4" data-link="signature" tabindex="0" title="Email Signature" onclick="openSignatureCard()">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-envelope-open-text"></i></div>
                         <span class="command-status">Brand</span>
@@ -1276,7 +1490,7 @@
                     </div>
                 </div>
 
-                <div class="command-card span-4" data-link="deptstats" tabindex="0" title="Departmental Statistics" onclick="$('#modalDeptStats').modal('show'); loadDeptStats();">
+                <div class="command-card command-card--blue span-4" data-link="deptstats" tabindex="0" title="Departmental Statistics" onclick="$('#modalDeptStats').modal('show'); loadDeptStats();">
                     <div class="command-head">
                         <div class="command-icon"><i class="fa fa-chart-pie"></i></div>
                         <span class="command-status">Insight</span>
@@ -1293,7 +1507,7 @@
 
                 @if (User.IsInRole("Facilitator") || User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                 {
-                    <div class="command-card span-6" data-link="bookassessment" tabindex="0" title="Book Assessment on Venue"
+                    <div class="command-card command-card--green span-6" data-link="bookassessment" tabindex="0" title="Book Assessment on Venue"
                          onclick="window.location.href='@Url.Action("ReserveVenue", "VenueBooking")'">
                         <div class="command-head">
                             <div class="command-icon"><i class="fa fa-calendar-check"></i></div>
