@@ -28,7 +28,7 @@
     string currentUser = ViewData["CurrentUser"]?.ToString()?.Trim() ?? "Administrator";
     string role = ViewData["role"]?.ToString() ?? "Administrator";
     string firstName = currentUser.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Administrator";
-    string greeting = DateTime.Now.Hour < 12 ? "Good morning" : DateTime.Now.Hour < 18 ? "Good afternoon" : "Good evening";
+    string greeting = DateTimeHelper.GetCurrentSastDateTimeOffset().Hour < 12 ? "Good morning" : DateTimeHelper.GetCurrentSastDateTimeOffset().Hour < 18 ? "Good afternoon" : "Good evening";
     double share(int part, int whole) => whole == 0 ? 0 : (double)part / whole * 100;
 }
 
