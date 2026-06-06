@@ -1,6 +1,5 @@
 ﻿@using static ForekOnline.Domain.Enums.EnumRegistry
 @model ForekOnline.Domain.ViewModels.EmployeeContactsViewModel
-@using static ForekOnline.Application.Common.Utility.Helper
 @using static ForekOnline.Application.Common.Utility.EncryptionHelper
 
 @{
@@ -1236,6 +1235,174 @@
         .workspace-head { align-items: flex-start; }
     }
 
+    /* ══ Compact-mode overrides — trim sizes, preserve all visuals ══ */
+    .page-shell {
+        padding-top: 1.1rem;
+        padding-bottom: 2.4rem;
+    }
+
+    .hub-hero {
+        min-height: 240px;
+    }
+
+    .hero-panel__inner {
+        padding: clamp(.95rem, 2vw, 1.65rem);
+        gap: .7rem;
+    }
+
+    .hero-topline {
+        font-size: .62rem;
+        padding: 0;
+    }
+
+    .hero-title {
+        font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+        line-height: 1.06;
+        letter-spacing: -.035em;
+    }
+
+    .hero-copy {
+        font-size: .76rem;
+        line-height: 1.55;
+    }
+
+    .hero-commandbar {
+        gap: .55rem;
+        margin-top: 0;
+    }
+
+        .hero-commandbar .btn-act {
+            padding: .55rem .85rem;
+            font-size: .6rem;
+        }
+
+    .hero-metrics {
+        gap: .45rem;
+        margin-top: 0;
+    }
+
+    .metric-card {
+        min-height: 72px;
+        padding: .62rem .75rem;
+    }
+
+    .metric-label {
+        margin-bottom: .22rem;
+        font-size: .55rem;
+    }
+
+    .metric-value {
+        font-size: .88rem;
+    }
+
+    .metric-sub {
+        font-size: .62rem;
+        margin-top: .2rem;
+    }
+
+    .profile-panel {
+        margin: 10px;
+        border-radius: 20px;
+    }
+
+    .profile-panel__inner {
+        padding: 1rem;
+        gap: .7rem;
+    }
+
+    .avatar-circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+    }
+
+        .avatar-circle .fa-user-circle {
+            font-size: 3rem;
+        }
+
+    .profile-name {
+        font-size: .98rem;
+    }
+
+    .profile-meta {
+        margin-top: .22rem;
+        gap: .16rem;
+    }
+
+    .profile-meta__row {
+        font-size: .7rem;
+    }
+
+    .profile-badges {
+        gap: .38rem;
+    }
+
+    .profile-badge {
+        padding: .36rem .6rem;
+        font-size: .58rem;
+    }
+
+    .quick-grid {
+        margin-top: .6rem;
+        gap: .55rem;
+    }
+
+    .quick-tile {
+        padding: .6rem .7rem;
+        border-radius: 14px;
+    }
+
+    .quick-label {
+        font-size: .52rem;
+        margin-bottom: .3rem;
+    }
+
+    .quick-value {
+        font-size: .76rem;
+    }
+
+    .employee-utility-dock {
+        margin-top: -18px;
+        margin-bottom: 20px;
+        min-height: 48px;
+        padding: 7px;
+    }
+
+    .employee-utility-dock__label,
+    .employee-utility-dock__item {
+        min-height: 46px;
+    }
+
+    .employee-utility-dock__icon {
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+    }
+
+    .employee-utility-dock__copy strong {
+        font-size: .68rem;
+    }
+
+    .employee-utility-dock__copy span {
+        font-size: .56rem;
+    }
+
+    @@media (max-width: 720px) {
+        .hub-hero {
+            border-radius: 20px;
+        }
+
+        .hero-panel__inner {
+            padding: 1.1rem 1.1rem 1.3rem;
+        }
+
+        .profile-panel {
+            margin: 0 8px 8px;
+        }
+    }
+    /* ════════════════════════════════════════════════════════════════ */
+
 </style>
 
 <div class="page-shell">
@@ -1745,7 +1912,7 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-@await Html.PartialAsync("_DynamicNotifications");
+@await Html.PartialAsync("_DynamicNotifications")
 <script>window.__notificationsEndpoint='/Notification/Index';</script>
 <script src="~/js/notifications.js"></script>
 <script>

@@ -304,6 +304,195 @@
         .settings-section__head p { text-align: left; }
         .settings-card, .settings-card--wide { grid-column: 1 / -1; }
     }
+
+        /* ══ Compact-mode overrides — trim sizes, preserve all visuals ══ */
+        .settings-hub {
+            padding-top: 18px;
+            padding-bottom: 40px;
+        }
+
+        .settings-hero {
+            min-height: 220px;
+            border-radius: 26px;
+        }
+
+        .settings-hero__copy {
+            padding: clamp(1rem, 2.2vw, 1.75rem);
+        }
+
+        .settings-hero h1 {
+            font-size: clamp(1.25rem, 2.4vw, 2.1rem);
+            margin: 10px 0 8px;
+            line-height: 1.04;
+            letter-spacing: -.045em;
+        }
+
+        .settings-hero p {
+            font-size: .8rem;
+            line-height: 1.55;
+        }
+
+        .settings-eyebrow {
+            font-size: .62rem;
+        }
+
+        .settings-search {
+            margin-top: 16px;
+        }
+
+            .settings-search input {
+                min-height: 44px;
+                font-size: .78rem;
+                padding: 0 110px 0 44px;
+                border-radius: 13px;
+            }
+
+            .settings-search span {
+                font-size: .58rem;
+                padding: 6px 9px;
+            }
+
+        .settings-hero__side {
+            margin: 12px;
+            padding: 18px;
+            border-radius: 20px;
+        }
+
+        .settings-profile__icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+        }
+
+        .settings-profile strong {
+            font-size: .8rem;
+        }
+
+        .settings-profile span {
+            font-size: .66rem;
+        }
+
+        .settings-health {
+            gap: 8px;
+            margin: 18px 0;
+        }
+
+        .settings-health__item {
+            padding: 10px 12px;
+            border-radius: 13px;
+        }
+
+            .settings-health__item span {
+                font-size: .6rem;
+            }
+
+            .settings-health__item strong {
+                font-size: 1rem;
+                margin-top: 5px;
+            }
+
+                .settings-health__item strong em {
+                    font-size: .64rem;
+                }
+
+        .settings-side__actions {
+            gap: 7px;
+        }
+
+        .settings-btn {
+            min-height: 36px;
+            padding: 0 12px;
+            font-size: .68rem;
+            border-radius: 11px;
+        }
+
+        .settings-content {
+            padding-top: 28px;
+        }
+
+        .settings-section + .settings-section {
+            margin-top: 28px;
+        }
+
+        .settings-section__head {
+            margin-bottom: 13px;
+        }
+
+        .settings-section h2 {
+            font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+            margin-top: 4px;
+        }
+
+        .settings-section__kicker {
+            font-size: .62rem;
+        }
+
+        .settings-section__head p {
+            font-size: .76rem;
+        }
+
+        .settings-grid {
+            gap: 11px;
+        }
+
+        .settings-card {
+            min-height: 195px;
+            padding: 18px;
+            border-radius: 20px;
+        }
+
+        .settings-card--wide {
+            min-height: 175px;
+        }
+
+        .settings-card h3 {
+            margin: 18px 0 6px;
+            font-size: .98rem;
+        }
+
+        .settings-card p {
+            font-size: .74rem;
+            line-height: 1.55;
+        }
+
+        .settings-card__icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            font-size: 1rem;
+        }
+
+        .settings-card__tag {
+            font-size: .58rem;
+            padding: 5px 9px;
+        }
+
+        .settings-card__foot {
+            font-size: .66rem;
+            padding-top: 14px;
+        }
+
+        .settings-card::after {
+            width: 105px;
+            height: 105px;
+            top: -28px;
+            right: -28px;
+        }
+
+        @@media (max-width: 700px) {
+            .settings-hero {
+                border-radius: 18px;
+            }
+
+            .settings-hero__copy {
+                padding: 1.1rem 1.1rem 1.3rem;
+            }
+
+            .settings-hero__side {
+                margin: 0 8px 8px;
+                padding: 14px;
+            }
+        }
 </style>
 }
 

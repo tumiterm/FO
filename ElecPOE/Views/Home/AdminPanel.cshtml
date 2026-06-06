@@ -451,7 +451,6 @@
         .admin-command *, .admin-command *::before, .admin-command *::after { scroll-behavior: auto !important; transition: none !important; }
     }
 
-        /* ── Navigation loading overlay ── */
         .nav-overlay {
             position: fixed;
             inset: 0;
@@ -598,6 +597,366 @@
                 transform: rotate(360deg);
             }
         }
+
+
+        .admin-command {
+            padding-top: 22px;
+            padding-bottom: 44px;
+        }
+
+            .admin-command .command-hero {
+                min-height: 260px;
+                border-radius: 26px;
+            }
+
+            .admin-command .hero-copy {
+                padding: 32px 40px;
+            }
+
+            .admin-command .eyebrow {
+                margin-bottom: 10px;
+                font-size: .6rem;
+            }
+
+            .admin-command .hero-copy h1 {
+                font-size: clamp(1.3rem, 2.4vw, 2.25rem);
+            }
+
+            .admin-command .hero-copy p {
+                font-size: .8rem;
+                line-height: 1.55;
+                margin-top: 12px;
+            }
+
+            .admin-command .hero-actions {
+                margin-top: 18px;
+                gap: 8px;
+            }
+
+            .admin-command .primary-action,
+            .admin-command .secondary-action {
+                min-height: 38px;
+                padding: 0 14px;
+                font-size: .68rem;
+                border-radius: 12px;
+            }
+
+            .admin-command .hero-status {
+                margin: 14px;
+                padding: 18px;
+                border-radius: 20px;
+            }
+
+            .admin-command .avatar {
+                width: 38px;
+                height: 38px;
+                flex: 0 0 38px;
+                border-radius: 12px;
+            }
+
+            .admin-command .profile strong {
+                font-size: .76rem;
+            }
+
+            .admin-command .profile span {
+                font-size: .62rem;
+            }
+
+            .admin-command .record-total {
+                margin: 18px 0 12px;
+            }
+
+                .admin-command .record-total span {
+                    font-size: .6rem;
+                }
+
+                .admin-command .record-total strong {
+                    font-size: clamp(1.9rem, 3vw, 2.85rem);
+                    margin-top: 5px;
+                }
+
+                .admin-command .record-total small {
+                    font-size: .63rem;
+                    margin-top: 6px;
+                }
+
+            .admin-command .status-foot {
+                padding-top: 11px;
+                font-size: .62rem;
+            }
+
+            .admin-command .live-pill {
+                padding: 5px 9px;
+                font-size: .56rem;
+            }
+
+            .admin-command .pulse-strip {
+                margin-top: -18px;
+                margin-bottom: 32px;
+                border-radius: 18px;
+            }
+
+            .admin-command .pulse-item {
+                padding: 12px 15px;
+            }
+
+            .admin-command .pulse-label {
+                font-size: .56rem;
+            }
+
+            .admin-command .pulse-value {
+                font-size: .92rem;
+                margin-top: 4px;
+            }
+
+            .admin-command .pulse-item > i {
+                flex: 0 0 30px;
+                width: 30px;
+                height: 30px;
+                border-radius: 10px;
+                font-size: .8rem;
+            }
+
+            .admin-command .section-heading {
+                margin-top: 30px;
+                margin-bottom: 13px;
+                gap: 14px;
+            }
+
+            .admin-command .section-kicker {
+                font-size: .58rem;
+                margin-bottom: 6px;
+            }
+
+            .admin-command .section-heading h2 {
+                font-size: clamp(1.1rem, 1.9vw, 1.6rem);
+            }
+
+            .admin-command .section-heading p {
+                font-size: .72rem;
+            }
+
+            .admin-command .quick-grid {
+                gap: 11px;
+            }
+
+            .admin-command .quick-card {
+                min-height: 185px;
+                padding: 18px;
+                border-radius: 19px;
+            }
+
+                .admin-command .quick-card::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 18px;
+                    right: 18px;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+                    opacity: .5;
+                    transition: opacity .25s ease, left .25s ease, right .25s ease;
+                }
+
+                .admin-command .quick-card:hover::before {
+                    opacity: 1;
+                    left: 8px;
+                    right: 8px;
+                }
+
+                .admin-command .quick-card:hover {
+                    box-shadow: 0 20px 44px rgba(0,0,0,.35), 0 0 0 1px color-mix(in srgb, var(--card-color) 32%, transparent);
+                }
+
+            .admin-command .quick-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                font-size: .9rem;
+            }
+
+            .admin-command .quick-card h3 {
+                font-size: .88rem;
+            }
+
+            .admin-command .quick-card p {
+                font-size: .67rem;
+            }
+
+            .admin-command .quick-link {
+                font-size: .59rem;
+                margin-top: 12px;
+            }
+
+            .admin-command .metric-grid {
+                gap: 11px;
+            }
+
+            .admin-command .metric-card {
+                padding: 18px;
+                border-radius: 19px;
+                transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+            }
+
+                .admin-command .metric-card:hover {
+                    transform: translateY(-3px);
+                    border-color: color-mix(in srgb, var(--metric) 30%, transparent);
+                    box-shadow: 0 0 0 1px color-mix(in srgb, var(--metric) 18%, transparent), 0 16px 36px rgba(0,0,0,.26);
+                }
+
+            .admin-command .metric-head span {
+                font-size: .6rem;
+            }
+
+            .admin-command .metric-value {
+                margin-top: 14px;
+            }
+
+                .admin-command .metric-value strong {
+                    font-size: 2.05rem;
+                }
+
+                .admin-command .metric-value span {
+                    font-size: .62rem;
+                }
+
+            .admin-command .meter {
+                margin-top: 12px;
+                height: 3px;
+            }
+                /* Animate meter fill on page load */
+                .admin-command .meter span {
+                    animation: apMeterFill 1.1s cubic-bezier(.25,.8,.25,1) both .35s;
+                }
+
+            .admin-command .metric-card > p {
+                font-size: .6rem;
+                margin-top: 9px;
+            }
+
+        @@keyframes apMeterFill {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: calc(var(--share) * 1%);
+            }
+        }
+
+        /* ── Operation panels — spiced up ── */
+        .admin-command .operations-grid {
+            gap: 11px;
+        }
+
+        .admin-command .operation-panel {
+            padding: 20px;
+            border-radius: 21px;
+            border-left: 2px solid var(--panel-color);
+            background: linear-gradient(155deg, rgba(20,20,34,.96), rgba(12,12,22,.98));
+        }
+
+        .admin-command .operation-head {
+            padding-bottom: 14px;
+        }
+
+        .admin-command .operation-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            font-size: .88rem;
+        }
+
+        .admin-command .operation-title h3 {
+            font-size: .82rem;
+        }
+
+        .admin-command .operation-title span {
+            font-size: .6rem;
+        }
+
+        .admin-command .operation-total {
+            font-size: 1.3rem;
+        }
+
+        .admin-command .breakdown {
+            gap: 11px;
+            margin-top: 16px;
+        }
+
+        .admin-command .breakdown-label {
+            font-size: .64rem;
+        }
+
+        .admin-command .breakdown-value {
+            font-size: .67rem;
+        }
+
+        .admin-command .breakdown-track {
+            height: 5px;
+        }
+
+            .admin-command .breakdown-track span {
+                animation: apTrackFill .9s cubic-bezier(.25,.8,.25,1) both .55s;
+            }
+
+        @@keyframes apTrackFill {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: max(4px, calc(var(--row-share) * 1%));
+            }
+        }
+
+        .admin-command .command-hero {
+            animation: apFadeUp .45s ease both;
+        }
+
+        .admin-command .pulse-strip {
+            animation: apFadeUp .45s ease both .06s;
+        }
+
+        .admin-command section:nth-of-type(2) {
+            animation: apFadeUp .45s ease both .1s;
+        }
+
+        .admin-command section:nth-of-type(3) {
+            animation: apFadeUp .45s ease both .15s;
+        }
+
+        .admin-command section:nth-of-type(4) {
+            animation: apFadeUp .45s ease both .2s;
+        }
+
+        @@keyframes apFadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@media (max-width: 760px) {
+            .admin-command .command-hero {
+                border-radius: 20px;
+            }
+
+            .admin-command .hero-copy {
+                padding: 22px 22px 18px;
+            }
+
+            .admin-command .hero-status {
+                margin: 8px;
+                padding: 14px;
+            }
+        }
+
 </style>
 }
 
@@ -740,7 +1099,7 @@
         <div class="operations-grid">
             <article class="operation-panel" style="--panel-color:#f07880">
                 <div class="operation-head">
-                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-file-pen"></i></span><span><h3>Assessment records</h3><span>Evidence and submissions</span></span></div>
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-file-pen"></i></span><span><h3 class="text-white">Assessment records</h3><span>Evidence and submissions</span></span></div>
                     <strong class="operation-total">@totalAssess.ToString("N0")</strong>
                 </div>
                 <div class="breakdown">
@@ -753,7 +1112,7 @@
 
             <article class="operation-panel" style="--panel-color:#73a7ff">
                 <div class="operation-head">
-                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-folder-open"></i></span><span><h3>Learner documents</h3><span>Onboarding and identity</span></span></div>
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-folder-open"></i></span><span><h3 class="text-white">Learner documents</h3><span>Onboarding and identity</span></span></div>
                     <strong class="operation-total">@totalLearnerDocs.ToString("N0")</strong>
                 </div>
                 <div class="breakdown">
@@ -766,7 +1125,7 @@
 
             <article class="operation-panel" style="--panel-color:#55d6a5">
                 <div class="operation-head">
-                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-clipboard-check"></i></span><span><h3>Training administration</h3><span>Onboarding and compliance</span></span></div>
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-clipboard-check"></i></span><span><h3 class="text-white">Training administration</h3><span>Onboarding and compliance</span></span></div>
                     <strong class="operation-total">@totalTraining.ToString("N0")</strong>
                 </div>
                 <div class="breakdown">
@@ -779,7 +1138,7 @@
 
             <article class="operation-panel" style="--panel-color:#b193ff">
                 <div class="operation-head">
-                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-chart-line"></i></span><span><h3>Progress reporting</h3><span>Programme and trade results</span></span></div>
+                    <div class="operation-title"><span class="operation-icon"><i class="fa-solid fa-chart-line"></i></span><span><h3 class="text-white">Progress reporting</h3><span>Programme and trade results</span></span></div>
                     <strong class="operation-total">@totalReports.ToString("N0")</strong>
                 </div>
                 <div class="breakdown">
