@@ -1,4 +1,4 @@
-﻿// <copyright file="ApplicationsController.cs" company="Forek ICT Services">
+// <copyright file="ApplicationsController.cs" company="Forek ICT Services">
 //     Copyright © Forek ICT Services.
 // </copyright>
 // Created By:      Itumeleng Oliphant - (on DESKTOP-72504AI)
@@ -259,7 +259,7 @@ namespace ElecPOE.Controllers
                     iconCss: "fa fa-file-alt",
                     createdBy: $"{application.ApplicantName} {application.ApplicantSurname}");
 
-                return HandleApplicationSuccess();
+                return HandleApplicationSuccess(application);
             }
             catch (Exception ex)
             {
@@ -2399,10 +2399,14 @@ namespace ElecPOE.Controllers
         /// <summary>
         /// Handles a successful application submission and redirects the user to the acknowledgment page.
         /// </summary>
+        /// <param name="application">The application that was successfully submitted.</param>
         /// <returns>An IActionResult representing the success response.</returns>
-        private IActionResult HandleApplicationSuccess()
+        private IActionResult HandleApplicationSuccess(Application application)
         {
             TempData["success"] = "Application successfully saved and submitted.";
+            TempData["ApplicationId"] = application.ApplicationId.ToString();
+            TempData["ApplicantName"] = application.ApplicantName;
+            TempData["Reference"] = application.ReferenceNumber;
 
             return RedirectToAction("Acknowledgement", "Global");
         }
