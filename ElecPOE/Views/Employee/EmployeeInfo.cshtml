@@ -966,6 +966,63 @@
             align-items: flex-start;
         }
     }
+
+
+    .employee-utility-dock {
+        position: relative;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: auto repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        width: calc(100% - 48px);
+        margin: -27px auto 30px;
+        padding: 9px;
+        border: 1px solid rgba(255,255,255,.7);
+        border-radius: 22px;
+        background: rgba(255,255,255,.88);
+        box-shadow: 0 22px 60px rgba(70,30,34,.14);
+        backdrop-filter: blur(18px);
+    }
+
+    .employee-utility-dock__label,
+    .employee-utility-dock__item {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        min-height: 54px;
+        border-radius: 15px;
+    }
+
+    .employee-utility-dock__label {
+        gap: 9px;
+        padding: 0 17px;
+        background: #24151a;
+        color: #fff;
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .employee-utility-dock__label i { color: var(--emp-orange); }
+    .employee-utility-dock__item { gap: 11px; padding: 0 13px; border: 0; background: transparent; color: var(--emp-text); font: inherit; text-align: left; text-decoration: none; transition: background .2s ease, transform .2s ease; }
+    .employee-utility-dock__item:hover { background: #fff5f1; color: var(--emp-red); transform: translateY(-2px); }
+    .employee-utility-dock__icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 11px; background: #f7eef0; color: var(--emp-red); }
+    .employee-utility-dock__copy { min-width: 0; }
+    .employee-utility-dock__copy strong, .employee-utility-dock__copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .employee-utility-dock__copy strong { font-size: .73rem; }
+    .employee-utility-dock__copy span { margin-top: 2px; color: #8a8083; font-size: .6rem; }
+
+    @@media (max-width: 1050px) {
+        .employee-utility-dock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .employee-utility-dock__label { grid-column: 1 / -1; }
+    }
+
+    @@media (max-width: 620px) {
+        .employee-utility-dock { grid-template-columns: 1fr; width: calc(100% - 20px); margin-top: -15px; }
+        .employee-utility-dock__label { grid-column: auto; }
+    }
+
 </style>
 
 <div class="page-shell">
@@ -1087,6 +1144,26 @@
             </div>
         </aside>
     </div>
+
+    <nav class="employee-utility-dock" aria-label="Employee quick access">
+        <div class="employee-utility-dock__label"><i class="fa-solid fa-bolt"></i> Quick access</div>
+        <a class="employee-utility-dock__item" asp-action="UserReports" asp-controller="Report" asp-route-IdPass="@Encrypt(Model.User.IDPass)">
+            <span class="employee-utility-dock__icon"><i class="fa-solid fa-chart-simple"></i></span>
+            <span class="employee-utility-dock__copy"><strong>Reports</strong><span>Review your output</span></span>
+        </a>
+        <a class="employee-utility-dock__item" asp-action="EmployeeFiles" asp-controller="Employee" asp-route-EmployeeId="@Encrypt(Model.User.IDPass)">
+            <span class="employee-utility-dock__icon"><i class="fa-solid fa-folder-open"></i></span>
+            <span class="employee-utility-dock__copy"><strong>My files</strong><span>Stored resources</span></span>
+        </a>
+        <button type="button" class="employee-utility-dock__item border-0" onclick="$('#modalPayslip').modal('show')">
+            <span class="employee-utility-dock__icon"><i class="fa-solid fa-wallet"></i></span>
+            <span class="employee-utility-dock__copy"><strong>Payroll request</strong><span>Payslip or IRP5</span></span>
+        </button>
+        <button type="button" class="employee-utility-dock__item border-0" onclick="$('#modalContacts').modal('show')">
+            <span class="employee-utility-dock__icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="employee-utility-dock__copy"><strong>Colleagues</strong><span>@Model.Contacts.Count available</span></span>
+        </button>
+    </nav>
 
     <section class="workspace-panel">
         <div class="workspace-panel__inner">
