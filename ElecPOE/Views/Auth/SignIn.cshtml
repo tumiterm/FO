@@ -14,7 +14,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
-        /* ── Tokens ─────────────────────────────────── */
         :root {
             --bg:    #09090d;
             --r9:    #320606;
@@ -45,7 +44,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Dark background + grain ─────────────────── */
         body {
             background: var(--bg);
             color: var(--t1);
@@ -58,7 +56,6 @@
             position: relative;
         }
 
-        /* SVG noise grain overlay */
         body::after {
             content: "";
             position: fixed; inset: 0;
@@ -69,7 +66,6 @@
             background-size: 220px 220px;
         }
 
-        /* ── Animated orbs ───────────────────────────── */
         .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 
         .orb {
@@ -104,7 +100,6 @@
             66%      { transform: translate(-25px,20px) scale(.94); }
         }
 
-        /* Mouse-reactive glow */
         .mouse-glow {
             position: fixed; width: 340px; height: 340px;
             border-radius: 50%;
@@ -115,12 +110,10 @@
             filter: blur(40px);
         }
 
-        /* Canvas particles */
         #ptx {
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
         }
 
-        /* ── Layout ──────────────────────────────────── */
         .aw {
             position: relative; z-index: 1;
             width: 100%; max-width: 1060px;
@@ -130,7 +123,6 @@
             align-items: stretch;
         }
 
-        /* ── Glass card base ─────────────────────────── */
         .gc {
             background: var(--gcard);
             border: 1px solid var(--gb);
@@ -152,7 +144,6 @@
             box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 60px rgba(179,18,23,.1);
         }
 
-        /* ── Brand panel ─────────────────────────────── */
         .bp {
             padding: 2.6rem 2.2rem 2rem;
             justify-content: space-between;
@@ -166,7 +157,6 @@
 
         .bp-top { display: flex; flex-direction: column; gap: 1.5rem; }
 
-        /* Logo */
         .logo-ring {
             width: 72px; height: 72px; border-radius: 24px;
             background: var(--ga);
@@ -187,7 +177,6 @@
         }
         .logo-ring:hover::after { opacity: .7; filter: blur(8px); }
 
-        /* Version chip */
         .v-chip {
             display: inline-flex; align-items: center; gap: .5rem;
             font-size: .5rem; letter-spacing: .22rem; font-weight: 700;
@@ -204,7 +193,6 @@
         }
         @@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        /* Headline */
         .bp-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 2.35rem; font-weight: 800;
@@ -222,7 +210,6 @@
             color: var(--t5); max-width: 300px;
         }
 
-        /* Feature list */
         .feats { display: flex; flex-direction: column; gap: .7rem; margin-top: .3rem; }
         .feat-item {
             display: flex; align-items: center; gap: .75rem;
@@ -245,13 +232,11 @@
             font-size: .7rem;
         }
 
-        /* Brand footer */
         .bp-foot {
             font-size: .48rem; letter-spacing: .18rem; text-transform: uppercase;
             font-weight: 600; color: var(--t7); padding-top: 1.8rem;
         }
 
-        /* ── Form panel ──────────────────────────────── */
         .fp {
             padding: 2.6rem 2.4rem 2.2rem;
             animation: slideRight .6s var(--ease) .08s both;
@@ -261,7 +246,6 @@
             to   { opacity:1; transform:none; }
         }
 
-        /* Form head */
         .fh { margin-bottom: 1.8rem; }
         .fh-top {
             display: flex; align-items: center; gap: .85rem; margin-bottom: .6rem;
@@ -280,7 +264,6 @@
         }
         .fh-sub { font-size: .65rem; color: var(--t5); line-height: 1.5; }
 
-        /* Error alert */
         .err-alert {
             display: flex; align-items: flex-start; gap: .65rem;
             background: rgba(220,30,30,.1);
@@ -295,10 +278,8 @@
             0%,100%{transform:none} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
         }
 
-        /* Auth form */
         .af { display: flex; flex-direction: column; gap: 1rem; }
 
-        /* Field */
         .field { display: flex; flex-direction: column; gap: .45rem; }
         .field label {
             font-size: .5rem; letter-spacing: .18rem; font-weight: 700;
@@ -306,7 +287,6 @@
             display: flex; align-items: center; gap: .42rem;
         }
 
-        /* Input wrap */
         .iw { position: relative; }
         .iw .fi {
             position: absolute; top: 50%; left: .9rem;
@@ -336,7 +316,6 @@
                         0 0 20px rgba(255,122,24,.08);
         }
 
-        /* Toggle pass */
         .tp {
             position: absolute; top: 50%; right: .7rem;
             transform: translateY(-50%);
@@ -347,7 +326,6 @@
         }
         .tp:hover { color: var(--or); }
 
-        /* Submit button */
         .btn-submit {
             background: var(--ga);
             border: none; border-radius: 16px;
@@ -377,7 +355,6 @@
         .btn-submit:active { transform: translateY(-1px) scale(.98); }
         .btn-submit i, .btn-submit span { position: relative; z-index: 1; }
 
-        /* Ripple */
         .ripple-circle {
             position: absolute; border-radius: 50%;
             background: rgba(255,255,255,.25);
@@ -388,7 +365,6 @@
             to { transform: scale(4.5); opacity: 0; }
         }
 
-        /* Alt links */
         .alt {
             display: flex; flex-wrap: wrap; gap: .5rem;
             font-size: .56rem; color: var(--t5); letter-spacing: .02rem;
@@ -399,7 +375,6 @@
         }
         .alt a:hover { color: var(--org); text-decoration: underline; }
 
-        /* Divider */
         .div-line {
             display: flex; align-items: center; gap: .7rem;
             font-size: .48rem; letter-spacing: .16rem; text-transform: uppercase;
@@ -411,7 +386,6 @@
             background: rgba(255,255,255,.08);
         }
 
-        /* Quick action buttons */
         .qa-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
         .btn-qa {
             font-size: .56rem; letter-spacing: .1rem; font-weight: 600;
@@ -428,7 +402,6 @@
             transform: translateY(-1px);
         }
 
-        /* App callout */
         .callout {
             border: 1px solid rgba(255,122,24,.18);
             background: rgba(255,122,24,.06);
@@ -455,7 +428,6 @@
         .callout a { color: var(--or); font-weight: 700; text-decoration: none; }
         .callout a:hover { text-decoration: underline; }
 
-        /* ── Decorative ring on brand panel ──────────── */
         .deco-ring {
             position: absolute;
             width: 320px; height: 320px; border-radius: 50%;
@@ -470,7 +442,6 @@
             top: 60px; left: 60px;
         }
 
-        /* ── Responsive ──────────────────────────────── */
         @@media (max-width: 960px) {
             .aw { grid-template-columns: 1fr; max-width: 520px; }
             .bp { display: none; }
@@ -479,27 +450,121 @@
             body { padding: 1rem; }
             .fp { padding: 1.8rem 1.4rem 1.6rem; }
         }
+
+            .auth-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                background: rgba(9, 9, 13, .88);
+                backdrop-filter: blur(18px) saturate(1.5);
+                -webkit-backdrop-filter: blur(18px) saturate(1.5);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 26px;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .32s var(--ease), visibility .32s var(--ease);
+                pointer-events: none;
+            }
+
+                .auth-overlay.is-active {
+                    opacity: 1;
+                    visibility: visible;
+                    pointer-events: all;
+                }
+
+            .auth-spin-wrap {
+                position: relative;
+                width: 68px;
+                height: 68px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .auth-spin-outer {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                border: 3px solid rgba(255, 255, 255, .06);
+                border-top-color: var(--r4);
+                border-right-color: rgba(229, 35, 40, .28);
+                animation: auth-spin .68s linear infinite;
+            }
+
+            .auth-spin-inner {
+                position: absolute;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                border: 2px solid transparent;
+                border-bottom-color: var(--or);
+                border-left-color: rgba(255, 122, 24, .22);
+                animation: auth-spin .95s linear infinite reverse;
+            }
+
+            .auth-spin-icon {
+                font-size: 1rem;
+                background: var(--ga);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .auth-overlay-copy strong {
+                display: block;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--t1);
+                text-align: center;
+                margin-bottom: 6px;
+            }
+
+            .auth-overlay-copy span {
+                display: block;
+                font-size: .7rem;
+                font-weight: 600;
+                letter-spacing: .16em;
+                text-transform: uppercase;
+                color: var(--t7);
+                text-align: center;
+            }
+
+            @@keyframes auth-spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
     </style>
 </head>
 <body>
 
-    <!-- Orbs -->
+    <div class="auth-overlay" id="authOverlay" role="status" aria-live="polite" aria-label="Signing in, please wait">
+        <div class="auth-spin-wrap">
+            <div class="auth-spin-outer"></div>
+            <div class="auth-spin-inner"></div>
+        </div>
+        <div class="auth-overlay-copy">
+            <strong>Signing you in</strong>
+            <span>Verifying credentials&hellip;</span>
+        </div>
+    </div>
+
     <div class="orbs" aria-hidden="true">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- Mouse glow -->
     <div class="mouse-glow" id="mouseGlow" aria-hidden="true"></div>
 
-    <!-- Particle canvas -->
     <canvas id="ptx" aria-hidden="true"></canvas>
 
-    <!-- Layout -->
     <div class="aw">
 
-        <!-- ═══════ BRAND PANEL ═══════ -->
         <div class="gc bp">
             <div class="deco-ring" aria-hidden="true"></div>
             <div class="bp-top">
@@ -529,7 +594,6 @@
             <div class="bp-foot">© @DateTime.UtcNow.Year &nbsp;·&nbsp; Forek Institute of Technology &nbsp;·&nbsp; @AppVersion</div>
         </div>
 
-        <!-- ═══════ FORM PANEL ═══════ -->
         <div class="gc fp">
 
             <div class="fh">
@@ -613,14 +677,12 @@
 
     <script>
     (function () {
-        /* ── Mouse glow ── */
         const glow = document.getElementById('mouseGlow');
         document.addEventListener('mousemove', function (e) {
             glow.style.left = e.clientX + 'px';
             glow.style.top  = e.clientY + 'px';
         });
 
-        /* ── Password toggle ── */
         const tp = document.getElementById('togglePass');
         const pw = document.getElementById('Password');
         if (tp && pw) {
@@ -631,7 +693,6 @@
             });
         }
 
-        /* ── Ripple on submit button ── */
         const submitBtn = document.getElementById('submitBtn');
         if (submitBtn) {
             submitBtn.addEventListener('click', function (e) {
@@ -645,19 +706,21 @@
             });
         }
 
-        /* ── Loading state on form submit ── */
-        const form = document.getElementById('signInForm');
-        if (form) {
-            form.addEventListener('submit', function () {
-                if (submitBtn) {
-                    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> <span>Signing in...</span>';
-                    submitBtn.disabled = true;
-                    submitBtn.style.opacity = '.8';
+                const authOverlay = document.getElementById('authOverlay');
+                const form = document.getElementById('signInForm');
+                if (form) {
+                    form.addEventListener('submit', function () {
+                        if (submitBtn) {
+                            submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> <span>Signing in\u2026</span>';
+                            submitBtn.disabled = true;
+                            submitBtn.style.opacity = '.75';
+                        }
+                        if (authOverlay) {
+                            setTimeout(function () { authOverlay.classList.add('is-active'); }, 110);
+                        }
+                    });
                 }
-            });
-        }
 
-        /* ── Canvas particles ── */
         const canvas = document.getElementById('ptx');
         if (canvas) {
             const ctx = canvas.getContext('2d');

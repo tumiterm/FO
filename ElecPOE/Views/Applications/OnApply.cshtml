@@ -1,792 +1,1033 @@
 ﻿@using static ForekOnline.Domain.Enums.EnumRegistry
 @model ForekOnline.Domain.ViewModels.ApplyViewModel
-
 @{
     ViewData["Title"] = "Application Review";
 
     var status = Model.Status.ToString() ?? "N/A";
     var applicantName = $"{Model.ApplicantName} {Model.ApplicantSurname}".Trim();
     var applicantInitials = string.Join("", new[] { Model.ApplicantName, Model.ApplicantSurname }
-        .Where(value => !string.IsNullOrWhiteSpace(value))
-        .Select(value => value!.Trim()[0].ToString().ToUpperInvariant()));
+        .Where(v => !string.IsNullOrWhiteSpace(v))
+        .Select(v => v!.Trim()[0].ToString().ToUpperInvariant()));
 
-    string StatusClass(string value) => value switch
+    // Map status → badge modifier + copy
+    (string cls, string icon, string copy) StatusMeta(string s) => s switch
     {
-        "Approved" => "status-approved",
-        "Pending" => "status-pending",
-        "Submitted" => "status-submitted",
-        "Rejected" => "status-rejected",
-        "AptituteTest" => "status-assessment",
-        _ => "status-neutral"
+        "Approved" => ("oa-badge-approved", "fa-circle-check", "Application successfully completed review."),
+        "Pending" => ("oa-badge-pending", "fa-clock", "Awaiting additional review or information."),
+        "Submitted" => ("oa-badge-submitted", "fa-paper-plane", "Ready for an admissions decision."),
+        "Rejected" => ("oa-badge-rejected", "fa-circle-xmark", "Did not meet current admission requirements."),
+        "AptituteTest" => ("oa-badge-assess", "fa-flask", "Progressing to the aptitude assessment stage."),
+        _ => ("oa-badge-neutral", "fa-circle", "Review and select the appropriate outcome.")
     };
+    var (statusCls, statusIcon, statusCopy) = StatusMeta(status);
 
-    string StatusCopy(string value) => value switch
-    {
-        "Approved" => "The application has successfully completed review.",
-        "Pending" => "The application is waiting for additional review or information.",
-        "Submitted" => "The application is ready for an admissions decision.",
-        "Rejected" => "The application has not met the current admission requirements.",
-        "AptituteTest" => "The applicant is progressing to the aptitude assessment stage.",
-        _ => "Review the application record and select the appropriate outcome."
-    };
+    // Determine if any documents exist
+    bool hasDocs = !string.IsNullOrWhiteSpace(Model.IDPassFileUrl)
+                || !string.IsNullOrWhiteSpace(Model.HighestQualFileUrl)
+                || !string.IsNullOrWhiteSpace(Model.ResidenceFileUrl)
+                || !string.IsNullOrWhiteSpace(Model.GuardianIDDoc);
 }
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/Enrollment.css" />
 
 <style>
-    :root {
-        --review-bg: #0a0a10;
-        --review-surface: rgba(18, 18, 28, .86);
-        --review-surface-solid: #12121c;
-        --review-surface-raised: #181824;
-        --review-border: rgba(255, 255, 255, .08);
-        --review-border-strong: rgba(255, 255, 255, .15);
-        --review-text: #f4f3f7;
-        --review-muted: rgba(244, 243, 247, .58);
-        --review-faint: rgba(244, 243, 247, .35);
-        --review-red: #b31217;
-        --review-orange: #ff7a18;
-        --review-gold: #f6bd60;
-        --review-green: #55d896;
-        --review-blue: #66b9ff;
-        --review-gradient: linear-gradient(135deg, #6f090d 0%, #b31217 42%, #ff7a18 100%);
-        --review-gradient-soft: linear-gradient(135deg, rgba(179, 18, 23, .17), rgba(255, 122, 24, .08));
-        --review-radius-xl: 28px;
-        --review-radius-lg: 20px;
-        --review-radius-md: 14px;
-        --review-shadow: 0 26px 70px rgba(0, 0, 0, .28);
-        --review-ease: cubic-bezier(.4, 0, .2, 1);
-    }
+    /* ── All scoped to oa- prefix ─────────────────────────────────── */
 
-    body { background: var(--review-bg); }
-
-    .review-page {
-        position: relative;
-        isolation: isolate;
-        max-width: 1380px;
-        width: calc(100% - 2rem);
+    .oa-shell {
+        max-width: 1300px;
         margin: 0 auto;
-        padding: 2rem 0 4rem;
-        color: var(--review-text);
+        padding: 2.1rem 1.35rem 4rem;
     }
 
-    .review-page::before,
-    .review-page::after {
-        content: "";
-        position: fixed;
-        z-index: -1;
-        width: 34rem;
-        height: 34rem;
-        border-radius: 50%;
-        filter: blur(110px);
-        pointer-events: none;
-        opacity: .15;
-    }
-
-    .review-page::before { top: 2rem; right: -14rem; background: var(--review-orange); }
-    .review-page::after { bottom: -16rem; left: -12rem; background: var(--review-red); }
-
-    .review-hero {
+    /* ── Hero ── */
+    .oa-hero {
         position: relative;
         overflow: hidden;
+        background: var(--es-bg);
+        border: 1px solid var(--es-border);
+        border-radius: var(--es-radius-xl);
+        box-shadow: var(--es-shadow-lg);
+        padding: 1.6rem 1.75rem;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 2rem;
+        grid-template-columns: auto 1fr auto;
+        gap: 1.25rem;
         align-items: center;
-        min-height: 245px;
-        padding: clamp(1.5rem, 4vw, 3rem);
-        border: 1px solid var(--review-border);
-        border-radius: var(--review-radius-xl);
-        background:
-            radial-gradient(circle at 80% 15%, rgba(255, 122, 24, .2), transparent 33%),
-            radial-gradient(circle at 10% 120%, rgba(179, 18, 23, .24), transparent 42%),
-            linear-gradient(145deg, rgba(24, 24, 36, .98), rgba(12, 12, 19, .98));
-        box-shadow: var(--review-shadow);
     }
 
-    .review-hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        opacity: .22;
-        background-image:
-            linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
-        background-size: 30px 30px;
-        mask-image: linear-gradient(90deg, #000, transparent 72%);
-    }
+        .oa-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: var(--es-grad-soft);
+            pointer-events: none;
+        }
 
-    .hero-copy, .hero-actions { position: relative; z-index: 1; }
+        .oa-hero > * {
+            position: relative;
+            z-index: 1;
+        }
 
-    .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: .55rem;
-        margin-bottom: 1rem;
-        color: #ffad6f;
-        font-size: .7rem;
-        font-weight: 800;
-        letter-spacing: .17em;
-        text-transform: uppercase;
-    }
-
-    .eyebrow::before { content: ""; width: 28px; height: 1px; background: currentColor; }
-
-    .review-title {
-        max-width: 830px;
-        margin: 0;
-        color: var(--review-text);
-        font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: clamp(2rem, 5vw, 4rem);
-        font-weight: 800;
-        letter-spacing: -.055em;
-        line-height: .98;
-    }
-
-    .review-title span {
-        background: linear-gradient(100deg, #fff 20%, #ffb478 82%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-
-    .hero-meta {
+    .oa-hero__icon {
+        width: 82px;
+        height: 82px;
+        flex-shrink: 0;
+        border-radius: 26px;
+        background: var(--es-grad);
         display: flex;
-        flex-wrap: wrap;
-        gap: .65rem 1.25rem;
-        margin-top: 1.35rem;
-        color: var(--review-muted);
-        font-size: .78rem;
-    }
-
-    .hero-meta span { display: inline-flex; align-items: center; gap: .5rem; }
-    .hero-meta i { color: var(--review-orange); }
-
-    .hero-actions { display: flex; flex-direction: column; min-width: 150px; gap: .7rem; }
-
-    .review-button {
-        min-height: 44px;
-        display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: .55rem;
-        padding: .72rem 1rem;
-        border: 1px solid var(--review-border-strong);
-        border-radius: 12px;
-        background: rgba(255,255,255,.045);
-        color: var(--review-text);
-        font-size: .72rem;
-        font-weight: 750;
-        letter-spacing: .04em;
-        text-decoration: none;
-        cursor: pointer;
-        transition: transform .2s var(--review-ease), border-color .2s, background .2s, box-shadow .2s;
-    }
-
-    .review-button:hover {
-        transform: translateY(-2px);
-        border-color: rgba(255, 122, 24, .5);
-        background: rgba(255, 122, 24, .1);
         color: #fff;
+        font-size: 2.1rem;
+        box-shadow: 0 16px 32px -16px rgba(179,18,23,.45);
+        animation: oa-pop .65s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @@keyframes oa-pop {
+        from {
+            transform: scale(.5) rotate(-8deg);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1) rotate(0);
+            opacity: 1;
+        }
     }
 
-    .review-button-primary {
-        border-color: transparent;
-        background: var(--review-gradient);
-        box-shadow: 0 10px 28px rgba(179, 18, 23, .22);
-    }
-
-    .review-button-primary:hover { background: linear-gradient(135deg, #8a0c11, #d32820 48%, #ff8b34); }
-    .review-button-danger { color: #ff9a9e; }
-
-    .review-grid {
+    .oa-hero__meta {
         display: grid;
-        grid-template-columns: minmax(0, 1.45fr) minmax(320px, .55fr);
-        gap: 1.25rem;
-        margin-top: 1.25rem;
+        gap: .75rem;
+        min-width: 210px;
+    }
+
+    /* ── Content grid ── */
+    .oa-grid {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 300px;
+        gap: 1.5rem;
+        margin-top: 1.8rem;
         align-items: start;
     }
 
-    .review-card {
-        border: 1px solid var(--review-border);
-        border-radius: var(--review-radius-lg);
-        background: var(--review-surface);
-        box-shadow: 0 16px 44px rgba(0,0,0,.14);
-        backdrop-filter: blur(20px);
+    /* ── Status badges ── */
+    .oa-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .42rem;
+        padding: .38rem .75rem;
+        border-radius: 999px;
+        font-size: .58rem;
+        font-weight: 800;
+        letter-spacing: .1rem;
+        text-transform: uppercase;
+        border: 1px solid;
+        white-space: nowrap;
     }
 
-    .decision-card { overflow: hidden; }
+    .oa-badge-approved {
+        background: #e8f9ef;
+        color: #137a44;
+        border-color: #b7e6c8;
+    }
 
-    .card-heading {
+    .oa-badge-pending {
+        background: #e8f0ff;
+        color: #1c5fbf;
+        border-color: #b3ccf3;
+    }
+
+    .oa-badge-submitted {
+        background: #fff3e0;
+        color: #bc6b00;
+        border-color: #f0c48b;
+    }
+
+    .oa-badge-rejected {
+        background: #ffe6ea;
+        color: #b31217;
+        border-color: #f3b4ba;
+    }
+
+    .oa-badge-assess {
+        background: #f3e8ff;
+        color: #6d28d9;
+        border-color: #d9b8f5;
+    }
+
+    .oa-badge-neutral {
+        background: #f0f1f3;
+        color: #555;
+        border-color: #dadde0;
+    }
+
+    /* ── Compact form fields ── */
+    .oa-field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+        gap: .85rem;
+    }
+
+    .oa-field-wide {
+        grid-column: 1 / -1;
+    }
+
+    .oa-field-label {
+        display: flex;
+        align-items: center;
+        gap: .42rem;
+        font-size: .54rem;
+        letter-spacing: .15rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--es-muted);
+        margin-bottom: .42rem;
+    }
+
+        .oa-field-label i {
+            color: var(--es-red);
+        }
+
+    .oa-control {
+        width: 100%;
+        height: 44px;
+        border-radius: var(--es-radius-md);
+        border: 1.5px solid var(--es-border);
+        background: var(--es-bg);
+        color: var(--es-text);
+        font-size: .72rem;
+        font-family: inherit;
+        padding: 0 .78rem;
+        outline: none;
+        transition: border-color var(--es-speed), box-shadow var(--es-speed);
+    }
+
+        .oa-control:focus {
+            border-color: var(--es-red);
+            box-shadow: 0 0 0 .18rem rgba(179,18,23,.13);
+            background: #fff;
+        }
+
+        .oa-control[readonly] {
+            background: #f9f9fa;
+            color: var(--es-muted);
+            cursor: default;
+        }
+
+    .oa-control-help {
+        font-size: .55rem;
+        color: var(--es-muted);
+        margin-top: .3rem;
+    }
+
+    /* ── Pending panel ── */
+    .oa-pending-panel {
+        margin-top: .85rem;
+        padding: 1rem;
+        border: 1.5px solid rgba(28,95,191,.2);
+        border-radius: var(--es-radius-md);
+        background: rgba(28,95,191,.04);
+    }
+
+    /* ── Form footer ── */
+    .oa-form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: .75rem;
+        margin-top: 1.1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--es-border);
+    }
+
+    .oa-form-note {
+        font-size: .58rem;
+        color: var(--es-muted);
         display: flex;
         align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1.35rem 1.4rem 1.15rem;
-        border-bottom: 1px solid var(--review-border);
-    }
-
-    .card-kicker {
-        display: block;
-        margin-bottom: .35rem;
-        color: var(--review-orange);
-        font-size: .62rem;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-    }
-
-    .card-heading h2, .section-heading h2 {
-        margin: 0;
-        color: var(--review-text);
-        font-size: 1.05rem;
-        font-weight: 750;
-        letter-spacing: -.02em;
-    }
-
-    .card-heading p, .section-heading p {
-        margin: .35rem 0 0;
-        color: var(--review-muted);
-        font-size: .75rem;
+        gap: .4rem;
+        max-width: 420px;
         line-height: 1.55;
     }
 
-    .status-pill {
-        flex: 0 0 auto;
-        display: inline-flex;
-        align-items: center;
-        gap: .45rem;
-        padding: .5rem .7rem;
-        border: 1px solid;
-        border-radius: 999px;
-        font-size: .63rem;
-        font-weight: 800;
-        letter-spacing: .06em;
-        text-transform: uppercase;
+        .oa-form-note i {
+            color: var(--es-red);
+            margin-top: .1rem;
+            flex-shrink: 0;
+        }
+
+    .oa-form-actions {
+        display: flex;
+        gap: .55rem;
+        flex-wrap: wrap;
     }
 
-    .status-pill i { font-size: .46rem; }
-    .status-approved { color: #7ce3aa; background: rgba(31, 155, 89, .12); border-color: rgba(85, 216, 150, .25); }
-    .status-pending { color: #7fc8ff; background: rgba(43, 142, 219, .12); border-color: rgba(102, 185, 255, .25); }
-    .status-submitted { color: #ffc171; background: rgba(255, 139, 44, .11); border-color: rgba(255, 170, 91, .25); }
-    .status-rejected { color: #ff858a; background: rgba(204, 48, 55, .12); border-color: rgba(255, 101, 107, .25); }
-    .status-assessment { color: #d1adff; background: rgba(137, 76, 211, .12); border-color: rgba(190, 142, 247, .25); }
-    .status-neutral { color: #c9c7d0; background: rgba(255,255,255,.05); border-color: var(--review-border-strong); }
-
-    .decision-form { padding: 1.35rem 1.4rem 1.45rem; }
-
-    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-    .field-wide { grid-column: 1 / -1; }
-
-    .field-label {
+    /* ── Identity sidebar ── */
+    .oa-identity-top {
         display: flex;
         align-items: center;
-        gap: .45rem;
-        margin: 0 0 .5rem;
-        color: rgba(244, 243, 247, .72);
+        gap: .95rem;
+        padding-bottom: .9rem;
+        margin-bottom: .9rem;
+        border-bottom: 1px solid var(--es-border);
+    }
+
+    .oa-avatar {
+        width: 54px;
+        height: 54px;
+        flex-shrink: 0;
+        border-radius: 18px;
+        background: var(--es-grad);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 800;
+        box-shadow: 0 10px 24px -8px rgba(179,18,23,.42);
+    }
+
+    .oa-identity-name {
+        font-size: .88rem;
+        font-weight: 800;
+        color: var(--es-dark);
+    }
+
+    .oa-identity-id {
         font-size: .64rem;
+        color: var(--es-muted);
+        font-family: ui-monospace,monospace;
+        margin-top: .18rem;
+    }
+
+    .oa-identity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .oa-identity-row {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: .65rem;
+        padding: .65rem 0;
+        border-bottom: 1px solid var(--es-border);
+    }
+
+        .oa-identity-row:last-child {
+            border-bottom: 0;
+        }
+
+        .oa-identity-row > i {
+            color: var(--es-red);
+            font-size: .75rem;
+            margin-top: .15rem;
+        }
+
+        .oa-identity-row dt {
+            font-size: .52rem;
+            letter-spacing: .12rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--es-muted);
+            margin-bottom: .15rem;
+        }
+
+        .oa-identity-row dd {
+            font-size: .7rem;
+            color: var(--es-text);
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+    /* ── Detail sections (below grid) ── */
+    .oa-section {
+        background: var(--es-bg);
+        border: 1px solid var(--es-border);
+        border-radius: var(--es-radius-lg);
+        box-shadow: var(--es-shadow-sm);
+        margin-top: 1.4rem;
+        overflow: hidden;
+    }
+
+    .oa-section-hdr {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+        padding: 1rem 1.35rem;
+        border-bottom: 1px solid var(--es-border);
+        background: linear-gradient(155deg,#fff 0%,#f9fbfe 100%);
+    }
+
+    .oa-section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        flex-shrink: 0;
+        background: var(--es-grad-soft);
+        border: 1px solid #f2cccf;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .88rem;
+        color: var(--es-red);
+    }
+
+    .oa-section-title {
+        font-size: .72rem;
+        letter-spacing: .2rem;
         font-weight: 800;
-        letter-spacing: .09em;
         text-transform: uppercase;
+        color: var(--es-red);
     }
 
-    .field-label i { color: var(--review-orange); }
-
-    .review-control,
-    .decision-form .form-control,
-    .rejection-modal .form-control {
-        width: 100%;
-        min-height: 48px;
-        padding: .75rem .85rem;
-        border: 1px solid var(--review-border-strong);
-        border-radius: 12px !important;
-        outline: none;
-        background-color: rgba(255,255,255,.045);
-        color: var(--review-text);
-        font-size: .78rem;
-        transition: border-color .2s, background .2s, box-shadow .2s;
+    .oa-section-sub {
+        font-size: .65rem;
+        color: var(--es-muted);
+        margin-top: .18rem;
     }
 
-    select.review-control,
-    .decision-form select.form-control {
-        appearance: auto;
-        color-scheme: dark;
+    .oa-section-body {
+        padding: 1.2rem 1.35rem;
     }
 
-    .review-control:focus,
-    .decision-form .form-control:focus,
-    .rejection-modal .form-control:focus {
-        border-color: rgba(255, 122, 24, .72);
-        background-color: rgba(255,255,255,.065);
-        color: #fff;
-        box-shadow: 0 0 0 3px rgba(255, 122, 24, .11);
+    /* ── Detail cards inside sections ── */
+    .oa-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+        gap: .85rem;
     }
 
-    .review-control[readonly] { color: rgba(244, 243, 247, .72); cursor: default; }
-    .review-control option { background: #181824; color: #fff; }
-    .field-help { margin-top: .42rem; color: var(--review-faint); font-size: .66rem; }
-    .field-error { margin-top: .45rem; color: #ff858a; font-size: .68rem; }
-
-    .pending-panel {
-        margin-top: 1rem;
-        padding: 1rem;
-        border: 1px solid rgba(102, 185, 255, .2);
-        border-radius: var(--review-radius-md);
-        background: rgba(62, 147, 214, .06);
-    }
-
-    .decision-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        margin-top: 1.2rem;
-        padding-top: 1.15rem;
-        border-top: 1px solid var(--review-border);
-    }
-
-    .decision-note { max-width: 470px; color: var(--review-muted); font-size: .69rem; line-height: 1.55; }
-    .decision-note i { margin-right: .35rem; color: var(--review-gold); }
-    .decision-actions { display: flex; flex-wrap: wrap; gap: .65rem; justify-content: flex-end; }
-
-    .identity-card { overflow: hidden; }
-
-    .identity-top {
+    .oa-detail-card {
+        padding: .9rem 1rem;
+        border-radius: var(--es-radius-md);
+        border: 1px solid var(--es-border);
+        background: var(--es-bg-alt);
+        transition: transform .25s, box-shadow .25s;
         position: relative;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.4rem;
-        background: var(--review-gradient-soft);
-        border-bottom: 1px solid var(--review-border);
+        overflow: hidden;
     }
 
-    .avatar {
-        width: 62px;
-        height: 62px;
-        flex: 0 0 auto;
+        .oa-detail-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--es-shadow-md);
+        }
+
+        .oa-detail-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--es-grad);
+            border-radius: 0 0 var(--es-radius-md) var(--es-radius-md);
+            opacity: .5;
+        }
+
+        .oa-detail-card h3 {
+            font-size: .65rem;
+            letter-spacing: .16rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--es-red);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            margin-bottom: .75rem;
+        }
+
+    .oa-dl {
         display: grid;
-        place-items: center;
-        border: 1px solid rgba(255,255,255,.18);
-        border-radius: 19px;
-        background: var(--review-gradient);
-        color: #fff;
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.2rem;
-        font-weight: 800;
-        box-shadow: 0 12px 28px rgba(179,18,23,.24);
+        gap: .55rem;
     }
 
-    .identity-name { margin: 0; color: #fff; font-size: 1.05rem; font-weight: 750; }
-    .identity-id { margin-top: .35rem; color: var(--review-muted); font-family: ui-monospace, monospace; font-size: .7rem; letter-spacing: .06em; }
+        .oa-dl dt {
+            font-size: .52rem;
+            letter-spacing: .1rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--es-muted);
+        }
 
-    .identity-list { display: grid; gap: 0; margin: 0; padding: .4rem 1.4rem 1rem; }
+        .oa-dl dd {
+            font-size: .7rem;
+            color: var(--es-text);
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
 
-    .identity-row {
+        .oa-dl a {
+            color: var(--es-red);
+            text-decoration: none;
+        }
+
+            .oa-dl a:hover {
+                color: var(--es-dark);
+            }
+
+    /* ── Document cards ── */
+    .oa-doc-grid {
         display: grid;
-        grid-template-columns: 28px minmax(0, 1fr);
-        gap: .7rem;
-        padding: .85rem 0;
-        border-bottom: 1px solid var(--review-border);
+        grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+        gap: .75rem;
     }
 
-    .identity-row:last-child { border-bottom: 0; }
-    .identity-row > i { margin-top: .15rem; color: var(--review-orange); text-align: center; }
-    .identity-row dt { margin: 0 0 .2rem; color: var(--review-faint); font-size: .59rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
-    .identity-row dd { margin: 0; color: rgba(244,243,247,.83); font-size: .73rem; line-height: 1.45; overflow-wrap: anywhere; }
-
-    .content-section { margin-top: 1.25rem; padding: 1.4rem; }
-
-    .section-heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: end;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .section-mark {
-        width: 42px;
-        height: 42px;
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        border: 1px solid rgba(255, 122, 24, .24);
-        border-radius: 13px;
-        background: rgba(255, 122, 24, .08);
-        color: #ff9c53;
-    }
-
-    .section-title-wrap { display: flex; align-items: center; gap: .85rem; }
-
-    .detail-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
-
-    .detail-card {
-        min-width: 0;
-        padding: 1rem;
-        border: 1px solid var(--review-border);
-        border-radius: var(--review-radius-md);
-        background: rgba(255,255,255,.025);
-        transition: transform .2s var(--review-ease), border-color .2s, background .2s;
-    }
-
-    .detail-card:hover { transform: translateY(-2px); border-color: rgba(255,122,24,.23); background: rgba(255,255,255,.04); }
-    .detail-card h3 { margin: 0 0 .85rem; color: #fff; font-size: .76rem; font-weight: 750; }
-    .detail-card h3 i { width: 22px; color: var(--review-orange); }
-
-    .detail-list { display: grid; gap: .72rem; margin: 0; }
-    .detail-item dt { margin: 0 0 .16rem; color: var(--review-faint); font-size: .56rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-    .detail-item dd { margin: 0; color: rgba(244,243,247,.8); font-size: .7rem; line-height: 1.5; overflow-wrap: anywhere; }
-    .detail-link { color: #ffac6e; text-decoration: none; }
-    .detail-link:hover { color: #fff; }
-
-    .document-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; }
-
-    .document-card {
-        min-height: 126px;
+    .oa-doc-card {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 1rem;
-        padding: 1rem;
-        border: 1px solid var(--review-border);
-        border-radius: var(--review-radius-md);
-        background: rgba(255,255,255,.025);
-        color: var(--review-text);
+        gap: .75rem;
+        padding: .9rem 1rem;
+        min-height: 110px;
+        border-radius: var(--es-radius-md);
+        border: 1px solid var(--es-border);
+        background: var(--es-bg-alt);
+        color: inherit;
         text-decoration: none;
-        transition: transform .22s var(--review-ease), border-color .22s, background .22s;
+        transition: transform .25s, box-shadow .25s, border-color .25s;
     }
 
-    .document-card:hover { transform: translateY(-3px); border-color: rgba(255,122,24,.4); background: rgba(255,122,24,.065); color: #fff; }
-    .document-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--review-gradient); color: #fff; box-shadow: 0 8px 20px rgba(179,18,23,.18); }
-    .document-name { display: block; color: #fff; font-size: .72rem; font-weight: 750; }
-    .document-action { display: block; margin-top: .22rem; color: var(--review-muted); font-size: .61rem; }
+        .oa-doc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--es-shadow-md);
+            border-color: var(--es-border-strong);
+        }
 
-    .empty-documents {
-        grid-column: 1 / -1;
-        padding: 1.4rem;
-        border: 1px dashed var(--review-border-strong);
-        border-radius: var(--review-radius-md);
-        color: var(--review-muted);
+    .oa-doc-ico {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        background: var(--es-grad);
+        color: #fff;
+        font-size: .9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 16px -6px rgba(179,18,23,.42);
+        flex-shrink: 0;
+    }
+
+    .oa-doc-name {
         font-size: .72rem;
+        font-weight: 700;
+        color: var(--es-dark);
+    }
+
+    .oa-doc-action {
+        font-size: .58rem;
+        color: var(--es-muted);
+        margin-top: .15rem;
+    }
+
+    .oa-doc-empty {
+        grid-column: 1/-1;
+        padding: 1.5rem;
         text-align: center;
+        border: 1.5px dashed var(--es-border);
+        border-radius: var(--es-radius-md);
+        font-size: .72rem;
+        color: var(--es-muted);
     }
 
-    .rejection-modal .modal-content {
+    /* ── Rejection modal ── */
+    .oa-modal .modal-content {
+        border: 1px solid var(--es-border);
+        border-radius: var(--es-radius-lg);
         overflow: hidden;
-        border: 1px solid var(--review-border-strong);
-        border-radius: var(--review-radius-lg);
-        background: #14141f;
-        color: var(--review-text);
-        box-shadow: 0 30px 90px rgba(0,0,0,.5);
+        box-shadow: var(--es-shadow-lg);
     }
 
-    .rejection-modal .modal-header { padding: 1.25rem 1.4rem; border-bottom: 1px solid var(--review-border); background: var(--review-gradient-soft); }
-    .rejection-modal .modal-title { color: #fff; font-size: .95rem; font-weight: 750; }
-    .rejection-modal .modal-body { padding: 1.4rem; }
-    .rejection-modal .modal-footer { padding: 1rem 1.4rem; border-top: 1px solid var(--review-border); }
-    .rejection-modal textarea.form-control { min-height: 120px; resize: vertical; }
-    .rejection-modal .btn-close { filter: invert(1) grayscale(1); }
-
-    @@media (max-width: 1080px) {
-        .review-grid { grid-template-columns: 1fr; }
-        .detail-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .document-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .oa-modal .modal-header {
+        padding: 1.1rem 1.35rem;
+        border-bottom: 1px solid var(--es-border);
+        background: linear-gradient(155deg,#fff,#f9fbfe);
     }
 
-    @@media (max-width: 720px) {
-        .review-page { width: calc(100% - 1rem); padding-top: 1rem; }
-        .review-hero { grid-template-columns: 1fr; min-height: auto; padding: 1.35rem; }
-        .hero-actions { flex-direction: row; min-width: 0; flex-wrap: wrap; }
-        .hero-actions .review-button { flex: 1 1 120px; }
-        .field-grid, .detail-cards, .document-grid { grid-template-columns: 1fr; }
-        .field-wide { grid-column: auto; }
-        .card-heading, .section-heading, .decision-footer { align-items: stretch; flex-direction: column; }
-        .decision-actions { justify-content: stretch; }
-        .decision-actions .review-button { flex: 1 1 140px; }
-        .content-section, .decision-form, .card-heading { padding-left: 1rem; padding-right: 1rem; }
+    .oa-modal .modal-title {
+        font-size: .9rem;
+        font-weight: 800;
+        color: var(--es-dark);
     }
 
-    @@media (prefers-reduced-motion: reduce) {
-        .review-button, .detail-card, .document-card { transition: none; }
+    .oa-modal .modal-body {
+        padding: 1.35rem;
+        background: var(--es-bg);
+    }
+
+    .oa-modal .modal-footer {
+        padding: 1rem 1.35rem;
+        border-top: 1px solid var(--es-border);
+        background: var(--es-bg);
+    }
+
+    .oa-modal .oa-control {
+        height: auto;
+        min-height: 44px;
+        padding: .6rem .78rem;
+    }
+
+    .oa-modal textarea.oa-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    /* ── Responsive ── */
+    @@media (max-width: 1024px) {
+        .oa-grid {
+            grid-template-columns: 1fr 270px;
+        }
+    }
+
+    @@media (max-width: 860px) {
+        .oa-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .oa-hero {
+            grid-template-columns: auto 1fr;
+        }
+
+        .oa-hero__meta {
+            grid-column: 1/-1;
+            grid-template-columns: repeat(2,1fr);
+        }
+    }
+
+    @@media (max-width: 580px) {
+        .oa-hero {
+            padding: 1.25rem 1.1rem 1rem;
+        }
+
+        .oa-hero__icon {
+            width: 64px;
+            height: 64px;
+            font-size: 1.65rem;
+        }
+
+        .enroll-title {
+            font-size: 1.35rem;
+        }
+
+        .oa-doc-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+
+        .oa-form-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .oa-form-actions {
+            justify-content: stretch;
+        }
+
+            .oa-form-actions .btn-premium {
+                flex: 1;
+                justify-content: center;
+            }
     }
 </style>
 
-<main class="review-page">
-    <header class="review-hero">
-        <div class="hero-copy">
-            <div class="eyebrow">Admissions workspace</div>
-            <h1 class="review-title">Review <span>@applicantName</span></h1>
-            <div class="hero-meta">
-                <span><i class="fa-solid fa-book-open"></i> @ViewData["Course"]</span>
-                <span><i class="fa-regular fa-calendar"></i> Record viewed @DateTime.UtcNow.ToString("dd MMM yyyy")</span>
-                <span><i class="fa-solid fa-shield-halved"></i> Secure application record</span>
+<div class="oa-shell">
+
+    <div class="oa-hero fade-up">
+        <div class="oa-hero__icon"><i class="fa fa-file-circle-check"></i></div>
+
+        <div>
+            <div class="enroll-kicker">
+                <i class="fa fa-sparkles"></i>
+                Admissions Workspace
+            </div>
+            <h1 class="enroll-title">@applicantName</h1>
+            <p class="enroll-subtitle" style="margin-top:.4rem;">
+                Review, update and finalise the outcome for this application.
+                All changes are recorded against the applicant record.
+            </p>
+        </div>
+
+        <div class="oa-hero__meta">
+            <div class="hero-stat">
+                <div class="hero-stat__label">Course</div>
+                <div class="hero-stat__value">@(ViewData["Course"] ?? "—")</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat__label">Current Status</div>
+                <div class="hero-stat__value" style="display:flex;align-items:center;gap:.45rem;">
+                    <span class="oa-status @statusCls">
+                        <i class="fa @statusIcon"></i>@status
+                    </span>
+                </div>
             </div>
         </div>
-        <nav class="hero-actions" aria-label="Application navigation">
-            <button type="button" class="review-button" onclick="history.back()">
-                <i class="fa-solid fa-arrow-left"></i> Back
-            </button>
-            <a asp-action="Applications" asp-controller="Applications" class="review-button">
-                <i class="fa-solid fa-table-list"></i> All applications
-            </a>
-        </nav>
-    </header>
+    </div>
 
-    <div class="review-grid">
-        <section class="review-card decision-card" aria-labelledby="decisionHeading">
-            <div class="card-heading">
-                <div>
-                    <span class="card-kicker">Decision console</span>
-                    <h2 id="decisionHeading">Application outcome</h2>
-                    <p>@StatusCopy(status)</p>
+    <div class="oa-grid">
+
+        <div class="glass-card fade-up" style="animation-delay:.04s;">
+            <div class="card-header" style="padding:1rem 1.35rem;border-bottom:1px solid var(--es-border);background:linear-gradient(155deg,#fff,#f9fbfe);display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;">
+                <div class="card-head-icon" style="width:36px;height:36px;border-radius:11px;background:var(--es-grad-soft);border:1px solid #f2cccf;display:flex;align-items:center;justify-content:center;font-size:.88rem;color:var(--es-red);">
+                    <i class="fa fa-flag-checkered"></i>
                 </div>
-                <span class="status-pill @StatusClass(status)"><i class="fa-solid fa-circle"></i> @status</span>
+                <span class="card-title" style="font-size:.72rem;letter-spacing:.2rem;font-weight:800;text-transform:uppercase;color:var(--es-red);">
+                    Decision Console
+                </span>
+                <span class="oa-status @statusCls" style="margin-left:auto;">
+                    <i class="fa @statusIcon"></i>@status
+                </span>
             </div>
 
-            <form asp-action="OnApply" method="post" enctype="multipart/form-data" class="decision-form">
-                <input asp-for="ApplicantId" type="hidden" />
-                <div asp-validation-summary="ModelOnly" class="field-error"></div>
+            <div style="padding:1.2rem 1.35rem;">
+                <p style="font-size:.7rem;color:var(--es-muted);margin:0 0 1.1rem;">
+                    @statusCopy
+                </p>
 
-                <div class="field-grid">
-                    <div>
-                        <label class="field-label" asp-for="CourseId"><i class="fa-solid fa-book"></i> Course chosen</label>
-                        <input class="review-control" asp-for="CourseId" value="@ViewData["Course"]" readonly />
-                    </div>
-                    <div>
-                        <label class="field-label" asp-for="HighestQualification"><i class="fa-solid fa-graduation-cap"></i> Highest qualification</label>
-                        <select asp-for="HighestQualification" class="form-control review-control" asp-items="Html.GetEnumSelectList<HighestQualification>()">
-                            <option disabled value="">Select option</option>
-                        </select>
-                    </div>
-                    <div class="field-wide">
-                        <label class="field-label" asp-for="Status"><i class="fa-solid fa-flag-checkered"></i> Status / outcome</label>
-                        <select asp-for="Status" class="form-control review-control status" asp-items="Html.GetEnumSelectList<ApplicationStatus>()">
-                            <option disabled value="">Select option</option>
-                        </select>
-                        <div class="field-help">Changing the outcome may trigger the corresponding applicant communication and workflow.</div>
-                    </div>
-                </div>
+                <form asp-action="OnApply" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="ApplicantId" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" style="font-size:.65rem;color:var(--es-red);margin-bottom:.75rem;"></div>
 
-                <div id="pendingFields" class="pending-panel d-none">
-                    <div class="field-grid">
+                    <div class="oa-field-grid">
                         <div>
-                            <label class="field-label" asp-for="PendingStatusReason"><i class="fa-regular fa-clock"></i> Pending reason</label>
-                            <select asp-for="PendingStatusReason" class="form-control review-control" id="pendingReasonSelect">
-                                <option value="">Select reason...</option>
-                                <option value="Awaiting documents">Awaiting documents</option>
-                                <option value="Under review">Under review</option>
-                                <option value="Needs clarification">Needs clarification</option>
-                                <option value="Background check in progress">Background check in progress</option>
-                                <option value="Capacity / scheduling delay">Capacity / scheduling delay</option>
+                            <label class="oa-field-label" asp-for="CourseId">
+                                <i class="fa fa-book"></i> Course
+                            </label>
+                            <input class="oa-control" asp-for="CourseId"
+                                   value="@ViewData["Course"]" readonly />
+                        </div>
+
+                        <div>
+                            <label class="oa-field-label" asp-for="HighestQualification">
+                                <i class="fa fa-graduation-cap"></i> Highest Qualification
+                            </label>
+                            <select class="oa-control" asp-for="HighestQualification"
+                                    asp-items="Html.GetEnumSelectList<HighestQualification>()">
+                                <option disabled value="">Select option</option>
                             </select>
-                            <div class="field-error d-none" id="pendingReasonError">
-                                <i class="fa-solid fa-circle-exclamation"></i> Pending reason is required when status is Pending.
+                        </div>
+
+                        <div class="oa-field-wide">
+                            <label class="oa-field-label" asp-for="Status">
+                                <i class="fa fa-circle-dot"></i> Status / Outcome <span style="color:var(--es-red);margin-left:.2rem;">*</span>
+                            </label>
+                            <select class="oa-control status" asp-for="Status"
+                                    asp-items="Html.GetEnumSelectList<ApplicationStatus>()">
+                                <option disabled value="">Select option</option>
+                            </select>
+                            <div class="oa-control-help">
+                                <i class="fa fa-circle-info"></i>
+                                Changing the outcome may trigger applicant communication and workflow.
+
                             </div>
                         </div>
-                        <div>
-                            <label class="field-label" asp-for="PendingStatusMessage"><i class="fa-regular fa-message"></i> Applicant message</label>
-                            <input asp-for="PendingStatusMessage" class="form-control review-control" maxlength="250" placeholder="Optional short message to the applicant" />
-                            <div class="field-help">Optional · maximum 250 characters.</div>
+                    </div>
+
+                    <div id="pendingFields" class="oa-pending-panel d-none">
+                        <div class="oa-field-grid">
+                            <div>
+                                <label class="oa-field-label" asp-for="PendingStatusReason">
+                                    <i class="fa fa-clock"></i> Pending Reason
+                                </label>
+                                <select class="oa-control" asp-for="PendingStatusReason" id="pendingReasonSelect">
+                                    <option value="">Select reason…</option>
+                                    <option>Awaiting documents</option>
+                                    <option>Under review</option>
+                                    <option>Needs clarification</option>
+                                    <option>Background check in progress</option>
+                                    <option>Capacity / scheduling delay</option>
+                                </select>
+                                <div class="d-none" id="pendingReasonError"
+                                     style="font-size:.58rem;color:var(--es-red);margin-top:.3rem;">
+                                    <i class="fa fa-circle-exclamation"></i> Pending reason is required.
+                                </div>
+                            </div>
+                            <div>
+                                <label class="oa-field-label" asp-for="PendingStatusMessage">
+                                    <i class="fa fa-message"></i> Applicant Message
+                                </label>
+                                <input class="oa-control" asp-for="PendingStatusMessage"
+                                       maxlength="250" placeholder="Optional message (max 250 chars)" />
+                            </div>
                         </div>
                     </div>
+
+                    <div class="oa-form-footer">
+                        <div class="oa-form-note">
+                            <i class="fa fa-lock"></i>
+                            Changes are recorded against this application on save.
+                        </div>
+                        <div class="oa-form-actions">
+                            <button type="button"
+                                    class="btn-premium btn-premium--ghost"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#rejectionModal"
+                                    style="color:var(--es-red);">
+                                <i class="fa fa-ban me-2"></i>Record Rejection
+                            </button>
+                            <button type="submit" class="btn-premium btn-premium--primary">
+                                <i class="fa fa-check me-2"></i>Save Decision
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <aside>
+            <div class="glass-card progress-card fade-up" style="animation-delay:.08s;">
+                <h5 class="progress-title">
+                    <i class="fa fa-user-circle"></i>
+                    Applicant Profile
+                </h5>
+
+                <div class="oa-identity-top">
+                    <div class="oa-avatar" aria-hidden="true">
+                        @(string.IsNullOrWhiteSpace(applicantInitials) ? "FO" : applicantInitials)
+                    </div>
+                    <div>
+                        <div class="oa-identity-name">@Model.ApplicantTitle @applicantName</div>
+                        <div class="oa-identity-id">@Model.IDNumber</div>
+                    </div>
                 </div>
 
-                <div class="decision-footer">
-                    <div class="decision-note">
-                        <i class="fa-solid fa-lock"></i> Your changes are recorded against this application when you save the review.
+                <dl class="oa-identity-list">
+                    <div class="oa-identity-row">
+                        <i class="fa fa-envelope"></i>
+                        <div><dt>Email</dt><dd>@Model.Email</dd></div>
                     </div>
-                    <div class="decision-actions">
-                        <button type="button" id="btnReject" class="review-button review-button-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                            <i class="fa-solid fa-ban"></i> Record rejection
-                        </button>
-                        <button type="submit" class="review-button review-button-primary">
-                            <i class="fa-solid fa-check"></i> Save decision
-                        </button>
+                    <div class="oa-identity-row">
+                        <i class="fa fa-phone"></i>
+                        <div><dt>Cellphone</dt><dd>@Model.Cellphone</dd></div>
                     </div>
-                </div>
-            </form>
-        </section>
+                    <div class="oa-identity-row">
+                        <i class="fa fa-earth-africa"></i>
+                        <div><dt>Citizenship</dt><dd>@Model.Selection</dd></div>
+                    </div>
+                    <div class="oa-identity-row">
+                        <i class="fa fa-venus-mars"></i>
+                        <div><dt>Gender</dt><dd>@Model.Gender</dd></div>
+                    </div>
+                    <div class="oa-identity-row">
+                        <i class="fa fa-wallet"></i>
+                        <div><dt>Funding</dt><dd>@Model.FunderType</dd></div>
+                    </div>
+                </dl>
 
-        <aside class="review-card identity-card" aria-labelledby="applicantHeading">
-            <div class="identity-top">
-                <div class="avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(applicantInitials) ? "FO" : applicantInitials)</div>
-                <div>
-                    <span class="card-kicker">Applicant profile</span>
-                    <h2 class="identity-name" id="applicantHeading">@Model.ApplicantTitle @applicantName</h2>
-                    <div class="identity-id">@Model.IDNumber</div>
+                <div class="lookup-badge-row" style="margin-top:.75rem;">
+                    <span class="smart-badge smart-badge--soft">
+                        <i class="fa fa-shield-halved"></i> Secure record
+                    </span>
+                    <span class="smart-badge @statusCls.Replace("oa-badge", "smart-badge")">
+                        <i class="fa @statusIcon"></i> @status
+                    </span>
                 </div>
             </div>
-            <dl class="identity-list">
-                <div class="identity-row">
-                    <i class="fa-solid fa-envelope"></i>
-                    <div><dt>Email address</dt><dd>@Model.Email</dd></div>
-                </div>
-                <div class="identity-row">
-                    <i class="fa-solid fa-phone"></i>
-                    <div><dt>Cellphone</dt><dd>@Model.Cellphone</dd></div>
-                </div>
-                <div class="identity-row">
-                    <i class="fa-solid fa-earth-africa"></i>
-                    <div><dt>Citizenship</dt><dd>@Model.Selection</dd></div>
-                </div>
-                <div class="identity-row">
-                    <i class="fa-solid fa-venus-mars"></i>
-                    <div><dt>Gender</dt><dd>@Model.Gender</dd></div>
-                </div>
-                <div class="identity-row">
-                    <i class="fa-solid fa-wallet"></i>
-                    <div><dt>Funding type</dt><dd>@Model.FunderType</dd></div>
-                </div>
-            </dl>
         </aside>
     </div>
 
-    <section class="review-card content-section" aria-labelledby="recordHeading">
-        <div class="section-heading">
-            <div class="section-title-wrap">
-                <div class="section-mark"><i class="fa-solid fa-address-card"></i></div>
-                <div>
-                    <span class="card-kicker">Application record</span>
-                    <h2 id="recordHeading">Applicant information</h2>
-                    <p>The essential personal, study and guardian details submitted with this application.</p>
-                </div>
+    <div class="oa-section fade-up" style="animation-delay:.12s;">
+        <div class="oa-section-hdr">
+            <div class="oa-section-icon"><i class="fa fa-address-card"></i></div>
+            <div>
+                <div class="oa-section-title">Application Record</div>
+                <div class="oa-section-sub">Personal, study and guardian details submitted with this application.</div>
             </div>
         </div>
+        <div class="oa-section-body">
+            <div class="oa-detail-grid">
 
-        <div class="detail-cards">
-            <article class="detail-card">
-                <h3><i class="fa-solid fa-graduation-cap"></i> Study profile</h3>
-                <dl class="detail-list">
-                    <div class="detail-item"><dt>Course</dt><dd>@ViewData["Course"]</dd></div>
-                    <div class="detail-item"><dt>Highest qualification</dt><dd>@Model.HighestQualification</dd></div>
-                    <div class="detail-item"><dt>Current outcome</dt><dd>@Model.Status</dd></div>
-                    <div class="detail-item"><dt>Funding type</dt><dd>@Model.FunderType</dd></div>
-                </dl>
-            </article>
-
-            <article class="detail-card">
-                <h3><i class="fa-solid fa-user"></i> Biographical</h3>
-                <dl class="detail-list">
-                    <div class="detail-item"><dt>Full name</dt><dd>@Model.ApplicantTitle @applicantName</dd></div>
-                    <div class="detail-item"><dt>National ID</dt><dd>@Model.IDNumber</dd></div>
-                    <div class="detail-item"><dt>Gender</dt><dd>@Model.Gender</dd></div>
-                    <div class="detail-item"><dt>Citizenship</dt><dd>@Model.Selection</dd></div>
-                </dl>
-            </article>
-
-            <article class="detail-card">
-                <h3><i class="fa-solid fa-location-dot"></i> Contact & guardian</h3>
-                <dl class="detail-list">
-                    <div class="detail-item"><dt>Residential address</dt><dd>@Model.Line1, @Model.StreetName, @Model.Province</dd></div>
-                    <div class="detail-item"><dt>Contact</dt><dd>@Model.Cellphone · @Model.Email</dd></div>
-                    <div class="detail-item"><dt>Guardian</dt><dd>@Model.GuardianFirstName @Model.GuardianLastName · @Model.GuardianCellphone</dd></div>
-                    <div class="detail-item">
-                        <dt>Guardian ID document</dt>
-                        <dd>
-                            @if (!string.IsNullOrWhiteSpace(Model.GuardianIDDoc))
-                            {
-                                <a asp-action="FileDownload" asp-route-fileName="@Model.GuardianIDDoc" asp-route-destinationFolder="GuardianID" class="detail-link">
-                                    <i class="fa-solid fa-download"></i> Download document
-                                </a>
-                            }
-                            else
-                            {
-                                <span>Not provided</span>
-                            }
+                <article class="oa-detail-card">
+                    <h3><i class="fa fa-graduation-cap"></i> Study Profile</h3>
+                    <dl class="oa-dl">
+                        <div><dt>Course</dt><dd>@ViewData["Course"]</dd></div>
+                        <div><dt>Qualification</dt><dd>@Model.HighestQualification</dd></div>
+                        <div>
+                            <dt>Outcome</dt><dd>
+                            <span class="oa-status @statusCls" style="font-size:.52rem;padding:.24rem .52rem;">
+                                <i class="fa @statusIcon"></i>@status
+                            </span>
                         </dd>
                     </div>
+                    <div><dt>Funding</dt><dd>@Model.FunderType</dd></div>
                 </dl>
             </article>
-        </div>
-    </section>
 
-    <section class="review-card content-section" aria-labelledby="documentsHeading">
-        <div class="section-heading">
-            <div class="section-title-wrap">
-                <div class="section-mark"><i class="fa-solid fa-paperclip"></i></div>
-                <div>
-                    <span class="card-kicker">Supporting evidence</span>
-                    <h2 id="documentsHeading">Application documents</h2>
-                    <p>Open the submitted files to verify the applicant's supporting information.</p>
-                </div>
-            </div>
-        </div>
+            <article class="oa-detail-card">
+                <h3><i class="fa fa-user"></i> Biographical</h3>
+                <dl class="oa-dl">
+                    <div><dt>Full Name</dt><dd>@Model.ApplicantTitle @applicantName</dd></div>
+                    <div><dt>National ID</dt><dd>@Model.IDNumber</dd></div>
+                    <div><dt>Gender</dt><dd>@Model.Gender</dd></div>
+                    <div><dt>Citizenship</dt><dd>@Model.Selection</dd></div>
+                </dl>
+            </article>
 
-        <div class="document-grid">
+            <article class="oa-detail-card">
+                <h3><i class="fa fa-location-dot"></i> Contact &amp; Guardian</h3>
+                <dl class="oa-dl">
+                    <div><dt>Address</dt><dd>@Model.Line1, @Model.StreetName, @Model.Province</dd></div>
+                    <div><dt>Contact</dt><dd>@Model.Cellphone · @Model.Email</dd></div>
+                    <div><dt>Guardian</dt><dd>@Model.GuardianFirstName @Model.GuardianLastName · @Model.GuardianCellphone</dd></div>
+                    @if (!string.IsNullOrWhiteSpace(Model.GuardianIDDoc))
+                    {
+                        <div>
+                            <dt>Guardian ID</dt><dd>
+                            <a asp-action="FileDownload"
+                               asp-route-fileName="@Model.GuardianIDDoc"
+                               asp-route-destinationFolder="GuardianID">
+                                <i class="fa fa-download"></i> Download
+                            </a>
+                        </dd>
+                    </div>
+                }
+            </dl>
+        </article>
+
+    </div>
+</div>
+</div>
+
+<div class="oa-section fade-up" style="animation-delay:.16s;">
+    <div class="oa-section-hdr">
+        <div class="oa-section-icon"><i class="fa fa-paperclip"></i></div>
+        <div>
+            <div class="oa-section-title">Supporting Documents</div>
+            <div class="oa-section-sub">Verify the applicant's submitted files before finalising the outcome.</div>
+        </div>
+        <span class="smart-badge smart-badge--soft" style="margin-left:auto;">
+            <i class="fa fa-file-pdf"></i>
+            @(hasDocs ? "Files attached" : "No files")
+        </span>
+    </div>
+    <div class="oa-section-body">
+        <div class="oa-doc-grid">
             @if (!string.IsNullOrWhiteSpace(Model.IDPassFileUrl))
             {
-                <a asp-action="ApplicantAttachmentDownload" asp-controller="Applications" asp-route-fileId="@Model.IDPassFileUrl" class="document-card">
-                    <span class="document-icon"><i class="fa-solid fa-id-card"></i></span>
-                    <span><span class="document-name">Identity document</span><span class="document-action">Open secure file <i class="fa-solid fa-arrow-up-right-from-square"></i></span></span>
+                <a class="oa-doc-card"
+                   asp-action="ApplicantAttachmentDownload" asp-controller="Applications"
+                   asp-route-fileId="@Model.IDPassFileUrl">
+                    <span class="oa-doc-ico"><i class="fa fa-id-card"></i></span>
+                    <span>
+                        <span class="oa-doc-name">Identity Document</span>
+                        <span class="oa-doc-action"><i class="fa fa-arrow-up-right-from-square"></i> Open secure file</span>
+                    </span>
                 </a>
             }
             @if (!string.IsNullOrWhiteSpace(Model.HighestQualFileUrl))
             {
-                <a asp-action="ApplicantAttachmentDownload" asp-controller="Applications" asp-route-fileId="@Model.HighestQualFileUrl" class="document-card">
-                    <span class="document-icon"><i class="fa-solid fa-certificate"></i></span>
-                    <span><span class="document-name">Qualification</span><span class="document-action">Open secure file <i class="fa-solid fa-arrow-up-right-from-square"></i></span></span>
+                <a class="oa-doc-card"
+                   asp-action="ApplicantAttachmentDownload" asp-controller="Applications"
+                   asp-route-fileId="@Model.HighestQualFileUrl">
+                    <span class="oa-doc-ico"><i class="fa fa-certificate"></i></span>
+                    <span>
+                        <span class="oa-doc-name">Qualification</span>
+                        <span class="oa-doc-action"><i class="fa fa-arrow-up-right-from-square"></i> Open secure file</span>
+                    </span>
                 </a>
             }
             @if (!string.IsNullOrWhiteSpace(Model.ResidenceFileUrl))
             {
-                <a asp-action="ApplicantAttachmentDownload" asp-controller="Applications" asp-route-fileId="@Model.ResidenceFileUrl" class="document-card">
-                    <span class="document-icon"><i class="fa-solid fa-house"></i></span>
-                    <span><span class="document-name">Proof of residence</span><span class="document-action">Open secure file <i class="fa-solid fa-arrow-up-right-from-square"></i></span></span>
+                <a class="oa-doc-card"
+                   asp-action="ApplicantAttachmentDownload" asp-controller="Applications"
+                   asp-route-fileId="@Model.ResidenceFileUrl">
+                    <span class="oa-doc-ico"><i class="fa fa-house"></i></span>
+                    <span>
+                        <span class="oa-doc-name">Proof of Residence</span>
+                        <span class="oa-doc-action"><i class="fa fa-arrow-up-right-from-square"></i> Open secure file</span>
+                    </span>
                 </a>
             }
             @if (!string.IsNullOrWhiteSpace(Model.GuardianIDDoc))
             {
-                <a asp-action="FileDownload" asp-route-fileName="@Model.GuardianIDDoc" asp-route-destinationFolder="GuardianID" class="document-card">
-                    <span class="document-icon"><i class="fa-solid fa-user-shield"></i></span>
-                    <span><span class="document-name">Guardian ID</span><span class="document-action">Download document <i class="fa-solid fa-download"></i></span></span>
+                <a class="oa-doc-card"
+                   asp-action="FileDownload"
+                   asp-route-fileName="@Model.GuardianIDDoc"
+                   asp-route-destinationFolder="GuardianID">
+                    <span class="oa-doc-ico"><i class="fa fa-user-shield"></i></span>
+                    <span>
+                        <span class="oa-doc-name">Guardian ID</span>
+                        <span class="oa-doc-action"><i class="fa fa-download"></i> Download document</span>
+                    </span>
                 </a>
             }
-            @if (string.IsNullOrWhiteSpace(Model.IDPassFileUrl) && string.IsNullOrWhiteSpace(Model.HighestQualFileUrl) && string.IsNullOrWhiteSpace(Model.ResidenceFileUrl) && string.IsNullOrWhiteSpace(Model.GuardianIDDoc))
+            @if (!hasDocs)
             {
-                <div class="empty-documents"><i class="fa-regular fa-folder-open"></i> No supporting documents were attached to this application.</div>
+                <div class="oa-doc-empty">
+                    <i class="fa fa-folder-open"></i>
+                    No supporting documents were attached to this application.
+                </div>
             }
         </div>
-    </section>
-</main>
+    </div>
+</div>
+</div>
 
-<div class="modal fade rejection-modal" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+<div class="modal fade oa-modal" id="rejectionModal"
+     data-bs-backdrop="static" data-bs-keyboard="false"
+     tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <form asp-action="OnRejectApplication" asp-controller="Applications" method="post">
                 <div class="modal-header">
                     <div>
-                        <span class="card-kicker">Decision record</span>
-                        <h5 class="modal-title" id="rejectionModalLabel"><i class="fa-solid fa-ban"></i> Rejection details</h5>
+                        <div style="font-size:.55rem;letter-spacing:.2rem;font-weight:800;text-transform:uppercase;color:var(--es-red);margin-bottom:.2rem;">
+                            Decision Record
+                        </div>
+                        <h5 class="modal-title" id="rejectionModalLabel">
+                            <i class="fa fa-ban me-2" style="color:var(--es-red);"></i>Rejection Details
+                        </h5>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body">
-                    <p class="mb-4" style="color:var(--review-muted);font-size:.74rem;">Add a clear audit record and the next action the applicant should take.</p>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="field-label" for="rejectionReason"><i class="fa-solid fa-circle-exclamation"></i> Rejection reason</label>
-                            <textarea id="rejectionReason" name="Reason" required rows="4" class="form-control" placeholder="Primary reason(s)..."></textarea>
+                    <p style="font-size:.68rem;color:var(--es-muted);margin-bottom:1rem;">
+                        Provide a clear audit record. The applicant will be notified with the reason and next steps.
+                    </p>
+                    <div class="oa-field-grid">
+                        <div>
+                            <label class="oa-field-label" for="rejectionReason">
+                                <i class="fa fa-circle-exclamation"></i> Rejection Reason
+                            </label>
+                            <textarea id="rejectionReason" name="Reason" required
+                                      rows="4" class="oa-control"
+                                      placeholder="Primary reason(s)…"></textarea>
                         </div>
-                        <div class="col-md-6">
-                            <label class="field-label" for="rejectionComments"><i class="fa-regular fa-message"></i> Additional comments</label>
-                            <textarea id="rejectionComments" name="AdditionalComments" required rows="4" class="form-control" placeholder="Further clarification..."></textarea>
+                        <div>
+                            <label class="oa-field-label" for="rejectionComments">
+                                <i class="fa fa-message"></i> Additional Comments
+                            </label>
+                            <textarea id="rejectionComments" name="AdditionalComments" required
+                                      rows="4" class="oa-control"
+                                      placeholder="Further clarification…"></textarea>
                         </div>
-                        <div class="col-md-6">
-                            <label class="field-label" for="nextSteps"><i class="fa-solid fa-route"></i> Next step</label>
-                            <input id="nextSteps" name="NextSteps" required class="form-control" placeholder="For example: resubmit documents" />
+                        <div>
+                            <label class="oa-field-label" for="nextSteps">
+                                <i class="fa fa-route"></i> Next Step
+                            </label>
+                            <input id="nextSteps" name="NextSteps" required
+                                   class="oa-control"
+                                   placeholder="e.g. resubmit documents" />
                         </div>
-                        <div class="col-md-6">
-                            <label class="field-label" for="followUpDate"><i class="fa-regular fa-calendar"></i> Follow-up date</label>
-                            <input id="followUpDate" name="FollowUpDate" required type="date" class="form-control" />
+                        <div>
+                            <label class="oa-field-label" for="followUpDate">
+                                <i class="fa fa-calendar"></i> Follow-up Date
+                            </label>
+                            <input id="followUpDate" name="FollowUpDate" required
+                                   type="date" class="oa-control" />
                         </div>
                         <input type="hidden" name="ApplicationId" value="@Model.ApplicantId" />
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="review-button" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i> Cancel</button>
-                    <button type="submit" class="review-button review-button-primary"><i class="fa-solid fa-check"></i> Save rejection</button>
+                    <button type="button" class="btn-premium btn-premium--ghost"
+                            data-bs-dismiss="modal">
+                        <i class="fa fa-xmark me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn-premium btn-premium--primary">
+                        <i class="fa fa-check me-2"></i>Save Rejection
+                    </button>
                 </div>
             </form>
         </div>
@@ -795,43 +1036,31 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const statusSelect = document.querySelector('.status');
-        const pendingFields = document.getElementById('pendingFields');
-        const pendingReasonSelect = document.getElementById('pendingReasonSelect');
-        const pendingReasonError = document.getElementById('pendingReasonError');
+        const statusSel       = document.querySelector('select.status');
+        const pendingPanel    = document.getElementById('pendingFields');
+        const pendingReason   = document.getElementById('pendingReasonSelect');
+        const pendingErrEl    = document.getElementById('pendingReasonError');
 
-        if (!statusSelect || !pendingFields) {
-            return;
+        if (!statusSel || !pendingPanel) return;
+
+        function isPending() {
+            return (statusSel.options[statusSel.selectedIndex]?.text || '').trim() === 'Pending';
         }
 
-        function isPendingSelected() {
-            const option = statusSelect.options[statusSelect.selectedIndex];
-            return (option?.text || '').trim() === 'Pending';
+        function toggle() {
+            pendingPanel.classList.toggle('d-none', !isPending());
+            if (!isPending()) pendingErrEl?.classList.add('d-none');
         }
 
-        function togglePendingFields() {
-            const isPending = isPendingSelected();
-            pendingFields.classList.toggle('d-none', !isPending);
+        toggle();
+        statusSel.addEventListener('change', toggle);
 
-            if (!isPending) {
-                pendingReasonError?.classList.add('d-none');
-            }
-        }
-
-        togglePendingFields();
-        statusSelect.addEventListener('change', togglePendingFields);
-
-        const form = statusSelect.closest('form');
-        form?.addEventListener('submit', function (event) {
-            if (!isPendingSelected()) {
-                return;
-            }
-
-            const reason = (pendingReasonSelect?.value || '').trim();
-            if (!reason) {
-                event.preventDefault();
-                pendingReasonError?.classList.remove('d-none');
-                pendingReasonSelect?.focus();
+        statusSel.closest('form')?.addEventListener('submit', function (e) {
+            if (!isPending()) return;
+            if (!(pendingReason?.value || '').trim()) {
+                e.preventDefault();
+                pendingErrEl?.classList.remove('d-none');
+                pendingReason?.focus();
             }
         });
     });

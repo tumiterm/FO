@@ -27,7 +27,7 @@ namespace Forek.Test
         [Fact]
         public void Normalize_UnknownCompletedEnrollment_ReturnsCompleted()
         {
-            var result = EnrollmentStatus.Normalize("Unexpected API value", false, DateTime.UtcNow);
+            var result = EnrollmentStatus.Normalize("Unexpected API value", false, System.DateTime.UtcNow);
 
             Assert.Equal(EnrollmentStatus.Completed, result);
         }

@@ -7,55 +7,47 @@
     var avgCredits = courses.Any() ? courses.Where(c => c.Credit.HasValue).Average(c => c.Credit ?? 0).ToString("F0") : "0";
 }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
 <style>
-    :root {
-        --p-navy: #ac1900;
-        --p-navy-light: #e65100;
-        --p-navy-dark: #0F1D45;
-        --p-indigo: #4F46E5;
-        --p-teal: #10B981;
-        --p-teal-soft: #D1FAE5;
-        --p-bg: #F8FAFC;
-        --p-bg-card: #FFFFFF;
-        --p-bg-glass: rgba(255,255,255,.72);
-        --p-border: #E2E8F0;
-        --p-border-hover: #CBD5E1;
-        --p-text: #0F172A;
-        --p-text-secondary: #64748B;
-        --p-text-muted: #94A3B8;
-        --p-radius-sm: 8px;
-        --p-radius-md: 12px;
-        --p-radius-lg: 16px;
-        --p-radius-xl: 24px;
-        --p-shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
-        --p-shadow-md: 0 4px 16px -2px rgba(15,23,42,.08), 0 2px 6px -2px rgba(15,23,42,.04);
-        --p-shadow-lg: 0 12px 40px -8px rgba(15,23,42,.12), 0 4px 12px -4px rgba(15,23,42,.06);
-        --p-shadow-xl: 0 20px 60px -12px rgba(15,23,42,.18);
-        --p-gradient: linear-gradient(135deg, #1E3A8A 0%, #4F46E5 50%, #7C3AED 100%);
-        --p-gradient-soft: linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 50%, #F5F3FF 100%);
-        --p-transition: .28s cubic-bezier(.4,0,.2,1);
-        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-        background: var(--p-bg);
-        -webkit-font-smoothing: antialiased;
-    }
-
-    .courses-shell {
+    .crs-shell {
+        --crs-red: #ac1900;
+        --crs-hot: #e65100;
+        --crs-grad: linear-gradient(135deg, #ac1900 0%, #c53030 55%, #e65100 100%);
+        --crs-glow: rgba(172,25,0,.32);
+        --crs-green: #059669;
+        --crs-green-soft: #ecfdf5;
+        --crs-green-border: #a7f3d0;
+        --crs-amber: #b45309;
+        --crs-amber-soft: #fffbeb;
+        --crs-amber-border: #fde68a;
+        --crs-bg: #f4f5f7;
+        --crs-card: #ffffff;
+        --crs-border: #e5e7eb;
+        --crs-border-h: #d1d5db;
+        --crs-text: #111827;
+        --crs-text-2: #4b5563;
+        --crs-text-3: #9ca3af;
+        --crs-r-sm: 8px;
+        --crs-r: 12px;
+        --crs-r-lg: 18px;
+        --crs-r-xl: 22px;
+        --crs-sh: 0 1px 3px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04);
+        --crs-sh-md: 0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
+        --crs-sh-lg: 0 12px 36px rgba(0,0,0,.11), 0 4px 12px rgba(0,0,0,.06);
+        --crs-t: .26s cubic-bezier(.4,0,.2,1);
         max-width: 1440px;
         margin: 0 auto;
-        padding: 2rem 1.5rem 4rem;
-        animation: pageIn .6s ease;
+        padding: 1.75rem 1.25rem 3.5rem;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        animation: crsPageIn .55s ease;
     }
 
-    @@keyframes pageIn {
+    @@keyframes crsPageIn {
         from {
             opacity: 0;
-            transform: translateY(16px);
+            transform: translateY(14px);
         }
 
         to {
@@ -64,939 +56,826 @@
         }
     }
 
-    .accent-line {
-        height: 3px;
-        border-radius: 3px;
-        background: var(--p-gradient);
-        margin-bottom: 1.75rem;
-        animation: accentGlow 3s ease-in-out infinite alternate;
-    }
-
-    @@keyframes accentGlow {
-        0% {
-            box-shadow: 0 0 8px rgba(79,70,229,.15);
-        }
-
-        100% {
-            box-shadow: 0 0 20px rgba(79,70,229,.3);
-        }
-    }
-
-    .header-band {
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-xl);
-        padding: 1.5rem 2rem;
+    .crs-hero {
+        background: var(--crs-grad);
+        border-radius: var(--crs-r-xl);
+        padding: 1.4rem 1.75rem;
         display: flex;
         flex-wrap: wrap;
-        gap: 1.5rem;
+        gap: 1.25rem;
         align-items: center;
         position: relative;
         overflow: hidden;
-        box-shadow: var(--p-shadow-md);
-        transition: box-shadow var(--p-transition);
+        box-shadow: 0 8px 32px -8px var(--crs-glow), var(--crs-sh-md);
     }
 
-        .header-band:hover {
-            box-shadow: var(--p-shadow-lg);
-        }
-
-        .header-band::before {
+        .crs-hero::before {
             content: "";
             position: absolute;
             inset: 0;
-            background: var(--p-gradient-soft);
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
             pointer-events: none;
-            opacity: .5;
         }
 
-    .icon-pill {
-        width: 72px;
-        height: 72px;
-        border-radius: 20px;
-        background: var(--p-gradient);
+    .crs-hero-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.22);
+        backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.8rem;
+        font-size: 1.55rem;
         color: #fff;
-        box-shadow: 0 8px 24px -8px rgba(30,58,138,.4);
-        animation: iconPulse 3s ease-in-out infinite;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 4px 16px rgba(0,0,0,.18);
+    }
+
+    .crs-hero-copy {
+        flex: 1;
         position: relative;
         z-index: 1;
     }
 
-    @@keyframes iconPulse {
-        0%, 100% {
-            transform: scale(1);
+        .crs-hero-copy h1 {
+            margin: 0;
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -.3px;
+            line-height: 1.2;
         }
 
-        50% {
-            transform: scale(1.04);
-        }
-    }
-
-    .header-band h1 {
-        margin: 0;
-        font-size: 1.65rem;
-        font-weight: 700;
-        color: var(--p-text);
-        letter-spacing: -.3px;
-        line-height: 1.2;
-        position: relative;
-        z-index: 1;
-        animation: titleIn .8s ease .1s both;
-    }
-
-    @@keyframes titleIn {
-        from {
-            opacity: 0;
-            transform: translateX(-12px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    .tagline {
-        font-size: .6rem;
+    .crs-kicker {
+        font-size: .56rem;
         letter-spacing: .2rem;
         font-weight: 700;
-        background: var(--p-gradient);
-        -webkit-background-clip: text;
-        color: transparent;
-        padding: .5rem 0;
         text-transform: uppercase;
+        color: rgba(255,255,255,.65);
         margin-top: .3rem;
         display: inline-flex;
         gap: .4rem;
         align-items: center;
-        position: relative;
-        z-index: 1;
     }
 
-        .tagline i {
-            color: var(--p-indigo);
-        }
-
-    .toolbar {
-        margin-left: auto;
+    .crs-hero-acts {
         display: flex;
-        gap: .6rem;
+        gap: .55rem;
         flex-wrap: wrap;
+        margin-left: auto;
         position: relative;
         z-index: 1;
     }
 
-    .btn-act {
+    .crs-btn-ghost {
         font-size: .6rem;
         letter-spacing: .1rem;
         font-weight: 600;
         text-transform: uppercase;
-        padding: .6rem 1rem;
-        border-radius: var(--p-radius-md);
-        border: 1px solid var(--p-border);
-        background: var(--p-bg-card);
-        color: var(--p-navy);
+        padding: .55rem 1rem;
+        border-radius: var(--crs-r-sm);
+        border: 1px solid rgba(255,255,255,.3);
+        background: rgba(255,255,255,.1);
+        color: #fff;
         display: inline-flex;
         align-items: center;
-        gap: .5rem;
+        gap: .45rem;
         text-decoration: none;
         cursor: pointer;
-        transition: all var(--p-transition);
-        box-shadow: var(--p-shadow-sm);
+        transition: all var(--crs-t);
+        backdrop-filter: blur(4px);
     }
 
-        .btn-act:hover {
-            background: var(--p-navy);
+        .crs-btn-ghost:hover {
+            background: rgba(255,255,255,.22);
+            border-color: rgba(255,255,255,.5);
             color: #fff;
-            border-color: var(--p-navy);
-            box-shadow: 0 4px 16px -4px rgba(30,58,138,.35);
             transform: translateY(-1px);
         }
 
-        .btn-act i.spin-on-click {
-            transition: transform .6s ease;
-        }
-
-        .btn-act:active i.spin-on-click {
-            transform: rotate(360deg);
-        }
-
-    .btn-primary-cta {
-        background: var(--p-gradient);
-        color: #fff;
-        border: none;
+    .crs-btn-white {
+        font-size: .6rem;
+        letter-spacing: .1rem;
         font-weight: 700;
-        letter-spacing: .08rem;
-        padding: .7rem 1.4rem;
-        border-radius: var(--p-radius-md);
-        font-size: .7rem;
         text-transform: uppercase;
+        padding: .58rem 1.2rem;
+        border-radius: var(--crs-r-sm);
+        border: none;
+        background: #fff;
+        color: var(--crs-red);
         display: inline-flex;
         align-items: center;
-        gap: .5rem;
+        gap: .45rem;
         cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 4px 20px -6px rgba(30,58,138,.4);
-        transition: all var(--p-transition);
+        transition: all var(--crs-t);
+        box-shadow: 0 2px 12px rgba(0,0,0,.15);
     }
 
-        .btn-primary-cta::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
-            transition: left .5s ease;
-        }
-
-        .btn-primary-cta:hover::after {
-            left: 100%;
-        }
-
-        .btn-primary-cta:hover {
+        .crs-btn-white:hover {
+            background: #fff3f3;
             transform: translateY(-2px);
-            box-shadow: 0 8px 28px -6px rgba(30,58,138,.5);
+            box-shadow: 0 6px 20px rgba(0,0,0,.2);
         }
 
-    .summary-grid {
-        margin-top: 1.75rem;
+    .crs-stats {
         display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: .9rem;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        margin-top: 1.25rem;
     }
 
-    .sum-card {
-        position: relative;
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-lg);
-        padding: 1.25rem 1.2rem 1.1rem;
+    .crs-stat {
+        background: var(--crs-card);
+        border: 1px solid var(--crs-border);
+        border-left: 3px solid var(--crs-border);
+        border-radius: var(--crs-r-lg);
+        padding: 1rem 1.1rem .9rem;
         display: flex;
         flex-direction: column;
-        gap: .4rem;
+        gap: .35rem;
         overflow: hidden;
-        transition: all var(--p-transition);
-        box-shadow: var(--p-shadow-sm);
-        border-left: 4px solid var(--p-border);
+        position: relative;
+        box-shadow: var(--crs-sh);
+        transition: all var(--crs-t);
     }
 
-        .sum-card:nth-child(1) {
-            border-left-color: var(--p-navy);
+        .crs-stat:nth-child(1) {
+            border-left-color: var(--crs-red);
         }
 
-        .sum-card:nth-child(2) {
-            border-left-color: var(--p-indigo);
+        .crs-stat:nth-child(2) {
+            border-left-color: var(--crs-hot);
         }
 
-        .sum-card:nth-child(3) {
-            border-left-color: var(--p-teal);
+        .crs-stat:nth-child(3) {
+            border-left-color: var(--crs-green);
         }
 
-        .sum-card:nth-child(4) {
-            border-left-color: #F59E0B;
+        .crs-stat:nth-child(4) {
+            border-left-color: var(--crs-amber);
         }
 
-        .sum-card:nth-child(5) {
-            border-left-color: #EF4444;
+        .crs-stat:nth-child(5) {
+            border-left-color: #6366f1;
         }
 
-        .sum-card:nth-child(6) {
-            border-left-color: #8B5CF6;
+        .crs-stat:nth-child(6) {
+            border-left-color: #0891b2;
         }
 
-        .sum-card:nth-child(7) {
-            border-left-color: #06B6D4;
+        .crs-stat:nth-child(7) {
+            border-left-color: #7c3aed;
         }
 
-        .sum-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: var(--p-shadow-lg);
-            border-color: var(--p-border-hover);
+        .crs-stat:nth-child(8) {
+            border-left-color: #0f766e;
         }
 
-    .sum-label {
-        font-size: .52rem;
-        letter-spacing: .18rem;
+        .crs-stat:nth-child(9) {
+            border-left-color: #ea580c;
+        }
+
+        .crs-stat:hover {
+            transform: translateY(-3px) scale(1.015);
+            box-shadow: var(--crs-sh-md);
+        }
+
+    .crs-stat-label {
+        font-size: .5rem;
+        letter-spacing: .17rem;
         text-transform: uppercase;
         font-weight: 700;
-        color: var(--p-text-muted);
+        color: var(--crs-text-3);
     }
 
-    .sum-value {
-        font-size: 2.2rem;
+    .crs-stat-val {
+        font-size: 2rem;
         font-weight: 800;
         line-height: 1;
-        background: var(--p-gradient);
+        background: var(--crs-grad);
         -webkit-background-clip: text;
+        background-clip: text;
         color: transparent;
         letter-spacing: -.5px;
     }
 
-    .sum-chip {
-        font-size: .48rem;
-        letter-spacing: .12rem;
+    .crs-stat-chip {
+        font-size: .46rem;
+        letter-spacing: .11rem;
         font-weight: 700;
-        background: #EEF2FF;
-        color: var(--p-navy);
-        padding: .3rem .6rem;
+        background: #fef2f2;
+        color: var(--crs-red);
+        border: 1px solid rgba(172,25,0,.12);
+        padding: .28rem .55rem;
         border-radius: 30px;
         align-self: flex-start;
     }
 
-    .filter-bar {
-        margin-top: 1.75rem;
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-xl);
-        padding: 1.1rem 1.25rem 1rem;
+    .crs-filter {
+        margin-top: 1.25rem;
+        background: var(--crs-card);
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r-lg);
+        padding: .9rem 1.1rem;
         display: flex;
-        gap: 1rem;
+        gap: .85rem;
         flex-wrap: wrap;
         align-items: flex-end;
-        box-shadow: var(--p-shadow-sm);
-        backdrop-filter: blur(8px);
+        box-shadow: var(--crs-sh);
     }
 
-    .filter-group {
+    .crs-fg {
         display: flex;
         flex-direction: column;
-        gap: .35rem;
+        gap: .3rem;
     }
 
-        .filter-group label {
-            font-size: .5rem;
-            letter-spacing: .16rem;
+        .crs-fg label {
+            font-size: .48rem;
+            letter-spacing: .15rem;
             text-transform: uppercase;
             font-weight: 700;
-            color: var(--p-text-muted);
+            color: var(--crs-text-3);
         }
 
-    .filter-bar input[type="text"],
-    .filter-bar input[type="number"],
-    .filter-bar select {
-        background: var(--p-bg);
-        border: 1px solid var(--p-border);
-        font-size: .72rem;
-        padding: .55rem .75rem;
-        border-radius: var(--p-radius-sm);
-        min-width: 160px;
-        transition: all var(--p-transition);
-        color: var(--p-text);
+    .crs-filter input[type="text"],
+    .crs-filter input[type="number"],
+    .crs-filter select {
+        background: var(--crs-bg);
+        border: 1px solid var(--crs-border);
+        font-size: .7rem;
+        color: var(--crs-text);
+        padding: .48rem .7rem;
+        border-radius: var(--crs-r-sm);
+        min-width: 150px;
+        transition: all var(--crs-t);
+        font-family: inherit;
     }
 
-        .filter-bar input:focus, .filter-bar select:focus {
+        .crs-filter input:focus, .crs-filter select:focus {
             outline: none;
-            border-color: var(--p-indigo);
-            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            border-color: var(--crs-red);
+            box-shadow: 0 0 0 3px rgba(172,25,0,.1);
             background: #fff;
         }
 
-    .search-wrap {
+    .crs-search-wrap {
         position: relative;
-        flex: 1 1 300px;
+        flex: 1 1 260px;
     }
 
-        .search-wrap i {
+        .crs-search-wrap .crs-si {
             position: absolute;
             top: 50%;
-            left: .85rem;
+            left: .75rem;
             transform: translateY(-50%);
-            font-size: .72rem;
-            color: var(--p-text-muted);
+            font-size: .68rem;
+            color: var(--crs-text-3);
+            pointer-events: none;
         }
 
-        .search-wrap input {
+        .crs-search-wrap input {
             width: 100%;
-            padding-left: 2.3rem;
+            padding-left: 2.1rem;
         }
 
-        .search-wrap .kbd-hint {
+        .crs-search-wrap .crs-kbd {
             position: absolute;
             top: 50%;
-            right: .75rem;
+            right: .65rem;
             transform: translateY(-50%);
-            font-size: .5rem;
-            letter-spacing: .08rem;
+            font-size: .46rem;
             font-weight: 600;
-            color: var(--p-text-muted);
-            background: var(--p-bg);
-            border: 1px solid var(--p-border);
-            padding: .15rem .4rem;
+            color: var(--crs-text-3);
+            background: var(--crs-bg);
+            border: 1px solid var(--crs-border);
+            padding: .12rem .35rem;
             border-radius: 4px;
         }
 
-    .view-toggle {
+    .crs-view-toggle {
         display: flex;
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-sm);
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r-sm);
         overflow: hidden;
         margin-left: auto;
     }
 
-        .view-toggle button {
-            background: var(--p-bg);
+        .crs-view-toggle button {
+            background: var(--crs-bg);
             border: none;
-            padding: .5rem .7rem;
+            padding: .45rem .65rem;
             cursor: pointer;
-            color: var(--p-text-muted);
-            transition: all var(--p-transition);
-            font-size: .7rem;
+            color: var(--crs-text-3);
+            font-size: .68rem;
+            transition: all var(--crs-t);
         }
 
-            .view-toggle button.active {
-                background: var(--p-navy);
+            .crs-view-toggle button.active {
+                background: var(--crs-red);
                 color: #fff;
             }
 
-            .view-toggle button:hover:not(.active) {
-                background: #EEF2FF;
-                color: var(--p-navy);
+            .crs-view-toggle button:hover:not(.active) {
+                background: #fef2f2;
+                color: var(--crs-red);
             }
 
-    .table-shell {
-        margin-top: 1.4rem;
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-xl);
-        padding: 1.4rem 1.3rem 1.1rem;
+    .crs-table-shell {
+        margin-top: 1.1rem;
+        background: var(--crs-card);
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r-lg);
+        padding: 1.1rem 1rem .9rem;
+        box-shadow: var(--crs-sh);
         overflow: hidden;
-        box-shadow: var(--p-shadow-sm);
-        transition: box-shadow var(--p-transition);
+        transition: box-shadow var(--crs-t);
     }
 
-        .table-shell:hover {
-            box-shadow: var(--p-shadow-md);
+        .crs-table-shell:hover {
+            box-shadow: var(--crs-sh-md);
         }
 
-    .table-meta {
+    .crs-table-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: .6rem;
-        margin-bottom: .8rem;
-        font-size: .55rem;
-        letter-spacing: .12rem;
-        font-weight: 600;
-        color: var(--p-text-muted);
+        gap: .5rem;
+        margin-bottom: .7rem;
     }
 
-        .table-meta span.badge {
-            background: #EEF2FF;
-            color: var(--p-navy);
-            padding: .4rem .7rem;
-            border-radius: 30px;
-            font-size: .52rem;
-            font-weight: 700;
-            letter-spacing: .1rem;
-        }
+    .crs-meta-badge {
+        font-size: .5rem;
+        letter-spacing: .11rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #fef2f2;
+        color: var(--crs-red);
+        border: 1px solid rgba(172,25,0,.12);
+        padding: .35rem .65rem;
+        border-radius: 30px;
+    }
 
-    .table-scroll {
+    .crs-scroll {
         overflow-x: auto;
     }
 
-    .courses-table {
+    .crs-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0;
-        font-size: .72rem;
+        font-size: .7rem;
     }
 
-        .courses-table thead th {
-            background: var(--p-navy);
+        .crs-table thead th {
+            background: var(--crs-grad);
             color: #fff;
-            font-size: .52rem;
-            letter-spacing: .2rem;
+            font-size: .5rem;
+            letter-spacing: .18rem;
             text-transform: uppercase;
             font-weight: 700;
-            padding: .7rem .75rem;
+            padding: .65rem .7rem;
             position: sticky;
             top: 0;
             z-index: 3;
-            border-bottom: 2px solid var(--p-navy-dark);
+            border-bottom: 2px solid rgba(0,0,0,.12);
+            white-space: nowrap;
         }
 
-            .courses-table thead th:first-child {
-                border-radius: var(--p-radius-sm) 0 0 0;
+            .crs-table thead th:first-child {
+                border-radius: var(--crs-r-sm) 0 0 0;
             }
 
-            .courses-table thead th:last-child {
-                border-radius: 0 var(--p-radius-sm) 0 0;
+            .crs-table thead th:last-child {
+                border-radius: 0 var(--crs-r-sm) 0 0;
             }
 
-        .courses-table tbody tr {
-            transition: all var(--p-transition);
+        .crs-table tbody tr:nth-child(even) {
+            background: #fafbfc;
         }
 
-            .courses-table tbody tr:nth-child(even) {
-                background: #FAFBFD;
+        .crs-table tbody tr:nth-child(odd) {
+            background: #fff;
+        }
+
+        .crs-table tbody tr {
+            transition: background var(--crs-t);
+        }
+
+            .crs-table tbody tr:hover {
+                background: #fef2f2;
             }
 
-            .courses-table tbody tr:nth-child(odd) {
-                background: #fff;
-            }
-
-            .courses-table tbody tr:hover {
-                background: #EEF2FF;
-            }
-
-        .courses-table td {
-            padding: .6rem .75rem;
-            border-bottom: 1px solid var(--p-border);
+        .crs-table td {
+            padding: .55rem .7rem;
+            border-bottom: 1px solid var(--crs-border);
             vertical-align: middle;
-            color: var(--p-text);
+            color: var(--crs-text);
         }
 
-            .courses-table td.course-name {
-                font-weight: 600;
-                color: var(--p-text);
-                max-width: 280px;
-            }
-
-    .action-pill {
+    .crs-course-name {
         font-weight: 600;
-        font-size: .52rem;
-        letter-spacing: .06rem;
-        text-transform: uppercase;
-        background: #EEF2FF;
-        padding: .45rem .7rem;
-        border: 1px solid #C7D2FE;
-        border-radius: 30px;
-        text-decoration: none;
-        display: inline-flex;
-        gap: .35rem;
-        align-items: center;
-        color: var(--p-navy);
-        transition: all var(--p-transition);
+        max-width: 280px;
     }
 
-        .action-pill:hover {
-            background: var(--p-navy);
-            color: #fff;
-            border-color: var(--p-navy);
-            box-shadow: 0 4px 12px -4px rgba(30,58,138,.35);
-            transform: translateY(-1px);
-        }
-
-        .action-pill.modules-pill {
-            background: #F0FDF4;
-            color: #15803D;
-            border-color: #BBF7D0;
-        }
-
-            .action-pill.modules-pill:hover {
-                background: #15803D;
-                color: #fff;
-                border-color: #15803D;
-            }
-
-    .badge-type {
-        font-size: .5rem;
-        padding: .35rem .6rem;
-        border-radius: 30px;
-        font-weight: 700;
-        letter-spacing: .08rem;
-        display: inline-flex;
-        gap: .3rem;
-        align-items: center;
-        background: #EEF2FF;
-        color: var(--p-navy);
-        border: 1px solid #C7D2FE;
-    }
-
-    .date-display {
-        font-size: .65rem;
-        color: var(--p-text-secondary);
-    }
-
-        .date-display .relative {
-            font-weight: 600;
-            color: var(--p-text);
-        }
-
-    .cb-cell {
-        width: 36px;
+    .crs-cb {
+        width: 34px;
         text-align: center;
     }
 
-        .cb-cell input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+        .crs-cb input[type="checkbox"] {
+            width: 15px;
+            height: 15px;
             cursor: pointer;
-            accent-color: var(--p-navy);
-            border-radius: 4px;
+            accent-color: var(--crs-red);
         }
 
-    .hidden-row {
-        display: none !important;
-    }
-
-    .limit-note {
+    .crs-pill {
+        font-weight: 600;
         font-size: .5rem;
-        letter-spacing: .12rem;
-        font-weight: 700;
-        background: #FEF3C7;
-        color: #92400E;
-        padding: .35rem .6rem;
+        letter-spacing: .06rem;
+        text-transform: uppercase;
+        background: #fef2f2;
+        color: var(--crs-red);
+        border: 1px solid rgba(172,25,0,.18);
+        padding: .4rem .65rem;
         border-radius: 30px;
+        text-decoration: none;
         display: inline-flex;
-        gap: .35rem;
+        gap: .3rem;
         align-items: center;
+        transition: all var(--crs-t);
     }
 
-    .grid-view {
+        .crs-pill:hover {
+            background: var(--crs-red);
+            color: #fff;
+            border-color: var(--crs-red);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(172,25,0,.3);
+        }
+
+    .crs-pill-green {
+        background: var(--crs-green-soft);
+        color: var(--crs-green);
+        border-color: var(--crs-green-border);
+    }
+
+        .crs-pill-green:hover {
+            background: var(--crs-green);
+            color: #fff;
+            border-color: var(--crs-green);
+            box-shadow: 0 4px 12px rgba(5,150,105,.25);
+        }
+
+    .crs-badge-type {
+        font-size: .48rem;
+        padding: .3rem .55rem;
+        border-radius: 30px;
+        font-weight: 700;
+        letter-spacing: .07rem;
+        display: inline-flex;
+        gap: .25rem;
+        align-items: center;
+        background: #fef2f2;
+        color: var(--crs-red);
+        border: 1px solid rgba(172,25,0,.15);
+    }
+
+    .crs-date {
+        font-size: .63rem;
+        color: var(--crs-text-2);
+    }
+
+        .crs-date .crs-rel {
+            font-weight: 600;
+            color: var(--crs-text);
+        }
+
+    .crs-empty {
+        text-align: center;
+        padding: 3.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .9rem;
+    }
+
+    .crs-empty-icon {
+        width: 88px;
+        height: 88px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #fef2f2, #fffbeb);
+        border: 1px solid var(--crs-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        color: var(--crs-red);
+    }
+
+    .crs-empty h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--crs-text);
+        margin: 0;
+    }
+
+    .crs-empty p {
+        font-size: .72rem;
+        color: var(--crs-text-3);
+        max-width: 340px;
+        margin: 0;
+    }
+
+    .crs-grid-view {
         display: none;
     }
 
-        .grid-view.active {
+        .crs-grid-view.active {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: .9rem;
             margin-top: 1rem;
         }
 
-    .list-view.hidden {
+    .crs-list-view.hidden {
         display: none;
     }
 
-    .course-grid-card {
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-lg);
-        padding: 1.2rem;
+    .crs-grid-card {
+        background: var(--crs-card);
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r-lg);
+        padding: 1.1rem;
         display: flex;
         flex-direction: column;
-        gap: .6rem;
-        box-shadow: var(--p-shadow-sm);
-        transition: all var(--p-transition);
-        cursor: default;
+        gap: .55rem;
+        box-shadow: var(--crs-sh);
+        transition: all var(--crs-t);
     }
 
-        .course-grid-card:hover {
-            border-color: var(--p-border-hover);
-            box-shadow: var(--p-shadow-lg);
+        .crs-grid-card:hover {
+            border-color: var(--crs-red);
+            box-shadow: var(--crs-sh-md), 0 0 0 1px rgba(172,25,0,.08);
             transform: translateY(-3px);
         }
 
-        .course-grid-card .card-title {
-            font-size: .85rem;
+        .crs-grid-card .cgc-title {
+            font-size: .82rem;
             font-weight: 700;
-            color: var(--p-text);
+            color: var(--crs-text);
             line-height: 1.3;
         }
 
-        .course-grid-card .card-meta {
-            font-size: .6rem;
-            color: var(--p-text-muted);
+        .crs-grid-card .cgc-meta {
+            font-size: .58rem;
+            color: var(--crs-text-3);
             display: flex;
             flex-wrap: wrap;
-            gap: .5rem;
+            gap: .45rem;
         }
 
-        .course-grid-card .card-actions {
+        .crs-grid-card .cgc-acts {
             display: flex;
-            gap: .5rem;
+            gap: .45rem;
             margin-top: auto;
-            padding-top: .5rem;
-            border-top: 1px solid var(--p-border);
+            padding-top: .55rem;
+            border-top: 1px solid var(--crs-border);
         }
 
-    .bottom-bar {
+    .crs-bottom {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: .6rem;
-        margin-top: .8rem;
-        font-size: .55rem;
+        margin-top: .7rem;
+        font-size: .52rem;
         letter-spacing: .1rem;
-        color: var(--p-text-muted);
+        color: var(--crs-text-3);
         flex-wrap: wrap;
     }
 
-    .btn-mini {
-        padding: .4rem .7rem;
-        font-size: .5rem;
+    .crs-btn-mini {
+        padding: .35rem .65rem;
+        font-size: .48rem;
         letter-spacing: .12rem;
-        border-radius: var(--p-radius-sm);
-        border: 1px solid var(--p-border);
-        background: var(--p-bg-card);
-        color: var(--p-navy);
+        border-radius: var(--crs-r-sm);
+        border: 1px solid var(--crs-border);
+        background: var(--crs-card);
+        color: var(--crs-red);
         cursor: pointer;
         font-weight: 600;
-        transition: all var(--p-transition);
+        transition: all var(--crs-t);
     }
 
-        .btn-mini:hover {
-            background: var(--p-navy);
+        .crs-btn-mini:hover {
+            background: var(--crs-red);
             color: #fff;
         }
 
-    .kbd-bottom {
-        font-size: .48rem;
-        color: var(--p-text-muted);
+    .crs-kbd-tip {
+        font-size: .46rem;
+        color: var(--crs-text-3);
         display: flex;
-        gap: .4rem;
+        gap: .35rem;
         align-items: center;
     }
 
-        .kbd-bottom kbd {
-            background: var(--p-bg);
-            border: 1px solid var(--p-border);
-            padding: .15rem .35rem;
+        .crs-kbd-tip kbd {
+            background: var(--crs-bg);
+            border: 1px solid var(--crs-border);
+            padding: .12rem .3rem;
             border-radius: 4px;
-            font-size: .45rem;
+            font-size: .44rem;
             font-family: inherit;
             font-weight: 600;
         }
 
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-    }
-
-        .empty-state .empty-icon {
-            width: 100px;
-            height: 100px;
-            border-radius: 28px;
-            background: var(--p-gradient-soft);
-            border: 1px solid var(--p-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: var(--p-indigo);
-        }
-
-        .empty-state h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--p-text);
-            margin: 0;
-        }
-
-        .empty-state p {
-            font-size: .75rem;
-            color: var(--p-text-muted);
-            max-width: 380px;
-            margin: 0;
-        }
-
-    .skeleton-row {
-        animation: shimmer 1.6s ease-in-out infinite;
-    }
-
-    @@keyframes shimmer {
-        0% {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: .4;
-        }
-
-        100% {
-            opacity: 1;
-        }
-    }
-
-    .modal-backdrop {
-        backdrop-filter: blur(4px);
-    }
-
-    .modal-add .modal-content {
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-xl);
-        box-shadow: var(--p-shadow-xl);
-        overflow: hidden;
-    }
-
-    .modal-add .modal-header {
-        background: var(--p-gradient);
-        color: #fff;
-        border: none;
-        padding: 1.5rem 2rem 1.3rem;
-        position: relative;
-    }
-
-        .modal-add .modal-header h5 {
-            font-weight: 700;
-            font-size: 1.15rem;
-            letter-spacing: .3px;
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-        }
-
-        .modal-add .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-            opacity: .8;
-        }
-
-        .modal-add .modal-header .modal-subtitle {
-            font-size: .6rem;
-            letter-spacing: .16rem;
-            font-weight: 600;
-            opacity: .75;
-            margin-top: .3rem;
-        }
-
-    .modal-add .modal-body {
-        padding: 2rem 2rem 1.5rem;
-        background: var(--p-bg);
-    }
-
-    .modal-add .modal-footer {
-        background: var(--p-bg-card);
-        border-top: 1px solid var(--p-border);
-        padding: 1rem 2rem;
-    }
-
-    .modal-form-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.2rem;
-    }
-
-    .modal-form-group {
-        flex: 1 1 240px;
-        display: flex;
-        flex-direction: column;
-        gap: .4rem;
-    }
-
-        .modal-form-group label {
-            font-size: .55rem;
-            font-weight: 700;
-            color: var(--p-text-muted);
-            letter-spacing: .14rem;
-            text-transform: uppercase;
-        }
-
-        .modal-form-group input,
-        .modal-form-group select {
-            border: 1px solid var(--p-border);
-            border-radius: var(--p-radius-sm);
-            font-size: .82rem;
-            padding: .6rem .8rem;
-            background: #fff;
-            transition: all var(--p-transition);
-            color: var(--p-text);
-        }
-
-            .modal-form-group input:focus,
-            .modal-form-group select:focus {
-                outline: none;
-                border-color: var(--p-indigo);
-                box-shadow: 0 0 0 3px rgba(79,70,229,.12);
-            }
-
-    .dup-panel {
-        background: #FFFBEB;
-        border: 1px solid #FDE68A;
-        border-radius: var(--p-radius-md);
-        padding: .85rem 1rem;
-        margin-top: .8rem;
-        display: none;
-        animation: slideDown .3s ease;
-    }
-
-    @@keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .dup-panel .dup-title {
-        font-size: .6rem;
+    .crs-limit-note {
+        font-size: .48rem;
+        letter-spacing: .11rem;
         font-weight: 700;
-        letter-spacing: .1rem;
-        color: #92400E;
-        display: flex;
-        align-items: center;
-        gap: .4rem;
-        margin-bottom: .5rem;
-    }
-
-    .dup-panel .dup-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-        .dup-panel .dup-list li {
-            font-size: .68rem;
-            padding: .35rem .5rem;
-            border-radius: var(--p-radius-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #78350F;
-            transition: background .2s;
-        }
-
-            .dup-panel .dup-list li:hover {
-                background: #FEF3C7;
-            }
-
-            .dup-panel .dup-list li .dup-type {
-                font-size: .5rem;
-                font-weight: 700;
-                letter-spacing: .08rem;
-                background: #FDE68A;
-                color: #78350F;
-                padding: .2rem .4rem;
-                border-radius: 20px;
-            }
-
-    .dup-panel .dup-proceed {
-        margin-top: .6rem;
-        font-size: .55rem;
-        font-weight: 600;
-        color: #92400E;
-        display: flex;
-        align-items: center;
+        background: var(--crs-amber-soft);
+        color: var(--crs-amber);
+        border: 1px solid var(--crs-amber-border);
+        padding: .3rem .55rem;
+        border-radius: 30px;
+        display: inline-flex;
         gap: .3rem;
+        align-items: center;
     }
 
-    .export-dropdown {
+    .crs-export {
         position: relative;
         display: inline-block;
     }
 
-    .export-menu {
+    .crs-export-menu {
         display: none;
         position: absolute;
         top: 100%;
         right: 0;
         margin-top: .4rem;
-        background: var(--p-bg-card);
-        border: 1px solid var(--p-border);
-        border-radius: var(--p-radius-md);
-        box-shadow: var(--p-shadow-lg);
-        min-width: 180px;
+        background: var(--crs-card);
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r);
+        box-shadow: var(--crs-sh-lg);
+        min-width: 176px;
         z-index: 50;
         overflow: hidden;
-        animation: menuIn .2s ease;
+        animation: crsMenuIn .2s ease;
     }
 
-    @@keyframes menuIn {
+    @@keyframes crsMenuIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .crs-export-menu.show {
+        display: block;
+    }
+
+    .crs-export-menu button {
+        width: 100%;
+        text-align: left;
+        border: none;
+        background: none;
+        padding: .55rem .9rem;
+        font-size: .6rem;
+        font-weight: 600;
+        color: var(--crs-text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        transition: background .2s;
+        letter-spacing: .04rem;
+        font-family: inherit;
+    }
+
+        .crs-export-menu button:hover {
+            background: #fef2f2;
+            color: var(--crs-red);
+        }
+
+        .crs-export-menu button i {
+            width: 15px;
+            text-align: center;
+            color: var(--crs-text-3);
+        }
+
+    .crs-modal .modal-content {
+        border: 1px solid var(--crs-border);
+        border-radius: var(--crs-r-xl);
+        box-shadow: var(--crs-sh-lg);
+        overflow: hidden;
+    }
+
+    .crs-modal .modal-header {
+        background: var(--crs-grad);
+        color: #fff;
+        border: none;
+        padding: 1.3rem 1.75rem 1.2rem;
+    }
+
+        .crs-modal .modal-header h5 {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin: 0;
+        }
+
+        .crs-modal .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: .8;
+        }
+
+    .crs-modal-sub {
+        font-size: .55rem;
+        letter-spacing: .16rem;
+        font-weight: 600;
+        opacity: .7;
+        margin-top: .25rem;
+        text-transform: uppercase;
+    }
+
+    .crs-modal .modal-body {
+        padding: 1.5rem 1.75rem 1.2rem;
+        background: var(--crs-bg);
+    }
+
+    .crs-modal .modal-footer {
+        background: var(--crs-card);
+        border-top: 1px solid var(--crs-border);
+        padding: .9rem 1.75rem;
+    }
+
+    .crs-modal-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .crs-modal-fg {
+        flex: 1 1 220px;
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+    }
+
+        .crs-modal-fg label {
+            font-size: .52rem;
+            font-weight: 700;
+            color: var(--crs-text-3);
+            letter-spacing: .14rem;
+            text-transform: uppercase;
+        }
+
+        .crs-modal-fg input, .crs-modal-fg select {
+            border: 1px solid var(--crs-border);
+            border-radius: var(--crs-r-sm);
+            font-size: .78rem;
+            padding: .55rem .75rem;
+            background: #fff;
+            color: var(--crs-text);
+            transition: all var(--crs-t);
+            font-family: inherit;
+        }
+
+            .crs-modal-fg input:focus, .crs-modal-fg select:focus {
+                outline: none;
+                border-color: var(--crs-red);
+                box-shadow: 0 0 0 3px rgba(172,25,0,.1);
+            }
+
+    .crs-dup {
+        background: var(--crs-amber-soft);
+        border: 1px solid var(--crs-amber-border);
+        border-radius: var(--crs-r);
+        padding: .8rem .9rem;
+        margin-top: .75rem;
+        display: none;
+        animation: crsDupIn .25s ease;
+    }
+
+    @@keyframes crsDupIn {
         from {
             opacity: 0;
             transform: translateY(-6px);
@@ -1008,141 +887,164 @@
         }
     }
 
-    .export-menu.show {
-        display: block;
-    }
-
-    .export-menu button {
-        width: 100%;
-        text-align: left;
-        border: none;
-        background: none;
-        padding: .6rem 1rem;
-        font-size: .62rem;
-        font-weight: 600;
-        color: var(--p-text);
-        cursor: pointer;
+    .crs-dup-title {
+        font-size: .58rem;
+        font-weight: 700;
+        letter-spacing: .1rem;
+        color: var(--crs-amber);
         display: flex;
         align-items: center;
-        gap: .5rem;
-        transition: background .2s;
-        letter-spacing: .04rem;
+        gap: .35rem;
+        margin-bottom: .45rem;
     }
 
-        .export-menu button:hover {
-            background: #EEF2FF;
-            color: var(--p-navy);
+    .crs-dup-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .crs-dup-list li {
+            font-size: .65rem;
+            padding: .3rem .45rem;
+            border-radius: var(--crs-r-sm);
+            color: #78350f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background .2s;
         }
 
-        .export-menu button i {
-            width: 16px;
-            text-align: center;
-            color: var(--p-text-muted);
+            .crs-dup-list li:hover {
+                background: rgba(253,230,138,.35);
+            }
+
+        .crs-dup-list .crs-dup-tag {
+            font-size: .47rem;
+            font-weight: 700;
+            background: #fde68a;
+            color: #78350f;
+            padding: .18rem .38rem;
+            border-radius: 20px;
         }
+
+    .crs-dup-note {
+        margin-top: .5rem;
+        font-size: .52rem;
+        font-weight: 600;
+        color: var(--crs-amber);
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    .crs-hidden {
+        display: none !important;
+    }
+
+    .modal-backdrop {
+        backdrop-filter: blur(4px);
+    }
 
     @@media (max-width: 900px) {
-        .courses-table thead th:nth-child(6), .courses-table td:nth-child(6) {
+        .crs-table thead th:nth-child(6), .crs-table td:nth-child(6) {
             display: none;
         }
 
-        .summary-grid {
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        .crs-stats {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         }
     }
 
     @@media (max-width: 740px) {
-        .courses-table thead th:nth-child(5), .courses-table td:nth-child(5) {
+        .crs-table thead th:nth-child(5), .crs-table td:nth-child(5) {
             display: none;
         }
 
-        .header-band {
-            padding: 1.2rem;
+        .crs-hero {
+            padding: 1.1rem 1.2rem;
         }
 
-        .icon-pill {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+        .crs-hero-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
         }
 
-        .header-band h1 {
-            font-size: 1.3rem;
-        }
-
-        .filter-bar {
-            padding: .9rem;
+        .crs-hero-copy h1 {
+            font-size: 1.2rem;
         }
     }
 
     @@media (max-width: 540px) {
-        .courses-table thead th:nth-child(7), .courses-table td:nth-child(7) {
+        .crs-table thead th:nth-child(7), .crs-table td:nth-child(7) {
             display: none;
         }
 
-        .toolbar {
+        .crs-hero-acts {
             margin-left: 0;
             width: 100%;
-            justify-content: flex-end;
         }
     }
 </style>
 
-<div class="courses-shell">
-    <div class="header-band">
-        <div class="icon-pill"><i class="fa fa-graduation-cap"></i></div>
-        <div>
+<div class="crs-shell">
+
+    <div class="crs-hero">
+        <div class="crs-hero-icon"><i class="fa fa-graduation-cap"></i></div>
+        <div class="crs-hero-copy">
             <h1>Active Courses</h1>
-            <div class="tagline"><i class="fa fa-layer-group"></i> ACADEMIC MANAGEMENT</div>
+            <div class="crs-kicker"><i class="fa fa-layer-group"></i> Academic Management</div>
         </div>
-        <div class="toolbar">
-            <button type="button" class="btn-act" id="btnRefresh" title="Refresh">
-                <i class="fa fa-rotate spin-on-click"></i>
+        <div class="crs-hero-acts">
+            <button type="button" class="crs-btn-ghost" id="btnRefresh" title="Refresh">
+                <i class="fa fa-rotate" id="refreshIcon"></i> Refresh
             </button>
-            <div class="export-dropdown">
-                <button type="button" class="btn-act" id="btnExportToggle">
-                    <i class="fa fa-file-export"></i> Export <i class="fa fa-chevron-down" style="font-size:.45rem;"></i>
+            <div class="crs-export">
+                <button type="button" class="crs-btn-ghost" id="btnExportToggle">
+                    <i class="fa fa-file-export"></i> Export <i class="fa fa-chevron-down" style="font-size:.4rem;margin-left:.15rem;"></i>
                 </button>
-                <div class="export-menu" id="exportMenu">
+                <div class="crs-export-menu" id="exportMenu">
                     <button type="button" id="btnExportCsv"><i class="fa fa-file-csv"></i> Export CSV</button>
                     <button type="button" id="btnExportJson"><i class="fa fa-code"></i> Export JSON</button>
-                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-pdf"></i> Export PDF (soon)</button>
-                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-excel"></i> Export Excel (soon)</button>
+                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-pdf"></i> PDF (soon)</button>
+                    <button type="button" disabled style="opacity:.4;cursor:not-allowed;"><i class="fa fa-file-excel"></i> Excel (soon)</button>
                 </div>
             </div>
-            <button type="button" class="btn-primary-cta" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+            <button type="button" class="crs-btn-white" data-bs-toggle="modal" data-bs-target="#addCourseModal">
                 <i class="fa fa-plus"></i> Add Course
             </button>
         </div>
     </div>
 
-    <div class="summary-grid">
-        <div class="sum-card">
-            <div class="sum-label">Total Courses</div>
-            <div class="sum-value" data-count="@total">0</div>
-            <div class="sum-chip"><i class="fa fa-database"></i> RECORDS</div>
+    <div class="crs-stats">
+        <div class="crs-stat">
+            <div class="crs-stat-label">Total Courses</div>
+            <div class="crs-stat-val" data-count="@total">0</div>
+            <div class="crs-stat-chip"><i class="fa fa-database"></i> RECORDS</div>
         </div>
-        <div class="sum-card">
-            <div class="sum-label">Avg Credits</div>
-            <div class="sum-value" data-count="@avgCredits">0</div>
-            <div class="sum-chip"><i class="fa fa-star"></i> MEAN</div>
+        <div class="crs-stat">
+            <div class="crs-stat-label">Avg Credits</div>
+            <div class="crs-stat-val" data-count="@avgCredits">0</div>
+            <div class="crs-stat-chip"><i class="fa fa-star"></i> MEAN</div>
         </div>
         @foreach (var g in typeGroups)
         {
-            <div class="sum-card">
-                <div class="sum-label">@g.Key</div>
-                <div class="sum-value" data-count="@g.Count()">0</div>
-                <div class="sum-chip">@g.Key.ToUpperInvariant()</div>
+            <div class="crs-stat">
+                <div class="crs-stat-label">@g.Key</div>
+                <div class="crs-stat-val" data-count="@g.Count()">0</div>
+                <div class="crs-stat-chip">@g.Key.ToUpperInvariant()</div>
             </div>
         }
     </div>
 
-    <div class="filter-bar">
-        <div class="search-wrap">
-            <i class="fa fa-search"></i>
-            <input id="searchBox" type="text" placeholder="Search courses, type, added by..." autocomplete="off" />
-            <span class="kbd-hint">Ctrl+K</span>
+    <div class="crs-filter">
+        <div class="crs-search-wrap">
+            <i class="fa fa-search crs-si"></i>
+            <input id="searchBox" type="text" placeholder="Search courses, type, added by…" autocomplete="off" />
+            <span class="crs-kbd">Ctrl+K</span>
         </div>
-        <div class="filter-group">
+        <div class="crs-fg">
             <label>Type</label>
             <select id="typeFilter">
                 <option value="">All Types</option>
@@ -1152,41 +1054,43 @@
                 }
             </select>
         </div>
-        <div class="filter-group">
+        <div class="crs-fg">
             <label>Min Credits</label>
-            <input id="minCredit" type="number" min="0" placeholder="0" style="max-width:100px;" />
+            <input id="minCredit" type="number" min="0" placeholder="0" style="max-width:90px;" />
         </div>
-        <div class="view-toggle">
-            <button type="button" class="active" data-view="list" title="List View"><i class="fa fa-list"></i></button>
-            <button type="button" data-view="grid" title="Grid View"><i class="fa fa-grip"></i></button>
+        <div class="crs-view-toggle">
+            <button type="button" class="active" data-view="list" title="List view"><i class="fa fa-list"></i></button>
+            <button type="button" data-view="grid" title="Grid view"><i class="fa fa-grip"></i></button>
         </div>
     </div>
 
-    <div class="table-shell list-view" id="listView">
-        <div class="table-meta">
-            <span id="rowsInfo" class="badge">Showing @courses.Count record(s)</span>
-            <span id="filterInfo"></span>
-            <span id="limitNote" class="limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED TO 200</span>
+    <div class="crs-table-shell crs-list-view" id="listView">
+        <div class="crs-table-meta">
+            <span id="rowsInfo" class="crs-meta-badge">Showing @courses.Count record(s)</span>
+            <span id="filterInfo" style="font-size:.5rem;letter-spacing:.1rem;font-weight:700;color:var(--crs-text-3);text-transform:uppercase;"></span>
+            <span id="limitNote" class="crs-limit-note" style="display:none;"><i class="fa fa-info-circle"></i> LIMITED TO 200</span>
         </div>
 
         @if (!courses.Any())
         {
-            <div class="empty-state">
-                <div class="empty-icon"><i class="fa fa-book-open"></i></div>
+            <div class="crs-empty">
+                <div class="crs-empty-icon"><i class="fa fa-book-open"></i></div>
                 <h3>No Courses Found</h3>
-                <p>Get started by adding your first course. Click the "Add Course" button above to begin.</p>
-                <button type="button" class="btn-primary-cta" data-bs-toggle="modal" data-bs-target="#addCourseModal">
-                    <i class="fa fa-plus"></i> Add Your First Course
+                <p>Get started by adding your first course using the button above.</p>
+                <button type="button" class="crs-btn-white"
+                        style="background:var(--crs-red);color:#fff;"
+                        data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                    <i class="fa fa-plus"></i> Add First Course
                 </button>
             </div>
         }
         else
         {
-            <div class="table-scroll">
-                <table class="courses-table" id="coursesTable">
+            <div class="crs-scroll">
+                <table class="crs-table" id="coursesTable">
                     <thead>
                         <tr>
-                            <th class="cb-cell"><input type="checkbox" id="selectAll" title="Select All" /></th>
+                            <th class="crs-cb"><input type="checkbox" id="selectAll" title="Select All" /></th>
                             <th>Action</th>
                             <th>Course</th>
                             <th>Type</th>
@@ -1199,25 +1103,31 @@
                     <tbody id="coursesBody">
                         @foreach (var c in courses)
                         {
-                            var created = c.CreatedOn;
-                            <tr data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit" data-added="@c.CreatedBy" data-name="@c.CourseName">
-                                <td class="cb-cell"><input type="checkbox" class="row-cb" value="@c.CourseId" /></td>
+                            <tr data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit"
+                                data-added="@c.CreatedBy" data-name="@c.CourseName">
+                                <td class="crs-cb">
+                                    <input type="checkbox" class="row-cb" value="@c.CourseId" />
+                                </td>
                                 <td>
-                                    <a class="action-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
+                                    <a class="crs-pill"
+                                       asp-action="OnModifyCourse" asp-controller="Course"
+                                       asp-route-CourseId="@c.CourseId">
                                         <i class="fa fa-arrow-right"></i> Open
                                     </a>
                                 </td>
-                                <td class="course-name">@c.CourseName</td>
-                                <td><span class="badge-type">@c.Type</span></td>
+                                <td class="crs-course-name">@c.CourseName</td>
+                                <td><span class="crs-badge-type">@c.Type</span></td>
                                 <td>@c.Credit</td>
                                 <td>@c.CreatedBy</td>
                                 <td>
-                                    <span class="date-display" title="@created">
-                                        <span class="relative" data-date="@created">@created</span>
+                                    <span class="crs-date" title="@c.CreatedOn">
+                                        <span class="crs-rel" data-date="@c.CreatedOn">@c.CreatedOn</span>
                                     </span>
                                 </td>
                                 <td>
-                                    <a class="action-pill modules-pill" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
+                                    <a class="crs-pill crs-pill-green"
+                                       asp-controller="Course" asp-action="OnCourse"
+                                       asp-route-CourseId="@c.CourseId">
                                         <i class="fa fa-book"></i> Modules
                                     </a>
                                 </td>
@@ -1227,44 +1137,50 @@
                 </table>
             </div>
 
-            <div class="bottom-bar">
+            <div class="crs-bottom">
                 <div>
-                    <button id="btnShowAll" class="btn-mini" type="button" style="display:none;"><i class="fa fa-list"></i> Show All</button>
-                    <button id="btnLimit" class="btn-mini" type="button" style="display:none;"><i class="fa fa-compress"></i> Limit</button>
+                    <button id="btnShowAll" class="crs-btn-mini" type="button" style="display:none;">
+                        <i class="fa fa-list"></i> Show All
+                    </button>
+                    <button id="btnLimit" class="crs-btn-mini" type="button" style="display:none;">
+                        <i class="fa fa-compress"></i> Limit
+                    </button>
                 </div>
-                <div class="kbd-bottom">
-                    <kbd>Ctrl</kbd>+<kbd>K</kbd> Search
-                </div>
-                <div id="perfInfo"></div>
+                <div class="crs-kbd-tip"><kbd>Ctrl</kbd>+<kbd>K</kbd> to search</div>
+                <div id="perfInfo" style="font-size:.46rem;color:var(--crs-text-3);"></div>
             </div>
         }
     </div>
 
-    <div class="grid-view" id="gridView">
+    <div class="crs-grid-view" id="gridView">
         @foreach (var c in courses)
         {
-            <div class="course-grid-card" data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit" data-added="@c.CreatedBy" data-name="@c.CourseName">
-                <div class="card-title">@c.CourseName</div>
-                <span class="badge-type" style="align-self:flex-start;">@c.Type</span>
-                <div class="card-meta">
+            <div class="crs-grid-card"
+                 data-type="@(c.Type ?? "Unknown")" data-credit="@c.Credit"
+                 data-added="@c.CreatedBy" data-name="@c.CourseName">
+                <div class="cgc-title">@c.CourseName</div>
+                <span class="crs-badge-type" style="align-self:flex-start;">@c.Type</span>
+                <div class="cgc-meta">
                     <span><i class="fa fa-star"></i> @c.Credit credits</span>
                     <span><i class="fa fa-user"></i> @c.CreatedBy</span>
                     <span><i class="fa fa-calendar"></i> @c.CreatedOn</span>
                 </div>
-                <div class="card-actions">
-                    <a class="action-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
+                <div class="cgc-acts">
+                    <a class="crs-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
                         <i class="fa fa-arrow-right"></i> Open
                     </a>
-                    <a class="action-pill modules-pill" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
+                    <a class="crs-pill crs-pill-green" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
                         <i class="fa fa-book"></i> Modules
                     </a>
                 </div>
             </div>
         }
     </div>
+
 </div>
 
-<div class="modal fade modal-add" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+<div class="modal fade crs-modal" id="addCourseModal" tabindex="-1"
+     aria-labelledby="addCourseModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -1272,15 +1188,15 @@
                     <h5 class="modal-title" id="addCourseModalLabel">
                         <i class="fa fa-plus-circle"></i> Add New Course
                     </h5>
-                    <div class="modal-subtitle">COURSE REGISTRATION</div>
+                    <div class="crs-modal-sub">Course Registration</div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="Course" asp-controller="Course" method="post" id="addCourseForm">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
-                    <div class="modal-form-row">
-                        <div class="modal-form-group">
+                    <div class="crs-modal-row">
+                        <div class="crs-modal-fg">
                             <label>Course Type</label>
                             <select name="Type" class="CType" id="modalCourseType" required>
                                 <option selected value="">Select Course Type</option>
@@ -1291,24 +1207,25 @@
                                 }
                             </select>
                         </div>
-                        <div class="modal-form-group">
+                        <div class="crs-modal-fg">
                             <label>Course Name</label>
-                            <input name="Name" id="modalCourseName" required placeholder="Start typing to check duplicates..." autocomplete="off" />
+                            <input name="Name" id="modalCourseName" required
+                                   placeholder="Start typing to check duplicates…" autocomplete="off" />
                         </div>
                     </div>
 
-                    <div class="dup-panel" id="dupPanel">
-                        <div class="dup-title">
+                    <div class="crs-dup" id="dupPanel">
+                        <div class="crs-dup-title">
                             <i class="fa fa-exclamation-triangle"></i> Potential Duplicates Found
                         </div>
-                        <ul class="dup-list" id="dupList"></ul>
-                        <div class="dup-proceed">
-                            <i class="fa fa-info-circle"></i> Do you still want to proceed? This course might already exist.
+                        <ul class="crs-dup-list" id="dupList"></ul>
+                        <div class="crs-dup-note">
+                            <i class="fa fa-info-circle"></i> This course might already exist — do you still want to proceed?
                         </div>
                     </div>
 
-                    <div class="modal-form-row" style="margin-top:1rem;">
-                        <div class="modal-form-group Level" id="modalLevelGroup">
+                    <div class="crs-modal-row" style="margin-top:.9rem;">
+                        <div class="crs-modal-fg Level" id="modalLevelGroup">
                             <label>NQF Level</label>
                             <select name="CourseNQFLevel">
                                 <option selected value="">Select NQF Level</option>
@@ -1319,7 +1236,7 @@
                                 }
                             </select>
                         </div>
-                        <div class="modal-form-group NType" id="modalNTypeGroup" style="display:none;">
+                        <div class="crs-modal-fg NType" id="modalNTypeGroup" style="display:none;">
                             <label>N Type</label>
                             <select name="NType">
                                 <option selected value="">Select Option</option>
@@ -1329,11 +1246,11 @@
                                 }
                             </select>
                         </div>
-                        <div class="modal-form-group">
+                        <div class="crs-modal-fg">
                             <label>Course Credit</label>
                             <input name="CourseCredit" required type="number" min="0" step="1" placeholder="e.g. 120" />
                         </div>
-                        <div class="modal-form-group">
+                        <div class="crs-modal-fg">
                             <label>Minimum Requirements</label>
                             <select name="MinimumRequirement">
                                 <option selected value="">Select Minimum Requirement</option>
@@ -1346,17 +1263,26 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:1.2rem; display:flex; align-items:center; gap:.6rem;">
+                    <div style="margin-top:1rem;display:flex;align-items:center;gap:.55rem;">
                         <input name="IsEligibleForOnlineApplications" type="checkbox" id="modalEligibility"
-                               style="width:18px;height:18px;accent-color:var(--p-navy);cursor:pointer;" />
-                        <label for="modalEligibility" style="font-size:.72rem;font-weight:600;color:var(--p-text);cursor:pointer;margin:0;letter-spacing:.02rem;">
+                               style="width:16px;height:16px;accent-color:var(--crs-red);cursor:pointer;" />
+                        <label for="modalEligibility"
+                               style="font-size:.7rem;font-weight:600;color:var(--crs-text);cursor:pointer;margin:0;">
                             Eligible for Online Applications
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-act" data-bs-dismiss="modal"><i class="fa fa-times"></i> Cancel</button>
-                    <button type="submit" class="btn-primary-cta" id="btnSaveCourse"><i class="fa fa-save"></i> Save Course</button>
+                    <button type="button" class="crs-btn-ghost"
+                            style="color:var(--crs-text-2);border-color:var(--crs-border);background:transparent;"
+                            data-bs-dismiss="modal">
+                        <i class="fa fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="crs-btn-white"
+                            style="background:var(--crs-red);color:#fff;"
+                            id="btnSaveCourse">
+                        <i class="fa fa-save"></i> Save Course
+                    </button>
                 </div>
             </form>
         </div>
@@ -1367,255 +1293,233 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     (function () {
-        const DEFAULT_LIMIT = 200;
-        const body = document.getElementById('coursesBody');
-        const searchBox = document.getElementById('searchBox');
-        const typeFilter = document.getElementById('typeFilter');
-        const minCredit = document.getElementById('minCredit');
-        const rowsInfo = document.getElementById('rowsInfo');
-        const filterInfo = document.getElementById('filterInfo');
-        const limitNote = document.getElementById('limitNote');
-        const btnShowAll = document.getElementById('btnShowAll');
-        const btnLimit = document.getElementById('btnLimit');
-        const perfInfo = document.getElementById('perfInfo');
-        let limitedMode = true;
+    const DEFAULT_LIMIT = 200;
+    const body       = document.getElementById('coursesBody');
+    const searchBox  = document.getElementById('searchBox');
+    const typeFilter = document.getElementById('typeFilter');
+    const minCredit  = document.getElementById('minCredit');
+    const rowsInfo   = document.getElementById('rowsInfo');
+    const filterInfo = document.getElementById('filterInfo');
+    const limitNote  = document.getElementById('limitNote');
+    const btnShowAll = document.getElementById('btnShowAll');
+    const btnLimit   = document.getElementById('btnLimit');
+    const perfInfo   = document.getElementById('perfInfo');
+    let limitedMode  = true;
 
-        function norm(v) { return (v || '').toString().toLowerCase().trim(); }
+    function norm(v) { return (v || '').toString().toLowerCase().trim(); }
 
-        document.querySelectorAll('.sum-value[data-count]').forEach(el => {
-            const target = parseInt(el.getAttribute('data-count')) || 0;
-            const duration = 800;
-            const start = performance.now();
-            function step(now) {
-                const progress = Math.min((now - start) / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = Math.round(eased * target);
-                if (progress < 1) requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-        });
+    document.querySelectorAll('.crs-stat-val[data-count]').forEach(el => {
+    const target = parseInt(el.getAttribute('data-count')) || 0;
+    const start  = performance.now();
+    (function step(now) {
+    const p = Math.min((now - start) / 800, 1);
+    el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+    if (p < 1) requestAnimationFrame(step);
+    })(start);
+    });
 
-        function applyFilters() {
-            if (!body) return;
-            const t0 = performance.now();
-            const q = norm(searchBox.value);
-            const tp = typeFilter.value;
-            const minC = parseFloat(minCredit.value) || 0;
-            const filtering = !!(q || tp || minC > 0);
-            const rows = Array.from(body.querySelectorAll('tr'));
-            const gridCards = document.querySelectorAll('#gridView .course-grid-card');
-            let shown = 0, matched = 0;
+    function applyFilters() {
+    if (!body) return;
+    const t0  = performance.now();
+    const q   = norm(searchBox.value);
+    const tp  = typeFilter.value;
+    const minC = parseFloat(minCredit.value) || 0;
+    const filtering = !!(q || tp || minC > 0);
+    const rows      = Array.from(body.querySelectorAll('tr'));
+    const gridCards = document.querySelectorAll('#gridView .crs-grid-card');
+    let shown = 0, matched = 0;
 
-            rows.forEach(r => {
-                const text = norm(r.innerText);
-                const rt = r.getAttribute('data-type');
-                const rc = parseFloat(r.getAttribute('data-credit')) || 0;
-                let show = true;
-                if (q && !text.includes(q)) show = false;
-                if (tp && rt !== tp) show = false;
-                if (minC > 0 && rc < minC) show = false;
-                if (show) {
-                    matched++;
-                    if (limitedMode && !filtering && shown >= DEFAULT_LIMIT) show = false;
-                }
-                r.classList.toggle('hidden-row', !show);
-                if (show) shown++;
-            });
+    rows.forEach(r => {
+    const rt = r.getAttribute('data-type');
+    const rc = parseFloat(r.getAttribute('data-credit')) || 0;
+    let show = true;
+    if (q   && !norm(r.innerText).includes(q)) show = false;
+    if (tp  && rt !== tp)                       show = false;
+    if (minC > 0 && rc < minC)                  show = false;
+    if (show) {
+    matched++;
+    if (limitedMode && !filtering && shown >= DEFAULT_LIMIT) show = false;
+    }
+    r.classList.toggle('crs-hidden', !show);
+    if (show) shown++;
+    });
 
-            gridCards.forEach(card => {
-                const text = norm(card.innerText);
-                const rt = card.getAttribute('data-type');
-                const rc = parseFloat(card.getAttribute('data-credit')) || 0;
-                let show = true;
-                if (q && !text.includes(q)) show = false;
-                if (tp && rt !== tp) show = false;
-                if (minC > 0 && rc < minC) show = false;
-                card.style.display = show ? '' : 'none';
-            });
+    gridCards.forEach(card => {
+    const rt = card.getAttribute('data-type');
+    const rc = parseFloat(card.getAttribute('data-credit')) || 0;
+    let show = true;
+    if (q   && !norm(card.innerText).includes(q)) show = false;
+    if (tp  && rt !== tp)                          show = false;
+    if (minC > 0 && rc < minC)                     show = false;
+    card.style.display = show ? '' : 'none';
+    });
 
-            if (rowsInfo) rowsInfo.textContent = 'Showing ' + shown + ' record(s)' + (filtering ? ' (filtered)' : '');
-            if (filterInfo) filterInfo.textContent = filtering ? 'FILTERED' : (limitedMode ? '' : '');
-            if (limitNote) limitNote.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
-            if (btnShowAll) btnShowAll.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
-            if (btnLimit) btnLimit.style.display = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
-            if (perfInfo) perfInfo.textContent = 'Render: ' + (performance.now() - t0).toFixed(1) + 'ms';
-        }
+    if (rowsInfo)   rowsInfo.textContent   = 'Showing ' + shown + ' record(s)' + (filtering ? ' (filtered)' : '');
+    if (filterInfo) filterInfo.textContent  = filtering ? 'FILTERED' : '';
+    if (limitNote)  limitNote.style.display = (!filtering && limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+    if (btnShowAll) btnShowAll.style.display = (!filtering && limitedMode  && matched > DEFAULT_LIMIT) ? '' : 'none';
+    if (btnLimit)   btnLimit.style.display   = (!filtering && !limitedMode && matched > DEFAULT_LIMIT) ? '' : 'none';
+    if (perfInfo)   perfInfo.textContent     = 'Render: ' + (performance.now() - t0).toFixed(1) + 'ms';
+    }
 
-        if (searchBox) searchBox.addEventListener('input', () => { limitedMode = false; applyFilters(); });
-        if (typeFilter) typeFilter.addEventListener('change', () => { limitedMode = false; applyFilters(); });
-        if (minCredit) minCredit.addEventListener('input', () => { limitedMode = false; applyFilters(); });
-        if (btnShowAll) btnShowAll.addEventListener('click', () => { limitedMode = false; applyFilters(); });
-        if (btnLimit) btnLimit.addEventListener('click', () => { limitedMode = true; applyFilters(); });
+    if (searchBox)  searchBox.addEventListener('input',  () => { limitedMode = false; applyFilters(); });
+    if (typeFilter) typeFilter.addEventListener('change', () => { limitedMode = false; applyFilters(); });
+    if (minCredit)  minCredit.addEventListener('input',  () => { limitedMode = false; applyFilters(); });
+    if (btnShowAll) btnShowAll.addEventListener('click', () => { limitedMode = false; applyFilters(); });
+    if (btnLimit)   btnLimit.addEventListener('click',   () => { limitedMode = true;  applyFilters(); });
 
-        document.addEventListener('keydown', e => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                if (searchBox) searchBox.focus();
-            }
-        });
+    document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    if (searchBox) searchBox.focus();
+    }
+    });
 
-        const btnRefresh = document.getElementById('btnRefresh');
-        if (btnRefresh) {
-            btnRefresh.addEventListener('click', () => {
-                const icon = btnRefresh.querySelector('i');
-                icon.style.transform = 'rotate(360deg)';
-                setTimeout(() => { icon.style.transform = ''; location.reload(); }, 600);
-            });
-        }
+    const btnRefresh  = document.getElementById('btnRefresh');
+    const refreshIcon = document.getElementById('refreshIcon');
+    if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+    if (refreshIcon) {
+    refreshIcon.style.transition = 'transform .6s ease';
+    refreshIcon.style.transform  = 'rotate(360deg)';
+    }
+    setTimeout(() => location.reload(), 600);
+    });
+    }
 
-        const selectAll = document.getElementById('selectAll');
-        if (selectAll) {
-            selectAll.addEventListener('change', () => {
-                document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = selectAll.checked; });
-            });
-        }
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+    selectAll.addEventListener('change', () => {
+    document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = selectAll.checked; });
+    });
+    }
 
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const view = btn.getAttribute('data-view');
-                const listView = document.getElementById('listView');
-                const gridView = document.getElementById('gridView');
-                if (view === 'grid') {
-                    listView.classList.add('hidden');
-                    gridView.classList.add('active');
-                } else {
-                    listView.classList.remove('hidden');
-                    gridView.classList.remove('active');
-                }
-            });
-        });
+    document.querySelectorAll('.crs-view-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+    document.querySelectorAll('.crs-view-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const listView = document.getElementById('listView');
+    const gridView = document.getElementById('gridView');
+    if (btn.getAttribute('data-view') === 'grid') {
+    listView.classList.add('hidden');
+    gridView.classList.add('active');
+    } else {
+    listView.classList.remove('hidden');
+    gridView.classList.remove('active');
+    }
+    });
+    });
 
-        const exportToggle = document.getElementById('btnExportToggle');
-        const exportMenu = document.getElementById('exportMenu');
-        if (exportToggle && exportMenu) {
-            exportToggle.addEventListener('click', e => {
-                e.stopPropagation();
-                exportMenu.classList.toggle('show');
-            });
-            document.addEventListener('click', () => exportMenu.classList.remove('show'));
-        }
+    const exportToggle = document.getElementById('btnExportToggle');
+    const exportMenu   = document.getElementById('exportMenu');
+    if (exportToggle && exportMenu) {
+    exportToggle.addEventListener('click', e => { e.stopPropagation(); exportMenu.classList.toggle('show'); });
+    document.addEventListener('click', () => exportMenu.classList.remove('show'));
+    }
 
-        const btnExportCsv = document.getElementById('btnExportCsv');
-        if (btnExportCsv && body) {
-            btnExportCsv.addEventListener('click', () => {
-                exportMenu.classList.remove('show');
-                const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
-                if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
-                const lines = ['Course,Type,Credits,AddedBy,AddedOn'];
-                visible.forEach(r => {
-                    const cells = r.querySelectorAll('td');
-                    const row = [cells[2], cells[3], cells[4], cells[5], cells[6]]
-                        .map(td => '"' + (td?.innerText?.trim() || '').replace(/"/g, '""') + '"').join(',');
-                    lines.push(row);
-                });
-                const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                a.download = 'courses-' + new Date().toISOString().slice(0, 10) + '.csv';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            });
-        }
+    function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str; return d.innerHTML;
+    }
 
-        const btnExportJson = document.getElementById('btnExportJson');
-        if (btnExportJson && body) {
-            btnExportJson.addEventListener('click', () => {
-                exportMenu.classList.remove('show');
-                const visible = Array.from(body.querySelectorAll('tr:not(.hidden-row)'));
-                if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
-                const data = visible.map(r => {
-                    const cells = r.querySelectorAll('td');
-                    return {
-                        course: cells[2]?.innerText?.trim() || '',
-                        type: cells[3]?.innerText?.trim() || '',
-                        credits: cells[4]?.innerText?.trim() || '',
-                        addedBy: cells[5]?.innerText?.trim() || '',
-                        addedOn: cells[6]?.innerText?.trim() || ''
-                    };
-                });
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                a.download = 'courses-' + new Date().toISOString().slice(0, 10) + '.json';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            });
-        }
+    const btnExportCsv = document.getElementById('btnExportCsv');
+    if (btnExportCsv && body) {
+    btnExportCsv.addEventListener('click', () => {
+    exportMenu.classList.remove('show');
+    const visible = Array.from(body.querySelectorAll('tr:not(.crs-hidden)'));
+    if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
+    const lines = ['Course,Type,Credits,AddedBy,AddedOn'];
+    visible.forEach(r => {
+    const cells = r.querySelectorAll('td');
+    lines.push([cells[2], cells[3], cells[4], cells[5], cells[6]]
+    .map(td => '"' + (td?.innerText?.trim() || '').replace(/"/g, '""') + '"').join(','));
+    });
+    const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' })),
+    download: 'courses-' + new Date().toISOString().slice(0, 10) + '.csv'
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+    }
 
-        const modalCourseType = document.getElementById('modalCourseType');
-        const modalLevelGroup = document.getElementById('modalLevelGroup');
-        const modalNTypeGroup = document.getElementById('modalNTypeGroup');
-        if (modalCourseType) {
-            modalCourseType.addEventListener('change', () => {
-                const text = modalCourseType.options[modalCourseType.selectedIndex]?.text || '';
-                if (text.includes('Nated')) {
-                    modalNTypeGroup.style.display = '';
-                    modalLevelGroup.style.display = 'none';
-                } else {
-                    modalNTypeGroup.style.display = 'none';
-                    modalLevelGroup.style.display = '';
-                }
-            });
-        }
+    const btnExportJson = document.getElementById('btnExportJson');
+    if (btnExportJson && body) {
+    btnExportJson.addEventListener('click', () => {
+    exportMenu.classList.remove('show');
+    const visible = Array.from(body.querySelectorAll('tr:not(.crs-hidden)'));
+    if (!visible.length) { Swal.fire({ icon: 'info', title: 'No Data', text: 'No visible rows to export.' }); return; }
+    const data = visible.map(r => {
+    const cells = r.querySelectorAll('td');
+    return { course: cells[2]?.innerText?.trim() || '', type: cells[3]?.innerText?.trim() || '',
+    credits: cells[4]?.innerText?.trim() || '', addedBy: cells[5]?.innerText?.trim() || '',
+    addedOn: cells[6]?.innerText?.trim() || '' };
+    });
+    const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
+    download: 'courses-' + new Date().toISOString().slice(0, 10) + '.json'
+    });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+    }
 
-        const modalCourseName = document.getElementById('modalCourseName');
-        const dupPanel = document.getElementById('dupPanel');
-        const dupList = document.getElementById('dupList');
-        let dupTimeout = null;
+    const modalCourseType = document.getElementById('modalCourseType');
+    const modalLevelGroup = document.getElementById('modalLevelGroup');
+    const modalNTypeGroup = document.getElementById('modalNTypeGroup');
+    if (modalCourseType) {
+    modalCourseType.addEventListener('change', () => {
+    const isNated = (modalCourseType.options[modalCourseType.selectedIndex]?.text || '').includes('Nated');
+    modalNTypeGroup.style.display = isNated ? '' : 'none';
+    modalLevelGroup.style.display = isNated ? 'none' : '';
+    });
+    }
 
-                if (modalCourseName) {
-            modalCourseName.addEventListener('input', () => {
-                clearTimeout(dupTimeout);
-                const q = modalCourseName.value.trim();
-                if (q.length < 2) {
-                    dupPanel.style.display = 'none';
-                    return;
-                }
-                dupTimeout = setTimeout(() => {
-                    fetch('/Course/SearchCoursesByName?q=' + encodeURIComponent(q))
-                        .then(r => r.json())
-                        .then(results => {
-                            if (results.length === 0) {
-                                dupPanel.style.display = 'none';
-                                return;
-                            }
-                            dupList.innerHTML = '';
-                            results.forEach(c => {
-                                const li = document.createElement('li');
-                                li.innerHTML = '<span>' + escapeHtml(c.name) + '</span><span class="dup-type">' + escapeHtml(c.type) + ' &bull; ' + (c.credit || 0) + ' credits</span>';
-                                dupList.appendChild(li);
-                            });
-                            dupPanel.style.display = 'block';
-                        })
-                        .catch(() => { dupPanel.style.display = 'none'; });
-                }, 350);
-            });
-        }
+    const modalCourseName = document.getElementById('modalCourseName');
+    const dupPanel        = document.getElementById('dupPanel');
+    const dupList         = document.getElementById('dupList');
+    let dupTimeout        = null;
 
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+    if (modalCourseName) {
+    modalCourseName.addEventListener('input', () => {
+    clearTimeout(dupTimeout);
+    const q = modalCourseName.value.trim();
+    if (q.length < 2) { dupPanel.style.display = 'none'; return; }
+    dupTimeout = setTimeout(() => {
+    fetch('/Course/SearchCoursesByName?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(results => {
+    if (!results.length) { dupPanel.style.display = 'none'; return; }
+    dupList.innerHTML = '';
+    results.forEach(c => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span>' + escapeHtml(c.name) + '</span>'
+    + '<span class="crs-dup-tag">' + escapeHtml(c.type) + ' &bull; ' + (c.credit || 0) + ' cr</span>';
+    dupList.appendChild(li);
+    });
+    dupPanel.style.display = 'block';
+    })
+    .catch(() => { dupPanel.style.display = 'none'; });
+    }, 350);
+    });
+    }
 
-        document.querySelectorAll('.relative[data-date]').forEach(el => {
-            const raw = el.getAttribute('data-date');
-            if (!raw) return;
-            try {
-                const d = new Date(raw);
-                if (isNaN(d.getTime())) return;
-                const now = new Date();
-                const diffMs = now - d;
-                const diffDays = Math.floor(diffMs / 86400000);
-                let text;
-                if (diffDays === 0) text = 'Today';
-                else if (diffDays === 1) text = 'Yesterday';
-                else if (diffDays < 7) text = diffDays + ' days ago';
-                else if (diffDays < 30) text = Math.floor(diffDays / 7) + 'w ago';
-                else text = d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
-                el.textContent = text;
-                el.closest('.date-display').title = d.toLocaleString('en-ZA');
-            } catch {  }
-        });
+    document.querySelectorAll('.crs-rel[data-date]').forEach(el => {
+    const raw = el.getAttribute('data-date');
+    if (!raw) return;
+    try {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return;
+    const days = Math.floor((new Date() - d) / 86400000);
+    let text;
+    if      (days === 0) text = 'Today';
+    else if (days === 1) text = 'Yesterday';
+    else if (days < 7)   text = days + ' days ago';
+    else if (days < 30)  text = Math.floor(days / 7) + 'w ago';
+    else text = d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' });
+    el.textContent = text;
+    el.closest('.crs-date').title = d.toLocaleString('en-ZA');
+    } catch { }
+    });
 
-        applyFilters();
+    applyFilters();
     })();
 </script>

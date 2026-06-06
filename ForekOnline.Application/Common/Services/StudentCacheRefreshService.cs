@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 
 namespace ForekOnline.Application.Common.Services

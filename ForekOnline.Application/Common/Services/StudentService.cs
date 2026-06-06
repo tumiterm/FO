@@ -108,12 +108,15 @@ namespace ForekOnline.Application.Common.Services
                 return cached;
             }
 
-            // ── 1. SQL Server (primary — API-independent) ─────────────────────
             try
             {
                 var entity = await _unitOfWork.Students.GetAsync(
                     filter: s => s.StudentNumber == studentNumber,
-                    includeProperties: new[] { nameof(StudentEntity.Enrollments) },
+                    includeProperties: new[] { nameof(StudentEntity.Enrollments),
+                    nameof(StudentEntity.Placement), nameof(StudentEntity.Guardian),
+                    nameof(StudentEntity.Documents)
+                    },
+                    
                     asNoTracking: true);
 
                 if (entity != null)
@@ -1103,18 +1106,15 @@ namespace ForekOnline.Application.Common.Services
                     })
                     .ToList(),
 
-                // ── Guardian ──────────────────────────────────────────────────
                 Guardian   = e.Guardian,
-                GuardianId = e.GuardianId,
+                GuardianId = e.GuardianId.HasValue ? e.GuardianId.Value : Guid.Empty,
 
-                // ── Documents ─────────────────────────────────────────────────
                 Documents = e.Documents,
 
-                // ── Audit ─────────────────────────────────────────────────────
-                CreatedAt  = e.DateCreated.DateTime,
-                UpdatedAt  = e.DateModified == default ? null : e.DateModified.DateTime,
-                CreatedBy  = e.UserCreated,
-                UpdatedBy  = e.UserModified,
+                //CreatedAt  = e.DateCreated.DateTime,
+                //UpdatedAt  = e.DateModified == default ? null : e.DateModified.DateTime,
+                //CreatedBy  = e.UserCreated,
+                //UpdatedBy  = e.UserModified,
             };
         }
 

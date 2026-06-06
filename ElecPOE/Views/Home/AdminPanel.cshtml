@@ -450,6 +450,87 @@
     @@media (prefers-reduced-motion: reduce) {
         .admin-command *, .admin-command *::before, .admin-command *::after { scroll-behavior: auto !important; transition: none !important; }
     }
+
+        /* ── Navigation loading overlay ── */
+        .nav-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(9, 9, 13, .82);
+            backdrop-filter: blur(14px) saturate(1.3);
+            -webkit-backdrop-filter: blur(14px) saturate(1.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .28s ease, visibility .28s ease;
+            pointer-events: none;
+        }
+
+            .nav-overlay.is-active {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: all;
+            }
+
+        .nav-spin-wrap {
+            position: relative;
+            width: 62px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-spin-outer {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, .06);
+            border-top-color: var(--ap-gold);
+            border-right-color: rgba(241, 169, 78, .3);
+            animation: nav-spin .68s linear infinite;
+        }
+
+        .nav-spin-inner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-bottom-color: var(--ap-red);
+            border-left-color: rgba(217, 38, 50, .22);
+            animation: nav-spin .92s linear infinite reverse;
+        }
+
+        .nav-overlay-copy strong {
+            display: block;
+            font-family: 'Space Grotesk', Inter, sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f7f4f5;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .nav-overlay-copy span {
+            display: block;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .33);
+            text-align: center;
+        }
+
+        @@keyframes nav-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 </style>
 }
 
@@ -507,27 +588,27 @@
         <div class="quick-grid">
             <a class="quick-card" style="--card-color:#73a7ff;--card-glow:#397ae5" asp-controller="Student" asp-action="StudentAnalytics">
                 <span class="quick-icon"><i class="fa-solid fa-graduation-cap"></i></span>
-                <h3>Learner management</h3>
+                <h3 class="text-white">Learner management</h3>
                 <p>Review learner profiles, enrolments and supporting documentation.</p>
                 <span class="quick-link">Open learners <i class="fa-solid fa-arrow-right"></i></span>
             </a>
             <a class="quick-card" style="--card-color:#f07880;--card-glow:#d92632" asp-controller="Assessment" asp-action="List">
                 <span class="quick-icon"><i class="fa-solid fa-file-signature"></i></span>
-                <h3>Assessments</h3>
+                <h3 class="text-white">Assessments</h3>
                 <p>Manage assessment activity, uploads and learner evidence.</p>
                 <span class="quick-link">Open assessments <i class="fa-solid fa-arrow-right"></i></span>
             </a>
             <a class="quick-card" style="--card-color:#55d6a5;--card-glow:#1d9d70" asp-controller="Employee" asp-action="AdminEmployeePortal">
                 <span class="quick-icon"><i class="fa-solid fa-id-badge"></i></span>
-                <h3>Employee portal</h3>
+                <h3 class="text-white">Employee portal</h3>
                 <p>Access employee records and administrative workforce tools.</p>
                 <span class="quick-link">Open employees <i class="fa-solid fa-arrow-right"></i></span>
             </a>
-            <a class="quick-card" style="--card-color:#f1a94e;--card-glow:#c7791d" asp-controller="Auth" asp-action="RetrieveUsers">
+            <a class="quick-card" style="--card-color:#f1a94e;--card-glow:#c7791d" asp-controller="Applications" asp-action="Applications">
                 <span class="quick-icon"><i class="fa-solid fa-users-gear"></i></span>
-                <h3>User administration</h3>
-                <p>Control user accounts, roles and access to the platform.</p>
-                <span class="quick-link">Manage users <i class="fa-solid fa-arrow-right"></i></span>
+                <h3 class="text-white">Online Applications</h3>
+                <p>Access and control all online applications.</p>
+                <span class="quick-link">Manage Online Applications <i class="fa-solid fa-arrow-right"></i></span>
             </a>
         </div>
     </section>
@@ -632,8 +713,29 @@
             </article>
         </div>
     </section>
-</main>
+    <div class="nav-overlay" id="navOverlay" role="status" aria-live="polite" aria-label="Loading page">
+        <div class="nav-spin-wrap">
+            <div class="nav-spin-outer"></div>
+            <div class="nav-spin-inner"></div>
+        </div>
+        <div class="nav-overlay-copy">
+            <strong>Opening</strong>
+            <span>Loading&hellip;</span>
+        </div>
+    </div>
 
+</main>
 @await Html.PartialAsync("_DynamicNotifications")
 <script>window.__notificationsEndpoint = '/Notification/Index';</script>
 <script src="~/js/notifications.js" asp-append-version="true"></script>
+<script>
+    (function () {
+    const overlay = document.getElementById('navOverlay');
+    if (!overlay) return;
+    document.querySelectorAll('a.quick-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+    overlay.classList.add('is-active');
+    });
+    });
+    })();
+</script>
