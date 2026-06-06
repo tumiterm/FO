@@ -802,7 +802,7 @@
         </div>
         <div class="sl-header-actions">
             <button type="button" class="sl-btn" onclick="location.reload()"><i class="fa fa-rotate"></i> Refresh</button>
-            <button type="button" class="sl-btn" id="btnFetchApi"><i class="fa fa-cloud-arrow-down"></i> Sync</button>
+            <a class="sl-btn" asp-controller="Student" asp-action="StudentCache"><i class="fa fa-database"></i> SQLite Cache</a>
             <button type="button" class="sl-btn sl-btn-grad" id="btnExportCsv"><i class="fa fa-file-export"></i> CSV</button>
             <form method="post" asp-controller="Student" asp-action="BulkImportStudents" class="d-inline">
                 @Html.AntiForgeryToken()

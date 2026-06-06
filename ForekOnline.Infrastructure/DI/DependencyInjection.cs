@@ -77,6 +77,7 @@ namespace ForekOnline.Infrastructure.DI
 
             services.AddScoped<IStudentCacheRepository, StudentCacheRepository>();
             services.AddScoped<IStudentCacheStore, StudentCacheStore>();
+            services.AddScoped<IStudentCacheRefreshService, StudentCacheRefreshService>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<INotificationService, NotificationService>();

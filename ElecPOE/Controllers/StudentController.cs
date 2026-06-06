@@ -49,6 +49,8 @@ namespace ElecPOE.Controllers
         private readonly IMemoryCache _cache;
         private readonly IPdfReportService _pdfReportService;
         private readonly EnrollmentOrchestrationService _enrollmentOrchestration;
+        private readonly IStudentCacheStore _studentCacheStore;
+        private readonly IStudentCacheRefreshService _studentCacheRefreshService;
         #endregion
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace ElecPOE.Controllers
         /// <param name="studentService">The student service for handling student-related operations.</param>
         /// <param name="userService">The user service for managing user-related data.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="context"/> or <paramref name="hostEnvironment"/> is null.</exception>
-        public StudentController(IUnitOfWork context, IWebHostEnvironment hostEnvironment, IHelperService helperService, ILogger<StudentController> logger, IStudentService studentService, IUserService userService, IMemoryCache cache, IPdfReportService pdfReportService, EnrollmentOrchestrationService enrollmentOrchestration, IFileUploadService fileUploadService)
+        public StudentController(IUnitOfWork context, IWebHostEnvironment hostEnvironment, IHelperService helperService, ILogger<StudentController> logger, IStudentService studentService, IUserService userService, IMemoryCache cache, IPdfReportService pdfReportService, EnrollmentOrchestrationService enrollmentOrchestration, IFileUploadService fileUploadService, IStudentCacheStore studentCacheStore, IStudentCacheRefreshService studentCacheRefreshService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
@@ -74,6 +76,8 @@ namespace ElecPOE.Controllers
             _cache = cache;
             _pdfReportService = pdfReportService;
             _enrollmentOrchestration = enrollmentOrchestration;
+            _studentCacheStore = studentCacheStore;
+            _studentCacheRefreshService = studentCacheRefreshService;
         }
 
         /// <summary>
@@ -916,6 +920,46 @@ namespace ElecPOE.Controllers
                 model.AvailableCourses = await GetCourseSelectListAsync();
                 return View(nameof(EnrollStudent), model);
             }
+        }
+
+        /// <summary>
+        /// Displays the current SQLite cache contents and the direct API refresh controls.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> StudentCache(CancellationToken cancellationToken)
+        {
+            var model = await _studentCacheStore.GetStatusAsync(cancellationToken);
+            return View(model);
+        }
+
+        /// <summary>
+        /// Forces a complete legacy API snapshot into SQLite, including per-student enrollment details.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> RefreshStudentCacheFromApi(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var result = await _studentCacheRefreshService.RefreshFromApiAsync(cancellationToken);
+                _cache.Remove("students:all");
+                TempData["success"] =
+                    $"SQLite refresh completed: {result.StudentCount:N0} students and " +
+                    $"{result.EnrollmentHistoryCount:N0} enrollment histories saved.";
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                TempData["error"] = "The API-to-SQLite refresh was cancelled. The previous cache was preserved.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Direct legacy API to SQLite refresh failed.");
+                TempData["error"] = $"SQLite refresh failed. The previous cache was preserved. {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(StudentCache));
         }
 
         /// <summary>
