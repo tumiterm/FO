@@ -91,7 +91,7 @@ namespace ForekOnline.Domain.Entities
 
         #region Guardian
         public Guardian? Guardian { get; set; }
-        public Guid GuardianId { get; set; }
+        public Guid? GuardianId { get; set; }
         #endregion
 
         #region Documents
@@ -103,7 +103,8 @@ namespace ForekOnline.Domain.Entities
         public bool IsDocumentationComplete =>
             HasUploadedID &&
             (Documents?.Any(d => d.DocumentType == eStudentDocumentType.HighestQualification) ?? false) &&
-            (Documents?.Any(d => d.DocumentType == eStudentDocumentType.StudyPermit) ?? false);
+            (string.IsNullOrWhiteSpace(PassportNumber) ||
+             (Documents?.Any(d => d.DocumentType == eStudentDocumentType.StudyPermit) ?? false));
 
         #endregion
 

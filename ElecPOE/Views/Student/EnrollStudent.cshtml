@@ -229,7 +229,7 @@
                         </button>
                     </div>
 
-                    <form method="post" asp-controller="Student" asp-action="SubmitEnrollment" id="enrollmentForm" novalidate>
+                    <form method="post" asp-controller="Student" asp-action="SubmitEnrollment" id="enrollmentForm" novalidate enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="IsFromApplication" />
                         <input type="hidden" asp-for="IsLookupComplete" />
@@ -394,10 +394,62 @@
 
                                 <div class="span-3">
                                     <div class="floating-field">
+                                        <input asp-for="PlaceOfBirth" class="form-control person-name" placeholder=" " />
+                                        <label asp-for="PlaceOfBirth"></label>
+                                    </div>
+                                    <span asp-validation-for="PlaceOfBirth" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="Language" class="form-control person-name" placeholder=" " />
+                                        <label asp-for="Language"></label>
+                                    </div>
+                                    <span asp-validation-for="Language" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <select asp-for="HasDisability" class="form-select">
+                                            <option value=""></option>
+                                            <option value="false">No</option>
+                                            <option value="true">Yes</option>
+                                        </select>
+                                        <label asp-for="HasDisability"></label>
+                                    </div>
+                                    <span asp-validation-for="HasDisability" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-6">
+                                    <div class="floating-field">
+                                        <input asp-for="Disability" class="form-control" placeholder=" " />
+                                        <label asp-for="Disability"></label>
+                                    </div>
+                                    <span asp-validation-for="Disability" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="StudyPermitNumber" class="form-control" placeholder=" " />
+                                        <label asp-for="StudyPermitNumber"></label>
+                                    </div>
+                                    <span asp-validation-for="StudyPermitNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="StudyPermitExpiry" type="date" class="form-control" placeholder=" " />
+                                        <label asp-for="StudyPermitExpiry"></label>
+                                    </div>
+                                    <span asp-validation-for="StudyPermitExpiry" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
                                         <input asp-for="HighestGrade" required
                                                class="form-control"
                                                placeholder=" "
-                                               autocomplete="off" type="number" />
+                                               autocomplete="off" />
                                         <label asp-for="HighestGrade"></label>
                                     </div>
                                     <div class="field-meta">
@@ -449,6 +501,14 @@
 
                                 <div class="span-4">
                                     <div class="floating-field">
+                                        <input asp-for="AlternativePhone" class="form-control" placeholder=" " inputmode="tel" autocomplete="tel" />
+                                        <label asp-for="AlternativePhone"></label>
+                                    </div>
+                                    <span asp-validation-for="AlternativePhone" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field">
                                         <input asp-for="Email"
                                                type="email"
                                                class="form-control"
@@ -490,6 +550,40 @@
                                     </div>
                                     <span asp-validation-for="StreetAddressLine2" class="text-danger"></span>
                                 </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="City" class="form-control person-name" placeholder=" " autocomplete="address-level2" />
+                                        <label asp-for="City"></label>
+                                    </div>
+                                    <span asp-validation-for="City" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <select asp-for="Province" class="form-select" asp-items="Html.GetEnumSelectList<ForekOnline.Domain.Enums.EnumRegistry.eProvince>()">
+                                            <option value=""></option>
+                                        </select>
+                                        <label asp-for="Province"></label>
+                                    </div>
+                                    <span asp-validation-for="Province" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="PostalCode" class="form-control" placeholder=" " autocomplete="postal-code" />
+                                        <label asp-for="PostalCode"></label>
+                                    </div>
+                                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-3">
+                                    <div class="floating-field">
+                                        <input asp-for="Country" class="form-control person-name" placeholder=" " autocomplete="country-name" />
+                                        <label asp-for="Country"></label>
+                                    </div>
+                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                </div>
                             </div>
                         </section>
 
@@ -503,6 +597,16 @@
                             </p>
 
                             <div class="field-grid">
+                                <div class="span-6">
+                                    <div class="floating-field">
+                                        <select asp-for="AdmissionCategory" class="form-select" asp-items="Html.GetEnumSelectList<ForekOnline.Domain.Enums.EnumRegistry.eAdmissionCategory>()">
+                                            <option value=""></option>
+                                        </select>
+                                        <label asp-for="AdmissionCategory"></label>
+                                    </div>
+                                    <span asp-validation-for="AdmissionCategory" class="text-danger"></span>
+                                </div>
+
                                 <div class="span-6">
                                     <div class="floating-field">
                                         <select asp-for="CourseId"
@@ -549,39 +653,63 @@
                             <div class="field-grid">
                                 <div class="span-4">
                                     <div class="floating-field floating-field--file">
-                                        <input name="IDPassFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
-                                        <label name="IDPassFile"></label>
+                                        <input asp-for="IDPassFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                                        <label asp-for="IDPassFile"></label>
                                     </div>
                                     <div class="field-meta">
-                                        <span class="field-help">ID document or passport copy.</span>
+                                        <span class="field-help">ID document or passport copy. PDF, JPG or PNG; maximum 10 MB.</span>
                                         <span class="field-state" data-state-for="IDPassFile"></span>
                                     </div>
-@*                                     <span asp-validation-for="IDPassFile" class="text-danger"></span>
- *@                                </div>
+                                    <span asp-validation-for="IDPassFile" class="text-danger"></span>
+                                </div>
 
                                 <div class="span-4">
                                     <div class="floating-field floating-field--file">
-                                        <input name="HighestQualFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
-                                        <label name="HighestQualFile"></label>
+                                        <input asp-for="HighestQualFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                                        <label asp-for="HighestQualFile"></label>
                                     </div>
                                     <div class="field-meta">
-                                        <span class="field-help">Highest qualification proof.</span>
+                                        <span class="field-help">Highest qualification proof. PDF, JPG or PNG; maximum 10 MB.</span>
                                         <span class="field-state" data-state-for="HighestQualFile"></span>
                                     </div>
-@*                                     <span asp-validation-for="HighestQualFile" class="text-danger"></span>
- *@                                </div>
+                                    <span asp-validation-for="HighestQualFile" class="text-danger"></span>
+                                </div>
 
                                 <div class="span-4">
                                     <div class="floating-field floating-field--file">
-                                        <input name="ResidenceFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
-                                        <label name="ResidenceFile"></label>
+                                        <input asp-for="ResidenceFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                                        <label asp-for="ResidenceFile"></label>
                                     </div>
                                     <div class="field-meta">
-                                        <span class="field-help">Proof of residence.</span>
+                                        <span class="field-help">Proof of residence. PDF, JPG or PNG; maximum 10 MB.</span>
                                         <span class="field-state" data-state-for="ResidenceFile"></span>
                                     </div>
-@*                                     <span asp-validation-for="ResidenceFile" class="text-danger"></span>
- *@                                </div>
+                                    <span asp-validation-for="ResidenceFile" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field floating-field--file">
+                                        <input asp-for="StudyPermitFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                                        <label asp-for="StudyPermitFile"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">Required for passport holders. PDF, JPG or PNG; maximum 10 MB.</span>
+                                        <span class="field-state" data-state-for="StudyPermitFile"></span>
+                                    </div>
+                                    <span asp-validation-for="StudyPermitFile" class="text-danger"></span>
+                                </div>
+
+                                <div class="span-4">
+                                    <div class="floating-field floating-field--file">
+                                        <input asp-for="DisabilityFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                                        <label asp-for="DisabilityFile"></label>
+                                    </div>
+                                    <div class="field-meta">
+                                        <span class="field-help">Optional supporting disability document. PDF, JPG or PNG; maximum 10 MB.</span>
+                                        <span class="field-state" data-state-for="DisabilityFile"></span>
+                                    </div>
+                                    <span asp-validation-for="DisabilityFile" class="text-danger"></span>
+                                </div>
                             </div>
                         </section>
 

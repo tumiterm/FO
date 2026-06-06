@@ -2975,8 +2975,6 @@ namespace ForekOnline.Infrastructure.Migrations
 
                     b.HasIndex("StudentEntityId");
 
-                    b.HasIndex("StudentId");
-
                     b.ToTable("StudentDocument");
                 });
 
@@ -3046,7 +3044,7 @@ namespace ForekOnline.Infrastructure.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("GuardianId")
+                    b.Property<Guid?>("GuardianId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool?>("HasDisability")
@@ -4321,15 +4319,9 @@ namespace ForekOnline.Infrastructure.Migrations
 
             modelBuilder.Entity("ForekOnline.Domain.Entities.StudentDocument", b =>
                 {
-                    b.HasOne("ForekOnline.Domain.Entities.StudentEntity", null)
+                    b.HasOne("ForekOnline.Domain.Entities.StudentEntity", "Student")
                         .WithMany("Documents")
                         .HasForeignKey("StudentEntityId");
-
-                    b.HasOne("ForekOnline.Domain.Entities.Student", "Student")
-                        .WithMany("Documents")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Student");
                 });
@@ -4338,9 +4330,7 @@ namespace ForekOnline.Infrastructure.Migrations
                 {
                     b.HasOne("ForekOnline.Domain.Entities.Guardian", "Guardian")
                         .WithMany()
-                        .HasForeignKey("GuardianId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("GuardianId");
 
                     b.HasOne("ForekOnline.Domain.Entities.Placement", "Placement")
                         .WithMany()
