@@ -197,7 +197,7 @@ namespace ElecPOE.Controllers
         {
             var courses = await _context.Courses.GetAllAsync();
 
-            courses = courses.Where(m => m.IsActive).ToList();
+            courses = courses.Where(m => !m.IsActive).ToList();
 
             var courseList = courses.Select(s => new SelectListItem
             {
