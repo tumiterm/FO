@@ -12,6 +12,8 @@ namespace ForekOnline.Domain.ViewModels
         public int StudentCount { get; set; }
         public int EnrollmentHistoryCount { get; set; }
         public int DetailRecordsLoaded { get; set; }
+        public int SkippedRecordCount { get; set; }
+        public IReadOnlyList<string> SkippedRecordExamples { get; set; } = Array.Empty<string>();
         public DateTime CompletedUtc { get; set; }
     }
 }
