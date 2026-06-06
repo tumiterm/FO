@@ -12,6 +12,11 @@ namespace ForekOnline.Domain.ViewModels
     public class ApplicationRatingViewModel
     {
         /// <summary>
+        /// Gets or sets the application being rated.
+        /// </summary>
+        public Guid ApplicationId { get; set; }
+
+        /// <summary>
         /// Gets or sets the selected star rating.
         /// </summary>
         [Range(1, 5, ErrorMessage = "Please select a rating from one to five stars.")]

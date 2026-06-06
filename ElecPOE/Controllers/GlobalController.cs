@@ -27,9 +27,18 @@ namespace ElecPOE.Controllers
             return View();
         }
 
-        public IActionResult Acknowledgement()
+        public async Task<IActionResult> Acknowledgement(
+            Guid? applicationId,
+            CancellationToken cancellationToken)
         {
-            ViewData["ShowRatingPrompt"] = TempData.Peek("ApplicationId") is string;
+            var showRatingPrompt = applicationId.HasValue &&
+                await _dbContext.Applications
+                    .AsNoTracking()
+                    .AnyAsync(application => application.ApplicationId == applicationId.Value, cancellationToken);
+
+            ViewData["ShowRatingPrompt"] = showRatingPrompt;
+            ViewData["RatingApplicationId"] = showRatingPrompt ? applicationId : null;
+
             return View();
         }
 
@@ -49,15 +58,14 @@ namespace ElecPOE.Controllers
                 return BadRequest(new { message = error });
             }
 
-            if (TempData.Peek("ApplicationId") is not string applicationIdValue ||
-                !Guid.TryParse(applicationIdValue, out var applicationId))
+            if (model.ApplicationId == Guid.Empty)
             {
-                return BadRequest(new { message = "This feedback request has expired." });
+                return BadRequest(new { message = "The application reference is missing." });
             }
 
             var applicationExists = await _dbContext.Applications
                 .AsNoTracking()
-                .AnyAsync(application => application.ApplicationId == applicationId, cancellationToken);
+                .AnyAsync(application => application.ApplicationId == model.ApplicationId, cancellationToken);
 
             if (!applicationExists)
             {
@@ -66,18 +74,17 @@ namespace ElecPOE.Controllers
 
             var ratingExists = await _dbContext.ApplicationRatings
                 .AsNoTracking()
-                .AnyAsync(rating => rating.ApplicationId == applicationId, cancellationToken);
+                .AnyAsync(rating => rating.ApplicationId == model.ApplicationId, cancellationToken);
 
             if (ratingExists)
             {
-                TempData.Remove("ApplicationId");
                 return Conflict(new { message = "Feedback has already been submitted for this application." });
             }
 
             var rating = new ApplicationRating
             {
                 ApplicationRatingId = Guid.NewGuid(),
-                ApplicationId = applicationId,
+                ApplicationId = model.ApplicationId,
                 Rating = model.Rating,
                 Comment = string.IsNullOrWhiteSpace(model.Comment) ? null : model.Comment.Trim(),
                 SubmittedOnUtc = DateTime.UtcNow
@@ -87,13 +94,11 @@ namespace ElecPOE.Controllers
             {
                 _dbContext.ApplicationRatings.Add(rating);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                TempData.Remove("ApplicationId");
-
                 return Ok(new { message = "Thank you for helping us improve." });
             }
             catch (DbUpdateException exception)
             {
-                _logger.LogError(exception, "Unable to save application feedback for {ApplicationId}.", applicationId);
+                _logger.LogError(exception, "Unable to save application feedback for {ApplicationId}.", model.ApplicationId);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { message = "We could not save your feedback right now. Please try again." });
             }
