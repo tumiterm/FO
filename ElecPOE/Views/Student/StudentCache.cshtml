@@ -1,0 +1,110 @@
+@model ForekOnline.Domain.ViewModels.StudentCacheStatusViewModel
+@{
+    ViewData["Title"] = "Student SQLite Cache";
+    var hasStudents = Model.StudentCount > 0;
+    var hasEnrollments = Model.EnrollmentHistoryCount > 0;
+}
+
+<style>
+    .cache-shell { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+    .cache-hero { background: linear-gradient(135deg, #172033, #29364f); color: #fff; border-radius: 20px; padding: 2rem; box-shadow: 0 12px 35px rgba(23,32,51,.18); }
+    .cache-hero h1 { margin: 0 0 .5rem; font-weight: 800; }
+    .cache-hero p { margin: 0; color: #d7deeb; max-width: 760px; }
+    .cache-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.25rem 0; }
+    .cache-card { background: var(--fo-bg-card, #fff); border: 1px solid var(--fo-border, #e3e5eb); border-radius: 16px; padding: 1.25rem; }
+    .cache-label { color: var(--fo-muted, #6b7280); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .cache-value { color: var(--fo-text, #1a1a2e); font-size: 2rem; font-weight: 800; margin-top: .35rem; }
+    .cache-state { display: inline-flex; align-items: center; gap: .4rem; margin-top: .5rem; font-size: .85rem; font-weight: 700; }
+    .cache-state.ok { color: #15803d; }
+    .cache-state.warn { color: #b45309; }
+    .cache-panel { background: var(--fo-bg-card, #fff); border: 1px solid var(--fo-border, #e3e5eb); border-radius: 16px; padding: 1.5rem; margin-top: 1rem; }
+    .cache-panel h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 .75rem; }
+    .cache-path { overflow-wrap: anywhere; background: #f4f6fa; border-radius: 9px; padding: .7rem .85rem; font-family: monospace; font-size: .82rem; }
+    .cache-warning { border-left: 4px solid #f59e0b; background: #fffbeb; color: #78350f; padding: 1rem; border-radius: 10px; margin: 1rem 0; }
+    .cache-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .cache-btn { display: inline-flex; align-items: center; gap: .5rem; border: 0; border-radius: 10px; padding: .75rem 1rem; font-weight: 750; text-decoration: none; cursor: pointer; }
+    .cache-btn.primary { color: #fff; background: linear-gradient(135deg, #e65100, #ac1900); }
+    .cache-btn.secondary { color: #263247; background: #e9edf5; }
+    .cache-notes { margin: .75rem 0 0; padding-left: 1.2rem; color: var(--fo-text-2, #4a4f5e); }
+    .cache-notes li { margin-bottom: .45rem; }
+    @@media (max-width: 760px) { .cache-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="cache-shell">
+    <section class="cache-hero">
+        <h1><i class="fa fa-database me-2"></i>Student SQLite Cache</h1>
+        <p>Use this page while the legacy API is available to take a direct, complete snapshot. The refresh bypasses SQL Server and memory cache, loads each student's detail record, and replaces both SQLite tables only after every API request succeeds.</p>
+    </section>
+
+    @if (TempData["success"] is string success)
+    {
+        <div class="alert alert-success mt-3">@success</div>
+    }
+    @if (TempData["error"] is string error)
+    {
+        <div class="alert alert-danger mt-3">@error</div>
+    }
+
+    <div class="cache-grid">
+        <article class="cache-card">
+            <div class="cache-label">Cached students</div>
+            <div class="cache-value">@Model.StudentCount.ToString("N0")</div>
+            <div class="cache-state @(hasStudents ? "ok" : "warn")">
+                <i class="fa @(hasStudents ? "fa-circle-check" : "fa-triangle-exclamation")"></i>
+                @(hasStudents ? "Available for fallback" : "Cache is empty")
+            </div>
+        </article>
+        <article class="cache-card">
+            <div class="cache-label">Enrollment histories</div>
+            <div class="cache-value">@Model.EnrollmentHistoryCount.ToString("N0")</div>
+            <div class="cache-state @(hasEnrollments ? "ok" : "warn")">
+                <i class="fa @(hasEnrollments ? "fa-circle-check" : "fa-triangle-exclamation")"></i>
+                @(hasEnrollments ? "Enrollment data cached" : "No histories cached")
+            </div>
+        </article>
+        <article class="cache-card">
+            <div class="cache-label">Last successful write</div>
+            <div class="cache-value" style="font-size:1.15rem">
+                @(Model.LastSyncUtc?.ToString("yyyy-MM-dd HH:mm:ss") ?? "Never")
+            </div>
+            <div class="cache-state @(Model.LastSyncWasSuccessful == true ? "ok" : "warn")">
+                <i class="fa fa-clock"></i> Recorded sync time
+            </div>
+        </article>
+    </div>
+
+    @if (!hasEnrollments)
+    {
+        <div class="cache-warning">
+            <strong><i class="fa fa-triangle-exclamation me-1"></i>Action required:</strong>
+            the enrollment-history table is empty. Run a direct API refresh before the legacy API is retired, then confirm this count is greater than zero if enrolled students are expected.
+        </div>
+    }
+
+    <section class="cache-panel">
+        <h2>Direct legacy API snapshot</h2>
+        <p>This operation downloads the API student list, retrieves every available student detail record to include enrollment history, and then performs one transactional replace of SQLite. If any detail request fails, the existing SQLite cache is left untouched.</p>
+        <ul class="cache-notes">
+            <li>The operation may take several minutes for a large student population.</li>
+            <li>Do not stop or restart the application while the refresh is running.</li>
+            <li>After completion, verify both counts above before relying on the cache.</li>
+            <li>Startup warmup still runs, but this button is the authoritative API-only refresh.</li>
+        </ul>
+        <div class="cache-actions">
+            <form method="post" asp-action="RefreshStudentCacheFromApi">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="cache-btn primary"
+                        onclick="this.disabled=true; this.innerHTML='<i class=&quot;fa fa-spinner fa-spin&quot;></i> Refreshing from API…'; this.form.submit();">
+                    <i class="fa fa-cloud-arrow-down"></i> Refresh both tables from API
+                </button>
+            </form>
+            <a class="cache-btn secondary" asp-action="StudentList"><i class="fa fa-arrow-left"></i> Back to students</a>
+        </div>
+    </section>
+
+    <section class="cache-panel">
+        <h2>Active SQLite database</h2>
+        <div class="cache-path">@Model.DatabasePath</div>
+        <p class="mb-0 mt-2 text-muted">Use this exact path when inspecting the database; environment-specific configuration can point to a different file.</p>
+    </section>
+</div>

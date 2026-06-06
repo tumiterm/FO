@@ -53,5 +53,11 @@ namespace ForekOnline.Application.Common.Interfaces
         /// <param name="metadata">The sync metadata to upsert.</param>
         /// <param name="cancellationToken">A token to observe for cancellation requests.</param>
         Task UpsertSyncMetadataAsync(SyncMetadata metadata, CancellationToken cancellationToken = default);
+
+        /// <summary>Gets current SQLite student and enrollment row counts.</summary>
+        Task<(int StudentCount, int EnrollmentHistoryCount)> GetCountsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Gets the configured SQLite database path.</summary>
+        string GetDatabasePath();
     }
 }

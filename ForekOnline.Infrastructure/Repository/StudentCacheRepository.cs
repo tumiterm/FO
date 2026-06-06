@@ -73,6 +73,18 @@ namespace ForekOnline.Infrastructure.Repository
         }
 
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        public async Task<(int StudentCount, int EnrollmentHistoryCount)> GetCountsAsync(CancellationToken cancellationToken = default)
+        {
+            var studentCount = await _db.Students.CountAsync(cancellationToken);
+            var enrollmentHistoryCount = await _db.EnrollmentHistories.CountAsync(cancellationToken);
+            return (studentCount, enrollmentHistoryCount);
+        }
+
+        /// <inheritdoc/>
+        public string GetDatabasePath()
+            => _db.Database.GetDbConnection().DataSource;
+
         public async Task UpsertSyncMetadataAsync(SyncMetadata metadata, CancellationToken cancellationToken = default)
         {
             var existing = await _db.SyncMetadata

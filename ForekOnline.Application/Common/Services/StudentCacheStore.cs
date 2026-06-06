@@ -9,6 +9,7 @@
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Domain.Entities;
+using ForekOnline.Domain.ViewModels;
 using Microsoft.Extensions.Logging;
 #endregion
 
@@ -30,7 +31,7 @@ namespace ForekOnline.Application.Common.Services
         }
 
         /// <inheritdoc/>
-        public async Task SyncStudentsAsync(List<Student> students)
+        public async Task SyncStudentsAsync(List<Student> students, bool allowEnrollmentHistoryReduction = false)
         {
             if (students == null || students.Count == 0)
             {
@@ -40,6 +41,16 @@ namespace ForekOnline.Application.Common.Services
 
             try
             {
+                var incomingEnrollmentCount = students.Sum(student => student.EnrollmentHistory?.Count ?? 0);
+                var existingCounts = await _repository.GetCountsAsync();
+                if (!allowEnrollmentHistoryReduction &&
+                    existingCounts.EnrollmentHistoryCount > incomingEnrollmentCount)
+                {
+                    throw new InvalidOperationException(
+                        $"Refusing to replace {existingCounts.EnrollmentHistoryCount} cached enrollment histories " +
+                        $"with only {incomingEnrollmentCount}. Use the authoritative API refresh to replace the snapshot.");
+                }
+
                 var now = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
 
                 var cachedStudents = students.Select(s => new CachedStudent
@@ -122,6 +133,23 @@ namespace ForekOnline.Application.Common.Services
         public async Task<SyncMetadata> GetLastSyncInfoAsync()
         {
             return await _repository.GetSyncMetadataAsync("Student");
+        }
+
+        /// <inheritdoc/>
+        public async Task<StudentCacheStatusViewModel> GetStatusAsync(CancellationToken cancellationToken = default)
+        {
+            var counts = await _repository.GetCountsAsync(cancellationToken);
+            var metadata = await _repository.GetSyncMetadataAsync("Student", cancellationToken);
+
+            return new StudentCacheStatusViewModel
+            {
+                StudentCount = counts.StudentCount,
+                EnrollmentHistoryCount = counts.EnrollmentHistoryCount,
+                LastSyncUtc = metadata?.LastSyncUtc,
+                LastSyncWasSuccessful = metadata?.WasSuccessful,
+                LastSyncStudentCount = metadata?.RecordCount,
+                DatabasePath = _repository.GetDatabasePath()
+            };
         }
 
         /// <summary>

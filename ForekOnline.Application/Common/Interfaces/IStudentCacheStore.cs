@@ -6,6 +6,7 @@
 // Purpose:         Defines the contract for the SQLite student cache store.
 
 using ForekOnline.Domain.Entities;
+using ForekOnline.Domain.ViewModels;
 
 namespace ForekOnline.Application.Common.Interfaces
 {
@@ -19,7 +20,7 @@ namespace ForekOnline.Application.Common.Interfaces
         /// </summary>
         /// <param name="students">The student list retrieved from the API.</param>
         /// <returns>A task representing the asynchronous sync operation.</returns>
-        Task SyncStudentsAsync(List<Student> students);
+        Task SyncStudentsAsync(List<Student> students, bool allowEnrollmentHistoryReduction = false);
 
         /// <summary>
         /// Retrieves all cached students from SQLite, mapped back to domain <see cref="Student"/> objects.
@@ -39,5 +40,8 @@ namespace ForekOnline.Application.Common.Interfaces
         /// </summary>
         /// <returns>The sync metadata, or null if no sync has occurred.</returns>
         Task<SyncMetadata> GetLastSyncInfoAsync();
+
+        /// <summary>Gets row counts, sync metadata, and the active SQLite path.</summary>
+        Task<StudentCacheStatusViewModel> GetStatusAsync(CancellationToken cancellationToken = default);
     }
 }
