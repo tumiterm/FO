@@ -3,6 +3,7 @@
 // </copyright>
 
 using ForekOnline.Application.Common.Interfaces;
+using ForekOnline.Application.Common.Serialization;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,6 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 
 namespace ForekOnline.Application.Common.Services
@@ -34,8 +34,10 @@ namespace ForekOnline.Application.Common.Services
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
             Converters =
             {
-                new AdmissionCategoryJsonConverter(),
-                new JsonStringEnumConverter()
+                new LegacyEnumJsonConverter<eGender>(eGender.Other),
+                new LegacyEnumJsonConverter<eAdmissionCategory>(eAdmissionCategory.FullTime),
+                new LegacyEnumJsonConverter<eRelationship>(eRelationship.Other),
+                new LegacyEnumJsonConverterFactory()
             }
         };
 
@@ -150,78 +152,6 @@ namespace ForekOnline.Application.Common.Services
                 DetailRecordsLoaded = detailRecordsLoaded,
                 CompletedUtc = DateTime.UtcNow
             };
-        }
-
-        private sealed class AdmissionCategoryJsonConverter : JsonConverter<eAdmissionCategory>
-        {
-            public override bool HandleNull => true;
-
-            public override eAdmissionCategory Read(
-                ref Utf8JsonReader reader,
-                Type typeToConvert,
-                JsonSerializerOptions options)
-            {
-                if (reader.TokenType == JsonTokenType.Null)
-                {
-                    return eAdmissionCategory.FullTime;
-                }
-
-                if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var numericValue))
-                {
-                    return ParseNumericValue(numericValue);
-                }
-
-                if (reader.TokenType != JsonTokenType.String)
-                {
-                    throw new JsonException($"Unsupported admission category token {reader.TokenType}.");
-                }
-
-                var value = reader.GetString();
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    return eAdmissionCategory.FullTime;
-                }
-
-                if (int.TryParse(value, out numericValue))
-                {
-                    return ParseNumericValue(numericValue);
-                }
-
-                if (Enum.TryParse<eAdmissionCategory>(value, ignoreCase: true, out var category))
-                {
-                    return category;
-                }
-
-                var normalizedValue = Normalize(value);
-                foreach (var name in Enum.GetNames<eAdmissionCategory>())
-                {
-                    if (string.Equals(Normalize(name), normalizedValue, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return Enum.Parse<eAdmissionCategory>(name);
-                    }
-                }
-
-                throw new JsonException($"Unknown admission category '{value}'.");
-            }
-
-            public override void Write(
-                Utf8JsonWriter writer,
-                eAdmissionCategory value,
-                JsonSerializerOptions options)
-                => writer.WriteStringValue(value.ToString());
-
-            private static eAdmissionCategory ParseNumericValue(int value)
-            {
-                if (Enum.IsDefined(typeof(eAdmissionCategory), value))
-                {
-                    return (eAdmissionCategory)value;
-                }
-
-                throw new JsonException($"Unknown admission category value '{value}'.");
-            }
-
-            private static string Normalize(string value)
-                => new(value.Where(char.IsLetterOrDigit).ToArray());
         }
 
         private static async Task<T?> GetAsync<T>(HttpClient client, string relativePath, CancellationToken cancellationToken)

@@ -158,6 +158,145 @@ namespace Forek.Test
         }
 
         [Fact]
+        public async Task RefreshFromApiAsync_AcceptsLegacyFormatsAcrossStudentEnums()
+        {
+            const string studentNumber = "FIT-2026-0004";
+            var studentId = Guid.NewGuid();
+            var guardianId = Guid.NewGuid();
+            var documentId = Guid.NewGuid();
+            var handler = new StubHttpMessageHandler(request =>
+            {
+                var isListRequest = request.RequestUri!.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal);
+                var payload = isListRequest
+                    ? $$"""
+                      [{
+                        "StudentId": "{{studentId}}",
+                        "StudentNumber": "{{studentNumber}}",
+                        "FirstName": "Legacy",
+                        "LastName": "Enums",
+                        "Gender": null,
+                        "Province": "western cape",
+                        "AdmissionCategory": ""
+                      }]
+                      """
+                    : $$"""
+                      {
+                        "StudentId": "{{studentId}}",
+                        "StudentNumber": "{{studentNumber}}",
+                        "FirstName": "Legacy",
+                        "LastName": "Enums",
+                        "Gender": "female",
+                        "Province": "KwaZulu-Natal",
+                        "AdmissionCategory": "Part Time",
+                        "Placement": {
+                          "PlacementId": "{{Guid.NewGuid()}}",
+                          "Status": "Dropped Out"
+                        },
+                        "Guardian": {
+                          "GuardianId": "{{guardianId}}",
+                          "Relationship": ""
+                        },
+                        "Documents": [{
+                          "StudentDocumentId": "{{documentId}}",
+                          "StudentId": "{{studentId}}",
+                          "DocumentType": "Highest Qualification"
+                        }]
+                      }
+                      """;
+
+                return RawJsonResponse(payload);
+            });
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient(handler));
+
+            var helper = new Mock<IHelperService>();
+            helper.Setup(service => service.GetConfigurationValue("AppSettings:ApiBaseAddress", "defaultApiBaseAddress"))
+                .Returns("https://legacy.example/api/");
+            helper.Setup(service => service.GenerateJwtToken()).ReturnsAsync("token");
+
+            List<Student>? savedStudents = null;
+            var cacheStore = new Mock<IStudentCacheStore>();
+            cacheStore
+                .Setup(store => store.SyncStudentsAsync(It.IsAny<List<Student>>(), true))
+                .Callback<List<Student>, bool>((students, _) => savedStudents = students)
+                .Returns(Task.CompletedTask);
+            cacheStore.Setup(store => store.GetStatusAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new StudentCacheStatusViewModel { StudentCount = 1 });
+
+            var service = new StudentCacheRefreshService(
+                httpClientFactory.Object,
+                helper.Object,
+                cacheStore.Object,
+                Mock.Of<ILogger<StudentCacheRefreshService>>());
+
+            await service.RefreshFromApiAsync();
+
+            var savedStudent = Assert.Single(savedStudents!);
+            Assert.Equal(eGender.Female, savedStudent.Gender);
+            Assert.Equal(eProvince.KwaZuluNatal, savedStudent.Province);
+            Assert.Equal(eAdmissionCategory.PartTime, savedStudent.AdmissionCategory);
+            Assert.Equal(eStatus.DroppedOut, savedStudent.Placement!.Status);
+            Assert.Equal(eRelationship.Other, savedStudent.Guardian!.Relationship);
+            Assert.Equal(
+                eStudentDocumentType.HighestQualification,
+                Assert.Single(savedStudent.Documents!).DocumentType);
+        }
+
+        [Fact]
+        public async Task RefreshFromApiAsync_UnknownEnumValuePreservesExistingCache()
+        {
+            const string studentNumber = "FIT-2026-0005";
+            var studentId = Guid.NewGuid();
+            var handler = new StubHttpMessageHandler(request =>
+            {
+                var gender = request.RequestUri!.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal)
+                    ? "null"
+                    : "\"DefinitelyNotAGender\"";
+                var payload =
+                    $$"""
+                    {
+                      "StudentId": "{{studentId}}",
+                      "StudentNumber": "{{studentNumber}}",
+                      "FirstName": "Invalid",
+                      "LastName": "Enum",
+                      "Gender": {{gender}}
+                    }
+                    """;
+
+                if (request.RequestUri.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal))
+                {
+                    payload = $"[{{payload}}]";
+                }
+
+                return RawJsonResponse(payload);
+            });
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient(handler));
+
+            var helper = new Mock<IHelperService>();
+            helper.Setup(service => service.GetConfigurationValue("AppSettings:ApiBaseAddress", "defaultApiBaseAddress"))
+                .Returns("https://legacy.example/api/");
+            helper.Setup(service => service.GenerateJwtToken()).ReturnsAsync("token");
+
+            var cacheStore = new Mock<IStudentCacheStore>();
+            var service = new StudentCacheRefreshService(
+                httpClientFactory.Object,
+                helper.Object,
+                cacheStore.Object,
+                Mock.Of<ILogger<StudentCacheRefreshService>>());
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => service.RefreshFromApiAsync());
+
+            Assert.Contains("Unknown eGender value", exception.Message);
+            cacheStore.Verify(
+                store => store.SyncStudentsAsync(It.IsAny<List<Student>>(), It.IsAny<bool>()),
+                Times.Never);
+        }
+
+        [Fact]
         public async Task RefreshFromApiAsync_DetailFailurePreservesExistingCache()
         {
             var listStudent = new Student
