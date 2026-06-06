@@ -114,8 +114,58 @@ namespace ForekOnline.Infrastructure.Data
                     WHERE enrollmentHistory.StudentId <> students.Id;
                 END
 
+                -- Some legacy Students tables have an Id compatibility column while retaining
+                -- StudentId as their primary key. SQL Server requires Id to be a candidate key
+                -- before EnrollmentHistory can reference it.
                 IF OBJECT_ID(N'[Academics].[EnrollmentHistory]', N'U') IS NOT NULL
                    AND OBJECT_ID(N'[Academics].[Students]', N'U') IS NOT NULL
+                   AND COL_LENGTH(N'[Academics].[Students]', N'Id') IS NOT NULL
+                   AND NOT EXISTS
+                   (
+                       SELECT 1
+                       FROM sys.indexes AS indexes
+                       INNER JOIN sys.index_columns AS indexColumns
+                           ON indexColumns.object_id = indexes.object_id
+                          AND indexColumns.index_id = indexes.index_id
+                       INNER JOIN sys.columns AS columns
+                           ON columns.object_id = indexColumns.object_id
+                          AND columns.column_id = indexColumns.column_id
+                       WHERE indexes.object_id = OBJECT_ID(N'[Academics].[Students]')
+                         AND indexes.is_unique = 1
+                         AND indexes.has_filter = 0
+                         AND indexColumns.is_included_column = 0
+                         AND columns.name = N'Id'
+                         AND NOT EXISTS
+                         (
+                             SELECT 1
+                             FROM sys.index_columns AS otherIndexColumns
+                             WHERE otherIndexColumns.object_id = indexes.object_id
+                               AND otherIndexColumns.index_id = indexes.index_id
+                               AND otherIndexColumns.is_included_column = 0
+                               AND otherIndexColumns.key_ordinal > 0
+                               AND otherIndexColumns.column_id <> columns.column_id
+                         )
+                   )
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM [Academics].[Students] WHERE [Id] IS NULL)
+                        THROW 51001, 'Cannot create the enrollment foreign key because Academics.Students.Id contains NULL values.', 1;
+
+                    IF EXISTS
+                    (
+                        SELECT [Id]
+                        FROM [Academics].[Students]
+                        GROUP BY [Id]
+                        HAVING COUNT_BIG(*) > 1
+                    )
+                        THROW 51002, 'Cannot create the enrollment foreign key because Academics.Students.Id contains duplicate values.', 1;
+
+                    CREATE UNIQUE INDEX [UX_Students_Id_StudentImport]
+                        ON [Academics].[Students] ([Id]);
+                END
+
+                IF OBJECT_ID(N'[Academics].[EnrollmentHistory]', N'U') IS NOT NULL
+                   AND OBJECT_ID(N'[Academics].[Students]', N'U') IS NOT NULL
+                   AND COL_LENGTH(N'[Academics].[Students]', N'Id') IS NOT NULL
                    AND NOT EXISTS
                    (
                        SELECT 1
