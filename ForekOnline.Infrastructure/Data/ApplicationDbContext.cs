@@ -1,4 +1,4 @@
-﻿// <copyright file="ApplicationDbContext.cs" company="Forek ICT Services">
+// <copyright file="ApplicationDbContext.cs" company="Forek ICT Services">
 //     Copyright © Forek ICT Services.
 // </copyright>
 // Created By:      Itumeleng Oliphant - (on DESKTOP-72504AI)
@@ -44,6 +44,7 @@ namespace ForekOnline.Infrastructure.Data
         public DbSet<ReportSubReport> ReportSubReport { get; set; }
         public DbSet<BackgroundJobQueueItem> BackgroundJobQueueItems { get; set; }
         public DbSet<ApplicationSubmissionQueue> ApplicationSubmissionQueue { get; set; }
+        public DbSet<ApplicationRating> ApplicationRatings { get; set; }
         public DbSet<ResourceRoleAudience> ResourceRoleAudiences { get; set; }
         public DbSet<ResourceUserAudience> ResourceUserAudiences { get; set; }
 
@@ -308,6 +309,20 @@ namespace ForekOnline.Infrastructure.Data
         /// <param name="modelBuilder">The <see cref="ModelBuilder"/> used to configure the entity framework model.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ApplicationRating>(entity =>
+            {
+                entity.ToTable(table =>
+                    table.HasCheckConstraint("CK_ApplicationRating_Rating", "[Rating] BETWEEN 1 AND 5"));
+
+                entity.HasIndex(rating => rating.ApplicationId)
+                    .IsUnique();
+
+                entity.HasOne(rating => rating.Application)
+                    .WithMany()
+                    .HasForeignKey(rating => rating.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             #region Academics
             modelBuilder.Entity<StudentEntity>(entity =>
             {
