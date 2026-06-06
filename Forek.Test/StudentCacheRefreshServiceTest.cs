@@ -12,6 +12,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 
 namespace Forek.Test
 {
@@ -99,6 +100,64 @@ namespace Forek.Test
         }
 
         [Fact]
+        public async Task RefreshFromApiAsync_AcceptsLegacyAdmissionCategoryValues()
+        {
+            const string studentNumber = "FIT-2026-0003";
+            var studentId = Guid.NewGuid();
+            var handler = new StubHttpMessageHandler(request =>
+            {
+                var admissionCategory = request.RequestUri!.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal)
+                    ? "null"
+                    : "\"Part Time\"";
+                var payload =
+                    $$"""
+                    {
+                      "StudentId": "{{studentId}}",
+                      "StudentNumber": "{{studentNumber}}",
+                      "FirstName": "Legacy",
+                      "LastName": "Category",
+                      "AdmissionCategory": {{admissionCategory}}
+                    }
+                    """;
+
+                if (request.RequestUri.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal))
+                {
+                    payload = $"[{{payload}}]";
+                }
+
+                return RawJsonResponse(payload);
+            });
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient(handler));
+
+            var helper = new Mock<IHelperService>();
+            helper.Setup(service => service.GetConfigurationValue("AppSettings:ApiBaseAddress", "defaultApiBaseAddress"))
+                .Returns("https://legacy.example/api/");
+            helper.Setup(service => service.GenerateJwtToken()).ReturnsAsync("token");
+
+            List<Student>? savedStudents = null;
+            var cacheStore = new Mock<IStudentCacheStore>();
+            cacheStore
+                .Setup(store => store.SyncStudentsAsync(It.IsAny<List<Student>>(), true))
+                .Callback<List<Student>, bool>((students, _) => savedStudents = students)
+                .Returns(Task.CompletedTask);
+            cacheStore.Setup(store => store.GetStatusAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new StudentCacheStatusViewModel { StudentCount = 1 });
+
+            var service = new StudentCacheRefreshService(
+                httpClientFactory.Object,
+                helper.Object,
+                cacheStore.Object,
+                Mock.Of<ILogger<StudentCacheRefreshService>>());
+
+            await service.RefreshFromApiAsync();
+
+            Assert.NotNull(savedStudents);
+            Assert.Equal(eAdmissionCategory.PartTime, Assert.Single(savedStudents!).AdmissionCategory);
+        }
+
+        [Fact]
         public async Task RefreshFromApiAsync_DetailFailurePreservesExistingCache()
         {
             var listStudent = new Student
@@ -141,9 +200,12 @@ namespace Forek.Test
         }
 
         private static HttpResponseMessage JsonResponse(object payload)
+            => RawJsonResponse(JsonSerializer.Serialize(payload));
+
+        private static HttpResponseMessage RawJsonResponse(string payload)
             => new(HttpStatusCode.OK)
             {
-                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
             };
 
         private sealed class StubHttpMessageHandler : HttpMessageHandler
