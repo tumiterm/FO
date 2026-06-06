@@ -42,12 +42,28 @@ namespace Forek.Test
         }
 
         [Fact]
-        public void CompatibilitySql_OnlyAddsEnrollmentForeignKeyWhenTablesExist()
+        public void CompatibilitySql_EnsuresStudentIdColumnIsACandidateKeyBeforeAddingForeignKey()
+        {
+            var sql = StudentImportSchemaService.EnsureStudentImportSchemaSql;
+            var createIndexPosition = sql.IndexOf("CREATE UNIQUE INDEX [UX_Students_Id_StudentImport]", StringComparison.Ordinal);
+            var addForeignKeyPosition = sql.IndexOf("ADD CONSTRAINT [FK_EnrollmentHistory_Students]", StringComparison.Ordinal);
+
+            Assert.Contains("indexes.is_unique = 1", sql);
+            Assert.Contains("indexes.has_filter = 0", sql);
+            Assert.Contains("Academics.Students.Id contains NULL values", sql);
+            Assert.Contains("Academics.Students.Id contains duplicate values", sql);
+            Assert.True(createIndexPosition >= 0);
+            Assert.True(addForeignKeyPosition > createIndexPosition);
+        }
+
+        [Fact]
+        public void CompatibilitySql_OnlyAddsEnrollmentForeignKeyWhenTablesAndStudentIdColumnExist()
         {
             var sql = StudentImportSchemaService.EnsureStudentImportSchemaSql;
 
             Assert.Contains("OBJECT_ID(N'[Academics].[EnrollmentHistory]', N'U') IS NOT NULL", sql);
             Assert.Contains("OBJECT_ID(N'[Academics].[Students]', N'U') IS NOT NULL", sql);
+            Assert.Contains("COL_LENGTH(N'[Academics].[Students]', N'Id') IS NOT NULL", sql);
             Assert.Contains("referencedColumns.name = N'Id'", sql);
         }
 
