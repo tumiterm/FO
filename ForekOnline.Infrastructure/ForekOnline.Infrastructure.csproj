@@ -32,4 +32,8 @@
     <Folder Include="SQL Scripts\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Forek.Test" />
+  </ItemGroup>
+
 </Project>
