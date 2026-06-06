@@ -91,6 +91,7 @@ namespace ForekOnline.Infrastructure.DI
 
             services.AddScoped<IStudentDataSource, ApiStudentDataSource>();
             services.AddScoped<IStudentDataSource, SqliteStudentDataSource>();
+            services.AddScoped<IStudentImportSchemaService, StudentImportSchemaService>();
 
             services.AddScoped<IStudentImportJob, StudentImportJob>();
 

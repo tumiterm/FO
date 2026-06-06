@@ -36,5 +36,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ForekOnline.Application\ForekOnline.Application.csproj" />
     <ProjectReference Include="..\ForekOnline.Domain\ForekOnline.Domain.csproj" />
+    <ProjectReference Include="..\ForekOnline.Infrastructure\ForekOnline.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
