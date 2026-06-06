@@ -104,19 +104,41 @@ namespace ForekOnline.Application.Common.Services
                 IDNumber = data.IDNumber,
                 PassportNumber = data.PassportNumber,
                 StudyPermitNumber = data.StudyPermitNumber,
+                StudyPermitExpiry = data.StudyPermitExpiry,
                 DateOfBirth = data.DateOfBirth ?? DateTime.MinValue,
                 Gender = data.Gender ?? eGender.Other,
-                Nationality = data.Nationality,
+                PlaceOfBirth = data.PlaceOfBirth,
+                Nationality = data.Nationality ?? string.Empty,
+                Language = data.Language,
+                HasDisability = data.HasDisability,
+                Disability = data.Disability,
                 Cellphone = data.Cellphone,
+                AlternativePhone = data.AlternativePhone,
                 Email = data.Email,
                 HighestGrade = data.HighestGrade,
                 NameOfSchool = data.NameOfSchool,
                 StreetAddressLine1 = data.StreetAddressLine1,
                 StreetAddressLine2 = data.StreetAddressLine2,
+                City = data.City,
+                Province = data.Province,
+                PostalCode = data.PostalCode,
+                Country = data.Country,
                 AdmissionDate = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
+                AdmissionCategory = data.AdmissionCategory,
                 IsActive = true,
                 RegistrationSource = payload.OriginalApplicationId.HasValue ? "Application" : "WalkIn",
-                OriginalApplicationId = payload.OriginalApplicationId
+                OriginalApplicationId = payload.OriginalApplicationId,
+                Documents = data.Documents.Select(document => new StudentDocument
+                {
+                    StudentDocumentId = Guid.NewGuid(),
+                    DocumentType = document.DocumentType,
+                    FileName = document.FileName,
+                    StoredFileName = document.StoredFileName,
+                    FilePath = document.FilePath,
+                    ContentType = document.ContentType,
+                    FileSizeBytes = document.FileSizeBytes,
+                    ExpiryDate = document.ExpiryDate
+                }).ToList()
             };
 
             await uow.Students.AddAsync(foStudent, ct);

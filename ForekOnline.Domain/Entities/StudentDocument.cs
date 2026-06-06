@@ -9,7 +9,7 @@ namespace ForekOnline.Domain.Entities
         #region Identity
         public Guid StudentDocumentId { get; set; }
         public Guid StudentId { get; set; }
-        public Student Student { get; set; } = null!;
+        public StudentEntity Student { get; set; } = null!;
 
         #endregion
 

@@ -344,6 +344,10 @@ namespace ForekOnline.Infrastructure.Data
                     .WithOne(e => e.Student)
                     .HasForeignKey(e => e.StudentId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.Documents)
+                    .WithOne(d => d.Student)
+                    .HasForeignKey("StudentEntityId");
             });
 
             modelBuilder.Entity<EnrollmentEntity>(entity =>

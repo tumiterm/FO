@@ -899,7 +899,7 @@ namespace ElecPOE.Controllers
 
             try
             {
-                var jobId = _enrollmentOrchestration.SubmitEnrollment(model);
+                var jobId = await _enrollmentOrchestration.SubmitEnrollmentAsync(model);
 
                 var vm = new EnrollStudentViewModel
                 {

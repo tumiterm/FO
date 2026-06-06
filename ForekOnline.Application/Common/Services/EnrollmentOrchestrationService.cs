@@ -11,6 +11,7 @@ using ForekOnline.Domain.Enums;
 using ForekOnline.Domain.ViewModels;
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
 namespace ForekOnline.Application.Common.Services
@@ -26,12 +27,18 @@ namespace ForekOnline.Application.Common.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBackgroundJobClient _backgroundJobs;
         private readonly ILogger<EnrollmentOrchestrationService> _logger;
+        private readonly IFileUploadService _fileUploadService;
 
-        public EnrollmentOrchestrationService(IUnitOfWork unitOfWork ,IBackgroundJobClient backgroundJobs, ILogger<EnrollmentOrchestrationService> logger)
+        public EnrollmentOrchestrationService(
+            IUnitOfWork unitOfWork,
+            IBackgroundJobClient backgroundJobs,
+            ILogger<EnrollmentOrchestrationService> logger,
+            IFileUploadService fileUploadService)
         {
             _unitOfWork = unitOfWork;
             _backgroundJobs = backgroundJobs;
             _logger = logger;
+            _fileUploadService = fileUploadService;
         }
 
         /// <summary>
@@ -83,8 +90,9 @@ namespace ForekOnline.Application.Common.Services
         /// <summary>
         /// Submits the enrollment form by enqueuing a Hangfire job.
         /// </summary>
-        public string SubmitEnrollment(EnrollStudentViewModel model)
+        public async Task<string> SubmitEnrollmentAsync(EnrollStudentViewModel model, CancellationToken ct = default)
         {
+            var documents = await UploadDocumentsAsync(model, ct);
             var payload = new StudentImportPayload
             {
                 Source = "Direct",
@@ -98,15 +106,28 @@ namespace ForekOnline.Application.Common.Services
                     LastName = model.LastName ?? string.Empty,
                     IDNumber = model.IDNumber,
                     PassportNumber = model.PassportNumber,
+                    StudyPermitNumber = model.StudyPermitNumber,
+                    StudyPermitExpiry = model.StudyPermitExpiry,
                     DateOfBirth = model.DateOfBirth,
                     Gender = model.Gender,
+                    PlaceOfBirth = model.PlaceOfBirth,
                     Nationality = model.Nationality,
+                    Language = model.Language,
+                    HasDisability = model.HasDisability,
+                    Disability = model.Disability,
                     Cellphone = model.Cellphone,
+                    AlternativePhone = model.AlternativePhone,
                     Email = model.Email,
                     HighestGrade = model.HighestGrade,
                     NameOfSchool = model.NameOfSchool,
                     StreetAddressLine1 = model.StreetAddressLine1,
-                    StreetAddressLine2 = model.StreetAddressLine2
+                    StreetAddressLine2 = model.StreetAddressLine2,
+                    City = model.City,
+                    Province = model.Province,
+                    PostalCode = model.PostalCode,
+                    Country = model.Country,
+                    AdmissionCategory = model.AdmissionCategory ?? eAdmissionCategory.FullTime,
+                    Documents = documents
                 }
             };
 
@@ -115,6 +136,55 @@ namespace ForekOnline.Application.Common.Services
 
             _logger.LogInformation("Enqueued StudentImportJob {JobId} for {Identity}.", jobId, payload.SingleIdentity);
             return jobId;
+        }
+
+        private async Task<List<EnrollmentDocumentData>> UploadDocumentsAsync(EnrollStudentViewModel model, CancellationToken ct)
+        {
+            var candidates = new[]
+            {
+                (model.IDPassFile, string.IsNullOrWhiteSpace(model.IDNumber) ? eStudentDocumentType.Passport : eStudentDocumentType.NationalID),
+                (model.HighestQualFile, eStudentDocumentType.HighestQualification),
+                (model.ResidenceFile, eStudentDocumentType.ProofOfResidence),
+                (model.StudyPermitFile, eStudentDocumentType.StudyPermit),
+                (model.DisabilityFile, eStudentDocumentType.DisabilityDocument)
+            };
+
+            var documents = new List<EnrollmentDocumentData>();
+            foreach (var (file, documentType) in candidates)
+            {
+                if (file is null || file.Length == 0)
+                {
+                    continue;
+                }
+
+                await using var stream = file.OpenReadStream();
+                var response = await _fileUploadService.UploadAsync(
+                    new UploadFileRequest(
+                        stream,
+                        Path.GetFileName(file.FileName),
+                        file.ContentType,
+                        new Dictionary<string, string>
+                        {
+                            ["Entity"] = "Student",
+                            ["Purpose"] = "Enrollment",
+                            ["DocumentType"] = documentType.ToString()
+                        },
+                        DocumentType: "StudentDocument"),
+                    ct);
+
+                documents.Add(new EnrollmentDocumentData
+                {
+                    DocumentType = documentType,
+                    FileName = Path.GetFileName(file.FileName),
+                    StoredFileName = response.FileId,
+                    FilePath = response.FileUrl ?? response.FileId,
+                    ContentType = file.ContentType ?? "application/octet-stream",
+                    FileSizeBytes = response.FileSizeBytes,
+                    ExpiryDate = documentType == eStudentDocumentType.StudyPermit ? model.StudyPermitExpiry : null
+                });
+            }
+
+            return documents;
         }
 
         /// <summary>
