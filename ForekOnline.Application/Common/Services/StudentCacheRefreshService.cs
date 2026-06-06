@@ -7,7 +7,6 @@ using ForekOnline.Application.Common.Serialization;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -16,12 +15,12 @@ using static ForekOnline.Domain.Enums.EnumRegistry;
 namespace ForekOnline.Application.Common.Services
 {
     /// <summary>
-    /// Downloads a complete student snapshot directly from the legacy API and replaces the SQLite cache.
+    /// Downloads student records directly from the legacy API and replaces the SQLite cache
+    /// with every record that can be loaded successfully. Failed records are skipped independently.
     /// This deliberately bypasses SQL Server and the in-memory student cache.
     /// </summary>
     public sealed class StudentCacheRefreshService : IStudentCacheRefreshService
     {
-        private const int MaximumConcurrentDetailRequests = 8;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHelperService _helperService;
         private readonly IStudentCacheStore _cacheStore;
@@ -74,82 +73,110 @@ namespace ForekOnline.Application.Common.Services
                     "The legacy API returned zero students. The existing SQLite cache was preserved.");
             }
 
-            var detailFailures = new ConcurrentQueue<string>();
-            using var gate = new SemaphoreSlim(MaximumConcurrentDetailRequests);
+            var detailFailures = new List<string>();
+            var detailedStudents = new List<Student>(students.Count);
 
-            var detailTasks = students.Select(async student =>
+            // Process one student at a time so an upstream failure is isolated to that
+            // record and does not prevent later students from reaching SQLite.
+            foreach (var student in students)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (string.IsNullOrWhiteSpace(student.StudentNumber))
                 {
-                    return (Student: student, DetailLoaded: false);
+                    detailFailures.Add("Student with no student number was skipped");
+                    _logger.LogWarning(
+                        "Skipping student {StudentId} during SQLite refresh because the student number is missing.",
+                        student.StudentId);
+                    continue;
                 }
 
-                await gate.WaitAsync(cancellationToken);
                 try
                 {
                     var path = $"Student?StudentNumber={WebUtility.UrlEncode(student.StudentNumber)}";
                     var detailed = await GetAsync<Student>(client, path, cancellationToken);
                     if (detailed == null)
                     {
-                        detailFailures.Enqueue($"{student.StudentNumber}: no detail record returned");
-                        return (Student: student, DetailLoaded: false);
+                        detailFailures.Add($"{student.StudentNumber}: no detail record returned");
+                        _logger.LogWarning(
+                            "Skipping student {StudentNumber} because the legacy API returned no detail record.",
+                            student.StudentNumber);
+                        continue;
                     }
 
-                    return (Student: detailed, DetailLoaded: true);
+                    detailedStudents.Add(detailed);
                 }
                 catch (Exception ex) when (ex is HttpRequestException or JsonException)
                 {
-                    detailFailures.Enqueue($"{student.StudentNumber}: {ex.Message}");
-                    return (Student: student, DetailLoaded: false);
+                    detailFailures.Add($"{student.StudentNumber}: {ex.Message}");
+                    _logger.LogWarning(
+                        ex,
+                        "Skipping student {StudentNumber} after its legacy API detail request failed.",
+                        student.StudentNumber);
                 }
-                finally
-                {
-                    gate.Release();
-                }
-            });
+            }
 
-            var detailedStudents = await Task.WhenAll(detailTasks);
-
-            if (!detailFailures.IsEmpty)
+            if (detailedStudents.Count == 0)
             {
                 var sample = string.Join("; ", detailFailures.Take(10));
                 throw new InvalidOperationException(
-                    $"The cache was not changed because {detailFailures.Count} student detail request(s) failed. " +
-                    $"Examples: {sample}");
+                    $"No student detail records could be loaded, so the existing SQLite cache was preserved. " +
+                    $"Skipped {detailFailures.Count} record(s). Examples: {sample}");
             }
 
-            students = detailedStudents.Select(result => result.Student).ToList();
-            var detailRecordsLoaded = detailedStudents.Count(result => result.DetailLoaded);
-
-            var duplicateStudentNumbers = students
-                .Where(student => !string.IsNullOrWhiteSpace(student.StudentNumber))
-                .GroupBy(student => student.StudentNumber.Trim(), StringComparer.OrdinalIgnoreCase)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Key)
-                .Take(10)
-                .ToList();
-
-            if (duplicateStudentNumbers.Count > 0)
+            var uniqueStudentNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            students = new List<Student>(detailedStudents.Count);
+            foreach (var detailedStudent in detailedStudents)
             {
-                throw new InvalidOperationException(
-                    $"The API snapshot contains duplicate student numbers: {string.Join(", ", duplicateStudentNumbers)}. " +
-                    "The existing SQLite cache was preserved.");
+                var studentNumber = detailedStudent.StudentNumber?.Trim();
+                if (string.IsNullOrWhiteSpace(studentNumber))
+                {
+                    detailFailures.Add("Detail record with no student number was skipped");
+                    _logger.LogWarning(
+                        "Skipping detail record {StudentId} because its student number is missing.",
+                        detailedStudent.StudentId);
+                    continue;
+                }
+
+                if (!uniqueStudentNumbers.Add(studentNumber))
+                {
+                    detailFailures.Add($"{studentNumber}: duplicate student number was skipped");
+                    _logger.LogWarning(
+                        "Skipping duplicate student {StudentNumber} during SQLite refresh.",
+                        studentNumber);
+                    continue;
+                }
+
+                detailedStudent.StudentNumber = studentNumber;
+                students.Add(detailedStudent);
             }
 
+            if (students.Count == 0)
+            {
+                var sample = string.Join("; ", detailFailures.Take(10));
+                throw new InvalidOperationException(
+                    $"No valid student records remained to save, so the existing SQLite cache was preserved. " +
+                    $"Skipped {detailFailures.Count} record(s). Examples: {sample}");
+            }
+
+            var detailRecordsLoaded = students.Count;
             await _cacheStore.SyncStudentsAsync(students, allowEnrollmentHistoryReduction: true);
             var status = await _cacheStore.GetStatusAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Direct API to SQLite refresh completed. Students={Students}, EnrollmentHistories={Enrollments}, Details={Details}.",
+                "Direct API to SQLite refresh completed. Students={Students}, EnrollmentHistories={Enrollments}, Details={Details}, Skipped={Skipped}.",
                 status.StudentCount,
                 status.EnrollmentHistoryCount,
-                detailRecordsLoaded);
+                detailRecordsLoaded,
+                detailFailures.Count);
 
             return new StudentCacheRefreshResult
             {
                 StudentCount = status.StudentCount,
                 EnrollmentHistoryCount = status.EnrollmentHistoryCount,
                 DetailRecordsLoaded = detailRecordsLoaded,
+                SkippedRecordCount = detailFailures.Count,
+                SkippedRecordExamples = detailFailures.Take(10).ToList(),
                 CompletedUtc = DateTime.UtcNow
             };
         }
