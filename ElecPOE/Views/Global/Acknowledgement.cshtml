@@ -5,6 +5,7 @@
     bool autoRedirect = false; // set true if you want timed redirect
     int redirectSeconds = 8;
     bool showRatingPrompt = ViewData["ShowRatingPrompt"] is true;
+    Guid? ratingApplicationId = ViewData["RatingApplicationId"] is Guid applicationId ? applicationId : null;
 }
 
 <!DOCTYPE html>
@@ -159,6 +160,10 @@ p.lead{
         <a class="btn btn-accent" href="@Url.Action("Index","Home")"><i class="fa fa-house"></i> Home</a>
         <a class="btn" href="javascript:window.print()"><i class="fa fa-print"></i> Print</a>
         <a class="btn" href="@Url.Action("SignIn","Auth")"><i class="fa fa-right-to-bracket"></i> Sign In</a>
+        @if (showRatingPrompt)
+        {
+            <button class="btn" id="openRatingButton" type="button"><i class="fa fa-star"></i> Rate experience</button>
+        }
         <a class="btn" href="mailto:support@forek.online?subject=App%20Follow-up%20@reference"><i class="fa fa-envelope"></i> Support</a>
     </div>
 
@@ -180,6 +185,7 @@ p.lead{
 
           <form id="ratingForm" asp-controller="Global" asp-action="SubmitApplicationRating" method="post">
             @Html.AntiForgeryToken()
+            <input type="hidden" name="ApplicationId" value="@ratingApplicationId" />
             <div class="star-rating" role="radiogroup" aria-label="Choose a rating from one to five stars">
               @for (var star = 5; star >= 1; star--)
               {
@@ -224,23 +230,28 @@ p.lead{
 
   const modal = overlay.querySelector('.rating-modal');
   const closeButton = document.getElementById('ratingClose');
+  const openButton = document.getElementById('openRatingButton');
   const form = document.getElementById('ratingForm');
   const comment = document.getElementById('ratingComment');
   const count = document.getElementById('ratingCount');
   const error = document.getElementById('ratingError');
   const submit = document.getElementById('ratingSubmit');
 
-  const close = ()=>{
-    overlay.classList.remove('is-open');
-    overlay.setAttribute('aria-hidden','true');
-  };
-
-  window.setTimeout(()=>{
+  const open = ()=>{
     overlay.classList.add('is-open');
     overlay.setAttribute('aria-hidden','false');
     document.getElementById('rating-5')?.focus();
-  },650);
+  };
 
+  const close = ()=>{
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden','true');
+    openButton?.focus();
+  };
+
+  window.setTimeout(open,350);
+
+  openButton?.addEventListener('click', open);
   closeButton.addEventListener('click', close);
   overlay.addEventListener('click', event=>{ if(event.target === overlay) close(); });
   document.addEventListener('keydown', event=>{

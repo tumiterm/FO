@@ -2404,11 +2404,13 @@ namespace ElecPOE.Controllers
         private IActionResult HandleApplicationSuccess(Application application)
         {
             TempData["success"] = "Application successfully saved and submitted.";
-            TempData["ApplicationId"] = application.ApplicationId.ToString();
             TempData["ApplicantName"] = application.ApplicantName;
             TempData["Reference"] = application.ReferenceNumber;
 
-            return RedirectToAction("Acknowledgement", "Global");
+            return RedirectToAction("Acknowledgement", "Global", new
+            {
+                applicationId = application.ApplicationId
+            });
         }
 
         /// <summary>
