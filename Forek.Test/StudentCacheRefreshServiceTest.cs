@@ -93,6 +93,8 @@ namespace Forek.Test
             Assert.Equal(1, result.StudentCount);
             Assert.Equal(1, result.EnrollmentHistoryCount);
             Assert.Equal(1, result.DetailRecordsLoaded);
+            Assert.Equal(0, result.SkippedRecordCount);
+            Assert.Empty(result.SkippedRecordExamples);
             Assert.NotNull(savedStudents);
             Assert.Single(savedStudents!);
             Assert.Single(savedStudents![0].EnrollmentHistory!);
@@ -297,7 +299,78 @@ namespace Forek.Test
         }
 
         [Fact]
-        public async Task RefreshFromApiAsync_DetailFailurePreservesExistingCache()
+        public async Task RefreshFromApiAsync_SkipsFailedDetailAndContinuesWithNextStudent()
+        {
+            var failedStudent = new Student
+            {
+                StudentId = Guid.NewGuid(),
+                StudentNumber = "FIT-2026-FAIL",
+                FirstName = "Failure",
+                LastName = "Test"
+            };
+            var successfulStudent = new Student
+            {
+                StudentId = Guid.NewGuid(),
+                StudentNumber = "FIT-2026-SUCCESS",
+                FirstName = "Success",
+                LastName = "Test"
+            };
+            var requestedStudentNumbers = new List<string>();
+
+            var handler = new StubHttpMessageHandler(request =>
+            {
+                if (request.RequestUri!.AbsolutePath.EndsWith("/Students", StringComparison.Ordinal))
+                {
+                    return JsonResponse(new List<Student> { failedStudent, successfulStudent });
+                }
+
+                var studentNumber = WebUtility.UrlDecode(
+                    request.RequestUri.Query.Split('=', 2, StringSplitOptions.TrimEntries)[1]);
+                requestedStudentNumbers.Add(studentNumber);
+                return studentNumber == failedStudent.StudentNumber
+                    ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                    : JsonResponse(successfulStudent);
+            });
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient(handler));
+
+            var helper = new Mock<IHelperService>();
+            helper.Setup(service => service.GetConfigurationValue("AppSettings:ApiBaseAddress", "defaultApiBaseAddress"))
+                .Returns("https://legacy.example/api/");
+            helper.Setup(service => service.GenerateJwtToken()).ReturnsAsync("token");
+
+            List<Student>? savedStudents = null;
+            var cacheStore = new Mock<IStudentCacheStore>();
+            cacheStore
+                .Setup(store => store.SyncStudentsAsync(It.IsAny<List<Student>>(), true))
+                .Callback<List<Student>, bool>((students, _) => savedStudents = students)
+                .Returns(Task.CompletedTask);
+            cacheStore.Setup(store => store.GetStatusAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new StudentCacheStatusViewModel
+                {
+                    StudentCount = 1,
+                    EnrollmentHistoryCount = 0
+                });
+
+            var service = new StudentCacheRefreshService(
+                httpClientFactory.Object,
+                helper.Object,
+                cacheStore.Object,
+                Mock.Of<ILogger<StudentCacheRefreshService>>());
+
+            var result = await service.RefreshFromApiAsync();
+
+            Assert.Equal(new[] { failedStudent.StudentNumber, successfulStudent.StudentNumber }, requestedStudentNumbers);
+            Assert.Equal(1, result.DetailRecordsLoaded);
+            Assert.Equal(1, result.SkippedRecordCount);
+            Assert.Contains(failedStudent.StudentNumber, Assert.Single(result.SkippedRecordExamples));
+            Assert.Equal(successfulStudent.StudentNumber, Assert.Single(savedStudents!).StudentNumber);
+            cacheStore.Verify(store => store.SyncStudentsAsync(It.IsAny<List<Student>>(), true), Times.Once);
+        }
+
+        [Fact]
+        public async Task RefreshFromApiAsync_AllDetailFailuresPreserveExistingCache()
         {
             var listStudent = new Student
             {

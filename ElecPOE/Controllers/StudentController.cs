@@ -945,9 +945,12 @@ namespace ElecPOE.Controllers
             {
                 var result = await _studentCacheRefreshService.RefreshFromApiAsync(cancellationToken);
                 _cache.Remove("students:all");
+                var skippedMessage = result.SkippedRecordCount > 0
+                    ? $" {result.SkippedRecordCount:N0} failed record(s) were skipped and processing continued."
+                    : string.Empty;
                 TempData["success"] =
                     $"SQLite refresh completed: {result.StudentCount:N0} students and " +
-                    $"{result.EnrollmentHistoryCount:N0} enrollment histories saved.";
+                    $"{result.EnrollmentHistoryCount:N0} enrollment histories saved.{skippedMessage}";
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
