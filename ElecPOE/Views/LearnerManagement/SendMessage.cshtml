@@ -1,4 +1,40 @@
 @model ElecPOE.ViewModels.SendLearnerMessageViewModel
-@{ ViewData["Title"] = "Send Notification"; }
-<div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h3 mb-1">Send Learner Notification</h1><p class="text-muted mb-0">Use in-app messaging now; WhatsApp items are recorded in the integration outbox.</p></div><a asp-action="Groups" class="btn btn-outline-secondary">My Groups</a></div>
-<form asp-action="SendMessage" method="post">@Html.AntiForgeryToken()<div class="row g-4"><div class="col-lg-7"><div class="card"><div class="card-header">Recipients</div><div class="card-body"><div class="form-check mb-3"><input asp-for="AllMyStudents" class="form-check-input"><label asp-for="AllMyStudents" class="form-check-label">All My Students</label></div><label class="form-label">Specific group</label><select asp-for="GroupId" class="form-select mb-3"><option value="">No group selected</option>@foreach(var g in Model.Groups){<option value="@g.Id">@g.GroupName</option>}</select><label class="form-label">Or selected students</label><div class="border rounded p-2 overflow-auto" style="max-height:320px">@foreach(var s in Model.Students){<label class="d-flex gap-2 border-bottom py-2"><input type="checkbox" name="StudentIds" value="@s.StudentId"><span>@s.StudentName <small class="text-muted">(@s.StudentNumber)</small></span></label>}</div></div></div></div><div class="col-lg-5"><div class="card"><div class="card-header">Message</div><div class="card-body"><div asp-validation-summary="ModelOnly" class="text-danger"></div><textarea asp-for="Message" class="form-control mb-3" rows="8" maxlength="500" placeholder="Enter notification message"></textarea><div class="form-check mb-2"><input asp-for="SendInApp" class="form-check-input"><label asp-for="SendInApp" class="form-check-label">Send in-app notification</label></div><div class="form-check mb-3"><input asp-for="QueueWhatsApp" class="form-check-input"><label asp-for="QueueWhatsApp" class="form-check-label">Queue WhatsApp message (integration skeleton)</label></div><button class="btn btn-primary w-100">Process Message</button></div></div></div></div></form>
+@{ ViewData["Title"] = "Send Learner Message"; }
+@section Styles { <link rel="stylesheet" href="~/css/learner-management.css" asp-append-version="true" /> }
+<div class="lm-page">
+    <section class="lm-hero"><div class="lm-hero-row"><div><div class="lm-eyebrow"><i class="bi bi-send"></i> Learner communication</div><h1>Send a message</h1><p>Choose the right audience, compose a clear update and select how it should reach your learners.</p></div><div class="lm-hero-actions"><a asp-action="MyStudents" class="lm-btn lm-btn-light"><i class="bi bi-arrow-left"></i> My students</a></div></div></section>
+    <form asp-action="SendMessage" method="post">@Html.AntiForgeryToken()<div class="lm-message-layout">
+        <section class="lm-panel"><div class="lm-panel-head"><div><h2 class="lm-panel-title">Choose recipients</h2><p class="lm-panel-subtitle">Select one audience option, or pick individual learners below.</p></div><span class="lm-stat-icon"><i class="bi bi-people"></i></span></div><div class="lm-panel-body">
+            <label class="lm-recipient-option mb-3"><input asp-for="AllMyStudents" class="form-check-input recipient-control" /><span><strong>All my students</strong><span>Send this message to every learner on your facilitator list.</span></span></label>
+            <div class="mb-3"><label asp-for="GroupId" class="lm-label">Specific learning group</label><select asp-for="GroupId" class="form-select recipient-control"><option value="">No group selected</option>@foreach (var g in Model.Groups) { <option value="@g.Id">@g.GroupName</option> }</select></div>
+            <div class="d-flex justify-content-between align-items-end mb-2"><label class="lm-label mb-0">Or select individual learners</label><span class="lm-meta"><span id="recipientCount">0</span> selected</span></div>
+            <div class="lm-search-wrap mb-2"><i class="bi bi-search"></i><input type="search" id="recipientSearch" class="form-control" placeholder="Filter by name or student number" /></div>
+            <div class="lm-scroll border rounded-3" id="recipientList">
+                @if (!Model.Students.Any()) { <div class="lm-empty py-4"><span class="small">No learners are currently available.</span></div> }
+                @foreach (var s in Model.Students) { <label class="lm-check-row recipient-row" data-search="@($"{s.StudentName} {s.StudentNumber}".ToLowerInvariant())"><input type="checkbox" class="student-recipient" name="StudentIds" value="@s.StudentId" /><span><strong class="d-block small">@s.StudentName</strong><span class="lm-meta">@s.StudentNumber · @(s.Course ?? "No programme")</span></span></label> }
+            </div>
+        </div></section>
+        <aside class="lm-panel lm-compose"><div class="lm-panel-head"><div><h2 class="lm-panel-title">Compose message</h2><p class="lm-panel-subtitle">Keep it concise and actionable.</p></div><span class="lm-stat-icon"><i class="bi bi-chat-left-text"></i></span></div><div class="lm-panel-body"><div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div><label asp-for="Message" class="lm-label">Message</label><textarea asp-for="Message" class="form-control" rows="9" maxlength="500" placeholder="Write your learner notification here..."></textarea><div class="lm-char-count mt-1"><span id="messageCount">0</span> / 500 characters</div><span asp-validation-for="Message" class="text-danger small"></span>
+            <div class="mt-4"><div class="lm-label">Delivery channels</div><label class="lm-channel"><input asp-for="SendInApp" class="form-check-input" /><span><strong>In-app notification</strong><small>Delivered in the learner's Forek Online account.</small></span></label><label class="lm-channel"><input asp-for="QueueWhatsApp" class="form-check-input" /><span><strong>Queue WhatsApp message</strong><small>Adds the message to the WhatsApp integration queue.</small></span></label></div>
+            <div class="lm-alert mt-3 mb-3"><i class="bi bi-info-circle-fill"></i><div>Review the recipient selection and message before processing. Delivery activity is recorded for audit visibility.</div></div><button class="lm-btn lm-btn-primary w-100"><i class="bi bi-send"></i> Process message</button>
+        </div></aside>
+    </div></form>
+</div>
+@section Scripts {
+<script>
+(() => {
+    const message = document.getElementById('Message');
+    const messageCount = document.getElementById('messageCount');
+    const search = document.getElementById('recipientSearch');
+    const rows = Array.from(document.querySelectorAll('.recipient-row'));
+    const checks = Array.from(document.querySelectorAll('.student-recipient'));
+    const recipientCount = document.getElementById('recipientCount');
+    const refreshMessage = () => messageCount.textContent = message?.value.length ?? 0;
+    const refreshRecipients = () => recipientCount.textContent = checks.filter(x => x.checked).length;
+    message?.addEventListener('input', refreshMessage);
+    search?.addEventListener('input', () => { const value = search.value.trim().toLowerCase(); rows.forEach(row => row.hidden = value && !row.dataset.search.includes(value)); });
+    checks.forEach(x => x.addEventListener('change', refreshRecipients));
+    refreshMessage(); refreshRecipients();
+})();
+</script>
+}
