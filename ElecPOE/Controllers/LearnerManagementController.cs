@@ -1,3 +1,11 @@
+// <copyright file="LearnerManagementController.cs" company="Forek ICT Services">
+//     Copyright © Forek ICT Services.
+// </copyright>
+// Created By:      Itumeleng Oliphant - (on DESKTOP-72504AI)
+// Created Date:    07/06/2026 10:48 AM
+// Purpose:         Defines the LearnerManagementController
+
+#region Usings
 using ElecPOE.ViewModels;
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Domain.Entities;
@@ -7,15 +15,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
+#endregion
 
 namespace ElecPOE.Controllers;
 
 [Authorize(Roles = "Admin,SuperAdmin,Facilitator")]
 public class LearnerManagementController : Controller
 {
+    #region Fields
     private readonly ApplicationDbContext _db;
     private readonly IInAppNotificationService _notifications;
-
+    #endregion
     public LearnerManagementController(ApplicationDbContext db, IInAppNotificationService notifications)
     {
         _db = db;
@@ -107,7 +117,7 @@ public class LearnerManagementController : Controller
             var link = new FacilitatorStudentLink
             {
                 Id = Guid.NewGuid(), FacilitatorId = facilitatorId, StudentId = studentId, AddedById = facilitatorId,
-                DateAdded = DateTimeOffset.UtcNow, DateCreated = DateTimeOffset.UtcNow, UserCreated = User.Identity?.Name
+                DateAdded = DateTimeHelper.GetCurrentSastDateTimeOffset(), DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(), UserCreated = User.Identity?.Name
             };
             _db.FacilitatorStudentLinks.Add(link);
             AddAudit(facilitatorId, "StudentAddedToFacilitator", nameof(FacilitatorStudentLink), link.Id, null, new { studentId });
@@ -124,9 +134,9 @@ public class LearnerManagementController : Controller
         var link = await ActiveLinks(facilitatorId).FirstOrDefaultAsync(x => x.Id == linkId);
         if (link == null) return NotFound();
         var memberships = await _db.LearningGroupStudents.Where(x => x.FacilitatorStudentLinkId == link.Id && !x.IsDeleted).ToListAsync();
-        foreach (var membership in memberships) { membership.IsDeleted = true; membership.DateDeleted = DateTimeOffset.UtcNow; }
+        foreach (var membership in memberships) { membership.IsDeleted = true; membership.DateDeleted = DateTimeHelper.GetCurrentSastDateTimeOffset(); }
         link.Status = FacilitatorStudentLinkStatus.Removed;
-        link.DateRemoved = DateTimeOffset.UtcNow;
+        link.DateRemoved = DateTimeHelper.GetCurrentSastDateTimeOffset();
         link.RemovedById = facilitatorId;
         link.RemovalReason = reason;
         AddAudit(facilitatorId, "StudentRemovedFromFacilitator", nameof(FacilitatorStudentLink), link.Id, new { status = "Active" }, new { status = "Removed", reason });
@@ -157,7 +167,7 @@ public class LearnerManagementController : Controller
         var group = new LearningGroup
         {
             Id = Guid.NewGuid(), FacilitatorId = facilitatorId, GroupName = model.GroupName.Trim(), Name = model.GroupName.Trim(),
-            Color = model.Color, Note = model.Note, DateCreated = DateTimeOffset.UtcNow, UserCreated = User.Identity?.Name
+            Color = model.Color, Note = model.Note, DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(), UserCreated = User.Identity?.Name
         };
         _db.LearningGroups.Add(group);
         AddAudit(facilitatorId, "GroupCreated", nameof(LearningGroup), group.Id, null, new { group.GroupName, group.Color, group.Note });
@@ -190,9 +200,15 @@ public class LearnerManagementController : Controller
         var facilitatorId = CurrentUserId();
         var group = await OwnedGroups(facilitatorId).FirstOrDefaultAsync(x => x.Id == id);
         if (group == null) return NotFound();
+
         var previous = new { group.GroupName, group.Color, group.Note };
-        group.GroupName = model.GroupName.Trim(); group.Name = group.GroupName; group.Color = model.Color; group.Note = model.Note;
-        group.DateModified = DateTimeOffset.UtcNow; group.UserModified = User.Identity?.Name;
+        group.GroupName = model.GroupName.Trim();
+        group.Name = group.GroupName;
+        group.Color = model.Color;
+        group.Note = model.Note;
+        group.DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset();
+        group.UserModified = User.Identity?.Name;
+
         AddAudit(facilitatorId, "GroupUpdated", nameof(LearningGroup), group.Id, previous, new { group.GroupName, group.Color, group.Note });
         await _db.SaveChangesAsync();
         TempData["success"] = "Group details updated.";
@@ -203,12 +219,13 @@ public class LearnerManagementController : Controller
     public async Task<IActionResult> AddGroupStudents(Guid groupId, List<Guid> linkIds)
     {
         var facilitatorId = CurrentUserId();
+
         if (!await OwnedGroups(facilitatorId).AnyAsync(x => x.Id == groupId)) return Forbid();
         var validLinks = await ActiveLinks(facilitatorId).Where(x => linkIds.Contains(x.Id)).Select(x => x.Id).ToListAsync();
         var existing = await _db.LearningGroupStudents.Where(x => x.LearningGroupId == groupId && validLinks.Contains(x.FacilitatorStudentLinkId) && !x.IsDeleted).Select(x => x.FacilitatorStudentLinkId).ToListAsync();
         foreach (var linkId in validLinks.Except(existing))
         {
-            var membership = new LearningGroupStudent { Id = Guid.NewGuid(), LearningGroupId = groupId, FacilitatorStudentLinkId = linkId, AddedById = facilitatorId, DateAdded = DateTimeOffset.UtcNow, DateCreated = DateTimeOffset.UtcNow };
+            var membership = new LearningGroupStudent { Id = Guid.NewGuid(), LearningGroupId = groupId, FacilitatorStudentLinkId = linkId, AddedById = facilitatorId, DateAdded = DateTimeHelper.GetCurrentSastDateTimeOffset(), DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset() };
             _db.LearningGroupStudents.Add(membership);
             AddAudit(facilitatorId, "StudentAddedToGroup", nameof(LearningGroupStudent), membership.Id, null, new { groupId, linkId });
         }
@@ -222,7 +239,12 @@ public class LearnerManagementController : Controller
         var facilitatorId = CurrentUserId();
         if (!await OwnedGroups(facilitatorId).AnyAsync(x => x.Id == groupId)) return Forbid();
         var membership = await _db.LearningGroupStudents.FirstOrDefaultAsync(x => x.LearningGroupId == groupId && x.FacilitatorStudentLinkId == linkId && !x.IsDeleted);
-        if (membership != null) { membership.IsDeleted = true; membership.DateDeleted = DateTimeOffset.UtcNow; AddAudit(facilitatorId, "StudentRemovedFromGroup", nameof(LearningGroupStudent), membership.Id, null, new { groupId, linkId }); await _db.SaveChangesAsync(); }
+        if (membership != null) {
+            membership.IsDeleted = true;
+            membership.DateDeleted = DateTimeHelper.GetCurrentSastDateTimeOffset();
+            AddAudit(facilitatorId, "StudentRemovedFromGroup", nameof(LearningGroupStudent), membership.Id, null, new { groupId, linkId });
+            await _db.SaveChangesAsync();
+        }
         return RedirectToAction(nameof(Group), new { id = groupId });
     }
 
@@ -232,7 +254,8 @@ public class LearnerManagementController : Controller
         var facilitatorId = CurrentUserId();
         var group = await OwnedGroups(facilitatorId).FirstOrDefaultAsync(x => x.Id == id);
         if (group == null) return NotFound();
-        var old = group.Status; group.Status = LearningGroupStatus.Archived; group.DateModified = DateTimeOffset.UtcNow;
+        var old = group.Status; group.Status = LearningGroupStatus.Archived;
+        group.DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset();
         AddAudit(facilitatorId, "GroupArchived", nameof(LearningGroup), group.Id, new { status = old }, new { status = group.Status });
         await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Groups));
@@ -242,8 +265,10 @@ public class LearnerManagementController : Controller
     public async Task<IActionResult> TakeAttendance(Guid groupId, Guid? sessionId)
     {
         var facilitatorId = CurrentUserId();
+
         var group = await OwnedGroups(facilitatorId).FirstOrDefaultAsync(x => x.Id == groupId);
         if (group == null) return NotFound();
+
         var memberStudents = await _db.LearningGroupStudents.Where(x => x.LearningGroupId == groupId && !x.IsDeleted && x.FacilitatorStudentLink.Status == FacilitatorStudentLinkStatus.Active)
             .Select(x => x.FacilitatorStudentLink.Student).OrderBy(x => x.LastName).ThenBy(x => x.Name).ToListAsync();
         LearnerAttendanceSession? session = null;
@@ -260,6 +285,7 @@ public class LearnerManagementController : Controller
     public async Task<IActionResult> SaveAttendance(TakeAttendanceViewModel model)
     {
         var facilitatorId = CurrentUserId();
+
         var group = await OwnedGroups(facilitatorId).FirstOrDefaultAsync(x => x.Id == model.GroupId);
         if (group == null) return Forbid();
         var allowedStudents = await _db.LearningGroupStudents.Where(x => x.LearningGroupId == model.GroupId && !x.IsDeleted).Select(x => x.FacilitatorStudentLink.StudentId).ToListAsync();
@@ -267,23 +293,57 @@ public class LearnerManagementController : Controller
         if (model.SessionId.HasValue) session = await _db.LearnerAttendanceSessions.Include(x => x.Records).FirstOrDefaultAsync(x => x.Id == model.SessionId && x.FacilitatorId == facilitatorId && x.LearningGroupId == model.GroupId);
         var isNew = session == null;
         var wasSubmitted = session?.Status == AttendanceSessionStatus.Submitted;
-        session ??= new LearnerAttendanceSession { Id = Guid.NewGuid(), FacilitatorId = facilitatorId, LearningGroupId = model.GroupId, DateCreated = DateTimeOffset.UtcNow, UserCreated = User.Identity?.Name };
-        session.AttendanceDate = model.AttendanceDate.Date; session.StartTime = model.StartTime; session.EndTime = model.EndTime; session.Topic = model.Topic; session.Note = model.Note;
+        session ??= new LearnerAttendanceSession 
+        { 
+            Id = Guid.NewGuid(),
+            FacilitatorId = facilitatorId,
+            LearningGroupId = model.GroupId,
+            DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+            UserCreated = User.Identity?.Name
+        };
+
+        session.AttendanceDate = model.AttendanceDate.Date;
+        session.StartTime = model.StartTime;
+        session.EndTime = model.EndTime;
+        session.Topic = model.Topic;
+        session.Note = model.Note;
         session.Status = model.Submit ? AttendanceSessionStatus.Submitted : AttendanceSessionStatus.Draft;
-        if (model.Submit) session.SubmittedUtc = DateTimeOffset.UtcNow;
+
+        if (model.Submit) session.SubmittedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset();
         if (isNew) { _db.LearnerAttendanceSessions.Add(session); AddAudit(facilitatorId, "AttendanceSessionCreated", nameof(LearnerAttendanceSession), session.Id, null, new { model.GroupId, model.AttendanceDate }); }
         foreach (var entry in model.Entries.Where(x => allowedStudents.Contains(x.StudentId)))
         {
             var record = session.Records.FirstOrDefault(x => x.StudentId == entry.StudentId);
             if (record == null)
             {
-                record = new LearnerAttendanceRecord { Id = Guid.NewGuid(), AttendanceSessionId = session.Id, StudentId = entry.StudentId, MarkedById = facilitatorId, MarkedUtc = DateTimeOffset.UtcNow, DateCreated = DateTimeOffset.UtcNow };
+                record = new LearnerAttendanceRecord 
+                { 
+                    Id = Guid.NewGuid(),
+                    AttendanceSessionId = session.Id,
+                    StudentId = entry.StudentId,
+                    MarkedById = facilitatorId,
+                    MarkedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                    DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset() 
+                };
                 session.Records.Add(record);
             }
             else if (record.AttendanceStatus != entry.Status || record.Comment != entry.Comment)
             {
-                _db.LearnerAttendanceRecordAudits.Add(new LearnerAttendanceRecordAudit { Id = Guid.NewGuid(), AttendanceRecordId = record.Id, OriginalStatus = record.AttendanceStatus, NewStatus = entry.Status, OriginalComment = record.Comment, NewComment = entry.Comment, EditedById = facilitatorId, EditedUtc = DateTimeOffset.UtcNow, Reason = model.EditReason, DateCreated = DateTimeOffset.UtcNow });
-                record.UpdatedById = facilitatorId; record.UpdatedUtc = DateTimeOffset.UtcNow;
+                _db.LearnerAttendanceRecordAudits.Add(new LearnerAttendanceRecordAudit 
+                { 
+                    Id = Guid.NewGuid(),
+                    AttendanceRecordId = record.Id,
+                    OriginalStatus = record.AttendanceStatus,
+                    NewStatus = entry.Status,
+                    OriginalComment = record.Comment,
+                    NewComment = entry.Comment,
+                    EditedById = facilitatorId,
+                    EditedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                    Reason = model.EditReason,
+                    DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
+                });
+                record.UpdatedById = facilitatorId;
+                record.UpdatedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset();
             }
             record.AttendanceStatus = entry.Status; record.Comment = entry.Comment;
         }
@@ -353,36 +413,99 @@ public class LearnerManagementController : Controller
         var assignedIds = activeLinks.Select(x => x.StudentId).Distinct().ToList();
         return View(new AdminLearnerManagementViewModel
         {
-            Facilitators = facilitators.Select(f => new FacilitatorCoverageViewModel { FacilitatorId = f.Id, FacilitatorName = $"{f.Name} {f.LastName}", StudentCount = activeLinks.Count(x => x.FacilitatorId == f.Id), ActiveGroupCount = groups.Count(x => x.FacilitatorId == f.Id && x.Status == LearningGroupStatus.Active), AttendanceSessionCount = groups.Where(x => x.FacilitatorId == f.Id).Sum(x => x.AttendanceSessions.Count), LastActivityUtc = activity.FirstOrDefault(x => x.ActorUserId == f.Id)?.EventUtc }).ToList(),
-            UnassignedStudents = await _db.Students.Where(x => !x.IsDeleted && !assignedIds.Contains(x.Id)).OrderBy(x => x.LastName).Take(100).ToListAsync(),
-            MultipleFacilitatorStudents = activeLinks.GroupBy(x => x.StudentId).Where(x => x.Select(l => l.FacilitatorId).Distinct().Count() > 1).Select(x => new MultiFacilitatorStudentViewModel { StudentName = x.First().Student.FullName, StudentNumber = x.First().Student.StudentNumber, Facilitators = x.Select(l => $"{l.Facilitator.Name} {l.Facilitator.LastName}").Distinct().ToList() }).ToList(),
-            Groups = groups.Select(x => new GroupAdminRowViewModel { FacilitatorName = $"{x.Facilitator.Name} {x.Facilitator.LastName}", Group = ToGroupSummary(x) }).ToList(),
-            RecentAttendance = await _db.LearnerAttendanceSessions.Include(x => x.Facilitator).Include(x => x.LearningGroup).Include(x => x.Records).OrderByDescending(x => x.DateCreated).Take(50).ToListAsync(),
-            RecentMessages = await _db.LearnerMessageLogs.Include(x => x.Facilitator).Include(x => x.Student).OrderByDescending(x => x.QueuedUtc).Take(50).ToListAsync(),
+            Facilitators = facilitators.Select(f => new FacilitatorCoverageViewModel 
+            { 
+                FacilitatorId = f.Id,
+                FacilitatorName = $"{f.Name} {f.LastName}",
+                StudentCount = activeLinks.Count(x => x.FacilitatorId == f.Id),
+                ActiveGroupCount = groups.Count(x => x.FacilitatorId == f.Id && x.Status == LearningGroupStatus.Active),
+                AttendanceSessionCount = groups.Where(x => x.FacilitatorId == f.Id).Sum(x => x.AttendanceSessions.Count),
+                LastActivityUtc = activity.FirstOrDefault(x => x.ActorUserId == f.Id)?.EventUtc }).ToList(),
+
+            UnassignedStudents = await _db.Students.Where(x => !x.IsDeleted && !assignedIds.Contains(x.Id)).
+                                 OrderBy(x => x.LastName).Take(100).
+                                 ToListAsync(),
+
+            MultipleFacilitatorStudents = activeLinks.GroupBy(x => x.StudentId)
+                                        .Where(x => x.Select(l => l.FacilitatorId)
+                                        .Distinct().Count() > 1)
+                                        .Select(x => new MultiFacilitatorStudentViewModel 
+                                         { 
+                                            StudentName = x.First().Student.FullName,
+                                            StudentNumber = x.First().Student.StudentNumber,
+                                            Facilitators = x.Select(l => $"{l.Facilitator.Name} {l.Facilitator.LastName}").Distinct().ToList() }).ToList(),
+
+            Groups = groups.Select(x => new GroupAdminRowViewModel 
+             { 
+                FacilitatorName = $"{x.Facilitator.Name} {x.Facilitator.LastName}",
+                Group = ToGroupSummary(x) }).
+                ToList(),
+
+            RecentAttendance = await _db.LearnerAttendanceSessions.Include(x => x.Facilitator)
+                                     .Include(x => x.LearningGroup)
+                                     .Include(x => x.Records)
+                                     .OrderByDescending(x => x.DateCreated)
+                                     .Take(50)
+                                     .ToListAsync(),
+
+            RecentMessages = await _db.LearnerMessageLogs.Include(x => x.Facilitator)
+                            .Include(x => x.Student)
+                            .OrderByDescending(x => x.QueuedUtc)
+                            .Take(50)
+                            .ToListAsync(),
             RecentActivity = activity
         });
     }
 
+    #region Private Helpers
     private Guid CurrentUserId() => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : throw new UnauthorizedAccessException();
-    private IQueryable<FacilitatorStudentLink> ActiveLinks(Guid facilitatorId) => _db.FacilitatorStudentLinks.Where(x => x.FacilitatorId == facilitatorId && x.Status == FacilitatorStudentLinkStatus.Active && !x.IsDeleted);
-    private IQueryable<LearningGroup> OwnedGroups(Guid facilitatorId) => _db.LearningGroups.Where(x => x.FacilitatorId == facilitatorId && x.Status != LearningGroupStatus.Archived && !x.IsDeleted);
+    private IQueryable<FacilitatorStudentLink> ActiveLinks(Guid facilitatorId) 
+        => _db.FacilitatorStudentLinks.Where(x => x.FacilitatorId == facilitatorId && x.Status == FacilitatorStudentLinkStatus.Active && !x.IsDeleted);
+    private IQueryable<LearningGroup> OwnedGroups(Guid facilitatorId) 
+        => _db.LearningGroups.Where(x => x.FacilitatorId == facilitatorId && x.Status != LearningGroupStatus.Archived && !x.IsDeleted);
 
     private async Task<IReadOnlyList<MyStudentRowViewModel>> BuildStudentRows(IReadOnlyList<FacilitatorStudentLink> links, IReadOnlyList<LearningGroupStudent> memberships)
     {
         var studentIds = links.Select(x => x.StudentId).ToList();
-        var attendance = await _db.LearnerAttendanceRecords.Where(x => studentIds.Contains(x.StudentId) && x.AttendanceSession.Status == AttendanceSessionStatus.Submitted)
-            .Select(x => new { x.StudentId, x.AttendanceStatus, x.AttendanceSession.AttendanceDate }).ToListAsync();
-        var messages = await _db.LearnerMessageLogs.Where(x => studentIds.Contains(x.StudentId)).GroupBy(x => x.StudentId).Select(x => new { StudentId = x.Key, Last = x.Max(m => m.QueuedUtc) }).ToListAsync();
+
+        var attendance = await _db.LearnerAttendanceRecords.Where(x => studentIds.Contains(x.StudentId)
+                         && x.AttendanceSession.Status == AttendanceSessionStatus.Submitted)
+                         .Select(x => new 
+                           { 
+                             x.StudentId,
+                             x.AttendanceStatus,
+                             x.AttendanceSession.AttendanceDate })
+                             .ToListAsync();
+
+        var messages = await _db.LearnerMessageLogs.Where(x => studentIds.Contains(x.StudentId))
+                       .GroupBy(x => x.StudentId)
+                       .Select(x => new 
+                        { 
+                           StudentId = x.Key,
+                           Last = x.Max(m => m.QueuedUtc) }).
+                           ToListAsync();
+
         return links.Select(link =>
         {
             var records = attendance.Where(x => x.StudentId == link.StudentId).ToList();
             var present = records.Count(x => x.AttendanceStatus == LearnerAttendanceStatus.Present);
+
             return new MyStudentRowViewModel
             {
-                LinkId = link.Id, StudentId = link.StudentId, StudentName = link.Student.FullName, StudentNumber = link.Student.StudentNumber,
-                Course = link.Student.Enrollments?.FirstOrDefault(x => x.IsActive)?.CourseTitle, ContactNumber = link.Student.Cellphone,
+                LinkId = link.Id,
+                StudentId = link.StudentId,
+                StudentName = link.Student.FullName,
+                StudentNumber = link.Student.StudentNumber,
+                Course = link.Student.Enrollments?.FirstOrDefault(x => x.IsActive)?.CourseTitle,
+                ContactNumber = link.Student.Cellphone,
                 EnrollmentStatus = link.Student.Enrollments?.FirstOrDefault(x => x.IsActive)?.EnrollmentStatus,
-                Groups = memberships.Where(x => x.FacilitatorStudentLinkId == link.Id).Select(x => new GroupBadgeViewModel { Id = x.LearningGroupId, Name = x.LearningGroup.GroupName, Color = x.LearningGroup.Color }).ToList(),
+                Groups = memberships.Where(x => x.FacilitatorStudentLinkId == link.Id)
+                        .Select(x => new GroupBadgeViewModel 
+                            { 
+                                Id = x.LearningGroupId,
+                                Name = x.LearningGroup.GroupName,
+                                Color = x.LearningGroup.Color }).
+                                ToList(),
                 AttendanceSummary = records.Count == 0 ? "No attendance" : $"{present}/{records.Count} present ({present * 100 / records.Count}%)",
                 LastAttendanceDate = records.OrderByDescending(x => x.AttendanceDate).FirstOrDefault()?.AttendanceDate,
                 LastCommunicationDate = messages.FirstOrDefault(x => x.StudentId == link.StudentId)?.Last
@@ -390,7 +513,48 @@ public class LearnerManagementController : Controller
         }).OrderBy(x => x.StudentName).ToList();
     }
 
-    private static GroupSummaryViewModel ToGroupSummary(LearningGroup x) => new() { Id = x.Id, Name = x.GroupName, Color = x.Color, Note = x.Note, Status = x.Status, StudentCount = x.Students.Count(s => !s.IsDeleted), AttendanceSessionCount = x.AttendanceSessions.Count, Created = x.DateCreated };
-    private void AddAudit(Guid actorId, string eventType, string entityType, Guid? entityId, object? previous, object? next, string? notes = null) => _db.FacilitatorActivityAudits.Add(new FacilitatorActivityAudit { Id = Guid.NewGuid(), ActorUserId = actorId, EventType = eventType, EntityType = entityType, EntityId = entityId, PreviousValue = previous == null ? null : JsonSerializer.Serialize(previous), NewValue = next == null ? null : JsonSerializer.Serialize(next), Notes = notes, EventUtc = DateTimeOffset.UtcNow, DateCreated = DateTimeOffset.UtcNow, UserCreated = User.Identity?.Name });
-    private void AddMessageLog(Guid facilitatorId, Guid? groupId, StudentEntity student, LearnerMessageChannel channel, LearnerMessageStatus status, string message, string? destination, string? response) => _db.LearnerMessageLogs.Add(new LearnerMessageLog { Id = Guid.NewGuid(), FacilitatorId = facilitatorId, LearningGroupId = groupId, StudentId = student.Id, Channel = channel, Status = status, Message = message, Destination = destination, ProviderResponse = response, QueuedUtc = DateTimeOffset.UtcNow, SentUtc = status == LearnerMessageStatus.Sent ? DateTimeOffset.UtcNow : null, DateCreated = DateTimeOffset.UtcNow, UserCreated = User.Identity?.Name });
+    private static GroupSummaryViewModel ToGroupSummary(LearningGroup x) 
+        => new() 
+        { 
+            Id = x.Id,
+            Name = x.GroupName,
+            Color = x.Color,
+            Note = x.Note,
+            Status = x.Status,
+            StudentCount = x.Students.Count(s => !s.IsDeleted),
+            AttendanceSessionCount = x.AttendanceSessions.Count,
+            Created = x.DateCreated
+        };
+    private void AddAudit(Guid actorId, string eventType, string entityType, Guid? entityId, object? previous, object? next, string? notes = null) 
+            => _db.FacilitatorActivityAudits.Add(new FacilitatorActivityAudit 
+                { 
+                    Id = Guid.NewGuid(),
+                    ActorUserId = actorId,
+                    EventType = eventType,
+                    EntityType = entityType,
+                    EntityId = entityId,
+                    PreviousValue = previous == null ? null : JsonSerializer.Serialize(previous),
+                    NewValue = next == null ? null : JsonSerializer.Serialize(next),
+                    Notes = notes,
+                    EventUtc = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                    DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                    UserCreated = User.Identity?.Name 
+            });
+    private void AddMessageLog(Guid facilitatorId, Guid? groupId, StudentEntity student, LearnerMessageChannel channel, LearnerMessageStatus status, string message, string? destination, string? response)
+        => _db.LearnerMessageLogs.Add(new LearnerMessageLog 
+            { Id = Guid.NewGuid(),
+            FacilitatorId = facilitatorId,
+            LearningGroupId = groupId,
+            StudentId = student.Id,
+            Channel = channel,
+            Status = status,
+            Message = message,
+            Destination = destination,
+            ProviderResponse = response,
+            QueuedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+            SentUtc = status == LearnerMessageStatus.Sent ? DateTimeHelper.GetCurrentSastDateTimeOffset() : null,
+            DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+            UserCreated = User.Identity?.Name });
+
+    #endregion
 }
