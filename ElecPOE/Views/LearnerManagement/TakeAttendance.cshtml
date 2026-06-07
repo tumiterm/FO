@@ -772,14 +772,12 @@
                 applyFilters();
             }
 
-            function safeCell(value) {
-                const text = String(value ?? '').trim();
-                const protectedText = /^[=+\-@@]/.test(text) ? `'${text}` : text;
-                return protectedText
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;');
+            function csvCell(value) {
+                let text = String(value ?? '').replace(/\r?\n/g, ' ').trim();
+                if (text && ['=', '+', '-', String.fromCharCode(64)].includes(text[0])) {
+                    text = `'${text}`;
+                }
+                return `"${text.replace(/"/g, '""')}"`;
             }
 
             function formatDateForExport(value) {
@@ -792,64 +790,53 @@
 
             function exportToExcel() {
                 const groupName = '@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Model.GroupName))';
-                const attendanceDate = document.getElementById('AttendanceDate').value;
-                const startTime = document.getElementById('StartTime').value;
-                const endTime = document.getElementById('EndTime').value;
-                const topic = document.getElementById('Topic').value;
-                const note = document.getElementById('Note').value;
-                const exportedAt = new Intl.DateTimeFormat('en-ZA', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short'
-                }).format(new Date());
+                const attendanceDate = document.getElementById('AttendanceDate')?.value || '';
+                const startTime = document.getElementById('StartTime')?.value || '';
+                const endTime = document.getElementById('EndTime')?.value || '';
+                const topic = document.getElementById('Topic')?.value || '';
+                const note = document.getElementById('Note')?.value || '';
+                const exportedAt = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+                const lines = [
+                    ['Attendance Register', groupName],
+                    ['Attendance date', formatDateForExport(attendanceDate)],
+                    ['Session time', [startTime, endTime].filter(Boolean).join(' - ')],
+                    ['Topic', topic],
+                    ['Session note', note],
+                    ['Exported', exportedAt],
+                    [],
+                    ['Learner', 'Student number', 'Status', 'Comment']
+                ];
 
-                const registerRows = rows.map(row => {
-                    const name = row.querySelector('input[name$=".StudentName"]').value;
-                    const number = row.querySelector('input[name$=".StudentNumber"]').value;
+                rows.forEach(row => {
+                    const name = row.querySelector('input[name$=".StudentName"]')?.value || '';
+                    const number = row.querySelector('input[name$=".StudentNumber"]')?.value || '';
                     const statusSelect = row.querySelector('.attendance-status');
-                    const attendanceStatus = statusSelect.options[statusSelect.selectedIndex]?.text || '';
-                    const comment = row.querySelector('.attendance-comment').value;
-                    return `<tr><td>${safeCell(name)}</td><td style="mso-number-format:'\\@@'">${safeCell(number)}</td><td>${safeCell(attendanceStatus)}</td><td>${safeCell(comment)}</td></tr>`;
-                }).join('');
+                    const attendanceStatus = statusSelect?.options[statusSelect.selectedIndex]?.text || '';
+                    const comment = row.querySelector('.attendance-comment')?.value || '';
+                    lines.push([name, number, attendanceStatus, comment]);
+                });
 
-                const workbook = `<!DOCTYPE html>
-                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                    <head>
-                        <meta charset="utf-8">
-                        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Attendance Register</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
-                        <style>
-                            body{font-family:Calibri,Arial,sans-serif;color:#17243a}
-                            table{border-collapse:collapse;width:100%}
-                            td,th{border:1px solid #d8dee8;padding:8px;vertical-align:top}
-                            th{background:#17243a;color:#fff;font-weight:bold}
-                            .title{background:#f47b20;color:#fff;font-size:20px;font-weight:bold}
-                            .label{background:#f1f4f8;font-weight:bold;width:170px}
-                            .spacer td{border:0;height:12px}
-                        </style>
-                    </head>
-                    <body>
-                        <table>
-                            <tr><td class="title" colspan="4">Attendance Register — ${safeCell(groupName)}</td></tr>
-                            <tr><td class="label">Attendance date</td><td>${safeCell(formatDateForExport(attendanceDate))}</td><td class="label">Session time</td><td>${safeCell(startTime)}${startTime || endTime ? ' – ' : ''}${safeCell(endTime)}</td></tr>
-                            <tr><td class="label">Topic</td><td colspan="3">${safeCell(topic)}</td></tr>
-                            <tr><td class="label">Session note</td><td colspan="3">${safeCell(note)}</td></tr>
-                            <tr><td class="label">Exported</td><td colspan="3">${safeCell(exportedAt)}</td></tr>
-                            <tr class="spacer"><td colspan="4"></td></tr>
-                            <tr><th>Learner</th><th>Student number</th><th>Status</th><th>Comment</th></tr>
-                            ${registerRows}
-                        </table>
-                    </body>
-                    </html>`;
+                const csv = lines.map(line => line.map(csvCell).join(',')).join('\r\n');
+                const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' });
+                const slug = groupName.toLocaleLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'group';
+                const filename = `attendance-${slug}-${attendanceDate || new Date().toISOString().slice(0, 10)}.csv`;
 
-                const blob = new Blob(['\ufeff', workbook], { type: 'application/vnd.ms-excel;charset=utf-8' });
+                if (navigator.msSaveOrOpenBlob) {
+                    navigator.msSaveOrOpenBlob(blob, filename);
+                    return;
+                }
+
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                const slug = groupName.toLocaleLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'group';
                 link.href = url;
-                link.download = `attendance-${slug}-${attendanceDate || new Date().toISOString().slice(0, 10)}.xls`;
+                link.download = filename;
+                link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
-                link.remove();
-                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+                window.setTimeout(() => {
+                    link.remove();
+                    URL.revokeObjectURL(url);
+                }, 0);
             }
 
             rows.forEach(row => {
