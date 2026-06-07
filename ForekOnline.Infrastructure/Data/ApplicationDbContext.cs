@@ -41,6 +41,14 @@ namespace ForekOnline.Infrastructure.Data
         public DbSet<FinancialClearance> FinancialClearance { get; set; }
         public DbSet<EnrollmentEntity> Enrollments { get; set; }
         public DbSet<StudentEntity> Students { get; set; }
+        public DbSet<FacilitatorStudentLink> FacilitatorStudentLinks { get; set; }
+        public DbSet<LearningGroup> LearningGroups { get; set; }
+        public DbSet<LearningGroupStudent> LearningGroupStudents { get; set; }
+        public DbSet<LearnerAttendanceSession> LearnerAttendanceSessions { get; set; }
+        public DbSet<LearnerAttendanceRecord> LearnerAttendanceRecords { get; set; }
+        public DbSet<LearnerAttendanceRecordAudit> LearnerAttendanceRecordAudits { get; set; }
+        public DbSet<LearnerMessageLog> LearnerMessageLogs { get; set; }
+        public DbSet<FacilitatorActivityAudit> FacilitatorActivityAudits { get; set; }
         public DbSet<ReportSubReport> ReportSubReport { get; set; }
         public DbSet<BackgroundJobQueueItem> BackgroundJobQueueItems { get; set; }
         public DbSet<ApplicationSubmissionQueue> ApplicationSubmissionQueue { get; set; }
@@ -373,6 +381,56 @@ namespace ForekOnline.Infrastructure.Data
 
                 entity.HasIndex(e => e.IsActive)
                     .HasDatabaseName("IX_Enrollment_IsActive");
+            });
+            modelBuilder.Entity<FacilitatorStudentLink>(entity =>
+            {
+                entity.HasIndex(x => new { x.FacilitatorId, x.StudentId, x.Status });
+                entity.HasOne(x => x.Facilitator).WithMany().HasForeignKey(x => x.FacilitatorId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LearningGroup>(entity =>
+            {
+                entity.HasIndex(x => new { x.FacilitatorId, x.Status });
+                entity.HasOne(x => x.Facilitator).WithMany().HasForeignKey(x => x.FacilitatorId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LearningGroupStudent>(entity =>
+            {
+                entity.HasIndex(x => new { x.LearningGroupId, x.FacilitatorStudentLinkId }).IsUnique().HasFilter("[IsDeleted] = 0");
+                entity.HasOne(x => x.LearningGroup).WithMany(x => x.Students).HasForeignKey(x => x.LearningGroupId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.FacilitatorStudentLink).WithMany().HasForeignKey(x => x.FacilitatorStudentLinkId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LearnerAttendanceSession>(entity =>
+            {
+                entity.HasIndex(x => new { x.FacilitatorId, x.LearningGroupId, x.AttendanceDate });
+                entity.HasOne(x => x.Facilitator).WithMany().HasForeignKey(x => x.FacilitatorId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.LearningGroup).WithMany(x => x.AttendanceSessions).HasForeignKey(x => x.LearningGroupId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LearnerAttendanceRecord>(entity =>
+            {
+                entity.HasIndex(x => new { x.AttendanceSessionId, x.StudentId }).IsUnique();
+                entity.HasOne(x => x.AttendanceSession).WithMany(x => x.Records).HasForeignKey(x => x.AttendanceSessionId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LearnerAttendanceRecordAudit>()
+                .HasOne(x => x.AttendanceRecord).WithMany().HasForeignKey(x => x.AttendanceRecordId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LearnerMessageLog>(entity =>
+            {
+                entity.HasIndex(x => new { x.FacilitatorId, x.Channel, x.QueuedUtc });
+                entity.HasOne(x => x.Facilitator).WithMany().HasForeignKey(x => x.FacilitatorId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.LearningGroup).WithMany().HasForeignKey(x => x.LearningGroupId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(x => x.Student).WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FacilitatorActivityAudit>(entity =>
+            {
+                entity.HasIndex(x => new { x.ActorUserId, x.EventUtc });
+                entity.HasOne(x => x.ActorUser).WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
             });
             #endregion
 
