@@ -271,9 +271,9 @@ namespace ElecPOE.Controllers
                     switch (plan.Approval)
                     {
                         case eSelection.No:
-                            Helper.SendSMS(
-                                $"Hi Your Lesson Plan with reference: {plan.Reference} " +
-                                "is NOT approved. Try re-doing it and re-submit", cell);
+                            //Helper.SendSMS(
+                            //    $"Hi Your Lesson Plan with reference: {plan.Reference} " +
+                            //    "is NOT approved. Try re-doing it and re-submit", cell);
                             break;
 
                         case eSelection.Yes:
@@ -285,9 +285,9 @@ namespace ElecPOE.Controllers
                             break;
 
                         case eSelection.Pending:
-                            Helper.SendSMS(
-                                $"Hi Your Lesson Plan with reference: {plan.Reference} " +
-                                "is still NOT approved - kindly enquire about it to make a follow up", cell);
+                            //Helper.SendSMS(
+                            //    $"Hi Your Lesson Plan with reference: {plan.Reference} " +
+                            //    "is still NOT approved - kindly enquire about it to make a follow up", cell);
                             break;
                     }
                 }

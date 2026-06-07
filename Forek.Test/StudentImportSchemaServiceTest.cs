@@ -3,6 +3,7 @@
 // </copyright>
 
 using ForekOnline.Infrastructure.Data;
+using System;
 using Xunit;
 
 namespace Forek.Test
