@@ -1,7 +1,6 @@
 using ForekOnline.Domain.Entities;
 using ForekOnline.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using Xunit;
 
 namespace Forek.Test;

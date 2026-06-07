@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2550" viewBox="0 0 1800 2550" role="img" aria-labelledby="title description">
+  <title id="title">Forek Online facilitator learner management journey</title>
+  <desc id="description">A plain-language end-to-end illustration showing how facilitators choose learners, manage their student list, create groups, communicate, capture attendance, and how administrators monitor the process.</desc>
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9C2F00"/><stop offset="1" stop-color="#E65100"/></linearGradient>
+    <linearGradient id="facilitatorBand" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFF4ED"/><stop offset="1" stop-color="#FFF9F5"/></linearGradient>
+    <linearGradient id="adminBand" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#EEF6FF"/><stop offset="1" stop-color="#F8FBFF"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#172033" flood-opacity=".13"/></filter>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#E65100"/></marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#2563A9"/></marker>
+    <style>
+      .title{font:800 46px Arial,sans-serif;fill:#fff}.subtitle{font:400 22px Arial,sans-serif;fill:#FFF4ED}.section{font:800 27px Arial,sans-serif;fill:#172033}.cardTitle{font:800 23px Arial,sans-serif;fill:#172033}.body{font:400 18px Arial,sans-serif;fill:#39445A}.small{font:400 16px Arial,sans-serif;fill:#5C667A}.label{font:700 16px Arial,sans-serif;fill:#39445A}.whiteLabel{font:700 16px Arial,sans-serif;fill:#fff}.step{font:800 22px Arial,sans-serif;fill:#fff}.metric{font:800 25px Arial,sans-serif;fill:#172033}.laneLabel{font:800 20px Arial,sans-serif;letter-spacing:1px}.pill{font:700 15px Arial,sans-serif}.note{font:italic 16px Arial,sans-serif;fill:#5C667A}.line{stroke:#E65100;stroke-width:5;fill:none;marker-end:url(#arrowOrange)}.blueLine{stroke:#2563A9;stroke-width:4;fill:none;marker-end:url(#arrowBlue)}.dash{stroke-dasharray:11 9}.card{fill:#fff;stroke:#E3E7EE;stroke-width:2;filter:url(#shadow)}
+    </style>
+  </defs>
+
+  <rect width="1800" height="2550" fill="#F4F6F9"/>
+  <rect x="0" y="0" width="1800" height="245" fill="url(#header)"/>
+  <circle cx="105" cy="92" r="48" fill="#fff" opacity=".18"/><path d="M82 95h46M105 72v46" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+  <text x="180" y="82" class="title">Forek Online: Facilitator Learner Journey</text>
+  <text x="180" y="124" class="subtitle">From choosing learners to communication, attendance, reporting and administrator oversight</text>
+  <rect x="180" y="162" rx="22" width="1040" height="45" fill="#fff" opacity=".14"/>
+  <text x="205" y="191" class="whiteLabel">KEY PRINCIPLE: One learner can work with more than one facilitator — this is allowed and expected.</text>
+  <text x="1515" y="70" text-anchor="middle" class="whiteLabel">VERSION 1</text><text x="1515" y="112" text-anchor="middle" style="font:800 34px Arial;fill:#fff">LIGHTWEIGHT</text><text x="1515" y="145" text-anchor="middle" class="subtitle">No admin approval needed</text>
+
+  <!-- People -->
+  <text x="90" y="305" class="section">Who is involved?</text>
+  <g transform="translate(90 335)"><rect width="500" height="150" rx="20" class="card"/><circle cx="75" cy="75" r="45" fill="#FFF0E8"/><circle cx="75" cy="60" r="15" fill="#E65100"/><path d="M45 113c4-25 18-38 30-38s26 13 30 38" fill="#E65100"/><text x="145" y="49" class="cardTitle">FACILITATOR</text><text x="145" y="82" class="body">Builds a working learner list, creates groups,</text><text x="145" y="109" class="body">sends messages and captures attendance.</text></g>
+  <g transform="translate(650 335)"><rect width="500" height="150" rx="20" class="card"/><circle cx="75" cy="75" r="45" fill="#EAF4FF"/><circle cx="75" cy="60" r="15" fill="#2563A9"/><path d="M45 113c4-25 18-38 30-38s26 13 30 38" fill="#2563A9"/><text x="145" y="49" class="cardTitle">LEARNER</text><text x="145" y="82" class="body">Belongs to one or more facilitators and groups,</text><text x="145" y="109" class="body">receives messages and attendance alerts.</text></g>
+  <g transform="translate(1210 335)"><rect width="500" height="150" rx="20" class="card"/><circle cx="75" cy="75" r="45" fill="#EAF8F1"/><circle cx="75" cy="60" r="15" fill="#138A55"/><path d="M45 113c4-25 18-38 30-38s26 13 30 38" fill="#138A55"/><text x="145" y="49" class="cardTitle">ADMINISTRATOR</text><text x="145" y="82" class="body">Monitors coverage, groups, communication,</text><text x="145" y="109" class="body">attendance, gaps and activity history.</text></g>
+
+  <!-- Facilitator lane -->
+  <rect x="45" y="535" width="1710" height="1320" rx="28" fill="url(#facilitatorBand)" stroke="#F0D6C8" stroke-width="2"/>
+  <rect x="45" y="535" width="58" height="1320" rx="28" fill="#E65100"/>
+  <text x="74" y="1200" text-anchor="middle" class="whiteLabel" transform="rotate(-90 74 1200)">FACILITATOR WORKFLOW</text>
+
+  <!-- Step 1 -->
+  <g transform="translate(145 600)"><rect width="300" height="265" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">1</text><text x="80" y="49" class="cardTitle">Open My Learners</text><path d="M65 95h170v90H65z" fill="#FFF4ED" stroke="#E65100" stroke-width="3"/><path d="M95 130h110M95 153h75" stroke="#E65100" stroke-width="6" stroke-linecap="round"/><text x="30" y="220" class="body">The facilitator signs in and</text><text x="30" y="247" class="body">starts from their own workspace.</text></g>
+  <path d="M455 732H505" class="line"/>
+
+  <!-- Step 2 -->
+  <g transform="translate(520 600)"><rect width="480" height="265" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">2</text><text x="80" y="49" class="cardTitle">Find and choose learners</text><rect x="30" y="78" width="420" height="42" rx="10" fill="#F5F7FA" stroke="#C8CED9"/><circle cx="55" cy="99" r="10" fill="none" stroke="#5C667A" stroke-width="3"/><path d="M62 107l10 10" stroke="#5C667A" stroke-width="3"/><text x="88" y="106" class="small">Search by name, student no., ID, course...</text><text x="30" y="153" class="body">Filter by enrolment status or programme.</text><text x="30" y="183" class="body">Tick one or many learners and select</text><rect x="30" y="204" width="184" height="39" rx="8" fill="#E65100"/><text x="122" y="230" text-anchor="middle" class="whiteLabel">ADD SELECTED</text></g>
+  <path d="M1010 732H1060" class="line"/>
+
+  <!-- Decision/warning -->
+  <g transform="translate(1075 600)"><rect width="570" height="265" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#F3A712"/><text x="42" y="50" text-anchor="middle" class="step">!</text><text x="80" y="49" class="cardTitle">Already linked elsewhere?</text><path d="M285 77l55 50-55 50-55-50z" fill="#FFF6D9" stroke="#F3A712" stroke-width="3"/><text x="285" y="122" text-anchor="middle" class="label">OTHER</text><text x="285" y="142" text-anchor="middle" class="label">FACILITATOR?</text><rect x="30" y="194" width="510" height="48" rx="10" fill="#FFF6D9"/><text x="285" y="215" text-anchor="middle" class="label">Soft warning only — it does not block selection.</text><text x="285" y="235" text-anchor="middle" class="small">The same learner may legitimately have several facilitators.</text></g>
+
+  <path d="M850 880V925" class="line"/>
+
+  <!-- Step 3 my students -->
+  <g transform="translate(145 940)"><rect width="670" height="360" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">3</text><text x="80" y="49" class="cardTitle">Work from “My Students”</text><text x="30" y="92" class="body">The selected learners now form the facilitator’s day-to-day list.</text>
+    <g transform="translate(30 118)"><rect width="610" height="142" rx="12" fill="#F7F8FA" stroke="#D9DEE7"/><circle cx="55" cy="50" r="28" fill="#E8EBF0"/><text x="100" y="39" class="label">LEARNER NAME · STU-00123</text><text x="100" y="66" class="small">Programme · Contact · Enrolment status</text><rect x="100" y="82" width="105" height="28" rx="14" fill="#6366F1"/><text x="152" y="102" text-anchor="middle" class="pill" fill="#fff">Morning</text><rect x="216" y="82" width="105" height="28" rx="14" fill="#E65100"/><text x="268" y="102" text-anchor="middle" class="pill" fill="#fff">Remedial</text><text x="390" y="102" class="small">8/10 present · last contact</text></g>
+    <text x="30" y="292" class="label">Useful views:</text><text x="30" y="322" class="small">Group · Course · Attendance · Ungrouped · At risk · Recently added</text><text x="30" y="347" class="note">Removing a learner only ends this facilitator link; history is retained.</text>
+  </g>
+
+  <!-- Step 4 groups -->
+  <g transform="translate(850 940)"><rect width="795" height="360" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">4</text><text x="80" y="49" class="cardTitle">Organise learners into coloured groups</text>
+    <g transform="translate(30 90)"><rect width="220" height="150" rx="14" fill="#fff" stroke="#2563A9" stroke-width="5"/><text x="18" y="34" class="label">Morning Group</text><text x="18" y="66" class="small">Blue identification</text><text x="18" y="94" class="small">Practical: 08:00–12:00</text><text x="18" y="126" class="label">24 learners</text></g>
+    <g transform="translate(285 90)"><rect width="220" height="150" rx="14" fill="#fff" stroke="#8B5CF6" stroke-width="5"/><text x="18" y="34" class="label">Remedial Group</text><text x="18" y="66" class="small">Purple identification</text><text x="18" y="94" class="small">Catch-up support</text><text x="18" y="126" class="label">12 learners</text></g>
+    <g transform="translate(540 90)"><rect width="220" height="150" rx="14" fill="#fff" stroke="#138A55" stroke-width="5"/><text x="18" y="34" class="label">Workplace A</text><text x="18" y="66" class="small">Green identification</text><text x="18" y="94" class="small">External host sites</text><text x="18" y="126" class="label">18 learners</text></g>
+    <text x="30" y="277" class="body">Add a name, colour, optional note and active/inactive status.</text><text x="30" y="307" class="body">A learner may join more than one group under the same facilitator.</text><rect x="30" y="322" width="520" height="28" rx="14" fill="#FFF6D9"/><text x="290" y="342" text-anchor="middle" class="pill" fill="#7A5400">Helpful alert: “12 learners are not assigned to any group.”</text>
+  </g>
+
+  <path d="M480 1320V1365" class="line"/><path d="M1260 1320V1365" class="line"/>
+
+  <!-- Step 5 communications -->
+  <g transform="translate(145 1380)"><rect width="670" height="405" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">5</text><text x="80" y="49" class="cardTitle">Send a notification</text><text x="30" y="92" class="label">Choose the audience</text>
+    <g transform="translate(30 112)"><rect width="135" height="50" rx="25" fill="#FFF0E8"/><text x="67" y="31" text-anchor="middle" class="pill" fill="#9C2F00">All My Students</text><rect x="145" width="115" height="50" rx="25" fill="#EAF4FF"/><text x="202" y="31" text-anchor="middle" class="pill" fill="#174D80">One group</text><rect x="270" width="130" height="50" rx="25" fill="#F1ECFF"/><text x="335" y="31" text-anchor="middle" class="pill" fill="#6037A3">Many groups</text><rect x="410" width="165" height="50" rx="25" fill="#EAF8F1"/><text x="492" y="31" text-anchor="middle" class="pill" fill="#0A6640">Selected learners</text></g>
+    <text x="30" y="205" class="label">Choose the delivery channel</text><g transform="translate(30 225)"><rect width="285" height="105" rx="14" fill="#EAF4FF"/><circle cx="48" cy="48" r="23" fill="#2563A9"/><path d="M37 45h22M37 55h15" stroke="#fff" stroke-width="4"/><text x="85" y="42" class="label">IN-APP</text><text x="85" y="68" class="small">Delivered immediately</text><text x="85" y="91" class="small">and recorded in the log</text><rect x="315" width="285" height="105" rx="14" fill="#EAF8F1"/><circle cx="363" cy="48" r="23" fill="#138A55"/><path d="M352 41c16-10 26 9 9 20l-10 3 3-9c-8-8-7-10-2-14z" fill="#fff"/><text x="400" y="42" class="label">WHATSAPP</text><text x="400" y="68" class="small">Queued and logged now</text><text x="400" y="91" class="small">Provider connection comes later</text></g>
+    <text x="30" y="370" class="note">Learners without a linked account or cellphone are logged as skipped — never silently lost.</text>
+  </g>
+
+  <!-- Step 6 attendance -->
+  <g transform="translate(850 1380)"><rect width="795" height="405" rx="20" class="card"/><circle cx="42" cy="42" r="25" fill="#E65100"/><text x="42" y="50" text-anchor="middle" class="step">6</text><text x="80" y="49" class="cardTitle">Take attendance for a group</text>
+    <text x="30" y="91" class="body">Open a group → Take Attendance → choose date/topic → mark each learner.</text>
+    <g transform="translate(30 120)"><rect width="735" height="80" rx="12" fill="#F7F8FA"/><text x="18" y="31" class="label">Learner Name · STU-00123</text><rect x="310" y="18" width="105" height="42" rx="9" fill="#138A55"/><text x="362" y="45" text-anchor="middle" class="whiteLabel">PRESENT</text><rect x="430" y="18" width="90" height="42" rx="9" fill="#C43A32"/><text x="475" y="45" text-anchor="middle" class="whiteLabel">ABSENT</text><rect x="535" y="18" width="76" height="42" rx="9" fill="#F3A712"/><text x="573" y="45" text-anchor="middle" class="whiteLabel">LATE</text><rect x="626" y="18" width="91" height="42" rx="9" fill="#64748B"/><text x="671" y="45" text-anchor="middle" class="whiteLabel">EXCUSED</text></g>
+    <g transform="translate(30 220)"><rect width="215" height="70" rx="12" fill="#EEF1F5"/><text x="107" y="29" text-anchor="middle" class="label">SAVE AS DRAFT</text><text x="107" y="52" text-anchor="middle" class="small">Finish later</text><path d="M255 35h55" class="line"/><rect x="320" width="215" height="70" rx="12" fill="#E65100"/><text x="427" y="29" text-anchor="middle" class="whiteLabel">SUBMIT</text><text x="427" y="52" text-anchor="middle" class="whiteLabel">Complete session</text><path d="M545 35h55" class="line"/><rect x="610" width="125" height="70" rx="12" fill="#FFF6D9"/><text x="672" y="27" text-anchor="middle" class="label">ABSENT?</text><text x="672" y="52" text-anchor="middle" class="small">Send alert</text></g>
+    <text x="30" y="330" class="body">Quick actions: Mark all present · Clear all · Show not marked · Add comments</text><text x="30" y="360" class="note">Submitted attendance can be corrected, but the old value, new value, editor, time and reason are retained.</text>
+  </g>
+
+  <!-- Student outcome strip -->
+  <rect x="145" y="1810" width="1500" height="115" rx="18" fill="#EAF4FF" stroke="#B8D6F5" stroke-width="2"/>
+  <circle cx="205" cy="1867" r="35" fill="#2563A9"/><path d="M190 1858h30v22h-20l-10 8v-8z" fill="#fff"/>
+  <text x="265" y="1852" class="cardTitle">What the learner experiences</text><text x="265" y="1884" class="body">Receives general messages and, at minimum, an in-app alert when marked absent.</text><text x="265" y="1910" class="small">Future options: view facilitators, see attendance history, upload absence reasons, guardian alerts and QR attendance.</text>
+
+  <!-- Admin lane -->
+  <rect x="45" y="1980" width="1710" height="340" rx="28" fill="url(#adminBand)" stroke="#C8DDF3" stroke-width="2"/>
+  <rect x="45" y="1980" width="58" height="340" rx="28" fill="#2563A9"/><text x="74" y="2150" text-anchor="middle" class="whiteLabel" transform="rotate(-90 74 2150)">ADMIN OVERSIGHT</text>
+  <text x="145" y="2034" class="section">7. Administrators see the whole picture — without approving every action</text>
+  <g transform="translate(145 2065)"><rect width="275" height="190" rx="16" class="card"/><text x="20" y="38" class="cardTitle">Coverage</text><text x="20" y="72" class="body">• Students per facilitator</text><text x="20" y="102" class="body">• Active groups</text><text x="20" y="132" class="body">• Attendance sessions</text><text x="20" y="162" class="body">• Last activity</text></g>
+  <g transform="translate(450 2065)"><rect width="275" height="190" rx="16" class="card"/><text x="20" y="38" class="cardTitle">Allocation gaps</text><text x="20" y="72" class="body">• Unassigned learners</text><text x="20" y="102" class="body">• Multiple facilitators</text><text x="20" y="132" class="body">• Link dates and status</text><text x="20" y="162" class="body">• Data-quality gaps</text></g>
+  <g transform="translate(755 2065)"><rect width="275" height="190" rx="16" class="card"/><text x="20" y="38" class="cardTitle">Operations</text><text x="20" y="72" class="body">• All group summaries</text><text x="20" y="102" class="body">• Attendance reports</text><text x="20" y="132" class="body">• Repeated absences</text><text x="20" y="162" class="body">• Missing attendance</text></g>
+  <g transform="translate(1060 2065)"><rect width="275" height="190" rx="16" class="card"/><text x="20" y="38" class="cardTitle">Communication</text><text x="20" y="72" class="body">• Notification history</text><text x="20" y="102" class="body">• WhatsApp queue/logs</text><text x="20" y="132" class="body">• Sent / queued / skipped</text><text x="20" y="162" class="body">• Recipient visibility</text></g>
+  <g transform="translate(1365 2065)"><rect width="275" height="190" rx="16" class="card"/><text x="20" y="38" class="cardTitle">Audit trail</text><text x="20" y="72" class="body">• Who did what</text><text x="20" y="102" class="body">• When it happened</text><text x="20" y="132" class="body">• Previous / new values</text><text x="20" y="162" class="body">• Attendance corrections</text></g>
+
+  <!-- Foundation -->
+  <rect x="45" y="2370" width="1710" height="130" rx="25" fill="#172033"/>
+  <text x="90" y="2413" style="font:800 24px Arial;fill:#fff">Built-in safeguards and future readiness</text>
+  <g transform="translate(90 2435)"><rect width="245" height="38" rx="19" fill="#39445A"/><text x="122" y="25" text-anchor="middle" class="pill" fill="#fff">No learner is deleted</text><rect x="260" width="280" height="38" rx="19" fill="#39445A"/><text x="400" y="25" text-anchor="middle" class="pill" fill="#fff">Facilitators see only their groups</text><rect x="555" width="250" height="38" rx="19" fill="#39445A"/><text x="680" y="25" text-anchor="middle" class="pill" fill="#fff">Important actions are logged</text><rect x="820" width="320" height="38" rx="19" fill="#39445A"/><text x="980" y="25" text-anchor="middle" class="pill" fill="#fff">Approval statuses can be added later</text><rect x="1155" width="400" height="38" rx="19" fill="#39445A"/><text x="1355" y="25" text-anchor="middle" class="pill" fill="#fff">Ready for WhatsApp, QR, timetable and assessments</text></g>
+
+  <text x="900" y="2531" text-anchor="middle" class="small">Forek Online · Facilitator Student Selection, Learning Groups, Notifications &amp; Learner Attendance · Stakeholder Journey Map</text>
+</svg>

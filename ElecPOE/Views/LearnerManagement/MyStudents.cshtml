@@ -1,35 +1,16 @@
 @model ElecPOE.ViewModels.MyStudentsViewModel
-@{
-    ViewData["Title"] = "My Students";
-    var groupedCount = Model.Students.Count(x => x.Groups.Any());
-    var ungroupedCount = Model.Students.Count - groupedCount;
-}
-@section Styles { <link rel="stylesheet" href="~/css/learner-management.css" asp-append-version="true" /> }
-<div class="lm-page">
-    <section class="lm-hero"><div class="lm-hero-row"><div><div class="lm-eyebrow"><i class="bi bi-people"></i> Facilitator workspace</div><h1>My students</h1><p>Your learner list at a glance—programme, group allocation, attendance progress and recent communication in one focused workspace.</p></div><div class="lm-hero-actions"><a asp-action="Groups" class="lm-btn lm-btn-light"><i class="bi bi-collection"></i> My groups</a><a asp-action="AddStudents" class="lm-btn lm-btn-primary"><i class="bi bi-person-plus"></i> Add students</a></div></div></section>
-
-    <div class="lm-stat-grid">
-        <div class="lm-stat orange"><div class="lm-stat-top"><span class="lm-kicker">Current view</span><span class="lm-stat-icon"><i class="bi bi-people"></i></span></div><div class="lm-stat-value">@Model.Students.Count</div><div class="lm-stat-label">Learners matching your filters</div></div>
-        <div class="lm-stat green"><div class="lm-stat-top"><span class="lm-kicker">Allocated</span><span class="lm-stat-icon"><i class="bi bi-diagram-3"></i></span></div><div class="lm-stat-value">@groupedCount</div><div class="lm-stat-label">Learners assigned to groups</div></div>
-        <div class="lm-stat red"><div class="lm-stat-top"><span class="lm-kicker">Needs attention</span><span class="lm-stat-icon"><i class="bi bi-person-exclamation"></i></span></div><div class="lm-stat-value">@ungroupedCount</div><div class="lm-stat-label">Ungrouped learners in this view</div></div>
-        <div class="lm-stat blue"><div class="lm-stat-top"><span class="lm-kicker">Learning groups</span><span class="lm-stat-icon"><i class="bi bi-collection"></i></span></div><div class="lm-stat-value">@Model.Groups.Count</div><div class="lm-stat-label">Available for filtering</div></div>
-    </div>
-
-    <form method="get" class="lm-filter"><div class="row g-3 align-items-end">
-        <div class="col-lg-5"><label class="lm-label" for="search">Search learners</label><div class="lm-search-wrap"><i class="bi bi-search"></i><input id="search" name="search" value="@Model.Search" class="form-control" placeholder="Name or student number" /></div></div>
-        <div class="col-lg-4"><label class="lm-label" for="GroupId">Learning group</label><select asp-for="GroupId" class="form-select"><option value="">All groups</option>@foreach (var g in Model.Groups) { <option value="@g.Id">@g.GroupName</option> }</select></div>
-        <div class="col-lg-2"><div class="form-check pb-2"><input class="form-check-input" type="checkbox" name="ungroupedOnly" value="true" checked="@Model.UngroupedOnly" id="ungrouped" /><label class="form-check-label small fw-semibold" for="ungrouped">Ungrouped only</label></div></div>
-        <div class="col-lg-1"><button class="lm-btn lm-btn-primary w-100" title="Apply filters"><i class="bi bi-funnel"></i></button></div>
-    </div></form>
-
-    <section class="lm-panel"><div class="lm-panel-head"><div><h2 class="lm-panel-title">Learner directory</h2><p class="lm-panel-subtitle">@Model.Students.Count learner(s) shown</p></div><a asp-action="SendMessage" class="lm-btn lm-btn-outline lm-btn-sm"><i class="bi bi-send"></i> Send message</a></div>
-        <div class="table-responsive"><table class="lm-table"><thead><tr><th>Learner</th><th>Programme</th><th>Contact</th><th>Groups</th><th>Attendance</th><th>Last contact</th><th>Manage</th></tr></thead><tbody>
-        @if (!Model.Students.Any()) { <tr><td colspan="7"><div class="lm-empty"><span class="lm-empty-icon"><i class="bi bi-people"></i></span><strong class="d-block">No learners match this view</strong><span class="small">Clear the filters or add students to begin.</span></div></td></tr> }
-        @foreach (var s in Model.Students)
-        {
-            var parts = s.StudentName.Split(' ', StringSplitOptions.RemoveEmptyEntries); var initials = string.Concat(parts.Take(2).Select(x => char.ToUpperInvariant(x[0])));
-            <tr><td><div class="lm-person"><span class="lm-avatar">@initials</span><div><div class="lm-person-name">@s.StudentName</div><div class="lm-meta">@s.StudentNumber · @(s.EnrollmentStatus ?? "No status")</div></div></div></td><td>@(s.Course ?? "—")</td><td>@(s.ContactNumber ?? "—")</td><td>@if (!s.Groups.Any()) { <span class="lm-badge lm-badge-warning">Ungrouped</span> } else { @foreach (var g in s.Groups) { <a asp-action="Group" asp-route-id="@g.Id" class="lm-badge text-decoration-none me-1 mb-1" style="background:@g.Color;color:#fff">@g.Name</a> } }</td><td><strong>@s.AttendanceSummary</strong><div class="lm-meta">@(s.LastAttendanceDate?.ToString("dd MMM yyyy") ?? "No register yet")</div></td><td>@(s.LastCommunicationDate?.ToString("dd MMM yyyy") ?? "—")</td><td><form asp-action="RemoveStudent" method="post" class="lm-inline-form" onsubmit="return confirm('Remove this student from your list? Historical attendance remains available.');">@Html.AntiForgeryToken()<input type="hidden" name="linkId" value="@s.LinkId" /><input name="reason" class="form-control" placeholder="Optional reason" /><button class="lm-btn lm-btn-danger lm-btn-sm">Remove</button></form></td></tr>
-        }
-        </tbody></table></div>
-    </section>
+@{ ViewData["Title"] = "My Students"; }
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div><h1 class="h3 mb-1">My Students</h1><p class="text-muted mb-0">Your facilitator-owned learner list.</p></div>
+    <div class="d-flex gap-2"><a asp-action="AddStudents" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>Add Students</a><a asp-action="Groups" class="btn btn-outline-secondary">My Groups</a></div>
 </div>
+<form method="get" class="card card-body mb-4"><div class="row g-3 align-items-end">
+    <div class="col-md-5"><label class="form-label">Search</label><input name="search" value="@Model.Search" class="form-control" placeholder="Name or student number" /></div>
+    <div class="col-md-4"><label class="form-label">Group</label><select asp-for="GroupId" class="form-select"><option value="">All groups</option>@foreach(var g in Model.Groups){<option value="@g.Id">@g.GroupName</option>}</select></div>
+    <div class="col-md-2 form-check ms-2"><input class="form-check-input" type="checkbox" name="ungroupedOnly" value="true" checked="@Model.UngroupedOnly" id="ungrouped"><label class="form-check-label" for="ungrouped">Ungrouped only</label></div>
+    <div class="col-md-auto"><button class="btn btn-dark">Filter</button></div>
+</div></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Student</th><th>Programme</th><th>Contact</th><th>Groups</th><th>Attendance</th><th>Last contact</th><th></th></tr></thead><tbody>
+@if(!Model.Students.Any()){<tr><td colspan="7" class="text-center py-5 text-muted">No students match this view. Add students to begin.</td></tr>}
+@foreach(var s in Model.Students){<tr><td><strong>@s.StudentName</strong><div class="small text-muted">@s.StudentNumber · @s.EnrollmentStatus</div></td><td>@(s.Course ?? "—")</td><td>@(s.ContactNumber ?? "—")</td><td>@if(!s.Groups.Any()){<span class="badge bg-light text-dark">Ungrouped</span>}else{@foreach(var g in s.Groups){<a asp-action="Group" asp-route-id="@g.Id" class="badge text-decoration-none me-1" style="background:@g.Color;color:white">@g.Name</a>}</td><td>@s.AttendanceSummary<div class="small text-muted">@(s.LastAttendanceDate?.ToString("dd MMM yyyy") ?? "No date")</div></td><td>@(s.LastCommunicationDate?.ToString("dd MMM yyyy") ?? "—")</td><td><form asp-action="RemoveStudent" method="post" onsubmit="return confirm('Remove this student from your list? Historical attendance remains available.');">@Html.AntiForgeryToken()<input type="hidden" name="linkId" value="@s.LinkId"><input name="reason" class="form-control form-control-sm mb-1" placeholder="Optional reason"><button class="btn btn-sm btn-outline-danger">Remove</button></form></td></tr>}
+</tbody></table></div></div>

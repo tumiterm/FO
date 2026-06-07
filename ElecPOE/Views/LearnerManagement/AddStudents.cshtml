@@ -1,69 +1,8 @@
 @model ElecPOE.ViewModels.AddStudentsViewModel
-@{
-    ViewData["Title"] = "Add Students";
-    var availableCount = Model.Students.Count(x => !x.AlreadyMine);
-}
-@section Styles { <link rel="stylesheet" href="~/css/learner-management.css" asp-append-version="true" /> }
-<div class="lm-page">
-    <section class="lm-hero">
-        <div class="lm-hero-row">
-            <div><div class="lm-eyebrow"><i class="bi bi-person-plus"></i> Learner management</div><h1>Add students</h1><p>Find enrolled learners and build your facilitator list. Existing facilitator links remain visible so allocation decisions stay clear.</p></div>
-            <div class="lm-hero-actions"><a asp-action="MyStudents" class="lm-btn lm-btn-light"><i class="bi bi-arrow-left"></i> My students</a></div>
-        </div>
-    </section>
-
-    <form method="get" class="lm-filter">
-        <div class="row g-3 align-items-end">
-            <div class="col-lg-7"><label class="lm-label" for="studentSearch">Search learners</label><div class="lm-search-wrap"><i class="bi bi-search"></i><input id="studentSearch" name="search" value="@Model.Search" class="form-control" placeholder="Student number, ID, passport, name or programme" /></div></div>
-            <div class="col-lg-3"><label class="lm-label" for="enrollmentStatus">Enrollment status</label><input id="enrollmentStatus" name="enrollmentStatus" value="@Model.EnrollmentStatus" class="form-control" placeholder="e.g. Active" /></div>
-            <div class="col-lg-2"><button class="lm-btn lm-btn-primary w-100"><i class="bi bi-search"></i> Search</button></div>
-        </div>
-    </form>
-
-    <form asp-action="AddStudents" method="post">@Html.AntiForgeryToken()
-        <section class="lm-panel">
-            <div class="lm-panel-head lm-selection-bar">
-                <div><h2 class="lm-panel-title">Select learners <span class="lm-count-pill">@availableCount</span></h2><p class="lm-panel-subtitle"><span id="selectedCount">0</span> selected from @Model.Students.Count result(s)</p></div>
-                <button class="lm-btn lm-btn-primary" id="addSelected" disabled><i class="bi bi-person-check"></i> Add selected</button>
-            </div>
-            <div class="table-responsive">
-                <table class="lm-table">
-                    <thead><tr><th><input type="checkbox" id="selectAll" class="lm-initial-check" aria-label="Select all available learners" /></th><th>Learner</th><th>ID / Passport</th><th>Programme</th><th>Allocation</th></tr></thead>
-                    <tbody>
-                    @if (!Model.Students.Any()) { <tr><td colspan="5"><div class="lm-empty"><span class="lm-empty-icon"><i class="bi bi-search"></i></span><strong class="d-block">No learners found</strong><span class="small">Adjust the search or enrollment status and try again.</span></div></td></tr> }
-                    @foreach (var s in Model.Students)
-                    {
-                        var parts = s.StudentName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        var initials = string.Concat(parts.Take(2).Select(x => char.ToUpperInvariant(x[0])));
-                        <tr>
-                            <td><input class="student-check lm-initial-check" type="checkbox" name="StudentIds" value="@s.Id" disabled="@s.AlreadyMine" aria-label="Select @s.StudentName" /></td>
-                            <td><div class="lm-person"><span class="lm-avatar">@initials</span><div><div class="lm-person-name">@s.StudentName</div><div class="lm-meta">@s.StudentNumber</div></div></div></td>
-                            <td>@(s.IdentityNumber ?? "—")</td>
-                            <td><div>@(s.Course ?? "Not specified")</div><div class="lm-meta">@(s.EnrollmentStatus ?? "No status")</div></td>
-                            <td>
-                                @if (s.AlreadyMine) { <span class="lm-badge lm-badge-success"><i class="bi bi-check-circle"></i> Already in my students</span> }
-                                else if (s.OtherFacilitatorCount > 0) { <span class="lm-badge lm-badge-warning"><i class="bi bi-people"></i> @s.OtherFacilitatorCount other facilitator(s)</span> }
-                                else { <span class="lm-badge"><i class="bi bi-person-dash"></i> Unallocated</span> }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </form>
-</div>
-@section Scripts {
-<script>
-(() => {
-    const selectAll = document.getElementById('selectAll');
-    const checks = Array.from(document.querySelectorAll('.student-check:not(:disabled)'));
-    const count = document.getElementById('selectedCount');
-    const submit = document.getElementById('addSelected');
-    const refresh = () => { const selected = checks.filter(x => x.checked).length; count.textContent = selected; submit.disabled = selected === 0; selectAll.checked = checks.length > 0 && selected === checks.length; selectAll.indeterminate = selected > 0 && selected < checks.length; };
-    selectAll?.addEventListener('change', () => { checks.forEach(x => x.checked = selectAll.checked); refresh(); });
-    checks.forEach(x => x.addEventListener('change', refresh));
-    refresh();
-})();
-</script>
-}
+@{ ViewData["Title"] = "Add Students"; }
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h3 mb-1">Add Students to My List</h1><p class="text-muted mb-0">Students may be linked to more than one facilitator.</p></div><a asp-action="MyStudents" class="btn btn-outline-secondary">Back to My Students</a></div>
+<form method="get" class="card card-body mb-4"><div class="row g-3 align-items-end"><div class="col-md-7"><label class="form-label">Search students</label><input name="search" value="@Model.Search" class="form-control" placeholder="Student number, ID/passport, first or last name"></div><div class="col-md-3"><label class="form-label">Enrollment status</label><input name="enrollmentStatus" value="@Model.EnrollmentStatus" class="form-control" placeholder="Active"></div><div class="col-md-2"><button class="btn btn-dark w-100">Search</button></div></div></form>
+<form asp-action="AddStudents" method="post">@Html.AntiForgeryToken()<div class="card"><div class="card-header d-flex justify-content-between align-items-center"><span>Select learners</span><button class="btn btn-primary">Add Selected</button></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th><input type="checkbox" id="selectAll"></th><th>Student</th><th>ID / Passport</th><th>Programme</th><th>Allocation</th></tr></thead><tbody>
+@foreach(var s in Model.Students){<tr class="@(s.AlreadyMine ? "table-light" : "")"><td><input class="student-check" type="checkbox" name="StudentIds" value="@s.Id" disabled="@s.AlreadyMine"></td><td><strong>@s.StudentName</strong><div class="small text-muted">@s.StudentNumber</div></td><td>@(s.IdentityNumber ?? "—")</td><td>@(s.Course ?? "—")<div class="small text-muted">@s.EnrollmentStatus</div></td><td>@if(s.AlreadyMine){<span class="badge bg-success">Already in My Students</span>}else if(s.OtherFacilitatorCount > 0){<div class="alert alert-warning py-1 px-2 mb-0 small"><i class="fa fa-exclamation-triangle"></i> Linked to @s.OtherFacilitatorCount other facilitator(s). You may still add this student.</div>}else{<span class="text-muted">Not currently allocated</span>}</td></tr>}
+</tbody></table></div></div></form>
+@section Scripts{<script>document.getElementById('selectAll')?.addEventListener('change',e=>document.querySelectorAll('.student-check:not(:disabled)').forEach(x=>x.checked=e.target.checked));</script>}
