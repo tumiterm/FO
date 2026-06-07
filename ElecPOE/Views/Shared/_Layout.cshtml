@@ -550,6 +550,28 @@
                             </ul>
                         </li>
                     }
+                    @if (isFacilitator)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @(ViewContext.RouteData.Values["controller"]?.ToString() == "LearnerManagement" ? "active" : "")" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fa fa-chalkboard-teacher"></i> My Learners
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="MyStudents"><i class="fa fa-user-graduate me-2"></i>My Students</a></li>
+                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="AddStudents"><i class="fa fa-user-plus me-2"></i>Add Students</a></li>
+                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="Groups"><i class="fa fa-object-group me-2"></i>My Groups</a></li>
+                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="SendMessage"><i class="fa fa-bullhorn me-2"></i>Send Notification</a></li>
+                            </ul>
+                        </li>
+                    }
+                    @if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LearnerManagement" ? "active" : "")" asp-controller="LearnerManagement" asp-action="Admin">
+                                <i class="fa fa-chart-pie"></i> Learner Management
+                            </a>
+                        </li>
+                    }
                     @if (showEmployeeNav)
                     {
                         <li class="nav-item">
