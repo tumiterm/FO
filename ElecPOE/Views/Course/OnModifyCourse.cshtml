@@ -201,6 +201,31 @@
     width:0%;
     transition:.5s;
 }
+
+.option-settings {
+    background:linear-gradient(135deg,#fff8f6,#fff);
+    border:1px solid #f0c9c4;
+    border-radius:24px;
+    padding:1rem;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+}
+.option-settings__copy {
+    flex:1 1 480px;
+}
+.option-settings__copy strong {
+    display:block;
+    color:#7d0b0f;
+    margin-bottom:.25rem;
+}
+.option-settings__copy span {
+    color:#666;
+    font-size:.72rem;
+}
+
 @@media (max-width:680px){
     .field-grid { grid-template-columns:1fr; }
     .panel__head { flex-direction:column; align-items:flex-start; }
@@ -256,6 +281,40 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+
+            <div class="section" id="courseOptionsSettings">
+                <h2 class="section-title"><i class="fa fa-layer-group"></i> Packages &amp; Course Fees</h2>
+                <p class="helper">Enable learner-selectable packages such as Package 1 and Package 2, then configure each package's fee lines and number of days.</p>
+
+                <div class="field-grid">
+                    <div class="form-floating">
+                        <input asp-for="TuitionFee" type="number" min="0" step="0.01" class="form-control" placeholder="Default tuition fee" />
+                        <label asp-for="TuitionFee">Default Tuition Fee</label>
+                    </div>
+                    <div class="form-floating">
+                        <input asp-for="MaximumStudents" type="number" min="1" class="form-control" placeholder="Maximum students" />
+                        <label asp-for="MaximumStudents">Maximum Students</label>
+                    </div>
+                </div>
+
+                <div class="option-settings">
+                    <div class="option-settings__copy">
+                        <strong>Does this course offer learner packages?</strong>
+                        <span>When enabled, the course list displays a Manage Packages button where you can create the options, add fees, and capture package days.</span>
+                    </div>
+                    <label class="toggle-active">
+                        <input asp-for="HasCourseOptions" class="form-check-input me-1" />
+                        <span id="courseOptionsStatus">Course packages disabled</span>
+                    </label>
+                    @if (Model.HasCourseOptions)
+                    {
+                        <a asp-action="GetActiveCourses" asp-route-manageOptions="@Model.CourseId" class="btn btn-danger btn-pill">
+                            <i class="fa fa-sliders"></i> Manage Packages &amp; Fees
+                        </a>
+                    }
                 </div>
             </div>
 
@@ -327,6 +386,19 @@
             }
             activeInput?.addEventListener('change', syncActive);
             syncActive();
+
+
+            const courseOptionsInput = document.getElementById('@Html.IdFor(m => m.HasCourseOptions)');
+            const courseOptionsStatus = document.getElementById('courseOptionsStatus');
+            function syncCourseOptions() {
+                if (!courseOptionsInput || !courseOptionsStatus) return;
+                courseOptionsStatus.textContent = courseOptionsInput.checked
+                    ? 'Course packages enabled'
+                    : 'Course packages disabled';
+                courseOptionsStatus.classList.toggle('text-danger', !courseOptionsInput.checked);
+            }
+            courseOptionsInput?.addEventListener('change', syncCourseOptions);
+            syncCourseOptions();
 
             // Credit progress bar (simple heuristic)
             const creditInput = document.getElementById('@Html.IdFor(m => m.CourseCredit)');

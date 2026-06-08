@@ -1246,9 +1246,17 @@
                                     </a>
                                     @if (c.HasCourseOptions)
                                     {
-                                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId">
-                                            <i class="fa fa-layer-group"></i> Options
+                                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId"
+                                                title="Configure packages, fee lines, and package duration">
+                                            <i class="fa fa-layer-group"></i> Packages (@c.CourseOptions.Count)
                                         </button>
+                                    }
+                                    else
+                                    {
+                                        <a class="crs-pill crs-pill-purple" asp-action="OnModifyCourse" asp-controller="Course"
+                                           asp-route-CourseId="@c.CourseId" asp-fragment="courseOptionsSettings">
+                                            <i class="fa fa-layer-group"></i> Enable Packages
+                                        </a>
                                     }
                                 </td>
                                 <td class="crs-course-name">@c.CourseName</td>
@@ -1336,9 +1344,18 @@
                     </a>
                     @if (c.HasCourseOptions)
                     {
-                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId">
-                            <i class="fa fa-layer-group"></i> @c.CourseOptions.Count Option(s)
+                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId"
+                                title="Configure packages, fee lines, and package duration">
+                            <i class="fa fa-layer-group"></i> Manage Packages (@c.CourseOptions.Count)
                         </button>
+                    }
+                    else
+                    {
+                        <a class="crs-pill crs-pill-purple" asp-action="OnModifyCourse" asp-controller="Course"
+                           asp-route-CourseId="@c.CourseId" asp-fragment="courseOptionsSettings"
+                           title="Enable package-based pricing for this course">
+                            <i class="fa fa-layer-group"></i> Enable Packages
+                        </a>
                     }
                 </div>
             </article>
@@ -1489,17 +1506,17 @@
 {
 <div class="modal fade crs-modal" id="courseOptions-@course.CourseId" tabindex="-1" aria-hidden="true">
  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"><div class="modal-content">
-  <div class="modal-header"><div><h5 class="modal-title"><i class="fa fa-layer-group"></i> @course.CourseName</h5><div class="crs-modal-sub">Course options and fee architecture</div></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-header"><div><h5 class="modal-title"><i class="fa fa-layer-group"></i> @course.CourseName</h5><div class="crs-modal-sub">Configure learner packages, prices, and duration</div></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
   <div class="modal-body crs-option-shell">
    <form asp-action="AddCourseOption" asp-controller="Course" method="post" class="crs-option-form">@Html.AntiForgeryToken()<input type="hidden" name="CourseId" value="@course.CourseId" />
-    <div class="crs-section-title" style="color:#fff"><i class="fa fa-sparkles"></i> Create a premium course option</div>
-    <div class="crs-modal-row crs-three"><div class="crs-modal-fg" style="grid-column:span 2"><label>Option Description</label><input name="OptionDescription" required maxlength="200" placeholder="e.g. Executive weekday programme" /></div><div class="crs-modal-fg"><label>Option Type</label><select name="OptionType">@foreach(var val in Enum.GetValues<eCourseOptionType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div></div>
+    <div class="crs-section-title" style="color:#fff"><i class="fa fa-sparkles"></i> Create a learner package</div>
+    <div class="crs-modal-row crs-three"><div class="crs-modal-fg" style="grid-column:span 2"><label>Option Description</label><input name="OptionDescription" required maxlength="200" placeholder="e.g. Package 1" /></div><div class="crs-modal-fg"><label>Option Type</label><select name="OptionType">@foreach(var val in Enum.GetValues<eCourseOptionType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div></div>
     <div style="margin-top:.75rem;text-align:right"><button class="crs-btn-white" type="submit"><i class="fa fa-plus"></i> Add Option</button></div>
    </form>
    @if (!course.CourseOptions.Any()){<div class="crs-empty-inline"><i class="fa fa-layer-group"></i> No options configured yet. Create the first option above.</div>}
    @foreach(var option in course.CourseOptions){<section class="crs-option-card"><div class="crs-option-head"><span class="crs-premium-chip">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(option.OptionType)</span><h6>@option.OptionDescription</h6><span class="crs-option-total">@option.TotalAmount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</span></div>
     @if(option.Fees.Any()){<div style="overflow:auto"><table class="crs-fee-table"><thead><tr><th>Fee</th><th>Charge</th><th>Days</th><th>Amount</th><th>Total</th></tr></thead><tbody>@foreach(var fee in option.Fees){<tr><td><strong>@fee.FeeDescription</strong></td><td>@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(fee.ChargeType)</td><td>@(fee.Days?.ToString() ?? "—")</td><td>@fee.Amount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</td><td><strong>@fee.TotalAmount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</strong></td></tr>}</tbody></table></div>}else{<div class="crs-empty-inline">No fee lines have been added to this option.</div>}
-    <form asp-action="AddCourseOptionFee" asp-controller="Course" method="post" class="crs-fee-form">@Html.AntiForgeryToken()<input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" /><div class="crs-modal-fg"><label>Fee Description</label><input name="FeeDescription" required maxlength="200" placeholder="e.g. Total tuition" /></div><div class="crs-modal-fg"><label>Charge Type</label><select name="ChargeType" class="charge-type">@foreach(var val in Enum.GetValues<eCourseChargeType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div><div class="crs-modal-fg"><label>Days</label><input name="Days" type="number" min="1" placeholder="—" /></div><div class="crs-modal-fg"><label>Amount</label><input name="Amount" type="number" required min="0" step="0.01" placeholder="R 0.00" /></div><button class="crs-btn-white" style="background:var(--crs-red);color:#fff" type="submit"><i class="fa fa-plus"></i> Add Fee</button></form>
+    <form asp-action="AddCourseOptionFee" asp-controller="Course" method="post" class="crs-fee-form">@Html.AntiForgeryToken()<input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" /><div class="crs-modal-fg"><label>Fee Description</label><input name="FeeDescription" required maxlength="200" placeholder="e.g. Total fees" /></div><div class="crs-modal-fg"><label>Charge Type</label><select name="ChargeType" class="charge-type">@foreach(var val in Enum.GetValues<eCourseChargeType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div><div class="crs-modal-fg"><label>Days</label><input name="Days" type="number" min="1" placeholder="—" /></div><div class="crs-modal-fg"><label>Amount</label><input name="Amount" type="number" required min="0" step="0.01" placeholder="R 0.00" /></div><button class="crs-btn-white" style="background:var(--crs-red);color:#fff" type="submit"><i class="fa fa-plus"></i> Add Fee</button></form>
    </section>}
   </div>
  </div></div>
