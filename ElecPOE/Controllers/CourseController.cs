@@ -295,7 +295,8 @@ namespace ElecPOE.Controllers
                 UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
                 DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
             });
-            TempData["success"] = "Course option added successfully.";
+            await _context.SaveAsync();
+            TempData["success"] = "Course option added successfully. Add the fee lines for this package below.";
             return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = model.CourseId });
         }
 
@@ -310,9 +311,19 @@ namespace ElecPOE.Controllers
                 return RedirectToAction(nameof(GetActiveCourses));
             }
 
-            var total = model.ChargeType == eCourseChargeType.Daily && model.Days.HasValue
-                ? model.Amount * model.Days.Value
+            if (model.ChargeType == eCourseChargeType.Daily && (!model.Days.HasValue || model.Days.Value < 1))
+            {
+                TempData["error"] = "Enter the number of days for a daily fee.";
+                return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = option.CourseIdFK });
+            }
+
+            var total = model.ChargeType == eCourseChargeType.Daily
+                ? model.Amount * model.Days!.Value
                 : model.Amount;
+            var existingTotal = (await _context.CourseOptionFees.GetAllAsync(
+                    f => f.CourseOptionIdFK == option.CourseOptionId && f.IsActive,
+                    asNoTracking: true))
+                .Sum(f => f.TotalAmount);
             var user = _userService.OnGetCurrentUser();
             await _context.CourseOptionFees.AddAsync(new CourseOptionFee
             {
@@ -329,9 +340,7 @@ namespace ElecPOE.Controllers
                 DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
             });
 
-            option.TotalAmount = (await _context.CourseOptionFees.GetAllAsync(f => f.CourseOptionIdFK == option.Id && !f.IsDeleted))
-                .Sum(f => f.TotalAmount);
-            await _context.CourseOptions.Update(option);
+            option.TotalAmount = existingTotal + total;
             await _context.SaveAsync();
             TempData["success"] = "Option fee added successfully.";
             return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = option.CourseIdFK });
@@ -403,9 +412,13 @@ namespace ElecPOE.Controllers
 
                 if (updatedCourse != null)
                 {
-                    TempData["success"] = "Course saved successfully!";
+                    TempData["success"] = model.HasCourseOptions
+                        ? "Course saved successfully. You can now configure its packages and fees."
+                        : "Course saved successfully!";
 
-                    return RedirectToAction(nameof(GetActiveCourses), "Course");
+                    return model.HasCourseOptions
+                        ? RedirectToAction(nameof(GetActiveCourses), "Course", new { manageOptions = model.CourseId })
+                        : RedirectToAction(nameof(GetActiveCourses), "Course");
                 }
                 else
                 {
