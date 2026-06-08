@@ -474,17 +474,26 @@
                             <ul class="dropdown-menu" style="border-radius:var(--fo-radius);box-shadow:var(--fo-card-shadow-hover);border:1px solid var(--fo-border);padding:.35rem;">
                                 <li>
                                     <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
-                                       asp-controller="Student" asp-action="StudentAnalytics">
-                                        <i class="fa fa-users" style="color:var(--fo-orange);width:1.2rem;"></i> Students
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
-                                <li>
-                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
                                        asp-controller="Student" asp-action="EnrollStudent">
                                         <i class="fa fa-atom" style="color:var(--fo-orange);width:1.2rem;"></i> Enrol Student
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                @if (isAdmin)
+                                {
+                                    <li>
+                                    <a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;"
+                                       asp-controller="Student" asp-action="StudentAnalytics">
+                                        <i class="fa fa-users" style="color:var(--fo-orange);width:1.2rem;"></i> All Students
+                                    </a>
+                                </li>
+                                    <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                    <li class="nav-item">
+                                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LearnerManagement" ? "active" : "")" asp-controller="LearnerManagement" asp-action="Admin">
+                                            <i class="fa fa-chart-pie"></i> Learner Management
+                                        </a>
+                                    </li>
+                                }
                             </ul>
 
                         </li>
@@ -557,21 +566,17 @@
                                 <i class="fa fa-chalkboard-teacher"></i> My Learners
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="MyStudents"><i class="fa fa-user-graduate me-2"></i>My Students</a></li>
-                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="AddStudents"><i class="fa fa-user-plus me-2"></i>Add Students</a></li>
-                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="Groups"><i class="fa fa-object-group me-2"></i>My Groups</a></li>
-                                <li><a class="dropdown-item" asp-controller="LearnerManagement" asp-action="SendMessage"><i class="fa fa-bullhorn me-2"></i>Send Notification</a></li>
+                                <li><a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;" asp-controller="LearnerManagement" asp-action="MyStudents"><i style="color:var(--fo-orange);width:1.2rem;" class="fa fa-user-graduate me-2"></i>My Students</a></li>
+                                                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                <li><a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;" asp-controller="LearnerManagement" asp-action="AddStudents"><i style="color:var(--fo-orange);width:1.2rem;" class="fa fa-user-plus me-2"></i>Add Students</a></li>
+                                                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                <li><a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;" asp-controller="LearnerManagement" asp-action="Groups"><i style="color:var(--fo-orange);width:1.2rem;" class="fa fa-object-group me-2"></i>My Groups</a></li>
+                                                                <li><hr class="dropdown-divider" style="margin:.25rem .5rem;" /></li>
+                                <li><a class="dropdown-item" style="border-radius:6px;font-size:.84rem;font-weight:600;padding:.5rem .8rem;" asp-controller="LearnerManagement" asp-action="SendMessage"><i style="color:var(--fo-orange);width:1.2rem;" class="fa fa-bullhorn me-2"></i>Send Notification</a></li>
                             </ul>
                         </li>
                     }
-                    @if (isAdmin)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LearnerManagement" ? "active" : "")" asp-controller="LearnerManagement" asp-action="Admin">
-                                <i class="fa fa-chart-pie"></i> Learner Management
-                            </a>
-                        </li>
-                    }
+                    
                     @if (showEmployeeNav)
                     {
                         <li class="nav-item">

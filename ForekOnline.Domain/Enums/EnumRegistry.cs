@@ -575,7 +575,12 @@ namespace ForekOnline.Domain.Enums
             [Display(Name = "Nated Studies")]
             Nated,
             [Display(Name = "Trade Test")]
-            TradeTest
+            TradeTest,
+            [Display(Name = "Artisan Recognition of Prior Learning (ARPL)")]
+            ARPL,
+            [Display(Name = "Foundational Learning Competence (FLC)")]
+            FLC,
+            Learnership
         }
         public enum eNQF
         {
