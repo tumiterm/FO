@@ -430,6 +430,9 @@ namespace ForekOnline.Infrastructure.Data
                 .HasForeignKey(o => o.CourseIdFK)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<CourseOption>().ToTable("CourseOption");
+            modelBuilder.Entity<CourseOptionFee>().ToTable("CourseOptionFee");
+
             modelBuilder.Entity<CourseOption>()
                 .HasMany(o => o.Fees)
                 .WithOne(f => f.CourseOption)

@@ -1,6 +1,5 @@
 ﻿using ForekOnline.Domain.Shared;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ForekOnline.Domain.Entities;
 

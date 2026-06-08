@@ -2,8 +2,10 @@
 //     Copyright © Forek ICT Services.
 // </copyright>
 
+#region Usings
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+#endregion
 
 namespace ForekOnline.Domain.Entities
 {

@@ -285,16 +285,24 @@ namespace ElecPOE.Controllers
             }
 
             var user = _userService.OnGetCurrentUser();
-            await _context.CourseOptions.AddAsync(new CourseOption
+
+            CourseOption co = new()
             {
-                Id = Helper.GenerateGuid(),
                 CourseIdFK = model.CourseId,
                 OptionDescription = model.OptionDescription.Trim(),
                 OptionType = model.OptionType,
+                Code = Helper.RandomStringGenerator(8),
+                Name = model.OptionDescription.Trim(),
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset(),
                 IsDeleted = false,
                 UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
-                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
-            });
+                RowVersion = Guid.NewGuid().ToByteArray(),
+                DateDeleted = null,
+                Id = Helper.GenerateGuid(),
+            };
+
+            await _context.CourseOptions.AddAsync(co);
             await _context.SaveAsync();
             TempData["success"] = "Course option added successfully. Add the fee lines for this package below.";
             return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = model.CourseId });
@@ -321,7 +329,7 @@ namespace ElecPOE.Controllers
                 ? model.Amount * model.Days!.Value
                 : model.Amount;
             var existingTotal = (await _context.CourseOptionFees.GetAllAsync(
-                    f => f.CourseOptionIdFK == option.CourseOptionId && f.IsActive,
+                    f => f.CourseOptionIdFK == option.Id && !f.IsDeleted,
                     asNoTracking: true))
                 .Sum(f => f.TotalAmount);
             var user = _userService.OnGetCurrentUser();
