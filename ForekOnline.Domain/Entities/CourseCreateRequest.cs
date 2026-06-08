@@ -73,5 +73,23 @@ namespace ForekOnline.Domain.Entities
         /// Gets or sets the identifier of the user who last updated the entity.
         /// </summary>
         public string? LastUpdatedBy { get; set; }
+
+        public eMinimumRequirement MinimumRequirement { get; set; } = eMinimumRequirement.NoRequirement;
+        public string? MinimumRequirementNotes { get; set; }
+        public int? DurationValue { get; set; }
+        public eDurationType? DurationType { get; set; }
+        public eStudyMode StudyMode { get; set; } = eStudyMode.FullTime;
+        public eDeliveryMethod DeliveryMethod { get; set; } = eDeliveryMethod.Contact;
+        public bool IsAccredited { get; set; }
+        public string? AccreditationBody { get; set; }
+        public string? AccreditationNumber { get; set; }
+        public bool IsEligibleForOnlineApplications { get; set; } = true;
+        public bool RequiresAptitudeTest { get; set; }
+        public bool RequiresInterview { get; set; }
+        public decimal? ApplicationFee { get; set; }
+        public decimal? RegistrationFee { get; set; }
+        public decimal? TuitionFee { get; set; }
+        public int? MaximumStudents { get; set; }
+        public bool HasCourseOptions { get; set; }
     }
 }

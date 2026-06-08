@@ -128,6 +128,8 @@ namespace ForekOnline.Infrastructure.Repository
         /// The model repository.
         /// </value>
         public ICourse Courses { get; private set; }
+        public IRepository<CourseOption> CourseOptions { get; private set; }
+        public IRepository<CourseOptionFee> CourseOptionFees { get; private set; }
 
         /// <summary>
         /// Gets the model repository for handling ContactPerson operations.
@@ -430,6 +432,8 @@ namespace ForekOnline.Infrastructure.Repository
             Visit = new VisitRepository(_db);
             Users = new UserRepository(_db);
             Courses = new CourseRepository(_db);
+            CourseOptions = new Repository<CourseOption>(_db);
+            CourseOptionFees = new Repository<CourseOptionFee>(_db);
             Reports = new ReportRepository(_db);
             Files = new FileRepository(_db);
             StudentAttachment = new StudentAttachmentRepository(_db);

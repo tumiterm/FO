@@ -66,5 +66,55 @@ namespace ForekOnline.Domain.Entities
         /// Gets or sets the minimum requirements for enrolling in the course.
         /// </summary>
         public eMinimumRequirement MinimumRequirement { get; set; } = eMinimumRequirement.NoRequirement;
+
+        [StringLength(1000)]
+        [Display(Name = "Minimum Requirement Notes")]
+        public string? MinimumRequirementNotes { get; set; }
+
+        [Display(Name = "Duration Value")]
+        public int? DurationValue { get; set; }
+
+        [Display(Name = "Duration Type")]
+        public eDurationType? DurationType { get; set; }
+
+        [Display(Name = "Study Mode")]
+        public eStudyMode StudyMode { get; set; } = eStudyMode.FullTime;
+
+        [Display(Name = "Delivery Method")]
+        public eDeliveryMethod DeliveryMethod { get; set; } = eDeliveryMethod.Contact;
+
+        [Display(Name = "Is Accredited")]
+        public bool IsAccredited { get; set; }
+
+        [StringLength(200)]
+        [Display(Name = "Accreditation Body")]
+        public string? AccreditationBody { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Accreditation Number")]
+        public string? AccreditationNumber { get; set; }
+
+        [Display(Name = "Requires Aptitude Test")]
+        public bool RequiresAptitudeTest { get; set; }
+
+        [Display(Name = "Requires Interview")]
+        public bool RequiresInterview { get; set; }
+
+        [Display(Name = "Application Fee")]
+        public decimal? ApplicationFee { get; set; }
+
+        [Display(Name = "Registration Fee")]
+        public decimal? RegistrationFee { get; set; }
+
+        [Display(Name = "Tuition Fee")]
+        public decimal? TuitionFee { get; set; }
+
+        [Display(Name = "Maximum Students")]
+        public int? MaximumStudents { get; set; }
+
+        [Display(Name = "Has Course Options")]
+        public bool HasCourseOptions { get; set; }
+
+        public List<CourseOption> CourseOptions { get; set; } = new();
     }
 }

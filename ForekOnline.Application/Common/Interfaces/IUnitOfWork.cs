@@ -111,6 +111,8 @@ namespace ForekOnline.Application.Common.Interfaces
         /// Gets the Course repository.
         /// </summary>
         ICourse Courses { get; }
+        IRepository<CourseOption> CourseOptions { get; }
+        IRepository<CourseOptionFee> CourseOptionFees { get; }
         #endregion
 
         #region ContactPerson
