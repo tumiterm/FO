@@ -62,6 +62,22 @@ namespace ForekOnline.Domain.ViewModels
         /// Gets or sets the minimum requirement for the course.
         /// </summary>  
         public eMinimumRequirement MinimumRequirement { get; set; }
+        public string? MinimumRequirementNotes { get; set; }
+        public int? DurationValue { get; set; }
+        public eDurationType? DurationType { get; set; }
+        public eStudyMode StudyMode { get; set; }
+        public eDeliveryMethod DeliveryMethod { get; set; }
+        public bool IsAccredited { get; set; }
+        public string? AccreditationBody { get; set; }
+        public string? AccreditationNumber { get; set; }
+        public bool RequiresAptitudeTest { get; set; }
+        public bool RequiresInterview { get; set; }
+        public decimal? ApplicationFee { get; set; }
+        public decimal? RegistrationFee { get; set; }
+        public decimal? TuitionFee { get; set; }
+        public int? MaximumStudents { get; set; }
+        public bool HasCourseOptions { get; set; }
+        public List<CourseOptionViewModel> CourseOptions { get; set; } = new();
 
     }
 

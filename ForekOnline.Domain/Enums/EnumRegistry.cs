@@ -610,6 +610,41 @@ namespace ForekOnline.Domain.Enums
             [Display(Name = "One Month")]
             Month
         }
+        public enum eDurationType
+        {
+            Day,
+            Week,
+            Month,
+            Year
+        }
+        public enum eStudyMode
+        {
+            [Display(Name = "Full Time")]
+            FullTime,
+            [Display(Name = "Part Time")]
+            PartTime,
+            [Display(Name = "Self Paced")]
+            SelfPaced
+        }
+        public enum eDeliveryMethod
+        {
+            Contact,
+            Online,
+            Hybrid
+        }
+        public enum eCourseOptionType
+        {
+            Custom,
+            Standard,
+            Package
+        }
+        public enum eCourseChargeType
+        {
+            Fixed,
+            Daily,
+            Weekly,
+            Monthly
+        }
         public enum eFunder
         {
             NSF,

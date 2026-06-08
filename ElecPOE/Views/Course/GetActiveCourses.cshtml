@@ -1085,6 +1085,37 @@
         .crs-modal .modal-footer { display: grid; grid-template-columns: 1fr; gap: .5rem; }
         .crs-modal .modal-footer button { width: 100%; justify-content: center; margin: 0; }
     }
+
+    .crs-detail-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; padding:.85rem 1rem; background:linear-gradient(135deg,#fafafa,#fff); border-top:1px solid var(--crs-border); }
+    .crs-detail { min-width:0; }
+    .crs-detail small { display:block; color:var(--crs-text-3); font-size:.43rem; letter-spacing:.1rem; text-transform:uppercase; font-weight:800; }
+    .crs-detail strong { display:block; color:var(--crs-text); font-size:.62rem; margin-top:.18rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .crs-premium-chip { display:inline-flex; align-items:center; gap:.28rem; padding:.28rem .5rem; border-radius:999px; font-size:.48rem; font-weight:800; letter-spacing:.04rem; background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe; }
+    .crs-pill-purple { background:#f5f3ff; color:#6d28d9; border-color:#ddd6fe; }
+    .crs-pill-purple:hover { background:#6d28d9; color:#fff; }
+    .crs-modal .modal-dialog-xl { max-width:1180px; }
+    .crs-section { margin-top:1rem; padding:1rem; border:1px solid var(--crs-border); border-radius:var(--crs-r); background:#fafafa; }
+    .crs-section-title { display:flex; align-items:center; gap:.55rem; margin-bottom:.8rem; color:var(--crs-text); font-family:'Space Grotesk',sans-serif; font-size:.78rem; font-weight:800; }
+    .crs-section-title i { color:var(--crs-red); }
+    .crs-modal-row.crs-three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .crs-modal-fg textarea { width:100%; min-height:82px; resize:vertical; background:var(--crs-bg); border:1px solid var(--crs-border); border-radius:var(--crs-r-sm); padding:.6rem .72rem; font-size:.7rem; }
+    .crs-switch-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-top:.85rem; }
+    .crs-switch { display:flex; align-items:center; gap:.55rem; padding:.65rem .75rem; border:1px solid var(--crs-border); background:#fff; border-radius:var(--crs-r-sm); font-size:.62rem; font-weight:700; color:var(--crs-text-2); }
+    .crs-switch input { width:16px; height:16px; accent-color:var(--crs-red); }
+    .crs-option-shell { display:grid; gap:1rem; }
+    .crs-option-form { padding:1rem; border-radius:14px; color:#fff; background:linear-gradient(135deg,#111827,#312e81); box-shadow:0 14px 35px rgba(17,24,39,.18); }
+    .crs-option-form .crs-modal-fg label { color:#e5e7eb; }
+    .crs-option-form .crs-modal-fg input,.crs-option-form .crs-modal-fg select { background:rgba(255,255,255,.96); }
+    .crs-option-card { border:1px solid var(--crs-border); border-radius:16px; overflow:hidden; box-shadow:var(--crs-sh); }
+    .crs-option-head { display:flex; align-items:center; gap:.8rem; padding:.9rem 1rem; background:linear-gradient(135deg,#fff7ed,#fff); border-bottom:1px solid #fed7aa; }
+    .crs-option-head h6 { margin:0; font-weight:800; color:var(--crs-text); }
+    .crs-option-total { margin-left:auto; font-family:'Space Grotesk'; font-weight:800; color:var(--crs-red); }
+    .crs-fee-table { width:100%; border-collapse:collapse; font-size:.62rem; }
+    .crs-fee-table th { background:#f9fafb; color:var(--crs-text-3); text-transform:uppercase; letter-spacing:.08rem; font-size:.45rem; padding:.6rem .75rem; }
+    .crs-fee-table td { padding:.65rem .75rem; border-top:1px solid var(--crs-border); }
+    .crs-fee-form { display:grid; grid-template-columns:1.4fr 1fr .6fr .8fr auto; gap:.55rem; padding:.8rem; background:#f9fafb; align-items:end; }
+    .crs-empty-inline { padding:1rem; text-align:center; color:var(--crs-text-3); font-size:.62rem; }
+    @@media(max-width:800px){.crs-detail-strip,.crs-switch-grid{grid-template-columns:1fr 1fr}.crs-modal-row.crs-three{grid-template-columns:1fr}.crs-fee-form{grid-template-columns:1fr 1fr}.crs-fee-form button{grid-column:1/-1}}
 </style>
 
 <div class="crs-shell">
@@ -1213,6 +1244,12 @@
                                        asp-route-CourseId="@c.CourseId">
                                         <i class="fa fa-arrow-right"></i> Open
                                     </a>
+                                    @if (c.HasCourseOptions)
+                                    {
+                                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId">
+                                            <i class="fa fa-layer-group"></i> Options
+                                        </button>
+                                    }
                                 </td>
                                 <td class="crs-course-name">@c.CourseName</td>
                                 <td><span class="crs-badge-type">@c.Type</span></td>
@@ -1282,6 +1319,14 @@
                     <span><i class="fa fa-user"></i> Added by <strong>@(c.CreatedBy ?? "Unknown")</strong></span>
                     <span><i class="fa fa-calendar"></i> Added on <strong>@c.CreatedOn</strong></span>
                 </div>
+                <div class="crs-detail-strip">
+                    <div class="crs-detail"><small>Delivery</small><strong>@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(c.DeliveryMethod)</strong></div>
+                    <div class="crs-detail"><small>Study mode</small><strong>@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(c.StudyMode)</strong></div>
+                    <div class="crs-detail"><small>Duration</small><strong>@(c.DurationValue?.ToString() ?? "—") @(c.DurationType?.ToString() ?? "")</strong></div>
+                    <div class="crs-detail"><small>Tuition</small><strong>@(c.TuitionFee.HasValue ? c.TuitionFee.Value.ToString("C0", new System.Globalization.CultureInfo("en-ZA")) : "On request")</strong></div>
+                    <div class="crs-detail"><small>Capacity</small><strong>@(c.MaximumStudents?.ToString() ?? "Flexible")</strong></div>
+                    <div class="crs-detail"><small>Accreditation</small><strong>@(c.IsAccredited ? (c.AccreditationBody ?? "Accredited") : "Not specified")</strong></div>
+                </div>
                 <div class="cgc-acts">
                     <a class="crs-pill" asp-action="OnModifyCourse" asp-controller="Course" asp-route-CourseId="@c.CourseId">
                         <i class="fa fa-arrow-right"></i> Open
@@ -1289,6 +1334,12 @@
                     <a class="crs-pill crs-pill-green" asp-controller="Course" asp-action="OnCourse" asp-route-CourseId="@c.CourseId">
                         <i class="fa fa-book"></i> Modules
                     </a>
+                    @if (c.HasCourseOptions)
+                    {
+                        <button type="button" class="crs-pill crs-pill-purple" data-bs-toggle="modal" data-bs-target="#courseOptions-@c.CourseId">
+                            <i class="fa fa-layer-group"></i> @c.CourseOptions.Count Option(s)
+                        </button>
+                    }
                 </div>
             </article>
         }
@@ -1298,7 +1349,7 @@
 
 <div class="modal fade crs-modal" id="addCourseModal" tabindex="-1"
      aria-labelledby="addCourseModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <div>
@@ -1380,14 +1431,42 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:1rem;display:flex;align-items:center;gap:.55rem;">
-                        <input name="IsEligibleForOnlineApplications" type="checkbox" id="modalEligibility"
-                               style="width:16px;height:16px;accent-color:var(--crs-red);cursor:pointer;" />
-                        <label for="modalEligibility"
-                               style="font-size:.7rem;font-weight:600;color:var(--crs-text);cursor:pointer;margin:0;">
-                            Eligible for Online Applications
-                        </label>
+                    <div class="crs-section">
+                        <div class="crs-section-title"><i class="fa fa-clock"></i> Delivery &amp; Requirements</div>
+                        <div class="crs-modal-row crs-three">
+                            <div class="crs-modal-fg"><label>Duration Value</label><input name="DurationValue" type="number" min="1" placeholder="e.g. 12" /></div>
+                            <div class="crs-modal-fg"><label>Duration Type</label><select name="DurationType"><option value="">Select duration</option>@foreach(var val in Enum.GetValues<eDurationType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div>
+                            <div class="crs-modal-fg"><label>Study Mode</label><select name="StudyMode">@foreach(var val in Enum.GetValues<eStudyMode>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div>
+                            <div class="crs-modal-fg"><label>Delivery Method</label><select name="DeliveryMethod">@foreach(var val in Enum.GetValues<eDeliveryMethod>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div>
+                            <div class="crs-modal-fg" style="grid-column:span 2"><label>Minimum Requirement Notes</label><textarea name="MinimumRequirementNotes" maxlength="1000" placeholder="Describe supporting documents, subjects, grades or experience required..."></textarea></div>
+                        </div>
                     </div>
+                    <div class="crs-section">
+                        <div class="crs-section-title"><i class="fa fa-shield-halved"></i> Accreditation &amp; Admissions</div>
+                        <div class="crs-modal-row crs-three" id="accreditationFields" style="display:none">
+                            <div class="crs-modal-fg"><label>Accreditation Body</label><input name="AccreditationBody" maxlength="200" placeholder="e.g. QCTO" /></div>
+                            <div class="crs-modal-fg"><label>Accreditation Number</label><input name="AccreditationNumber" maxlength="100" placeholder="Registration number" /></div>
+                        </div>
+                        <div class="crs-switch-grid">
+                            <label class="crs-switch"><input name="IsAccredited" id="modalAccredited" type="checkbox" value="true" /> Accredited course</label>
+                            <label class="crs-switch"><input name="RequiresAptitudeTest" type="checkbox" value="true" /> Requires aptitude test</label>
+                            <label class="crs-switch"><input name="RequiresInterview" type="checkbox" value="true" /> Requires interview</label>
+                        </div>
+                    </div>
+                    <div class="crs-section">
+                        <div class="crs-section-title"><i class="fa fa-wallet"></i> Fees &amp; Capacity</div>
+                        <div class="crs-modal-row crs-three">
+                            <div class="crs-modal-fg"><label>Application Fee</label><input name="ApplicationFee" type="number" min="0" step="0.01" placeholder="R 0.00" /></div>
+                            <div class="crs-modal-fg"><label>Registration Fee</label><input name="RegistrationFee" type="number" min="0" step="0.01" placeholder="R 0.00" /></div>
+                            <div class="crs-modal-fg"><label>Tuition Fee</label><input name="TuitionFee" type="number" min="0" step="0.01" placeholder="R 0.00" /></div>
+                            <div class="crs-modal-fg"><label>Maximum Students</label><input name="MaximumStudents" type="number" min="1" placeholder="Capacity" /></div>
+                        </div>
+                    </div>
+                    <div class="crs-switch-grid">
+                        <label class="crs-switch"><input name="IsEligibleForOnlineApplications" type="checkbox" value="true" checked /> Online applications</label>
+                        <label class="crs-switch"><input name="HasCourseOptions" type="checkbox" value="true" /> Has course options</label>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="crs-btn-ghost"
@@ -1405,6 +1484,27 @@
         </div>
     </div>
 </div>
+
+@foreach (var course in courses.Where(c => c.HasCourseOptions))
+{
+<div class="modal fade crs-modal" id="courseOptions-@course.CourseId" tabindex="-1" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl"><div class="modal-content">
+  <div class="modal-header"><div><h5 class="modal-title"><i class="fa fa-layer-group"></i> @course.CourseName</h5><div class="crs-modal-sub">Course options and fee architecture</div></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body crs-option-shell">
+   <form asp-action="AddCourseOption" asp-controller="Course" method="post" class="crs-option-form">@Html.AntiForgeryToken()<input type="hidden" name="CourseId" value="@course.CourseId" />
+    <div class="crs-section-title" style="color:#fff"><i class="fa fa-sparkles"></i> Create a premium course option</div>
+    <div class="crs-modal-row crs-three"><div class="crs-modal-fg" style="grid-column:span 2"><label>Option Description</label><input name="OptionDescription" required maxlength="200" placeholder="e.g. Executive weekday programme" /></div><div class="crs-modal-fg"><label>Option Type</label><select name="OptionType">@foreach(var val in Enum.GetValues<eCourseOptionType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div></div>
+    <div style="margin-top:.75rem;text-align:right"><button class="crs-btn-white" type="submit"><i class="fa fa-plus"></i> Add Option</button></div>
+   </form>
+   @if (!course.CourseOptions.Any()){<div class="crs-empty-inline"><i class="fa fa-layer-group"></i> No options configured yet. Create the first option above.</div>}
+   @foreach(var option in course.CourseOptions){<section class="crs-option-card"><div class="crs-option-head"><span class="crs-premium-chip">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(option.OptionType)</span><h6>@option.OptionDescription</h6><span class="crs-option-total">@option.TotalAmount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</span></div>
+    @if(option.Fees.Any()){<div style="overflow:auto"><table class="crs-fee-table"><thead><tr><th>Fee</th><th>Charge</th><th>Days</th><th>Amount</th><th>Total</th></tr></thead><tbody>@foreach(var fee in option.Fees){<tr><td><strong>@fee.FeeDescription</strong></td><td>@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(fee.ChargeType)</td><td>@(fee.Days?.ToString() ?? "—")</td><td>@fee.Amount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</td><td><strong>@fee.TotalAmount.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</strong></td></tr>}</tbody></table></div>}else{<div class="crs-empty-inline">No fee lines have been added to this option.</div>}
+    <form asp-action="AddCourseOptionFee" asp-controller="Course" method="post" class="crs-fee-form">@Html.AntiForgeryToken()<input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" /><div class="crs-modal-fg"><label>Fee Description</label><input name="FeeDescription" required maxlength="200" placeholder="e.g. Total tuition" /></div><div class="crs-modal-fg"><label>Charge Type</label><select name="ChargeType" class="charge-type">@foreach(var val in Enum.GetValues<eCourseChargeType>()){<option value="@((int)val)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(val)</option>}</select></div><div class="crs-modal-fg"><label>Days</label><input name="Days" type="number" min="1" placeholder="—" /></div><div class="crs-modal-fg"><label>Amount</label><input name="Amount" type="number" required min="0" step="0.01" placeholder="R 0.00" /></div><button class="crs-btn-white" style="background:var(--crs-red);color:#fff" type="submit"><i class="fa fa-plus"></i> Add Fee</button></form>
+   </section>}
+  </div>
+ </div></div>
+</div>
+}
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1639,6 +1739,16 @@
     el.closest('.crs-date').title = d.toLocaleString('en-ZA');
     } catch { }
     });
+
+    const accredited = document.getElementById('modalAccredited');
+    const accreditationFields = document.getElementById('accreditationFields');
+    if (accredited && accreditationFields) accredited.addEventListener('change', () => accreditationFields.style.display = accredited.checked ? '' : 'none');
+
+    const manageOptions = new URLSearchParams(window.location.search).get('manageOptions');
+    if (manageOptions && window.bootstrap) {
+        const optionsModal = document.getElementById('courseOptions-' + manageOptions);
+        if (optionsModal) bootstrap.Modal.getOrCreateInstance(optionsModal).show();
+    }
 
     applyFilters();
     })();

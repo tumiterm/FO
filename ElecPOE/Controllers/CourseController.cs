@@ -116,6 +116,11 @@ namespace ElecPOE.Controllers
 
                 _logger.LogInformation($"Course {courseEntity.CourseName} added successfully (ID: {courseEntity.CourseId}).");
 
+                if (courseEntity.HasCourseOptions)
+                {
+                    return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = courseEntity.CourseId });
+                }
+
                 return RedirectToAction(nameof(OnCourse), new { CourseId = courseEntity.CourseId });
 
             }
@@ -234,7 +239,9 @@ namespace ElecPOE.Controllers
             {
                 _logger.LogInformation("Fetching course data...");
 
-                var courseEntities = await _context.Courses.GetAllAsync();
+                var courseEntities = await _context.Courses.GetAllAsync(
+                    includeProperties: new[] { "CourseOptions.Fees" },
+                    asNoTracking: true);
 
                 if (courseEntities == null || !courseEntities.Any())
                 {
@@ -258,6 +265,70 @@ namespace ElecPOE.Controllers
 
                 return StatusCode(500, "An error occurred while processing your request. Please try again later.");
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddCourseOption(CourseOptionViewModel model)
+        {
+            var course = await _context.Courses.GetAsync(c => c.CourseId == model.CourseId);
+            if (course == null || !course.HasCourseOptions)
+            {
+                TempData["error"] = "Enable course options before adding an option.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            if (string.IsNullOrWhiteSpace(model.OptionDescription))
+            {
+                TempData["error"] = "Option description is required.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            var user = _userService.OnGetCurrentUser();
+            await _context.CourseOptions.AddAsync(new CourseOption
+            {
+                CourseOptionId = Helper.GenerateGuid(),
+                CourseIdFK = model.CourseId,
+                OptionDescription = model.OptionDescription.Trim(),
+                OptionType = model.OptionType,
+                IsActive = true,
+                CreatedBy = $"{user?.Name} {user?.LastName}".Trim(),
+                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString()
+            });
+            TempData["success"] = "Course option added successfully.";
+            return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = model.CourseId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddCourseOptionFee(CourseOptionFeeViewModel model)
+        {
+            var option = await _context.CourseOptions.GetAsync(o => o.CourseOptionId == model.CourseOptionId);
+            if (option == null || string.IsNullOrWhiteSpace(model.FeeDescription) || model.Amount < 0)
+            {
+                TempData["error"] = "Please provide valid option fee details.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            var total = model.ChargeType == eCourseChargeType.Daily && model.Days.HasValue
+                ? model.Amount * model.Days.Value
+                : model.Amount;
+            var user = _userService.OnGetCurrentUser();
+            await _context.CourseOptionFees.AddAsync(new CourseOptionFee
+            {
+                CourseOptionFeeId = Helper.GenerateGuid(), CourseOptionIdFK = model.CourseOptionId,
+                FeeDescription = model.FeeDescription.Trim(), ChargeType = model.ChargeType, Days = model.Days,
+                Amount = model.Amount, TotalAmount = total, IsActive = true,
+                CreatedBy = $"{user?.Name} {user?.LastName}".Trim(),
+                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString()
+            });
+
+            option.TotalAmount = (await _context.CourseOptionFees.GetAllAsync(f => f.CourseOptionIdFK == option.CourseOptionId && f.IsActive))
+                .Sum(f => f.TotalAmount);
+            await _context.CourseOptions.Update(option);
+            await _context.SaveAsync();
+            TempData["success"] = "Option fee added successfully.";
+            return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = option.CourseIdFK });
         }
 
         /// <summary>
@@ -635,8 +706,23 @@ namespace ElecPOE.Controllers
                 CreatedBy = $"{user?.Name} {user?.LastName}",
                 CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString(),
                 Type = courseDto.Type,
-                IsEligibleForOnlineApplications = true, //hardcoded for now
+                IsEligibleForOnlineApplications = courseDto.IsEligibleForOnlineApplications,
                 MinimumRequirement = courseDto.MinimumRequirement,
+                MinimumRequirementNotes = courseDto.MinimumRequirementNotes,
+                DurationValue = courseDto.DurationValue,
+                DurationType = courseDto.DurationType,
+                StudyMode = courseDto.StudyMode,
+                DeliveryMethod = courseDto.DeliveryMethod,
+                IsAccredited = courseDto.IsAccredited,
+                AccreditationBody = courseDto.AccreditationBody,
+                AccreditationNumber = courseDto.AccreditationNumber,
+                RequiresAptitudeTest = courseDto.RequiresAptitudeTest,
+                RequiresInterview = courseDto.RequiresInterview,
+                ApplicationFee = courseDto.ApplicationFee,
+                RegistrationFee = courseDto.RegistrationFee,
+                TuitionFee = courseDto.TuitionFee,
+                MaximumStudents = courseDto.MaximumStudents,
+                HasCourseOptions = courseDto.HasCourseOptions,
             };
 
             if (string.IsNullOrEmpty(courseDto.ModuleName))
@@ -683,6 +769,32 @@ namespace ElecPOE.Controllers
                 ModifiedOn = courseEntity.ModifiedOn,
                 IsEligibleForOnlineApplications = courseEntity.IsEligibleForOnlineApplications,
                 MinimumRequirement = courseEntity.MinimumRequirement,
+                MinimumRequirementNotes = courseEntity.MinimumRequirementNotes,
+                DurationValue = courseEntity.DurationValue,
+                DurationType = courseEntity.DurationType,
+                StudyMode = courseEntity.StudyMode,
+                DeliveryMethod = courseEntity.DeliveryMethod,
+                IsAccredited = courseEntity.IsAccredited,
+                AccreditationBody = courseEntity.AccreditationBody,
+                AccreditationNumber = courseEntity.AccreditationNumber,
+                RequiresAptitudeTest = courseEntity.RequiresAptitudeTest,
+                RequiresInterview = courseEntity.RequiresInterview,
+                ApplicationFee = courseEntity.ApplicationFee,
+                RegistrationFee = courseEntity.RegistrationFee,
+                TuitionFee = courseEntity.TuitionFee,
+                MaximumStudents = courseEntity.MaximumStudents,
+                HasCourseOptions = courseEntity.HasCourseOptions,
+                CourseOptions = courseEntity.CourseOptions?.Where(o => o.IsActive).Select(o => new CourseOptionViewModel
+                {
+                    CourseOptionId = o.CourseOptionId, CourseId = o.CourseIdFK, OptionDescription = o.OptionDescription,
+                    OptionType = o.OptionType, TotalAmount = o.TotalAmount, IsActive = o.IsActive, CreatedOn = o.CreatedOn, CreatedBy = o.CreatedBy,
+                    Fees = o.Fees?.Where(f => f.IsActive).Select(f => new CourseOptionFeeViewModel
+                    {
+                        CourseOptionFeeId = f.CourseOptionFeeId, CourseOptionId = f.CourseOptionIdFK, FeeDescription = f.FeeDescription,
+                        ChargeType = f.ChargeType, Days = f.Days, Amount = f.Amount, TotalAmount = f.TotalAmount, IsActive = f.IsActive,
+                        CreatedOn = f.CreatedOn, CreatedBy = f.CreatedBy
+                    }).ToList() ?? new List<CourseOptionFeeViewModel>()
+                }).ToList() ?? new List<CourseOptionViewModel>(),
                 NQFLevel = courseEntity.NQFLevel != null ? Helper.GetDisplayName(courseEntity.NQFLevel) : null,
                 Type = courseEntity?.Type != null ? Helper.GetDisplayName(courseEntity.Type) : null,
                 NType = courseEntity?.NType != null ? Helper.GetDisplayName(courseEntity.NType) : null,
@@ -725,6 +837,14 @@ namespace ElecPOE.Controllers
                 NQFLevel = model.CourseNQFLevel,
                 Credit = model.CourseCredit,
                 IsActive = model.IsActive,
+                IsEligibleForOnlineApplications = model.IsEligibleForOnlineApplications,
+                MinimumRequirement = model.MinimumRequirement,
+                MinimumRequirementNotes = model.MinimumRequirementNotes, DurationValue = model.DurationValue, DurationType = model.DurationType,
+                StudyMode = model.StudyMode, DeliveryMethod = model.DeliveryMethod, IsAccredited = model.IsAccredited,
+                AccreditationBody = model.AccreditationBody, AccreditationNumber = model.AccreditationNumber,
+                RequiresAptitudeTest = model.RequiresAptitudeTest, RequiresInterview = model.RequiresInterview,
+                ApplicationFee = model.ApplicationFee, RegistrationFee = model.RegistrationFee, TuitionFee = model.TuitionFee,
+                MaximumStudents = model.MaximumStudents, HasCourseOptions = model.HasCourseOptions,
                 ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString(),
                 ModifiedBy = $"{user?.Name}   {user?.LastName}"
             };
@@ -743,6 +863,13 @@ namespace ElecPOE.Controllers
                 CourseNQFLevel = course.NQFLevel,
                 CourseCredit = course.Credit,
                 IsActive = course.IsActive,
+                IsEligibleForOnlineApplications = course.IsEligibleForOnlineApplications, MinimumRequirement = course.MinimumRequirement,
+                MinimumRequirementNotes = course.MinimumRequirementNotes, DurationValue = course.DurationValue, DurationType = course.DurationType,
+                StudyMode = course.StudyMode, DeliveryMethod = course.DeliveryMethod, IsAccredited = course.IsAccredited,
+                AccreditationBody = course.AccreditationBody, AccreditationNumber = course.AccreditationNumber,
+                RequiresAptitudeTest = course.RequiresAptitudeTest, RequiresInterview = course.RequiresInterview,
+                ApplicationFee = course.ApplicationFee, RegistrationFee = course.RegistrationFee, TuitionFee = course.TuitionFee,
+                MaximumStudents = course.MaximumStudents, HasCourseOptions = course.HasCourseOptions,
                 ModifiedOn = course.ModifiedOn,
                 ModifiedBy = course.ModifiedBy,
             };

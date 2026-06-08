@@ -130,6 +130,12 @@ namespace ForekOnline.Application.Common.Services
                 Credit = request.Credit > 0 ? request.Credit : totalModuleCredit,
                 ModifiedBy = request.ModifiedBy,
                 ModifiedOn = _helperService.GetCurrentTime().ToString("0"),
+                MinimumRequirement = request.MinimumRequirement, MinimumRequirementNotes = request.MinimumRequirementNotes,
+                DurationValue = request.DurationValue, DurationType = request.DurationType, StudyMode = request.StudyMode, DeliveryMethod = request.DeliveryMethod,
+                IsAccredited = request.IsAccredited, AccreditationBody = request.AccreditationBody, AccreditationNumber = request.AccreditationNumber,
+                IsEligibleForOnlineApplications = request.IsEligibleForOnlineApplications, RequiresAptitudeTest = request.RequiresAptitudeTest,
+                RequiresInterview = request.RequiresInterview, ApplicationFee = request.ApplicationFee, RegistrationFee = request.RegistrationFee,
+                TuitionFee = request.TuitionFee, MaximumStudents = request.MaximumStudents, HasCourseOptions = request.HasCourseOptions,
                 Module = new List<Module>(),
             };
 
@@ -211,6 +217,12 @@ namespace ForekOnline.Application.Common.Services
             if (request.NQFLevel.HasValue)
                 course.NQFLevel = request.NQFLevel.Value;
 
+            course.MinimumRequirement = request.MinimumRequirement; course.MinimumRequirementNotes = request.MinimumRequirementNotes;
+            course.DurationValue = request.DurationValue; course.DurationType = request.DurationType; course.StudyMode = request.StudyMode; course.DeliveryMethod = request.DeliveryMethod;
+            course.IsAccredited = request.IsAccredited; course.AccreditationBody = request.AccreditationBody; course.AccreditationNumber = request.AccreditationNumber;
+            course.IsEligibleForOnlineApplications = request.IsEligibleForOnlineApplications; course.RequiresAptitudeTest = request.RequiresAptitudeTest;
+            course.RequiresInterview = request.RequiresInterview; course.ApplicationFee = request.ApplicationFee; course.RegistrationFee = request.RegistrationFee;
+            course.TuitionFee = request.TuitionFee; course.MaximumStudents = request.MaximumStudents; course.HasCourseOptions = request.HasCourseOptions;
             course.ModifiedOn = _helperService.GetCurrentTime().ToString("0");
             course.ModifiedBy = request.ModifiedBy;
 

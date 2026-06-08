@@ -197,6 +197,8 @@ namespace ForekOnline.Infrastructure.Data
         /// Gets or sets the Courses table.
         /// </summary>
         public DbSet<Course> Course { get; set; }
+        public DbSet<CourseOption> CourseOptions { get; set; }
+        public DbSet<CourseOptionFee> CourseOptionFees { get; set; }
 
         /// <summary>
         /// Gets or sets the Modules table.
@@ -438,6 +440,25 @@ namespace ForekOnline.Infrastructure.Data
             .HasMany(c => c.Module)
             .WithOne(m => m.Course)
             .HasForeignKey(m => m.CourseIdFK);
+
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.CourseOptions)
+                .WithOne(o => o.Course)
+                .HasForeignKey(o => o.CourseIdFK)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseOption>()
+                .HasMany(o => o.Fees)
+                .WithOne(f => f.CourseOption)
+                .HasForeignKey(f => f.CourseOptionIdFK)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CourseOption>().Property(o => o.TotalAmount).HasPrecision(18, 2);
+            modelBuilder.Entity<CourseOptionFee>().Property(f => f.Amount).HasPrecision(18, 2);
+            modelBuilder.Entity<CourseOptionFee>().Property(f => f.TotalAmount).HasPrecision(18, 2);
+            modelBuilder.Entity<Course>().Property(c => c.ApplicationFee).HasPrecision(18, 2);
+            modelBuilder.Entity<Course>().Property(c => c.RegistrationFee).HasPrecision(18, 2);
+            modelBuilder.Entity<Course>().Property(c => c.TuitionFee).HasPrecision(18, 2);
 
             modelBuilder.Entity<Report>()
                 .ToTable(tb => tb.HasTrigger("trg_LogDeletedReports"));
