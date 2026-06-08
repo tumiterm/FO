@@ -4,13 +4,8 @@ using static ForekOnline.Domain.Enums.EnumRegistry;
 
 namespace ForekOnline.Domain.Entities
 {
-    /// <summary>Represents an individual fee line attached to a course option.</summary>
-    [SkipAuditInterceptor]
-    public class CourseOptionFee : Base
+    public class CourseOptionFee : EntityBase<Guid>
     {
-        [Key]
-        public Guid CourseOptionFeeId { get; set; }
-
         public Guid CourseOptionIdFK { get; set; }
 
         [Required, StringLength(200)]

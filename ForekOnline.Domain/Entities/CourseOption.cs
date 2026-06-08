@@ -1,16 +1,14 @@
+
+#region Usings
 using ForekOnline.Domain.Shared;
 using System.ComponentModel.DataAnnotations;
 using static ForekOnline.Domain.Enums.EnumRegistry;
+#endregion
 
 namespace ForekOnline.Domain.Entities
 {
-    /// <summary>Represents a selectable commercial or delivery option for a course.</summary>
-    [SkipAuditInterceptor]
-    public class CourseOption : Base
+    public class CourseOption : EntityBase<Guid>
     {
-        [Key]
-        public Guid CourseOptionId { get; set; }
-
         public Guid CourseIdFK { get; set; }
 
         [Required, StringLength(200)]

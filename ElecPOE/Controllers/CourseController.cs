@@ -287,13 +287,13 @@ namespace ElecPOE.Controllers
             var user = _userService.OnGetCurrentUser();
             await _context.CourseOptions.AddAsync(new CourseOption
             {
-                CourseOptionId = Helper.GenerateGuid(),
+                Id = Helper.GenerateGuid(),
                 CourseIdFK = model.CourseId,
                 OptionDescription = model.OptionDescription.Trim(),
                 OptionType = model.OptionType,
-                IsActive = true,
-                CreatedBy = $"{user?.Name} {user?.LastName}".Trim(),
-                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString()
+                IsDeleted = false,
+                UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
             });
             TempData["success"] = "Course option added successfully.";
             return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = model.CourseId });
@@ -303,7 +303,7 @@ namespace ElecPOE.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCourseOptionFee(CourseOptionFeeViewModel model)
         {
-            var option = await _context.CourseOptions.GetAsync(o => o.CourseOptionId == model.CourseOptionId);
+            var option = await _context.CourseOptions.GetAsync(o => o.Id == model.CourseOptionId);
             if (option == null || string.IsNullOrWhiteSpace(model.FeeDescription) || model.Amount < 0)
             {
                 TempData["error"] = "Please provide valid option fee details.";
@@ -316,14 +316,20 @@ namespace ElecPOE.Controllers
             var user = _userService.OnGetCurrentUser();
             await _context.CourseOptionFees.AddAsync(new CourseOptionFee
             {
-                CourseOptionFeeId = Helper.GenerateGuid(), CourseOptionIdFK = model.CourseOptionId,
-                FeeDescription = model.FeeDescription.Trim(), ChargeType = model.ChargeType, Days = model.Days,
-                Amount = model.Amount, TotalAmount = total, IsActive = true,
-                CreatedBy = $"{user?.Name} {user?.LastName}".Trim(),
-                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString()
+                Id = Helper.GenerateGuid(),
+                CourseOptionIdFK = model.CourseOptionId,
+                FeeDescription = model.FeeDescription.Trim(),
+                Name = model.FeeDescription.Trim(),
+                ChargeType = model.ChargeType,
+                Days = model.Days,
+                Amount = model.Amount,
+                TotalAmount = total,
+                IsDeleted = false,
+                UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
             });
 
-            option.TotalAmount = (await _context.CourseOptionFees.GetAllAsync(f => f.CourseOptionIdFK == option.CourseOptionId && f.IsActive))
+            option.TotalAmount = (await _context.CourseOptionFees.GetAllAsync(f => f.CourseOptionIdFK == option.Id && !f.IsDeleted))
                 .Sum(f => f.TotalAmount);
             await _context.CourseOptions.Update(option);
             await _context.SaveAsync();
@@ -763,7 +769,7 @@ namespace ElecPOE.Controllers
                 CourseName = courseEntity.CourseName.TruncateWithEllipsisSmart(),
                 Credit = courseEntity.Credit,
                 CreatedBy = courseEntity.CreatedBy,
-                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString(),
+                CreatedOn = courseEntity.CreatedOn,
                 IsActive = courseEntity.IsActive,
                 ModifiedBy = courseEntity.ModifiedBy,
                 ModifiedOn = courseEntity.ModifiedOn,
@@ -784,16 +790,30 @@ namespace ElecPOE.Controllers
                 TuitionFee = courseEntity.TuitionFee,
                 MaximumStudents = courseEntity.MaximumStudents,
                 HasCourseOptions = courseEntity.HasCourseOptions,
-                CourseOptions = courseEntity.CourseOptions?.Where(o => o.IsActive).Select(o => new CourseOptionViewModel
+                CourseOptions = courseEntity.CourseOptions?.Where(o => !o.IsDeleted).Select(o => new CourseOptionViewModel
                 {
-                    CourseOptionId = o.CourseOptionId, CourseId = o.CourseIdFK, OptionDescription = o.OptionDescription,
-                    OptionType = o.OptionType, TotalAmount = o.TotalAmount, IsActive = o.IsActive, CreatedOn = o.CreatedOn, CreatedBy = o.CreatedBy,
-                    Fees = o.Fees?.Where(f => f.IsActive).Select(f => new CourseOptionFeeViewModel
+                    CourseOptionId = o.Id,
+                    CourseId = o.CourseIdFK,
+                    OptionDescription = o.OptionDescription,
+                    OptionType = o.OptionType,
+                    TotalAmount = o.TotalAmount,
+                    IsActive = !o.IsDeleted,
+                    CreatedOn = o.DateCreated,
+                    CreatedBy = o.UserCreated,
+                    Fees = o.Fees?.Where(f => !f.IsDeleted).Select(f => new CourseOptionFeeViewModel
                     {
-                        CourseOptionFeeId = f.CourseOptionFeeId, CourseOptionId = f.CourseOptionIdFK, FeeDescription = f.FeeDescription,
-                        ChargeType = f.ChargeType, Days = f.Days, Amount = f.Amount, TotalAmount = f.TotalAmount, IsActive = f.IsActive,
-                        CreatedOn = f.CreatedOn, CreatedBy = f.CreatedBy
+                        CourseOptionFeeId = f.Id,
+                        CourseOptionId = f.CourseOptionIdFK,
+                        FeeDescription = f.FeeDescription,
+                        ChargeType = f.ChargeType,
+                        Days = f.Days,
+                        Amount = f.Amount,
+                        TotalAmount = f.TotalAmount,
+                        IsActive = !f.IsDeleted,
+                        CreatedOn = f.DateCreated,
+                        CreatedBy = f.UserCreated
                     }).ToList() ?? new List<CourseOptionFeeViewModel>()
+
                 }).ToList() ?? new List<CourseOptionViewModel>(),
                 NQFLevel = courseEntity.NQFLevel != null ? Helper.GetDisplayName(courseEntity.NQFLevel) : null,
                 Type = courseEntity?.Type != null ? Helper.GetDisplayName(courseEntity.Type) : null,

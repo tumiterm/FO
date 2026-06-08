@@ -197,8 +197,8 @@ namespace ForekOnline.Infrastructure.Data
         /// Gets or sets the Courses table.
         /// </summary>
         public DbSet<Course> Course { get; set; }
-        public DbSet<CourseOption> CourseOptions { get; set; }
-        public DbSet<CourseOptionFee> CourseOptionFees { get; set; }
+        public DbSet<CourseOption> CourseOption { get; set; }
+        public DbSet<CourseOptionFee> CourseOptionFee { get; set; }
 
         /// <summary>
         /// Gets or sets the Modules table.
@@ -336,9 +336,6 @@ namespace ForekOnline.Infrastructure.Data
             #region Academics
             modelBuilder.Entity<StudentEntity>(entity =>
             {
-                // ── Enum columns: live DB uses TINYINT, EF defaults to INT. ──────
-                // HasConversion<byte>() makes EF call GetByte() instead of GetInt32()
-                // so the InvalidCastException on read is eliminated without a migration.
                 entity.Property(e => e.AdmissionCategory)
                     .HasConversion<byte>()
                     .HasColumnType("tinyint");
@@ -347,23 +344,9 @@ namespace ForekOnline.Infrastructure.Data
                     .HasConversion<byte>()
                     .HasColumnType("tinyint");
 
-                // Province is nullable — use the nullable byte converter
                 entity.Property(e => e.Province)
                     .HasConversion<byte?>()
                     .HasColumnType("tinyint");
-
-                //entity.HasIndex(e => e.StudentNumber)
-                //    .IsUnique()
-                //    .HasDatabaseName("UX_Student_StudentNumber");
-
-                //entity.HasIndex(e => e.IDNumber)
-                //    .HasDatabaseName("IX_Student_IDNumber");
-
-                //entity.HasIndex(e => e.PassportNumber)
-                //    .HasDatabaseName("IX_Student_PassportNumber");
-
-                //entity.HasIndex(e => e.Email)
-                //    .HasDatabaseName("IX_Student_Email");
 
                 entity.HasMany(e => e.Enrollments)
                     .WithOne(e => e.Student)

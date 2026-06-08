@@ -114,7 +114,6 @@ namespace ForekOnline.Domain.Entities
 
         [Display(Name = "Has Course Options")]
         public bool HasCourseOptions { get; set; }
-
         public List<CourseOption> CourseOptions { get; set; } = new();
     }
 }
