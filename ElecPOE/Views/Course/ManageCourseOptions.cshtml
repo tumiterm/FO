@@ -47,6 +47,10 @@
 .pkg-field { display:flex; flex-direction:column; gap:.38rem; min-width:0; }
 .pkg-field + .pkg-field { margin-top:.85rem; }
 .pkg-field label { color:#615955; font-size:.53rem; font-weight:800; letter-spacing:.105em; text-transform:uppercase; }
+.pkg-field__hint { margin:0; color:var(--pkg-muted); font-size:.52rem; line-height:1.45; }
+.days-field { transition:opacity .2s ease; }
+.days-field.is-disabled { opacity:.58; }
+.days-field.is-disabled .pkg-input { background:#eeeae7; cursor:not-allowed; }
 .pkg-input,.pkg-select { width:100%; min-height:45px; padding:.72rem .82rem; border:1px solid #ddd5d0; border-radius:13px; background:#fff; color:var(--pkg-ink); font-size:.74rem; outline:none; transition:.2s ease; }
 .pkg-input:focus,.pkg-select:focus { border-color:var(--pkg-red); box-shadow:0 0 0 4px rgba(179,18,23,.09); }
 .pkg-btn { display:inline-flex; min-height:42px; align-items:center; justify-content:center; gap:.48rem; border:0; border-radius:12px; padding:.7rem 1rem; font-size:.66rem; font-weight:800; letter-spacing:.025em; text-decoration:none; transition:transform .18s ease,box-shadow .18s ease; cursor:pointer; }
@@ -267,8 +271,9 @@
                                                     </select>
                                                 </div>
                                                 <div class="pkg-field days-field">
-                                                    <label for="feeDays-@fee.CourseOptionFeeId">Days</label>
-                                                    <input class="pkg-input" id="feeDays-@fee.CourseOptionFeeId" name="Days" type="number" min="1" value="@fee.Days" placeholder="—" />
+                                                    <label for="feeDays-@fee.CourseOptionFeeId">Number of days</label>
+                                                    <input class="pkg-input" id="feeDays-@fee.CourseOptionFeeId" name="Days" type="number" min="1" step="1" inputmode="numeric" value="@fee.Days" placeholder="e.g. 5" />
+                                                    <p class="pkg-field__hint">Used to calculate daily charges.</p>
                                                 </div>
                                                 <div class="pkg-field">
                                                     <label for="feeAmount-@fee.CourseOptionFeeId">Amount</label>
@@ -299,8 +304,9 @@
                                 </select>
                             </div>
                             <div class="pkg-field days-field">
-                                <label for="newFeeDays-@option.CourseOptionId">Days</label>
-                                <input class="pkg-input" id="newFeeDays-@option.CourseOptionId" name="Days" type="number" min="1" placeholder="—" />
+                                <label for="newFeeDays-@option.CourseOptionId">Number of days</label>
+                                <input class="pkg-input" id="newFeeDays-@option.CourseOptionId" name="Days" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g. 5" />
+                                <p class="pkg-field__hint">Required when the charge type is Daily.</p>
                             </div>
                             <div class="pkg-field">
                                 <label for="newFeeAmount-@option.CourseOptionId">Amount</label>
@@ -324,10 +330,11 @@
         const daysInput = daysField?.querySelector('input');
         const syncDays = () => {
             const isDaily = select.value === dailyValue;
-            if (daysField) daysField.style.display = isDaily ? '' : 'none';
+            daysField?.classList.toggle('is-disabled', !isDaily);
             if (daysInput) {
                 daysInput.required = isDaily;
-                if (!isDaily) daysInput.value = '';
+                daysInput.disabled = !isDaily;
+                daysInput.setAttribute('aria-disabled', (!isDaily).toString());
             }
         };
         select.addEventListener('change', syncDays);
