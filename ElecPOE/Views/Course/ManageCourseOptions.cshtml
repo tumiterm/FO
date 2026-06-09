@@ -1,0 +1,337 @@
+@model ForekOnline.Domain.ViewModels.CourseViewModel
+@using static ForekOnline.Domain.Enums.EnumRegistry
+@using System.Globalization
+@{
+    ViewData["Title"] = "Manage Course Packages";
+    var currency = new CultureInfo("en-ZA");
+    var feeCount = Model.CourseOptions.Sum(option => option.Fees.Count);
+    var highestPackage = Model.CourseOptions.Any() ? Model.CourseOptions.Max(option => option.TotalAmount) : 0m;
+}
+
+<style>
+:root {
+    --pkg-ink:#171312;
+    --pkg-muted:#756d69;
+    --pkg-line:#e9e3df;
+    --pkg-canvas:#f8f6f4;
+    --pkg-card:#fff;
+    --pkg-wine:#7e1117;
+    --pkg-red:#b31217;
+    --pkg-coral:#ef6a45;
+    --pkg-gold:#d6a557;
+    --pkg-shadow:0 24px 70px -42px rgba(66,20,18,.45),0 8px 24px -18px rgba(66,20,18,.22);
+}
+.pkg-page { max-width:1440px; margin:0 auto; padding:1.35rem 1.25rem 3.5rem; color:var(--pkg-ink); }
+.pkg-hero { position:relative; overflow:hidden; border-radius:30px; padding:1.7rem 1.8rem; color:#fff; background:linear-gradient(120deg,#250507 0%,#781017 48%,#d64b2a 100%); box-shadow:0 28px 70px -35px rgba(91,12,17,.7); }
+.pkg-hero::before { content:""; position:absolute; width:380px; height:380px; right:-110px; top:-250px; border-radius:50%; border:70px solid rgba(255,255,255,.07); }
+.pkg-hero::after { content:""; position:absolute; inset:auto 8% -80px auto; width:220px; height:150px; border-radius:50%; background:rgba(255,185,106,.13); filter:blur(2px); transform:rotate(-12deg); }
+.pkg-hero__nav,.pkg-hero__content,.pkg-metrics { position:relative; z-index:1; }
+.pkg-hero__nav { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:2rem; }
+.pkg-back { display:inline-flex; align-items:center; gap:.55rem; color:#fff; text-decoration:none; font-size:.72rem; font-weight:750; letter-spacing:.04em; padding:.65rem .9rem; border:1px solid rgba(255,255,255,.25); border-radius:999px; background:rgba(255,255,255,.08); backdrop-filter:blur(10px); }
+.pkg-back:hover { color:#fff; background:rgba(255,255,255,.16); }
+.pkg-eyebrow { display:flex; align-items:center; gap:.5rem; font-size:.58rem; letter-spacing:.2em; text-transform:uppercase; font-weight:800; color:#ffd8c3; }
+.pkg-hero h1 { margin:.5rem 0 .45rem; max-width:760px; font-size:clamp(1.55rem,3vw,2.65rem); line-height:1.03; font-weight:800; letter-spacing:-.045em; }
+.pkg-hero p { margin:0; max-width:680px; color:rgba(255,255,255,.77); font-size:.78rem; line-height:1.7; }
+.pkg-metrics { display:grid; grid-template-columns:repeat(3,minmax(110px,1fr)); gap:.7rem; max-width:560px; margin-top:1.45rem; }
+.pkg-metric { padding:.85rem 1rem; border:1px solid rgba(255,255,255,.16); border-radius:17px; background:rgba(255,255,255,.08); backdrop-filter:blur(12px); }
+.pkg-metric small { display:block; color:rgba(255,255,255,.62); font-size:.49rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.pkg-metric strong { display:block; margin-top:.2rem; font-size:1rem; font-weight:800; }
+.pkg-layout { display:grid; grid-template-columns:minmax(260px,340px) minmax(0,1fr); gap:1.15rem; align-items:start; margin-top:1.15rem; }
+.pkg-panel { border:1px solid var(--pkg-line); border-radius:24px; background:var(--pkg-card); box-shadow:var(--pkg-shadow); }
+.pkg-create { position:sticky; top:1rem; overflow:hidden; }
+.pkg-panel__head { padding:1.2rem 1.25rem 1rem; border-bottom:1px solid var(--pkg-line); background:linear-gradient(145deg,#fffaf6,#fff); }
+.pkg-panel__head span { display:inline-flex; width:32px; height:32px; align-items:center; justify-content:center; border-radius:11px; color:#fff; background:linear-gradient(135deg,var(--pkg-wine),var(--pkg-coral)); box-shadow:0 8px 18px -8px rgba(126,17,23,.7); }
+.pkg-panel__head h2 { margin:.7rem 0 .25rem; font-size:1rem; font-weight:800; }
+.pkg-panel__head p { margin:0; color:var(--pkg-muted); font-size:.65rem; line-height:1.55; }
+.pkg-form { padding:1.15rem 1.25rem 1.3rem; }
+.pkg-field { display:flex; flex-direction:column; gap:.38rem; min-width:0; }
+.pkg-field + .pkg-field { margin-top:.85rem; }
+.pkg-field label { color:#615955; font-size:.53rem; font-weight:800; letter-spacing:.105em; text-transform:uppercase; }
+.pkg-input,.pkg-select { width:100%; min-height:45px; padding:.72rem .82rem; border:1px solid #ddd5d0; border-radius:13px; background:#fff; color:var(--pkg-ink); font-size:.74rem; outline:none; transition:.2s ease; }
+.pkg-input:focus,.pkg-select:focus { border-color:var(--pkg-red); box-shadow:0 0 0 4px rgba(179,18,23,.09); }
+.pkg-btn { display:inline-flex; min-height:42px; align-items:center; justify-content:center; gap:.48rem; border:0; border-radius:12px; padding:.7rem 1rem; font-size:.66rem; font-weight:800; letter-spacing:.025em; text-decoration:none; transition:transform .18s ease,box-shadow .18s ease; cursor:pointer; }
+.pkg-btn:hover { transform:translateY(-1px); }
+.pkg-btn--primary { color:#fff; background:linear-gradient(120deg,var(--pkg-wine),var(--pkg-red) 58%,var(--pkg-coral)); box-shadow:0 13px 25px -14px rgba(126,17,23,.8); }
+.pkg-btn--soft { color:var(--pkg-wine); background:#fff2ee; border:1px solid #f7d8cf; }
+.pkg-btn--dark { color:#fff; background:#201a18; }
+.pkg-form > .pkg-btn { width:100%; margin-top:1rem; }
+.pkg-stack { display:grid; gap:1rem; min-width:0; }
+.pkg-section-head { display:flex; align-items:end; justify-content:space-between; gap:1rem; padding:.35rem .15rem; }
+.pkg-section-head h2 { margin:0; font-size:1.12rem; font-weight:800; letter-spacing:-.02em; }
+.pkg-section-head p { margin:.18rem 0 0; color:var(--pkg-muted); font-size:.64rem; }
+.pkg-count { flex:none; padding:.45rem .7rem; border-radius:999px; color:var(--pkg-wine); background:#fff0ec; font-size:.56rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.pkg-option { overflow:hidden; }
+.pkg-option__top { display:flex; align-items:center; gap:.9rem; padding:1.15rem 1.2rem; background:linear-gradient(115deg,#fff 0%,#fff9f4 100%); border-bottom:1px solid var(--pkg-line); }
+.pkg-icon { display:flex; width:43px; height:43px; flex:none; align-items:center; justify-content:center; border-radius:15px; color:#fff; background:linear-gradient(145deg,#2c2020,#7e1117); box-shadow:0 12px 20px -13px rgba(44,32,32,.8); }
+.pkg-option__title { min-width:0; flex:1; }
+.pkg-option__title h3 { margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.96rem; font-weight:800; }
+.pkg-tag { display:inline-flex; margin-top:.28rem; align-items:center; gap:.35rem; color:#81736d; font-size:.53rem; font-weight:750; letter-spacing:.07em; text-transform:uppercase; }
+.pkg-total { flex:none; text-align:right; }
+.pkg-total small { display:block; color:var(--pkg-muted); font-size:.48rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.pkg-total strong { color:var(--pkg-red); font-size:1.04rem; font-weight:850; }
+.pkg-edit { border-left:1px solid var(--pkg-line); padding-left:.8rem; }
+.pkg-edit summary { list-style:none; }
+.pkg-edit summary::-webkit-details-marker { display:none; }
+.pkg-edit[open] { width:100%; border-left:0; padding:0; }
+.pkg-edit[open] summary { display:none; }
+.pkg-edit__body { display:grid; grid-template-columns:minmax(180px,1fr) minmax(150px,.55fr) auto; gap:.65rem; align-items:end; padding:1rem 1.2rem; border-top:1px solid var(--pkg-line); background:#fcfaf9; }
+.pkg-edit__body .pkg-field + .pkg-field,.pkg-fee-form .pkg-field + .pkg-field { margin-top:0; }
+.pkg-fees { padding:1.05rem 1.2rem 1.2rem; }
+.pkg-fees__heading { display:flex; align-items:center; justify-content:space-between; gap:.7rem; margin-bottom:.75rem; }
+.pkg-fees__heading h4 { margin:0; font-size:.69rem; font-weight:850; letter-spacing:.07em; text-transform:uppercase; }
+.pkg-fees__heading span { color:var(--pkg-muted); font-size:.57rem; }
+.pkg-fee-list { display:grid; gap:.55rem; }
+.pkg-fee { display:grid; grid-template-columns:minmax(160px,1.4fr) minmax(100px,.65fr) 74px minmax(100px,.65fr) minmax(105px,.65fr) auto; gap:.65rem; align-items:center; padding:.8rem .85rem; border:1px solid var(--pkg-line); border-radius:15px; background:#fff; }
+.pkg-fee small { display:block; margin-bottom:.16rem; color:#968b85; font-size:.45rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+.pkg-fee strong,.pkg-fee span { font-size:.65rem; }
+.pkg-fee__name strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pkg-fee__total strong { color:var(--pkg-red); font-size:.72rem; }
+.pkg-fee-edit { grid-column:1/-1; }
+.pkg-fee-edit summary { list-style:none; }
+.pkg-fee-edit summary::-webkit-details-marker { display:none; }
+.pkg-fee-form { display:grid; grid-template-columns:minmax(150px,1.4fr) minmax(120px,.8fr) 90px minmax(110px,.7fr) auto; gap:.65rem; align-items:end; padding:.8rem; border-radius:13px; background:var(--pkg-canvas); }
+.pkg-add-fee { margin-top:.85rem; padding:1rem; border-radius:17px; background:linear-gradient(135deg,#211919,#3c2020); }
+.pkg-add-fee__title { display:flex; align-items:center; gap:.5rem; margin-bottom:.75rem; color:#fff; font-size:.62rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }
+.pkg-add-fee .pkg-field label { color:#d8cac5; }
+.pkg-add-fee .pkg-input,.pkg-add-fee .pkg-select { border-color:rgba(255,255,255,.16); background:rgba(255,255,255,.96); }
+.pkg-empty { padding:2.5rem 1.2rem; text-align:center; border:1px dashed #d9cec7; border-radius:22px; background:rgba(255,255,255,.65); }
+.pkg-empty i { display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; border-radius:18px; color:var(--pkg-red); background:#fff0eb; }
+.pkg-empty h3 { margin:.8rem 0 .25rem; font-size:.9rem; }
+.pkg-empty p { margin:0; color:var(--pkg-muted); font-size:.64rem; }
+@media (max-width:1050px) {
+    .pkg-layout { grid-template-columns:1fr; }
+    .pkg-create { position:static; }
+    .pkg-panel__head { display:flex; align-items:center; gap:.8rem; }
+    .pkg-panel__head h2 { margin:0 0 .15rem; }
+    .pkg-form { display:grid; grid-template-columns:1.2fr .8fr auto; gap:.75rem; align-items:end; }
+    .pkg-form .pkg-field + .pkg-field { margin-top:0; }
+    .pkg-form > .pkg-btn { width:auto; margin-top:0; }
+    .pkg-fee { grid-template-columns:minmax(150px,1.3fr) repeat(4,minmax(82px,.65fr)) auto; }
+}
+@media (max-width:760px) {
+    .pkg-page { padding:.75rem .7rem 2.5rem; }
+    .pkg-hero { padding:1.25rem; border-radius:23px; }
+    .pkg-hero__nav { margin-bottom:1.5rem; }
+    .pkg-metrics { grid-template-columns:repeat(3,1fr); }
+    .pkg-metric { padding:.7rem; }
+    .pkg-form,.pkg-edit__body,.pkg-fee-form { grid-template-columns:1fr 1fr; }
+    .pkg-form > .pkg-btn,.pkg-edit__body .pkg-btn,.pkg-fee-form .pkg-btn { grid-column:1/-1; width:100%; }
+    .pkg-option__top { align-items:flex-start; flex-wrap:wrap; }
+    .pkg-option__title { width:calc(100% - 60px); }
+    .pkg-total { margin-left:58px; text-align:left; }
+    .pkg-edit { margin-left:auto; }
+    .pkg-fee { grid-template-columns:1fr 1fr; gap:.75rem; }
+    .pkg-fee__name,.pkg-fee-edit { grid-column:1/-1; }
+}
+@media (max-width:480px) {
+    .pkg-hero__nav { align-items:flex-start; flex-direction:column; }
+    .pkg-eyebrow { font-size:.5rem; }
+    .pkg-metrics { grid-template-columns:1fr; }
+    .pkg-metric { display:flex; align-items:center; justify-content:space-between; }
+    .pkg-metric strong { margin:0; }
+    .pkg-form,.pkg-edit__body,.pkg-fee-form { grid-template-columns:1fr; }
+    .pkg-form > .pkg-btn,.pkg-edit__body .pkg-btn,.pkg-fee-form .pkg-btn { grid-column:auto; }
+    .pkg-option__top { padding:1rem; }
+    .pkg-total { margin-left:0; }
+    .pkg-fees { padding:.9rem; }
+}
+</style>
+
+<main class="pkg-page">
+    <header class="pkg-hero">
+        <div class="pkg-hero__nav">
+            <a class="pkg-back" asp-action="GetActiveCourses" asp-controller="Course"><i class="fa fa-arrow-left"></i> All courses</a>
+            <span class="pkg-eyebrow"><i class="fa fa-gem"></i> Premium package studio</span>
+        </div>
+        <div class="pkg-hero__content">
+            <div class="pkg-eyebrow">Course pricing architecture</div>
+            <h1>@Model.CourseName</h1>
+            <p>Build clear learner packages, shape every fee line, and keep pricing accurate from one dedicated workspace.</p>
+        </div>
+        <div class="pkg-metrics">
+            <div class="pkg-metric"><small>Packages</small><strong>@Model.CourseOptions.Count</strong></div>
+            <div class="pkg-metric"><small>Fee lines</small><strong>@feeCount</strong></div>
+            <div class="pkg-metric"><small>Highest package</small><strong>@highestPackage.ToString("C0", currency)</strong></div>
+        </div>
+    </header>
+
+    <div class="pkg-layout">
+        <aside class="pkg-panel pkg-create">
+            <div class="pkg-panel__head">
+                <span><i class="fa fa-plus"></i></span>
+                <div><h2>Create a package</h2><p>Add another pricing path for learners.</p></div>
+            </div>
+            <form asp-action="AddCourseOption" asp-controller="Course" method="post" class="pkg-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CourseId" value="@Model.CourseId" />
+                <div class="pkg-field">
+                    <label for="newOptionDescription">Package name</label>
+                    <input class="pkg-input" id="newOptionDescription" name="OptionDescription" required maxlength="200" placeholder="e.g. Executive package" />
+                </div>
+                <div class="pkg-field">
+                    <label for="newOptionType">Package type</label>
+                    <select class="pkg-select" id="newOptionType" name="OptionType">
+                        @foreach (var value in Enum.GetValues<eCourseOptionType>())
+                        {
+                            <option value="@((int)value)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(value)</option>
+                        }
+                    </select>
+                </div>
+                <button class="pkg-btn pkg-btn--primary" type="submit"><i class="fa fa-sparkles"></i> Create package</button>
+            </form>
+        </aside>
+
+        <section class="pkg-stack" aria-label="Course packages">
+            <div class="pkg-section-head">
+                <div><h2>Package collection</h2><p>Edit package details and pricing without leaving this page.</p></div>
+                <span class="pkg-count">@Model.CourseOptions.Count configured</span>
+            </div>
+
+            @if (!Model.CourseOptions.Any())
+            {
+                <div class="pkg-empty">
+                    <i class="fa fa-layer-group"></i>
+                    <h3>No packages configured yet</h3>
+                    <p>Create the first package to begin building its fee structure.</p>
+                </div>
+            }
+
+            @foreach (var option in Model.CourseOptions)
+            {
+                <article class="pkg-panel pkg-option">
+                    <div class="pkg-option__top">
+                        <span class="pkg-icon"><i class="fa fa-layer-group"></i></span>
+                        <div class="pkg-option__title">
+                            <h3>@option.OptionDescription</h3>
+                            <span class="pkg-tag"><i class="fa fa-circle" style="font-size:.32rem;color:var(--pkg-gold)"></i> @ForekOnline.Application.Common.Utility.Helper.GetDisplayName(option.OptionType)</span>
+                        </div>
+                        <div class="pkg-total"><small>Package total</small><strong>@option.TotalAmount.ToString("C", currency)</strong></div>
+                        <details class="pkg-edit">
+                            <summary class="pkg-btn pkg-btn--soft"><i class="fa fa-pen"></i> Edit package</summary>
+                            <form asp-action="UpdateCourseOption" asp-controller="Course" method="post" class="pkg-edit__body">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" />
+                                <input type="hidden" name="CourseId" value="@Model.CourseId" />
+                                <div class="pkg-field">
+                                    <label for="optionName-@option.CourseOptionId">Package name</label>
+                                    <input class="pkg-input" id="optionName-@option.CourseOptionId" name="OptionDescription" value="@option.OptionDescription" required maxlength="200" />
+                                </div>
+                                <div class="pkg-field">
+                                    <label for="optionType-@option.CourseOptionId">Package type</label>
+                                    <select class="pkg-select" id="optionType-@option.CourseOptionId" name="OptionType">
+                                        @foreach (var value in Enum.GetValues<eCourseOptionType>())
+                                        {
+                                            <option value="@((int)value)" selected="@(value == option.OptionType)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(value)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button class="pkg-btn pkg-btn--primary" type="submit"><i class="fa fa-check"></i> Save changes</button>
+                            </form>
+                        </details>
+                    </div>
+
+                    <div class="pkg-fees">
+                        <div class="pkg-fees__heading"><h4>Fee architecture</h4><span>@option.Fees.Count line@(option.Fees.Count == 1 ? "" : "s")</span></div>
+                        @if (!option.Fees.Any())
+                        {
+                            <div class="pkg-empty" style="padding:1.25rem"><p>No fee lines yet. Add the first charge below.</p></div>
+                        }
+                        else
+                        {
+                            <div class="pkg-fee-list">
+                                @foreach (var fee in option.Fees)
+                                {
+                                    <div class="pkg-fee">
+                                        <div class="pkg-fee__name"><small>Fee</small><strong>@fee.FeeDescription</strong></div>
+                                        <div><small>Charge</small><span>@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(fee.ChargeType)</span></div>
+                                        <div><small>Days</small><span>@(fee.Days?.ToString() ?? "—")</span></div>
+                                        <div><small>Rate</small><span>@fee.Amount.ToString("C", currency)</span></div>
+                                        <div class="pkg-fee__total"><small>Total</small><strong>@fee.TotalAmount.ToString("C", currency)</strong></div>
+                                        <details class="pkg-fee-edit">
+                                            <summary class="pkg-btn pkg-btn--soft"><i class="fa fa-pen"></i> Edit</summary>
+                                            <form asp-action="UpdateCourseOptionFee" asp-controller="Course" method="post" class="pkg-fee-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="CourseOptionFeeId" value="@fee.CourseOptionFeeId" />
+                                                <input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" />
+                                                <div class="pkg-field">
+                                                    <label for="feeName-@fee.CourseOptionFeeId">Fee description</label>
+                                                    <input class="pkg-input" id="feeName-@fee.CourseOptionFeeId" name="FeeDescription" value="@fee.FeeDescription" required maxlength="200" />
+                                                </div>
+                                                <div class="pkg-field">
+                                                    <label for="feeType-@fee.CourseOptionFeeId">Charge type</label>
+                                                    <select class="pkg-select charge-type" id="feeType-@fee.CourseOptionFeeId" name="ChargeType">
+                                                        @foreach (var value in Enum.GetValues<eCourseChargeType>())
+                                                        {
+                                                            <option value="@((int)value)" selected="@(value == fee.ChargeType)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(value)</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="pkg-field days-field">
+                                                    <label for="feeDays-@fee.CourseOptionFeeId">Days</label>
+                                                    <input class="pkg-input" id="feeDays-@fee.CourseOptionFeeId" name="Days" type="number" min="1" value="@fee.Days" placeholder="—" />
+                                                </div>
+                                                <div class="pkg-field">
+                                                    <label for="feeAmount-@fee.CourseOptionFeeId">Amount</label>
+                                                    <input class="pkg-input" id="feeAmount-@fee.CourseOptionFeeId" name="Amount" type="number" min="0" step="0.01" value="@fee.Amount.ToString("0.00", CultureInfo.InvariantCulture)" required />
+                                                </div>
+                                                <button class="pkg-btn pkg-btn--dark" type="submit"><i class="fa fa-check"></i> Update fee</button>
+                                            </form>
+                                        </details>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <form asp-action="AddCourseOptionFee" asp-controller="Course" method="post" class="pkg-fee-form pkg-add-fee">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="CourseOptionId" value="@option.CourseOptionId" />
+                            <div class="pkg-field">
+                                <label for="newFeeName-@option.CourseOptionId">New fee description</label>
+                                <input class="pkg-input" id="newFeeName-@option.CourseOptionId" name="FeeDescription" required maxlength="200" placeholder="e.g. Tuition fee" />
+                            </div>
+                            <div class="pkg-field">
+                                <label for="newFeeType-@option.CourseOptionId">Charge type</label>
+                                <select class="pkg-select charge-type" id="newFeeType-@option.CourseOptionId" name="ChargeType">
+                                    @foreach (var value in Enum.GetValues<eCourseChargeType>())
+                                    {
+                                        <option value="@((int)value)">@ForekOnline.Application.Common.Utility.Helper.GetDisplayName(value)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="pkg-field days-field">
+                                <label for="newFeeDays-@option.CourseOptionId">Days</label>
+                                <input class="pkg-input" id="newFeeDays-@option.CourseOptionId" name="Days" type="number" min="1" placeholder="—" />
+                            </div>
+                            <div class="pkg-field">
+                                <label for="newFeeAmount-@option.CourseOptionId">Amount</label>
+                                <input class="pkg-input" id="newFeeAmount-@option.CourseOptionId" name="Amount" type="number" min="0" step="0.01" required placeholder="R 0.00" />
+                            </div>
+                            <button class="pkg-btn pkg-btn--primary" type="submit"><i class="fa fa-plus"></i> Add fee</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </section>
+    </div>
+</main>
+
+<script>
+(() => {
+    const dailyValue = '@((int)eCourseChargeType.Daily)';
+    document.querySelectorAll('.charge-type').forEach(select => {
+        const form = select.closest('form');
+        const daysField = form?.querySelector('.days-field');
+        const daysInput = daysField?.querySelector('input');
+        const syncDays = () => {
+            const isDaily = select.value === dailyValue;
+            if (daysField) daysField.style.display = isDaily ? '' : 'none';
+            if (daysInput) {
+                daysInput.required = isDaily;
+                if (!isDaily) daysInput.value = '';
+            }
+        };
+        select.addEventListener('change', syncDays);
+        syncDays();
+    });
+})();
+</script>

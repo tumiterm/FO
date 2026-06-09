@@ -311,7 +311,7 @@
                     </label>
                     @if (Model.HasCourseOptions)
                     {
-                        <a asp-action="GetActiveCourses" asp-route-manageOptions="@Model.CourseId" class="btn btn-danger btn-pill">
+                        <a asp-action="ManageCourseOptions" asp-route-courseId="@Model.CourseId" class="btn btn-danger btn-pill">
                             <i class="fa fa-sliders"></i> Manage Packages &amp; Fees
                         </a>
                     }
