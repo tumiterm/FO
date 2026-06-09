@@ -1,418 +1,318 @@
-﻿@model ForekOnline.Domain.ViewModels.CourseModuleViewModel
+@model ForekOnline.Domain.ViewModels.CourseModuleViewModel
 @using static ForekOnline.Domain.Enums.EnumRegistry
 @{
     ViewData["Title"] = "Modify Course";
+    var durationSummary = Model.DurationValue.HasValue
+        ? $"{Model.DurationValue} {Model.DurationType?.ToString() ?? "unit(s)"}"
+        : "Not set";
 }
 
 <style>
 :root {
-    --c-grad: linear-gradient(95deg,#320606,#b31217 55%,#ff7a18);
-    --c-soft: #fff5f3;
-    --c-border: #e2e5ea;
-    --c-border-alt:#c9ccd1;
-    --c-radius: 18px;
+    --course-ink:#181313;
+    --course-muted:#766d69;
+    --course-line:#e8e1dd;
+    --course-canvas:#f8f6f4;
+    --course-card:#fff;
+    --course-wine:#721016;
+    --course-red:#b31217;
+    --course-coral:#eb6948;
+    --course-gold:#d7a65b;
+    --course-shadow:0 26px 72px -44px rgba(65,17,17,.48),0 9px 24px -18px rgba(65,17,17,.24);
 }
-.form-shell {
-    max-width:1100px;
-    margin:0 auto;
-    padding:1.8rem 1.3rem 2.8rem;
-}
-.panel {
-    background:#fff;
-    border:1px solid var(--c-border);
-    border-radius:32px;
-    box-shadow:0 14px 38px -18px rgba(50,6,6,.28),0 6px 20px -10px rgba(50,6,6,.20);
-    overflow:hidden;
-    position:relative;
-}
-.panel__head {
-    padding:1.2rem 1.4rem 1.05rem;
-    background:var(--c-grad);
-    color:#fff;
-    display:flex;
-    align-items:center;
-    gap:.9rem;
-}
-.panel__head h1 {
-    margin:0;
-    font-size:1.35rem;
-    font-weight:600;
-    letter-spacing:.5px;
-    display:flex;
-    align-items:center;
-    gap:.6rem;
-}
-.panel__sub {
-    font-size:.55rem;
-    letter-spacing:.18rem;
-    font-weight:700;
-    text-transform:uppercase;
-    opacity:.85;
-}
-.section {
-    padding:1.35rem 1.4rem .65rem;
-    border-top:1px solid var(--c-border);
-    display:flex;
-    flex-direction:column;
-    gap:1.15rem;
-    position:relative;
-}
-.section:first-of-type {
-    border-top:none;
-}
-.section-title {
-    font-size:.6rem;
-    font-weight:700;
-    letter-spacing:.18rem;
-    text-transform:uppercase;
-    color:#b31217;
-    display:flex;
-    align-items:center;
-    gap:.55rem;
-    margin:0;
-}
-.helper {
-    font-size:.57rem;
-    letter-spacing:.06rem;
-    color:#666;
-    margin-top:-.35rem;
-}
-.field-grid {
-    display:grid;
-    gap:1.05rem;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-}
-.form-floating > label {
-    font-size:.72rem;
-    letter-spacing:.05rem;
-}
-.form-control, .form-select {
-    border-color:var(--c-border);
-    border-radius:var(--c-radius);
-}
-.form-control:focus, .form-select:focus {
-    border-color:#b31217;
-    box-shadow:0 0 0 .2rem rgba(179,18,23,.15);
-}
-.badge-live {
-    background:var(--c-grad);
-    color:#fff;
-    font-size:.55rem;
-    letter-spacing:.14rem;
-    padding:.4rem .75rem;
-    border-radius:30px;
-    font-weight:600;
-    box-shadow:0 6px 16px -8px rgba(179,18,23,.45);
-}
-.inline-meta {
-    display:flex;
-    flex-wrap:wrap;
-    gap:.75rem;
-}
-.meta-box {
-    flex:1 1 260px;
-    background:var(--c-soft);
-    border:1px solid var(--c-border);
-    border-radius:22px;
-    padding:.75rem .9rem .6rem;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    gap:.35rem;
-    font-size:.58rem;
-    letter-spacing:.08rem;
-}
-.meta-box strong {
-    font-size:.62rem;
-    letter-spacing:.12rem;
-    text-transform:uppercase;
-    color:#b31217;
-}
-.toggle-active {
-    display:flex;
-    align-items:center;
-    gap:.6rem;
-    padding:.65rem .85rem;
-    background:#fff;
-    border:1px solid var(--c-border);
-    border-radius:20px;
-    font-size:.65rem;
-    letter-spacing:.08rem;
-    cursor:pointer;
-    user-select:none;
-    transition:.3s;
-}
-.toggle-active:hover {
-    border-color:var(--c-border-alt);
-    background:var(--c-soft);
-}
-.actions {
-    margin-top:.8rem;
-    display:flex;
-    flex-wrap:wrap;
-    gap:.75rem;
-    justify-content:space-between;
-    align-items:center;
-    background:#fff;
-    border:1px solid var(--c-border);
-    border-radius:28px;
-    padding:1.05rem 1.15rem .9rem;
-}
-.actions-left, .actions-right {
-    display:flex;
-    gap:.65rem;
-    flex-wrap:wrap;
-}
-.btn-pill {
-    border-radius:24px;
-    font-size:.63rem;
-    font-weight:600;
-    letter-spacing:.08rem;
-    text-transform:uppercase;
-    padding:.6rem 1.05rem;
-    display:inline-flex;
-    align-items:center;
-    gap:.45rem;
-}
-.btn-pill i {
-    font-size:.75rem;
-}
-.credit-indicator {
-    margin-top:-.55rem;
-    font-size:.55rem;
-    letter-spacing:.09rem;
-    color:#555;
-    display:flex;
-    align-items:center;
-    gap:.5rem;
-}
-.credit-bar-wrapper {
-    background:#f1f3f6;
-    border-radius:12px;
-    height:10px;
-    width:100%;
-    overflow:hidden;
-    position:relative;
-    flex:1;
-}
-.credit-bar {
-    background:var(--c-grad);
-    height:100%;
-    width:0%;
-    transition:.5s;
-}
-
-.option-settings {
-    background:linear-gradient(135deg,#fff8f6,#fff);
-    border:1px solid #f0c9c4;
-    border-radius:24px;
-    padding:1rem;
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:space-between;
-    gap:1rem;
-}
-.option-settings__copy {
-    flex:1 1 480px;
-}
-.option-settings__copy strong {
-    display:block;
-    color:#7d0b0f;
-    margin-bottom:.25rem;
-}
-.option-settings__copy span {
-    color:#666;
-    font-size:.72rem;
-}
-
-@@media (max-width:680px){
-    .field-grid { grid-template-columns:1fr; }
-    .panel__head { flex-direction:column; align-items:flex-start; }
-}
+.course-edit { max-width:1440px; margin:0 auto; padding:1.35rem 1.25rem 3.5rem; color:var(--course-ink); }
+.course-hero { position:relative; overflow:hidden; padding:1.7rem 1.8rem; border-radius:30px; color:#fff; background:linear-gradient(120deg,#250507 0%,#781017 48%,#d64b2a 100%); box-shadow:0 28px 70px -35px rgba(91,12,17,.7); }
+.course-hero::before { content:""; position:absolute; width:390px; height:390px; right:-110px; top:-255px; border:72px solid rgba(255,255,255,.07); border-radius:50%; }
+.course-hero::after { content:""; position:absolute; right:9%; bottom:-90px; width:230px; height:160px; border-radius:50%; background:rgba(255,185,106,.13); transform:rotate(-12deg); }
+.course-hero__nav,.course-hero__body,.course-metrics { position:relative; z-index:1; }
+.course-hero__nav { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.8rem; }
+.course-back,.course-mode { display:inline-flex; align-items:center; gap:.52rem; padding:.62rem .9rem; border:1px solid rgba(255,255,255,.23); border-radius:999px; color:#fff; background:rgba(255,255,255,.08); font-size:.66rem; font-weight:800; letter-spacing:.04em; text-decoration:none; backdrop-filter:blur(10px); }
+.course-back:hover { color:#fff; background:rgba(255,255,255,.16); }
+.course-eyebrow { color:#ffd7c2; font-size:.56rem; font-weight:850; letter-spacing:.2em; text-transform:uppercase; }
+.course-hero h1 { max-width:850px; margin:.5rem 0 .45rem; font-size:clamp(1.6rem,3.2vw,2.8rem); font-weight:850; line-height:1.04; letter-spacing:-.045em; }
+.course-hero p { max-width:720px; margin:0; color:rgba(255,255,255,.76); font-size:.76rem; line-height:1.7; }
+.course-metrics { display:grid; grid-template-columns:repeat(3,minmax(120px,1fr)); gap:.7rem; max-width:650px; margin-top:1.4rem; }
+.course-metric { padding:.8rem .95rem; border:1px solid rgba(255,255,255,.15); border-radius:17px; background:rgba(255,255,255,.08); backdrop-filter:blur(12px); }
+.course-metric small { display:block; color:rgba(255,255,255,.6); font-size:.48rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.course-metric strong { display:block; margin-top:.2rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.86rem; font-weight:800; }
+.course-form { display:grid; grid-template-columns:minmax(0,1fr) 315px; gap:1.15rem; align-items:start; margin-top:1.15rem; }
+.course-main,.course-side { display:grid; gap:1rem; min-width:0; }
+.course-side { position:sticky; top:1rem; }
+.course-card { overflow:hidden; border:1px solid var(--course-line); border-radius:24px; background:var(--course-card); box-shadow:var(--course-shadow); }
+.course-card__head { display:flex; align-items:flex-start; gap:.8rem; padding:1.05rem 1.2rem .95rem; border-bottom:1px solid var(--course-line); background:linear-gradient(145deg,#fffaf6,#fff); }
+.course-card__icon { display:flex; width:36px; height:36px; flex:none; align-items:center; justify-content:center; border-radius:12px; color:#fff; background:linear-gradient(135deg,var(--course-wine),var(--course-coral)); box-shadow:0 9px 18px -10px rgba(114,16,22,.75); }
+.course-card__head h2 { margin:0; font-size:.86rem; font-weight:850; }
+.course-card__head p { margin:.2rem 0 0; color:var(--course-muted); font-size:.59rem; line-height:1.5; }
+.course-card__body { padding:1.15rem 1.2rem 1.25rem; }
+.course-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.9rem; }
+.course-grid--three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.course-field { display:flex; flex-direction:column; gap:.38rem; min-width:0; }
+.course-field--wide { grid-column:1/-1; }
+.course-field label,.course-label { color:#625955; font-size:.52rem; font-weight:850; letter-spacing:.105em; text-transform:uppercase; }
+.course-input,.course-select,.course-textarea { width:100%; min-height:46px; padding:.72rem .82rem; border:1px solid #ddd5d0; border-radius:13px; outline:none; background:#fff; color:var(--course-ink); font-size:.73rem; transition:.2s ease; }
+.course-textarea { min-height:94px; resize:vertical; line-height:1.55; }
+.course-input:focus,.course-select:focus,.course-textarea:focus { border-color:var(--course-red); box-shadow:0 0 0 4px rgba(179,18,23,.09); }
+.course-hint { margin:0; color:var(--course-muted); font-size:.54rem; line-height:1.45; }
+.course-checks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+.course-switch { display:flex; align-items:center; gap:.7rem; min-height:58px; padding:.75rem .8rem; border:1px solid var(--course-line); border-radius:15px; background:#fff; cursor:pointer; }
+.course-switch:hover { border-color:#d7cbc5; background:#fffaf7; }
+.course-switch input { width:2.15rem; height:1.1rem; flex:none; }
+.course-switch strong { display:block; font-size:.65rem; font-weight:800; }
+.course-switch small { display:block; margin-top:.12rem; color:var(--course-muted); font-size:.52rem; line-height:1.35; }
+.course-packages { padding:1rem; border:1px solid #f0cec5; border-radius:18px; background:linear-gradient(140deg,#fff6f1,#fff); }
+.course-packages__top { display:flex; align-items:center; justify-content:space-between; gap:.8rem; }
+.course-packages__top strong { display:block; font-size:.72rem; }
+.course-packages__top p { margin:.25rem 0 0; color:var(--course-muted); font-size:.56rem; line-height:1.5; }
+.course-packages__actions { display:flex; align-items:center; gap:.55rem; margin-top:.85rem; }
+.course-status { display:flex; align-items:center; gap:.65rem; padding:.85rem; border:1px solid var(--course-line); border-radius:16px; background:var(--course-canvas); }
+.course-status__dot { width:10px; height:10px; border-radius:50%; background:#2a9d63; box-shadow:0 0 0 5px rgba(42,157,99,.12); }
+.course-status.is-inactive .course-status__dot { background:#b23a3a; box-shadow:0 0 0 5px rgba(178,58,58,.12); }
+.course-status strong { display:block; font-size:.68rem; }
+.course-status small { display:block; color:var(--course-muted); font-size:.52rem; }
+.course-audit { display:grid; gap:.65rem; }
+.course-audit__item { padding:.72rem .8rem; border:1px solid var(--course-line); border-radius:14px; background:#fcfaf9; }
+.course-audit__item small { display:block; color:var(--course-muted); font-size:.48rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.course-audit__item span { display:block; margin-top:.2rem; overflow-wrap:anywhere; font-size:.62rem; font-weight:700; }
+.course-validation { margin-bottom:.8rem; padding:.75rem .85rem; border-radius:14px; background:#fff2f0; color:#9c1d23; font-size:.62rem; }
+.course-actions { display:grid; gap:.6rem; }
+.course-btn { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:.48rem; border:0; border-radius:13px; padding:.72rem 1rem; font-size:.65rem; font-weight:850; letter-spacing:.025em; text-decoration:none; cursor:pointer; transition:transform .18s ease,box-shadow .18s ease; }
+.course-btn:hover { transform:translateY(-1px); }
+.course-btn--primary { color:#fff; background:linear-gradient(120deg,var(--course-wine),var(--course-red) 58%,var(--course-coral)); box-shadow:0 13px 25px -14px rgba(126,17,23,.8); }
+.course-btn--soft { color:var(--course-wine); border:1px solid #f0d4cd; background:#fff3ef; }
+.course-btn--dark { color:#fff; background:#201a18; }
+.course-btn--full { width:100%; }
+.text-danger { font-size:.55rem; }
+@@media (max-width:1080px) { .course-form { grid-template-columns:1fr; } .course-side { position:static; grid-template-columns:repeat(2,minmax(0,1fr)); } .course-side .course-card:last-child { grid-column:1/-1; } }
+@@media (max-width:760px) { .course-edit { padding:.75rem .7rem 2.5rem; } .course-hero { padding:1.25rem; border-radius:23px; } .course-grid,.course-grid--three { grid-template-columns:1fr; } .course-metrics { grid-template-columns:repeat(3,1fr); } .course-side { grid-template-columns:1fr; } .course-side .course-card:last-child { grid-column:auto; } }
+@@media (max-width:520px) { .course-hero__nav { align-items:flex-start; flex-direction:column; } .course-metrics { grid-template-columns:1fr; } .course-metric { display:flex; align-items:center; justify-content:space-between; } .course-metric strong { margin:0; } .course-checks { grid-template-columns:1fr; } .course-packages__top { align-items:flex-start; flex-direction:column; } .course-packages__actions { align-items:stretch; flex-direction:column; } }
 </style>
 
-<div class="form-shell">
-    <div class="panel">
-        <div class="panel__head">
-            <h1><i class="fa fa-layer-group"></i> Course Management</h1>
-            <span class="panel__sub">MODIFY • CURATION</span>
-            <span class="ms-auto badge-live"><i class="fa fa-pen-to-square me-1"></i> Edit Mode</span>
+<main class="course-edit">
+    <header class="course-hero">
+        <div class="course-hero__nav">
+            <a class="course-back" asp-action="GetActiveCourses"><i class="fa fa-arrow-left"></i> All courses</a>
+            <span class="course-mode"><i class="fa fa-pen-to-square"></i> Edit workspace</span>
         </div>
+        <div class="course-hero__body">
+            <div class="course-eyebrow">Course configuration</div>
+            <h1>@Model.Name</h1>
+            <p>Keep the academic profile, delivery model, admissions rules, pricing, and learner package settings accurate in one workspace.</p>
+        </div>
+        <div class="course-metrics">
+            <div class="course-metric"><small>Course type</small><strong>@Model.Type</strong></div>
+            <div class="course-metric"><small>Duration</small><strong id="durationSummary">@durationSummary</strong></div>
+            <div class="course-metric"><small>Package pricing</small><strong id="packageSummary">@(Model.HasCourseOptions ? "Enabled" : "Disabled")</strong></div>
+        </div>
+    </header>
 
-        <form asp-action="OnModifyCourse" class="needs-validation" novalidate>
-            <input type="hidden" asp-for="CourseId" />
-
-            <div class="section">
-                <h2 class="section-title"><i class="fa fa-book-open"></i> Core Details</h2>
-                <p class="helper">Update foundational course descriptors & taxonomy.</p>
-
-                <div class="field-grid">
-                    <div class="form-floating">
-                        <input asp-for="Name" class="form-control" placeholder="Course Name" required />
-                        <label asp-for="Name"></label>
-                        <div class="invalid-feedback">Course name is required.</div>
+    <form asp-action="OnModifyCourse" method="post" class="course-form needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CourseId" />
+        <div class="course-main">
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-book-open"></i></span><div><h2>Academic profile</h2><p>The course identity and qualification framework shown throughout the platform.</p></div></div>
+                <div class="course-card__body course-grid">
+                    <div class="course-field course-field--wide">
+                        <label asp-for="Name">Course name</label>
+                        <input asp-for="Name" class="course-input" required maxlength="200" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
-
-                    <div class="form-floating">
-                        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<eCourseType>()">
-                            <option value="">Select Type</option>
-                        </select>
-                        <label asp-for="Type">Course Type</label>
-                        <div class="invalid-feedback">Select a course type.</div>
+                    <div class="course-field">
+                        <label asp-for="Type">Course type</label>
+                        <select asp-for="Type" class="course-select" asp-items="Html.GetEnumSelectList<eCourseType>()"></select>
+                        <span asp-validation-for="Type" class="text-danger"></span>
                     </div>
-
-                    <div class="form-floating">
-                        <select asp-for="CourseNQFLevel" class="form-select" asp-items="Html.GetEnumSelectList<eNQF>()">
-                            <option value="">Select NQF</option>
-                        </select>
-                        <label asp-for="CourseNQFLevel">NQF Level</label>
-                        <div class="invalid-feedback">Select an NQF level.</div>
+                    <div class="course-field">
+                        <label asp-for="CourseNQFLevel">NQF level</label>
+                        <select asp-for="CourseNQFLevel" class="course-select" asp-items="Html.GetEnumSelectList<eNQF>()"><option value="">Not specified</option></select>
                     </div>
+                    <div class="course-field">
+                        <label asp-for="CourseCredit">Course credits</label>
+                        <input asp-for="CourseCredit" type="number" min="0" step="0.5" class="course-input" inputmode="decimal" />
+                    </div>
+                    <div class="course-field">
+                        <label asp-for="MaximumStudents">Maximum students</label>
+                        <input asp-for="MaximumStudents" type="number" min="1" step="1" class="course-input" inputmode="numeric" placeholder="No limit" />
+                    </div>
+                </div>
+            </section>
 
-                    <div class="form-floating">
-                        <input asp-for="CourseCredit" class="form-control" placeholder="Credits" required />
-                        <label asp-for="CourseCredit">Credit</label>
-                        <div class="invalid-feedback">Course credit is required.</div>
-                        <div class="credit-indicator">
-                            <span><i class="fa fa-gauge-high text-danger"></i> Credit Load</span>
-                            <div class="credit-bar-wrapper">
-                                <div class="credit-bar" id="creditBar"></div>
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-clock"></i></span><div><h2>Delivery &amp; duration</h2><p>Define how learners attend and the number of days, weeks, months, or years required.</p></div></div>
+                <div class="course-card__body course-grid course-grid--three">
+                    <div class="course-field">
+                        <label asp-for="DurationValue">Duration number</label>
+                        <input asp-for="DurationValue" type="number" min="1" step="1" class="course-input" inputmode="numeric" placeholder="e.g. 10" />
+                        <p class="course-hint">Enter the number, then choose its unit.</p>
+                    </div>
+                    <div class="course-field">
+                        <label asp-for="DurationType">Duration unit</label>
+                        <select asp-for="DurationType" class="course-select" asp-items="Html.GetEnumSelectList<eDurationType>()"><option value="">Select unit</option></select>
+                    </div>
+                    <div class="course-field">
+                        <label asp-for="StudyMode">Study mode</label>
+                        <select asp-for="StudyMode" class="course-select" asp-items="Html.GetEnumSelectList<eStudyMode>()"></select>
+                    </div>
+                    <div class="course-field">
+                        <label asp-for="DeliveryMethod">Delivery method</label>
+                        <select asp-for="DeliveryMethod" class="course-select" asp-items="Html.GetEnumSelectList<eDeliveryMethod>()"></select>
+                    </div>
+                    <div class="course-field course-field--wide">
+                        <div class="course-checks">
+                            <label class="course-switch"><input asp-for="IsEligibleForOnlineApplications" class="form-check-input" /><span><strong>Online applications</strong><small>Allow applicants to select this course online.</small></span></label>
+                            <label class="course-switch"><input asp-for="IsActive" class="form-check-input" /><span><strong>Active course</strong><small id="activeStatusText">Available across the platform.</small></span></label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-user-check"></i></span><div><h2>Admissions requirements</h2><p>Capture the minimum entry criteria and any additional screening steps.</p></div></div>
+                <div class="course-card__body course-grid">
+                    <div class="course-field">
+                        <label asp-for="MinimumRequirement">Minimum requirement</label>
+                        <select asp-for="MinimumRequirement" class="course-select" asp-items="Html.GetEnumSelectList<eMinimumRequirement>()"></select>
+                    </div>
+                    <div class="course-field course-field--wide">
+                        <label asp-for="MinimumRequirementNotes">Requirement notes</label>
+                        <textarea asp-for="MinimumRequirementNotes" class="course-textarea" maxlength="1000" placeholder="Add supporting entry criteria or prerequisite details..."></textarea>
+                        <span asp-validation-for="MinimumRequirementNotes" class="text-danger"></span>
+                    </div>
+                    <div class="course-field course-field--wide">
+                        <div class="course-checks">
+                            <label class="course-switch"><input asp-for="RequiresAptitudeTest" class="form-check-input" /><span><strong>Aptitude test</strong><small>Applicant must complete an aptitude assessment.</small></span></label>
+                            <label class="course-switch"><input asp-for="RequiresInterview" class="form-check-input" /><span><strong>Interview</strong><small>Applicant must attend an admissions interview.</small></span></label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-certificate"></i></span><div><h2>Accreditation</h2><p>Record the awarding or accrediting body and its official reference.</p></div></div>
+                <div class="course-card__body course-grid">
+                    <div class="course-field course-field--wide">
+                        <label class="course-switch"><input asp-for="IsAccredited" class="form-check-input" /><span><strong>Accredited course</strong><small>Show accreditation details for this qualification.</small></span></label>
+                    </div>
+                    <div class="course-field accreditation-field">
+                        <label asp-for="AccreditationBody">Accreditation body</label>
+                        <input asp-for="AccreditationBody" class="course-input" maxlength="200" placeholder="e.g. QCTO" />
+                    </div>
+                    <div class="course-field accreditation-field">
+                        <label asp-for="AccreditationNumber">Accreditation number</label>
+                        <input asp-for="AccreditationNumber" class="course-input" maxlength="100" placeholder="Official reference" />
+                    </div>
+                </div>
+            </section>
+
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-wallet"></i></span><div><h2>Fees &amp; learner packages</h2><p>Set standard charges or enable package-based pricing with detailed fee lines and days.</p></div></div>
+                <div class="course-card__body course-grid course-grid--three">
+                    <div class="course-field"><label asp-for="ApplicationFee">Application fee</label><input asp-for="ApplicationFee" type="number" min="0" step="0.01" class="course-input" inputmode="decimal" placeholder="R 0.00" /></div>
+                    <div class="course-field"><label asp-for="RegistrationFee">Registration fee</label><input asp-for="RegistrationFee" type="number" min="0" step="0.01" class="course-input" inputmode="decimal" placeholder="R 0.00" /></div>
+                    <div class="course-field"><label asp-for="TuitionFee">Default tuition fee</label><input asp-for="TuitionFee" type="number" min="0" step="0.01" class="course-input" inputmode="decimal" placeholder="R 0.00" /></div>
+                    <div class="course-field course-field--wide">
+                        <div class="course-packages">
+                            <div class="course-packages__top"><div><strong>Course packages</strong><p>Create learner-selectable options and calculate daily fee lines using a visible Number of days field.</p></div><input asp-for="HasCourseOptions" class="form-check-input" /></div>
+                            <div class="course-packages__actions">
+                                <span id="courseOptionsStatus" class="course-hint">Package pricing disabled</span>
+                                @if (Model.HasCourseOptions)
+                                {
+                                    <a asp-action="ManageCourseOptions" asp-route-courseId="@Model.CourseId" class="course-btn course-btn--soft"><i class="fa fa-sliders"></i> Manage packages &amp; fees</a>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+        </div>
 
-
-            <div class="section" id="courseOptionsSettings">
-                <h2 class="section-title"><i class="fa fa-layer-group"></i> Packages &amp; Course Fees</h2>
-                <p class="helper">Enable learner-selectable packages such as Package 1 and Package 2, then configure each package's fee lines and number of days.</p>
-
-                <div class="field-grid">
-                    <div class="form-floating">
-                        <input asp-for="TuitionFee" type="number" min="0" step="0.01" class="form-control" placeholder="Default tuition fee" />
-                        <label asp-for="TuitionFee">Default Tuition Fee</label>
-                    </div>
-                    <div class="form-floating">
-                        <input asp-for="MaximumStudents" type="number" min="1" class="form-control" placeholder="Maximum students" />
-                        <label asp-for="MaximumStudents">Maximum Students</label>
+        <aside class="course-side">
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-signal"></i></span><div><h2>Publishing status</h2><p>Control course availability.</p></div></div>
+                <div class="course-card__body"><div class="course-status" id="courseStatus"><span class="course-status__dot"></span><div><strong id="courseStatusTitle">Active</strong><small id="courseStatusCopy">Visible and available.</small></div></div></div>
+            </section>
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-clock-rotate-left"></i></span><div><h2>Audit trail</h2><p>Most recent saved change.</p></div></div>
+                <div class="course-card__body course-audit">
+                    <div class="course-audit__item"><small>Modified by</small><span>@(string.IsNullOrWhiteSpace(Model.ModifiedBy) ? "No modification recorded" : Model.ModifiedBy)</span></div>
+                    <div class="course-audit__item"><small>Modified on</small><span>@(string.IsNullOrWhiteSpace(Model.ModifiedOn) ? "Not available" : Model.ModifiedOn)</span></div>
+                </div>
+            </section>
+            <section class="course-card">
+                <div class="course-card__head"><span class="course-card__icon"><i class="fa fa-floppy-disk"></i></span><div><h2>Save changes</h2><p>Validate and publish this configuration.</p></div></div>
+                <div class="course-card__body">
+                    <div asp-validation-summary="ModelOnly" class="course-validation"></div>
+                    <div class="course-actions">
+                        <button type="submit" class="course-btn course-btn--primary course-btn--full"><i class="fa fa-check"></i> Save course</button>
+                        <button type="reset" class="course-btn course-btn--soft course-btn--full"><i class="fa fa-rotate-left"></i> Reset changes</button>
+                        <a asp-action="GetActiveCourses" class="course-btn course-btn--dark course-btn--full"><i class="fa fa-xmark"></i> Cancel &amp; exit</a>
                     </div>
                 </div>
-
-                <div class="option-settings">
-                    <div class="option-settings__copy">
-                        <strong>Does this course offer learner packages?</strong>
-                        <span>When enabled, the course list displays a Manage Packages button where you can create the options, add fees, and capture package days.</span>
-                    </div>
-                    <label class="toggle-active">
-                        <input asp-for="HasCourseOptions" class="form-check-input me-1" />
-                        <span id="courseOptionsStatus">Course packages disabled</span>
-                    </label>
-                    @if (Model.HasCourseOptions)
-                    {
-                        <a asp-action="ManageCourseOptions" asp-route-courseId="@Model.CourseId" class="btn btn-danger btn-pill">
-                            <i class="fa fa-sliders"></i> Manage Packages &amp; Fees
-                        </a>
-                    }
-                </div>
-            </div>
-
-            <div class="section">
-                <h2 class="section-title"><i class="fa fa-user-clock"></i> Audit Trail</h2>
-                <p class="helper">Immutable operational metadata for provenance.</p>
-                <div class="inline-meta">
-                    <div class="meta-box">
-                        <strong>Modified By</strong>
-                        <input asp-for="ModifiedBy" readonly class="form-control mt-1" />
-                    </div>
-                    <div class="meta-box">
-                        <strong>Modified On</strong>
-                        <input asp-for="ModifiedOn" readonly class="form-control mt-1" />
-                    </div>
-                    <div class="meta-box">
-                        <strong>Status</strong>
-                        <label class="toggle-active mt-1">
-                            <input asp-for="IsActive" class="form-check-input me-1" />
-                            <span id="activeStatusText">Active</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2 class="section-title"><i class="fa fa-shield-halved"></i> Validation & Commit</h2>
-                <p class="helper">Review accuracy then persist changes. Reset reverts unsaved edits.</p>
-                <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
-                <div class="actions">
-                    <div class="actions-left">
-                        <button type="submit" class="btn btn-success btn-pill">
-                            <i class="fa fa-save"></i> Save Changes
-                        </button>
-                        <button type="reset" class="btn btn-outline-warning btn-pill">
-                            <i class="fa fa-rotate-left"></i> Reset
-                        </button>
-                    </div>
-                    <div class="actions-right">
-                        <a asp-action="GetActiveCourses" class="btn btn-danger btn-pill">
-                            <i class="fa fa-circle-xmark"></i> Exit
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
+            </section>
+        </aside>
+    </form>
+</main>
 
 @section Scripts {
     <script>
-        (function () {
+        (() => {
             const form = document.querySelector('.needs-validation');
-            form?.addEventListener('submit', e => {
+            const activeInput = document.getElementById('@Html.IdFor(m => m.IsActive)');
+            const status = document.getElementById('courseStatus');
+            const statusTitle = document.getElementById('courseStatusTitle');
+            const statusCopy = document.getElementById('courseStatusCopy');
+            const activeCopy = document.getElementById('activeStatusText');
+            const packagesInput = document.getElementById('@Html.IdFor(m => m.HasCourseOptions)');
+            const packagesStatus = document.getElementById('courseOptionsStatus');
+            const packageSummary = document.getElementById('packageSummary');
+            const durationValue = document.getElementById('@Html.IdFor(m => m.DurationValue)');
+            const durationType = document.getElementById('@Html.IdFor(m => m.DurationType)');
+            const durationSummary = document.getElementById('durationSummary');
+            const accreditedInput = document.getElementById('@Html.IdFor(m => m.IsAccredited)');
+            const accreditationFields = document.querySelectorAll('.accreditation-field input');
+
+            const syncActive = () => {
+                const isActive = activeInput?.checked ?? false;
+                status?.classList.toggle('is-inactive', !isActive);
+                if (statusTitle) statusTitle.textContent = isActive ? 'Active' : 'Inactive';
+                if (statusCopy) statusCopy.textContent = isActive ? 'Visible and available.' : 'Hidden from active course lists.';
+                if (activeCopy) activeCopy.textContent = isActive ? 'Available across the platform.' : 'Hidden from active course lists.';
+            };
+            const syncPackages = () => {
+                const enabled = packagesInput?.checked ?? false;
+                if (packagesStatus) packagesStatus.textContent = enabled ? 'Package pricing enabled — save to continue.' : 'Package pricing disabled';
+                if (packageSummary) packageSummary.textContent = enabled ? 'Enabled' : 'Disabled';
+            };
+            const syncDuration = () => {
+                if (!durationSummary) return;
+                const amount = durationValue?.value;
+                const unit = durationType?.selectedOptions[0]?.text;
+                durationSummary.textContent = amount && durationType?.value ? `${amount} ${unit}` : 'Not set';
+            };
+            const syncAccreditation = () => {
+                const enabled = accreditedInput?.checked ?? false;
+                accreditationFields.forEach(input => {
+                    input.disabled = !enabled;
+                    input.closest('.course-field')?.classList.toggle('opacity-50', !enabled);
+                });
+            };
+
+            form?.addEventListener('submit', event => {
                 if (!form.checkValidity()) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    event.preventDefault();
+                    event.stopPropagation();
                 }
                 form.classList.add('was-validated');
             });
-
-            // Active status label toggle
-            const activeInput = document.getElementById('@Html.IdFor(m => m.IsActive)');
-            const activeText = document.getElementById('activeStatusText');
-            function syncActive() {
-                if (!activeInput || !activeText) return;
-                activeText.textContent = activeInput.checked ? 'Active' : 'Inactive';
-                activeText.classList.toggle('text-danger', !activeInput.checked);
-            }
+            form?.addEventListener('reset', () => window.setTimeout(() => {
+                syncActive(); syncPackages(); syncDuration(); syncAccreditation();
+            }, 0));
             activeInput?.addEventListener('change', syncActive);
-            syncActive();
-
-
-            const courseOptionsInput = document.getElementById('@Html.IdFor(m => m.HasCourseOptions)');
-            const courseOptionsStatus = document.getElementById('courseOptionsStatus');
-            function syncCourseOptions() {
-                if (!courseOptionsInput || !courseOptionsStatus) return;
-                courseOptionsStatus.textContent = courseOptionsInput.checked
-                    ? 'Course packages enabled'
-                    : 'Course packages disabled';
-                courseOptionsStatus.classList.toggle('text-danger', !courseOptionsInput.checked);
-            }
-            courseOptionsInput?.addEventListener('change', syncCourseOptions);
-            syncCourseOptions();
-
-            // Credit progress bar (simple heuristic)
-            const creditInput = document.getElementById('@Html.IdFor(m => m.CourseCredit)');
-            const creditBar = document.getElementById('creditBar');
-            function updateCreditBar() {
-                if (!creditInput || !creditBar) return;
-                let val = parseFloat(creditInput.value);
-                if (isNaN(val) || val < 0) val = 0;
-                // Assume soft cap at 240 for visual scaling
-                const pct = Math.min(100, (val / 240) * 100);
-                creditBar.style.width = pct.toFixed(1) + '%';
-            }
-            creditInput?.addEventListener('input', updateCreditBar);
-            updateCreditBar();
+            packagesInput?.addEventListener('change', syncPackages);
+            durationValue?.addEventListener('input', syncDuration);
+            durationType?.addEventListener('change', syncDuration);
+            accreditedInput?.addEventListener('change', syncAccreditation);
+            syncActive(); syncPackages(); syncDuration(); syncAccreditation();
         })();
     </script>
     @await Html.PartialAsync("_ValidationScriptsPartial")
