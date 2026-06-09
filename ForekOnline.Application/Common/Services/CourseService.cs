@@ -125,7 +125,7 @@ namespace ForekOnline.Application.Common.Services
                 NType = request.NType,
                 NQFLevel = request.NQFLevel,
                 CreatedBy = request.CreatedBy,
-                CreatedOn = _helperService.GetCurrentTime().ToString("0"),
+                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime.ToString(), 
                 IsActive = true,
                 Credit = request.Credit > 0 ? request.Credit : totalModuleCredit,
                 ModifiedBy = request.ModifiedBy,
@@ -135,7 +135,9 @@ namespace ForekOnline.Application.Common.Services
                 IsAccredited = request.IsAccredited, AccreditationBody = request.AccreditationBody, AccreditationNumber = request.AccreditationNumber,
                 IsEligibleForOnlineApplications = request.IsEligibleForOnlineApplications, RequiresAptitudeTest = request.RequiresAptitudeTest,
                 RequiresInterview = request.RequiresInterview, ApplicationFee = request.ApplicationFee, RegistrationFee = request.RegistrationFee,
-                TuitionFee = request.TuitionFee, MaximumStudents = request.MaximumStudents, HasCourseOptions = request.HasCourseOptions,
+                TuitionFee = request.TuitionFee,
+                MaximumStudents = request.MaximumStudents,
+                HasCourseOptions = request.HasCourseOptions,
                 Module = new List<Module>(),
             };
 

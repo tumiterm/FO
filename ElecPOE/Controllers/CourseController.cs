@@ -297,11 +297,10 @@ namespace ElecPOE.Controllers
                 DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset(),
                 IsDeleted = false,
                 UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
-                RowVersion = Guid.NewGuid().ToByteArray(),
                 DateDeleted = null,
                 Id = Helper.GenerateGuid(),
             };
-
+            
             await _context.CourseOptions.AddAsync(co);
             await _context.SaveAsync();
             TempData["success"] = "Course option added successfully. Add the fee lines for this package below.";

@@ -61,7 +61,7 @@ namespace ForekOnline.Domain.Shared
         public string? Name { get; set; }
 
         /// <inheritdoc />
-        //[Timestamp]
+        [Timestamp]
         public byte[] RowVersion { get; set; } = [];
 
         #endregion
