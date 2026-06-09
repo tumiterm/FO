@@ -118,7 +118,7 @@ namespace ElecPOE.Controllers
 
                 if (courseEntity.HasCourseOptions)
                 {
-                    return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = courseEntity.CourseId });
+                    return RedirectToAction(nameof(ManageCourseOptions), new { courseId = courseEntity.CourseId });
                 }
 
                 return RedirectToAction(nameof(OnCourse), new { CourseId = courseEntity.CourseId });
@@ -267,6 +267,34 @@ namespace ElecPOE.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ManageCourseOptions(Guid courseId)
+        {
+            if (courseId == Guid.Empty)
+            {
+                return RedirectToAction("RouteNotFound", "Global");
+            }
+
+            var course = await _context.Courses.GetAsync(
+                c => c.CourseId == courseId,
+                includeProperties: new[] { "CourseOptions.Fees" },
+                asNoTracking: true);
+
+            if (course == null)
+            {
+                TempData["error"] = "The selected course could not be found.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            if (!course.HasCourseOptions)
+            {
+                TempData["error"] = "Enable course options before managing packages and fees.";
+                return RedirectToAction(nameof(OnModifyCourse), new { CourseId = courseId });
+            }
+
+            return View(ConvertToCourseDto(course));
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCourseOption(CourseOptionViewModel model)
@@ -281,7 +309,7 @@ namespace ElecPOE.Controllers
             if (string.IsNullOrWhiteSpace(model.OptionDescription))
             {
                 TempData["error"] = "Option description is required.";
-                return RedirectToAction(nameof(GetActiveCourses));
+                return RedirectToAction(nameof(ManageCourseOptions), new { courseId = model.CourseId });
             }
 
             var user = _userService.OnGetCurrentUser();
@@ -305,24 +333,26 @@ namespace ElecPOE.Controllers
             await _context.CourseOptions.AddAsync(co);
             await _context.SaveAsync();
             TempData["success"] = "Course option added successfully. Add the fee lines for this package below.";
-            return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = model.CourseId });
+            return RedirectToAction(nameof(ManageCourseOptions), new { courseId = model.CourseId });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCourseOptionFee(CourseOptionFeeViewModel model)
         {
-            var option = await _context.CourseOptions.GetAsync(o => o.Id == model.CourseOptionId);
+            var option = await _context.CourseOptions.GetAsync(o => o.Id == model.CourseOptionId && !o.IsDeleted);
             if (option == null || string.IsNullOrWhiteSpace(model.FeeDescription) || model.Amount < 0)
             {
                 TempData["error"] = "Please provide valid option fee details.";
-                return RedirectToAction(nameof(GetActiveCourses));
+                return option == null
+                    ? RedirectToAction(nameof(GetActiveCourses))
+                    : RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
             }
 
             if (model.ChargeType == eCourseChargeType.Daily && (!model.Days.HasValue || model.Days.Value < 1))
             {
                 TempData["error"] = "Enter the number of days for a daily fee.";
-                return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = option.CourseIdFK });
+                return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
             }
 
             var total = model.ChargeType == eCourseChargeType.Daily
@@ -340,18 +370,103 @@ namespace ElecPOE.Controllers
                 FeeDescription = model.FeeDescription.Trim(),
                 Name = model.FeeDescription.Trim(),
                 ChargeType = model.ChargeType,
-                Days = model.Days,
+                Days = model.ChargeType == eCourseChargeType.Daily ? model.Days : null,
                 Amount = model.Amount,
                 TotalAmount = total,
                 IsDeleted = false,
                 UserCreated = $"{user?.Name} {user?.LastName}".Trim(),
-                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset()
+                DateCreated = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset(),
+                RowVersion = Guid.NewGuid().ToByteArray()
             });
 
             option.TotalAmount = existingTotal + total;
             await _context.SaveAsync();
             TempData["success"] = "Option fee added successfully.";
-            return RedirectToAction(nameof(GetActiveCourses), new { manageOptions = option.CourseIdFK });
+            return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateCourseOption(CourseOptionViewModel model)
+        {
+            var option = await _context.CourseOptions.GetAsync(o => o.Id == model.CourseOptionId && !o.IsDeleted);
+            if (option == null)
+            {
+                TempData["error"] = "The selected course option could not be found.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            if (string.IsNullOrWhiteSpace(model.OptionDescription))
+            {
+                TempData["error"] = "Option description is required.";
+                return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
+            }
+
+            var user = _userService.OnGetCurrentUser();
+            option.OptionDescription = model.OptionDescription.Trim();
+            option.Name = option.OptionDescription;
+            option.OptionType = model.OptionType;
+            option.UserModified = $"{user?.Name} {user?.LastName}".Trim();
+            option.DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset();
+            option.RowVersion = Guid.NewGuid().ToByteArray();
+
+            await _context.SaveAsync();
+            TempData["success"] = "Course option updated successfully.";
+            return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateCourseOptionFee(CourseOptionFeeViewModel model)
+        {
+            var fee = await _context.CourseOptionFees.GetAsync(f => f.Id == model.CourseOptionFeeId && !f.IsDeleted);
+            if (fee == null)
+            {
+                TempData["error"] = "The selected option fee could not be found.";
+                return RedirectToAction(nameof(GetActiveCourses));
+            }
+
+            var option = await _context.CourseOptions.GetAsync(o => o.Id == fee.CourseOptionIdFK && !o.IsDeleted);
+            if (option == null || string.IsNullOrWhiteSpace(model.FeeDescription) || model.Amount < 0)
+            {
+                TempData["error"] = "Please provide valid option fee details.";
+                return option == null
+                    ? RedirectToAction(nameof(GetActiveCourses))
+                    : RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
+            }
+
+            if (model.ChargeType == eCourseChargeType.Daily && (!model.Days.HasValue || model.Days.Value < 1))
+            {
+                TempData["error"] = "Enter the number of days for a daily fee.";
+                return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
+            }
+
+            var total = model.ChargeType == eCourseChargeType.Daily
+                ? model.Amount * model.Days!.Value
+                : model.Amount;
+            var otherFeesTotal = (await _context.CourseOptionFees.GetAllAsync(
+                    f => f.CourseOptionIdFK == option.Id && f.Id != fee.Id && !f.IsDeleted,
+                    asNoTracking: true))
+                .Sum(f => f.TotalAmount);
+            var user = _userService.OnGetCurrentUser();
+
+            fee.FeeDescription = model.FeeDescription.Trim();
+            fee.Name = fee.FeeDescription;
+            fee.ChargeType = model.ChargeType;
+            fee.Days = model.ChargeType == eCourseChargeType.Daily ? model.Days : null;
+            fee.Amount = model.Amount;
+            fee.TotalAmount = total;
+            fee.UserModified = $"{user?.Name} {user?.LastName}".Trim();
+            fee.DateModified = DateTimeHelper.GetCurrentSastDateTimeOffset();
+            fee.RowVersion = Guid.NewGuid().ToByteArray();
+            option.TotalAmount = otherFeesTotal + total;
+            option.UserModified = fee.UserModified;
+            option.DateModified = fee.DateModified;
+
+            await _context.SaveAsync();
+            TempData["success"] = "Option fee updated and package total recalculated.";
+            return RedirectToAction(nameof(ManageCourseOptions), new { courseId = option.CourseIdFK });
         }
 
         /// <summary>
@@ -425,7 +540,7 @@ namespace ElecPOE.Controllers
                         : "Course saved successfully!";
 
                     return model.HasCourseOptions
-                        ? RedirectToAction(nameof(GetActiveCourses), "Course", new { manageOptions = model.CourseId })
+                        ? RedirectToAction(nameof(ManageCourseOptions), "Course", new { courseId = model.CourseId })
                         : RedirectToAction(nameof(GetActiveCourses), "Course");
                 }
                 else
