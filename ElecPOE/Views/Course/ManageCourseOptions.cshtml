@@ -98,7 +98,7 @@
 .pkg-empty i { display:inline-flex; width:52px; height:52px; align-items:center; justify-content:center; border-radius:18px; color:var(--pkg-red); background:#fff0eb; }
 .pkg-empty h3 { margin:.8rem 0 .25rem; font-size:.9rem; }
 .pkg-empty p { margin:0; color:var(--pkg-muted); font-size:.64rem; }
-@media (max-width:1050px) {
+@@media (max-width:1050px) {
     .pkg-layout { grid-template-columns:1fr; }
     .pkg-create { position:static; }
     .pkg-panel__head { display:flex; align-items:center; gap:.8rem; }
@@ -108,7 +108,7 @@
     .pkg-form > .pkg-btn { width:auto; margin-top:0; }
     .pkg-fee { grid-template-columns:minmax(150px,1.3fr) repeat(4,minmax(82px,.65fr)) auto; }
 }
-@media (max-width:760px) {
+@@media (max-width:760px) {
     .pkg-page { padding:.75rem .7rem 2.5rem; }
     .pkg-hero { padding:1.25rem; border-radius:23px; }
     .pkg-hero__nav { margin-bottom:1.5rem; }
@@ -123,7 +123,7 @@
     .pkg-fee { grid-template-columns:1fr 1fr; gap:.75rem; }
     .pkg-fee__name,.pkg-fee-edit { grid-column:1/-1; }
 }
-@media (max-width:480px) {
+@@media (max-width:480px) {
     .pkg-hero__nav { align-items:flex-start; flex-direction:column; }
     .pkg-eyebrow { font-size:.5rem; }
     .pkg-metrics { grid-template-columns:1fr; }
@@ -166,7 +166,7 @@
                 <input type="hidden" name="CourseId" value="@Model.CourseId" />
                 <div class="pkg-field">
                     <label for="newOptionDescription">Package name</label>
-                    <input class="pkg-input" id="newOptionDescription" name="OptionDescription" required maxlength="200" placeholder="e.g. Executive package" />
+                    <input class="pkg-input" id="newOptionDescription" name="OptionDescription" required maxlength="200" placeholder="e.g. Option A" />
                 </div>
                 <div class="pkg-field">
                     <label for="newOptionType">Package type</label>
