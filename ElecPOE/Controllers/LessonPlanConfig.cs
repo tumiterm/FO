@@ -17,8 +17,6 @@ using ForekOnline.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
-using System.Numerics;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
@@ -32,14 +30,11 @@ namespace ElecPOE.Controllers
 	{
         #region Fields
         private readonly IUnitOfWork _context;
-		private IWebHostEnvironment _hostEnvironment;
 		private readonly IHelperService _helperService;
 		private readonly IUserService _userService;
         private readonly ILogger<LessonPlanConfig> _logger;
         private readonly IMapper _mapper;
-        private readonly IBlobFileService _blobFileService;
         private readonly IFileUploadService _fileUploadService;
-        private readonly string _containerName;
         private readonly IInAppNotificationService _inAppNotificationService;
         #endregion
 
@@ -49,21 +44,23 @@ namespace ElecPOE.Controllers
         /// <param name="context">The unit of work for data operations.</param>
         /// <param name="userService">Service for managing user-related operations.</param>
         /// <param name="logger">Logger for capturing system events and errors.</param>
-        /// <param name="hostEnvironment">Provides information about the web hosting environment.</param>
         /// <param name="helperService">Helper service for utility functions.</param>
         /// <param name="mapper">Automapper for entity mapping.</param>
         /// <exception cref="ArgumentNullException">Thrown if any required dependency is null.</exception>
-        public LessonPlanConfig(IUnitOfWork context, IUserService userService, ILogger<LessonPlanConfig> logger, IInAppNotificationService inAppNotificationService,
-                                IWebHostEnvironment hostEnvironment, IHelperService helperService,IMapper mapper, IBlobFileService blobFileService, IFileUploadService fileUploadService)
+        public LessonPlanConfig(
+            IUnitOfWork context,
+            IUserService userService,
+            ILogger<LessonPlanConfig> logger,
+            IInAppNotificationService inAppNotificationService,
+            IHelperService helperService,
+            IMapper mapper,
+            IFileUploadService fileUploadService)
 		{
 			_context = context ?? throw new ArgumentNullException(nameof(context));
-			_hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
-			_helperService = helperService;
+			_helperService = helperService ?? throw new ArgumentNullException(nameof(helperService));
 			_userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _blobFileService = blobFileService ?? throw new ArgumentNullException(nameof(blobFileService));
-            _mapper = mapper;
-            _containerName = _helperService.GetConfigurationValue("AzureStorage:Containers:LessonPlans", string.Empty);
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
             _inAppNotificationService = inAppNotificationService ?? throw new ArgumentNullException(nameof(inAppNotificationService));
         }
@@ -87,20 +84,15 @@ namespace ElecPOE.Controllers
                 return RedirectToAction("IncorrectID", "Report");
             }
 
-            var users = await _userService.GetAllUsersAsync();
-            var user = users.FirstOrDefault(u => u.IDPass == IdPass);
-
-            if (user == null)
-            {
-                return RedirectToAction("IncorrectID", "Report");
-            }
-
             LessonPlanViewModel viewModel = new()
             {
                 IdPass = IdPass
             };
 
-            await PopulateCreatePlanLookupsAsync(viewModel);
+            if (!await PopulateCreatePlanLookupsAsync(viewModel))
+            {
+                return RedirectToAction("IncorrectID", "Report");
+            }
 
             return View(viewModel);
         }
@@ -128,12 +120,15 @@ namespace ElecPOE.Controllers
                 return View(emptyModel);
             }
 
+            bool userExists = await PopulateCreatePlanLookupsAsync(lessonPlanViewModel);
+            if (!userExists)
+            {
+                ModelState.AddModelError(nameof(lessonPlanViewModel.IdPass), "The selected user could not be found.");
+            }
+
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Model state invalid for IdPass: {IdPass}", lessonPlanViewModel.IdPass);
-
-                await PopulateCreatePlanLookupsAsync(lessonPlanViewModel);
-
                 return View(lessonPlanViewModel);
             }
 
@@ -163,7 +158,6 @@ namespace ElecPOE.Controllers
                 TempData["error"] = "Error: Unable to save lesson plan. Please try again.";
 
                 await PopulateCreatePlanLookupsAsync(lessonPlanViewModel);
-
                 return View(lessonPlanViewModel);
             }
         }
@@ -193,112 +187,93 @@ namespace ElecPOE.Controllers
         /// <summary>
         /// Retrieves and prepares the lesson plan configuration for modification.
         /// </summary>
-        /// <param name="LessonPlanId">The unique identifier of the lesson plan.</param>
+        /// <param name="lessonPlanId">The unique identifier of the lesson plan.</param>
         /// <returns>An <see cref="IActionResult"/> displaying the lesson plan details.</returns>
         [HttpGet]
-		public async Task<IActionResult> OnModifyPlanConfig(Guid LessonPlanId)
-		{
-			if (LessonPlanId == Guid.Empty)
-			{
-				return RedirectToAction("RouteNotFound", "Global");
-			}
-
-			var plans = await _context.LessonPlans.GetAsync(filter: lp => lp.LessonPlanId == LessonPlanId);
-			var users = await _context.Users.GetAllAsync(filter: u => u.Role == eSysRole.Admin);
-			var courses = await _context.Courses.GetAllAsync(filter: null, includeProperties: new[] {nameof(Course.Module)} );
-
-			IEnumerable<SelectListItem> getCourses = from n in courses
-													 select new SelectListItem
-													 {
-														 Value = n.CourseId.ToString(),
-														 Text = $"{n.CourseName} ({n.Type})"
-													 };
-
-
-			ViewBag.CourseId = new SelectList(getCourses, "Value", "Text");
-
-			IEnumerable<SelectListItem> getAdmins = from n in users
-													select new SelectListItem
-													{
-														Value = n.IDPass,
-														Text = $"{n.Name} {n.LastName} ({n.StudentNumber})"
-													}; 
-
-
-			ViewBag.IsApprovedBy = new SelectList(getAdmins, "Value", "Text");
-
-			LessonPlanViewModel dto = new();
-
-			dto.LessonPlanId = LessonPlanId;
-			dto.Course = plans.Course;
-			dto.Module = plans.Module;
-			dto.Document = plans.Document;
-			dto.Funder = plans.Funder;
-			dto.IdPass = plans.IdPass;
-			dto.Approval = plans.Approval;
-			dto.Phase = plans.Phase;
-			dto.IsActive = plans.IsActive;
-			dto.Reason = plans.Reason;
-			dto.Reference = plans.Reference;
-
-
-			return View(dto);
-		}
-
-        /// <summary>
-        /// Updates the lesson plan configuration with new data.
-        /// </summary>
-        /// <param name="model">The updated lesson plan data.</param>
-        /// <returns>An <see cref="IActionResult"/> indicating success or failure.</returns>
-        public async Task<IActionResult> OnModifyPlanConfig(LessonPlanViewModel model)
-		{
-            string isApprovedBy = await OnConvertUserToString(model.IsApprovedBy);
-
-            var plan = _mapper.Map<LessonPlan>(model);
-
-            plan.IsApprovedBy = isApprovedBy;
-
-            var updatedPlan = await _context.LessonPlans.UpdateLessonPlanAsync(plan);
-
-            if (updatedPlan != null)
+        public async Task<IActionResult> OnModifyPlanConfig(Guid lessonPlanId)
+        {
+            if (lessonPlanId == Guid.Empty)
             {
-                TempData["success"] = "Lesson Plan successfully saved";
-
-                string cell = await OnGetCellphone(plan.IdPass);
-
-                if (!string.IsNullOrEmpty(cell))
-                {
-                    switch (plan.Approval)
-                    {
-                        case eSelection.No:
-                            //Helper.SendSMS(
-                            //    $"Hi Your Lesson Plan with reference: {plan.Reference} " +
-                            //    "is NOT approved. Try re-doing it and re-submit", cell);
-                            break;
-
-                        case eSelection.Yes:
-                            // SMS sending should be commented out in theoriginal code
-                            // Do not Uncomment:
-                            // Helper.SendSMS(
-                            //     $"Hi Your Lesson Plan with reference: {plan.Reference} " +
-                            //     "has been approved.", cell);
-                            break;
-
-                        case eSelection.Pending:
-                            //Helper.SendSMS(
-                            //    $"Hi Your Lesson Plan with reference: {plan.Reference} " +
-                            //    "is still NOT approved - kindly enquire about it to make a follow up", cell);
-                            break;
-                    }
-                }
-
-                return RedirectToAction("OnCreatePlan", "LessonPlanConfig", new { IdPass = plan.IdPass });
+                return RedirectToAction("RouteNotFound", "Global");
             }
 
-            TempData["error"] = "Error: Unable to save Lesson Plan!!!";
+            LessonPlan? plan = await _context.LessonPlans.GetAsync(
+                filter: lp => lp.LessonPlanId == lessonPlanId,
+                asNoTracking: true);
 
-            return View();
+            if (plan == null)
+            {
+                _logger.LogWarning("Lesson plan {LessonPlanId} was not found for moderation", lessonPlanId);
+                return NotFound();
+            }
 
+            await PopulateModerationLookupsAsync(plan.IsApprovedBy);
+
+            LessonPlanViewModel viewModel = _mapper.Map<LessonPlanViewModel>(plan);
+
+            return View(viewModel);
+        }
+
+        /// <summary>
+        /// Updates the moderation fields for an existing lesson plan without replacing its creation metadata.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> OnModifyPlanConfig(LessonPlanViewModel model)
+        {
+            if (model.LessonPlanId == Guid.Empty)
+            {
+                return RedirectToAction("RouteNotFound", "Global");
+            }
+
+            LessonPlan? plan = await _context.LessonPlans.GetAsync(
+                filter: lp => lp.LessonPlanId == model.LessonPlanId);
+
+            if (plan == null)
+            {
+                _logger.LogWarning("Lesson plan {LessonPlanId} was not found during moderation update", model.LessonPlanId);
+                return NotFound();
+            }
+
+            ModelState.Clear();
+
+            string? moderatorName = await OnConvertUserToString(model.IsApprovedBy);
+            if (string.IsNullOrWhiteSpace(moderatorName))
+            {
+                ModelState.AddModelError(nameof(model.IsApprovedBy), "Select the administrator responsible for this decision.");
+            }
+
+            if (model.Approval == eSelection.No && string.IsNullOrWhiteSpace(model.Reason))
+            {
+                ModelState.AddModelError(nameof(model.Reason), "Provide feedback when rejecting a lesson plan.");
+            }
+
+            if (ModelState.ErrorCount > 0)
+            {
+                await PopulateModerationLookupsAsync(model.IsApprovedBy);
+                RestoreModerationDisplayFields(model, plan);
+                return View(model);
+            }
+
+            plan.Approval = model.Approval;
+            plan.IsApprovedBy = moderatorName;
+            plan.Reason = model.Approval == eSelection.No ? model.Reason?.Trim() : null;
+            plan.IsActive = model.IsActive;
+            plan.ModifiedBy = moderatorName;
+            plan.ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString("O");
+
+            await _context.LessonPlans.UpdateLessonPlanAsync(plan);
+
+            _logger.LogInformation(
+                "Lesson plan {LessonPlanId} moderated as {Approval} by {Moderator}",
+                plan.LessonPlanId,
+                plan.Approval,
+                moderatorName);
+
+            TempData["success"] = $"Lesson plan {plan.Reference} was updated successfully.";
+
+            return RedirectToAction(nameof(OnCreatePlan), new { IdPass = plan.IdPass });
         }
 
         /// <summary>
@@ -316,6 +291,36 @@ namespace ElecPOE.Controllers
             }
 
             return File(download.Value.FileStream, download.Value.ContentType ?? "application/octet-stream");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> RemoveDocument(Guid lessonPlanId, CancellationToken ct = default)
+        {
+            LessonPlan? plan = await _context.LessonPlans.GetAsync(
+                filter: candidate => candidate.LessonPlanId == lessonPlanId,
+                cancellationToken: ct);
+
+            if (plan == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrWhiteSpace(plan.UploadUrl))
+            {
+                await _fileUploadService.DeleteAsync(plan.UploadUrl, ct).ConfigureAwait(false);
+            }
+
+            User? currentUser = _userService.OnGetCurrentUser();
+            plan.IsActive = false;
+            plan.ModifiedBy = $"{currentUser?.Name} {currentUser?.LastName}".Trim();
+            plan.ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString("O");
+
+            await _context.LessonPlans.UpdateLessonPlanAsync(plan);
+
+            TempData["success"] = $"Lesson plan {plan.Reference} was removed.";
+            return RedirectToAction(nameof(OnCreatePlan), new { IdPass = plan.IdPass });
         }
 
         /// <summary>
@@ -345,7 +350,7 @@ namespace ElecPOE.Controllers
 
         #region Private
 
-        private async Task PopulateCreatePlanLookupsAsync(LessonPlanViewModel model)
+        private async Task<bool> PopulateCreatePlanLookupsAsync(LessonPlanViewModel model)
         {
             var users = await _userService.GetAllUsersAsync();
             var user = users.FirstOrDefault(u => u.IDPass == model.IdPass);
@@ -369,11 +374,34 @@ namespace ElecPOE.Controllers
                 "Text",
                 model.Course == Guid.Empty ? null : model.Course.ToString("D"));
 
-            model.Modules = new SelectList(Array.Empty<SelectListItem>(), "Value", "Text");
-            model.ExistingPlans = existingPlans;
+            var moduleItems = model.Course == Guid.Empty
+                ? Array.Empty<SelectListItem>()
+                : (await _context.Modules.GetAllAsync(
+                    filter: module => module.CourseIdFK == model.Course && module.IsActive))
+                    .OrderBy(module => module.ModuleName)
+                    .Select(module => new SelectListItem
+                    {
+                        Value = module.ModuleId.ToString("D"),
+                        Text = module.ModuleName ?? string.Empty
+                    })
+                    .ToArray();
+
+            model.Modules = new SelectList(
+                moduleItems,
+                "Value",
+                "Text",
+                model.Module == Guid.Empty ? null : model.Module.ToString("D"));
+
+            model.ExistingPlans = existingPlans
+                .OrderByDescending(plan => plan.TryGetCreatedOn(out DateTimeOffset createdOn)
+                    ? createdOn
+                    : DateTimeOffset.MinValue)
+                .ToArray();
             model.UserDetail = user == null
                 ? string.Empty
                 : $"{user.Name} {user.LastName} ({user.StudentNumber})";
+
+            return user != null;
         }
 
 
@@ -401,7 +429,7 @@ namespace ElecPOE.Controllers
                 Reason = model.Reason,
                 Reference = $"REF-LP/{_helperService.GenerateRandomString(3)}",
                 CreatedBy = $"{currentUser?.Name} {currentUser?.LastName}",
-                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString(),
+                CreatedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString("O"),
                 UploadUrl = model.UploadUrl
             };
         }
@@ -426,63 +454,59 @@ namespace ElecPOE.Controllers
         }
 
         /// <summary>
-        /// Retrieves a course by its unique identifier.
-        /// </summary>
-        /// <param name="CourseId">The unique identifier of the course.</param>
-        /// <returns>The corresponding <see cref="Course"/> object, or null if not found.</returns>
-        private async Task<Course?> OnConvertCourseId(Guid CourseId)
-        {
-            return await _context.Courses.GetAsync(filter: c => c.CourseId == CourseId);
-        }
-
-        /// <summary>
-        /// Retrieves a module by its unique identifier.
-        /// </summary>
-        /// <param name="ModuleId">The unique identifier of the module.</param>
-        /// <returns>The corresponding <see cref="Module"/> object.</returns>
-        private async Task<Module> OnConvertModuleId(Guid ModuleId)
-        {
-            return await _context.Modules.GetAsync(filter: c => c.ModuleId == ModuleId);
-        }
-
-        /// <summary>
         /// Converts a user identifier to a string representation of the user's full name.
         /// </summary>
-        /// <param name="IdPass">The identification pass of the user.</param>
+        /// <param name="idPass">The identification pass of the user.</param>
         /// <returns>A string containing the user's full name.</returns>
-        private async Task<string> OnConvertUserToString(string IdPass)
+        private async Task<string?> OnConvertUserToString(string? idPass)
         {
-            var users = await _context.Users.GetAllAsync();
+            if (string.IsNullOrWhiteSpace(idPass))
+            {
+                return null;
+            }
 
-            var userFilter = from n in users
+            User? user = await _context.Users.GetAsync(
+                filter: candidate => candidate.IsActive && candidate.IDPass == idPass,
+                asNoTracking: true);
 
-                             where n.IsActive == true &&
-
-                             n.IDPass == IdPass
-
-                             select n;
-
-            return $"{userFilter.First().Name} {userFilter.First().LastName}";
+            return user == null ? null : $"{user.Name} {user.LastName}".Trim();
         }
 
-        /// <summary>
-        /// Retrieves the cellphone number of a user based on their identification pass.
-        /// </summary>
-        /// <param name="IdPass">The identification pass of the user.</param>
-        /// <returns>The cellphone number of the user.</returns>
-        private async Task<string> OnGetCellphone(string IdPass)
+        private async Task PopulateModerationLookupsAsync(string? selectedAdmin)
         {
-            var users = await _context.Users.GetAllAsync();
+            var admins = await _context.Users.GetAllAsync(
+                filter: user => user.IsActive
+                    && (user.Role == eSysRole.Admin || user.Role == eSysRole.SuperAdmin),
+                asNoTracking: true);
 
-            var userFilter = from n in users
+            string? selectedAdminId = admins
+                .FirstOrDefault(user => user.IDPass == selectedAdmin
+                    || $"{user.Name} {user.LastName}".Trim() == selectedAdmin)
+                ?.IDPass;
 
-                             where n.IsActive == true &&
+            var adminItems = admins
+                .OrderBy(user => user.Name)
+                .ThenBy(user => user.LastName)
+                .Select(user => new SelectListItem
+                {
+                    Value = user.IDPass,
+                    Text = $"{user.Name} {user.LastName} ({user.StudentNumber})"
+                })
+                .ToArray();
 
-                             n.IDPass == IdPass
+            ViewBag.IsApprovedBy = new SelectList(adminItems, "Value", "Text", selectedAdminId);
+        }
 
-                             select n;
-
-            return userFilter?.First().Cellphone;
+        private static void RestoreModerationDisplayFields(LessonPlanViewModel model, LessonPlan plan)
+        {
+            model.IdPass = plan.IdPass;
+            model.Reference = plan.Reference;
+            model.Course = plan.Course;
+            model.Module = plan.Module;
+            model.Phase = plan.Phase;
+            model.Funder = plan.Funder;
+            model.Document = plan.Document;
+            model.UploadUrl = plan.UploadUrl;
         }
 
         #endregion
