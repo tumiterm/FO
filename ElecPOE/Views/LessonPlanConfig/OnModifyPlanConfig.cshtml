@@ -20,6 +20,7 @@
     };
     var phaseLabel = Model.Phase != null ? Helper.GetDisplayName(Model.Phase) : "—";
     var funderLabel = Helper.GetDisplayName(Model.Funder);
+    var canModerate = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
 }
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -507,6 +508,43 @@
         right: .4rem;
     }
 
+
+    /* Premium moderation workspace */
+    .rv { max-width: 860px; }
+
+    .rv-hdr {
+        position: relative;
+        overflow: hidden;
+        padding: 1.3rem 1.4rem;
+        border-radius: 18px;
+        color: #fff;
+        background:
+            radial-gradient(circle at 88% 18%, rgba(255, 199, 111, .3), transparent 25%),
+            linear-gradient(125deg, #28130f 0%, #702416 56%, #bd4921 100%);
+        box-shadow: 0 18px 45px rgba(91, 31, 18, .22);
+    }
+
+    .rv-hdr::after {
+        content: "";
+        position: absolute;
+        right: -55px;
+        bottom: -100px;
+        width: 170px;
+        height: 170px;
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 50%;
+    }
+
+    .rv-ico {
+        color: #fff;
+        background: rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.2);
+    }
+
+    .rv-sub { color: rgba(255,255,255,.76); }
+    .ctx-item { transition: transform var(--ease), box-shadow var(--ease); }
+    .ctx-item:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(57,35,27,.08); }
+
     @@media (max-width: 600px) {
         .rv {
             padding-inline: .7rem;
@@ -576,7 +614,7 @@
         </div>
     </div>
 
-    <form asp-action="OnModifyPlanConfig" id="modForm">
+    <form asp-action="OnModifyPlanConfig" method="post" id="modForm">
         <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:.82rem;margin-bottom:.5rem;"></div>
 
         <input type="hidden" asp-for="LessonPlanId" />
@@ -589,13 +627,13 @@
         <input type="hidden" asp-for="Document" />
         <input type="hidden" asp-for="UploadUrl" />
 
-        @if (User.IsInRole("Admin"))
+        @if (canModerate)
         {
             <section class="card decision">
                 <div class="dec-head">
                     <div class="dec-kicker">Admin Decision</div>
                     <h2 class="dec-title">What is your verdict?</h2>
-                    <p class="dec-note">Choose one option. The learner will be notified via SMS automatically.</p>
+                    <p class="dec-note">Choose one option. The decision and feedback will be saved to the learner’s plan record.</p>
                 </div>
 
                 <div class="choices">
@@ -632,10 +670,11 @@
                     <label class="ff-lbl">Approved / Rejected By</label>
                     <div class="ff-wrap">
                         <span class="ff-ico"><i class="fa fa-user-shield"></i></span>
-                        <select name="IsApprovedBy" class="ff-sel js-s2" asp-items="@ViewBag.IsApprovedBy">
+                        <select asp-for="IsApprovedBy" class="ff-sel js-s2" asp-items="@ViewBag.IsApprovedBy">
                             <option value="">Select admin</option>
                         </select>
                     </div>
+                    <span asp-validation-for="IsApprovedBy" class="text-danger" style="font-size:.75rem;"></span>
                     <span class="ff-hint">The admin responsible for this decision.</span>
                 </div>
 

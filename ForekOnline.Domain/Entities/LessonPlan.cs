@@ -10,6 +10,7 @@ using ForekOnline.Domain.Shared;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 #endregion
 
@@ -83,5 +84,41 @@ namespace ForekOnline.Domain.Entities
         /// </summary>
         [NotMapped]
         public IFormFile? DocumentFile { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the lesson plan was created during the last 24 hours.
+        /// </summary>
+        [NotMapped]
+        public bool IsNew => IsNewAt(DateTimeOffset.UtcNow);
+
+        /// <summary>
+        /// Determines whether the lesson plan is new at the supplied point in time.
+        /// </summary>
+        /// <param name="now">The point in time used to calculate the plan age.</param>
+        /// <returns><see langword="true"/> when the plan is between zero and 24 hours old.</returns>
+        public bool IsNewAt(DateTimeOffset now)
+        {
+            if (!TryGetCreatedOn(out DateTimeOffset createdOn))
+            {
+                return false;
+            }
+
+            TimeSpan age = now.ToUniversalTime() - createdOn.ToUniversalTime();
+
+            return age >= TimeSpan.Zero && age < TimeSpan.FromDays(1);
+        }
+
+        /// <summary>
+        /// Attempts to parse the legacy string creation date into a timezone-aware value.
+        /// </summary>
+        public bool TryGetCreatedOn(out DateTimeOffset createdOn)
+        {
+            return DateTimeOffset.TryParse(
+                CreatedOn,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal,
+                out createdOn)
+                || DateTimeOffset.TryParse(CreatedOn, out createdOn);
+        }
     }
 }
