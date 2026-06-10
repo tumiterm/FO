@@ -28,7 +28,7 @@ namespace ForekOnline.Domain.Entities
         public Guid LessonPlanId { get; set; }
 
         /// <summary>
-        /// Gets or sets the identifier or password associated with the lesson plan.
+        /// Gets or sets the identifier or passport associated with the lesson plan.
         /// </summary>
         public string IdPass { get; set; }
 
