@@ -45,6 +45,7 @@ namespace ElecPOE.Controllers
         private readonly IAssessmentService _service;
         private readonly IFileUploadService _fileUploadService;
         private readonly IInAppNotificationService _inAppNotificationService;
+        private readonly IPdfReportService _pdfReportService;
         #endregion
 
         /// <summary>
@@ -55,7 +56,8 @@ namespace ElecPOE.Controllers
         /// <param name="logger">The logger instance for logging application events.</param>
         /// <param name="helperService">The helper service providing utility functions like time handling.</param>
         /// <param name="userService">The user service for retrieving current user information.</param>
-        public AssessmentController(IUnitOfWork context,IWebHostEnvironment hostEnvironment,ILogger<AssessmentController> logger,IHelperService helperService, IUserService userService, IStudentService studentService, IBlobFileService blobFileService, IAssessmentService service, IFileUploadService fileUploadService, IInAppNotificationService inAppNotificationService)
+        /// <param name="pdfReportService">The service used to render progress reports as PDF documents.</param>
+        public AssessmentController(IUnitOfWork context,IWebHostEnvironment hostEnvironment,ILogger<AssessmentController> logger,IHelperService helperService, IUserService userService, IStudentService studentService, IBlobFileService blobFileService, IAssessmentService service, IFileUploadService fileUploadService, IInAppNotificationService inAppNotificationService, IPdfReportService pdfReportService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
@@ -68,6 +70,7 @@ namespace ElecPOE.Controllers
             _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
             _containerName = _helperService.GetConfigurationValue("AzureStorage:Containers:Assessments", string.Empty);
             _inAppNotificationService = inAppNotificationService ?? throw new ArgumentNullException(nameof(inAppNotificationService));
+            _pdfReportService = pdfReportService ?? throw new ArgumentNullException(nameof(pdfReportService));
         }
 
         /// <summary>
@@ -537,6 +540,33 @@ namespace ElecPOE.Controllers
             }
 
             return View(report);
+        }
+
+        /// <summary>
+        /// Generates a downloadable PDF progress report for a specified learner.
+        /// </summary>
+        /// <param name="studentNumber">The unique student number for the learner.</param>
+        /// <returns>The learner progress report as a PDF file.</returns>
+        [HttpGet]
+        public async Task<IActionResult> PrintProgressReportPdf(string studentNumber)
+        {
+            if (string.IsNullOrWhiteSpace(studentNumber))
+            {
+                return BadRequest("Student number required.");
+            }
+
+            var report = await BuildProgressReport(studentNumber);
+            var pdfBytes = await _pdfReportService.RenderViewToPdfAsync(
+                viewPath: "~/Views/Assessment/PrintProgressReportPdf.cshtml",
+                model: report,
+                options: new PdfDocumentOptions
+                {
+                    Title = $"Progress Report - {studentNumber}",
+                    DisplayHeader = false,
+                    DisplayFooter = false
+                });
+
+            return File(pdfBytes, "application/pdf", $"progress-report-{studentNumber}.pdf");
         }
 
         /// <summary>

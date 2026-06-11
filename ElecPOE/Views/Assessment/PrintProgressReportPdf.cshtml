@@ -1,0 +1,325 @@
+@model ForekOnline.Domain.ViewModels.LearnerProgressReportViewModel
+@{
+    Layout = null;
+
+    const string LetterheadImageUrl = "https://forek.co.za/wp-content/uploads/2026/02/FHeader.png";
+
+    var groupedAssessments = Model.Assessments
+        .GroupBy(a => a.Module)
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Learner Progress Report</title>
+    <style>
+        :root {
+            --forek-blue: #003087;
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #dbe2ea;
+            --soft: #f8fafc;
+            --header-fill: rgba(0, 48, 135, 0.08);
+            --success-bg: #dcfce7;
+            --success-fg: #166534;
+            --pending-bg: #fef3c7;
+            --pending-fg: #92400e;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .letterhead {
+            width: 100%;
+            height: 160px;
+            overflow: hidden;
+        }
+
+        .letterhead img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .page { padding: 28px; }
+
+        .document-title {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .document-title h1 {
+            margin: 0;
+            color: var(--forek-blue);
+            font-size: 29px;
+            font-weight: 900;
+        }
+
+        .title-rule {
+            width: 280px;
+            height: 3px;
+            margin: 10px auto 12px;
+            background: var(--forek-blue);
+        }
+
+        .generated-on { color: var(--muted); font-size: 12px; }
+
+        .learner-card {
+            display: table;
+            width: 100%;
+            margin-bottom: 22px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--soft);
+        }
+
+        .learner-column {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .value { font-size: 15px; font-weight: 800; }
+
+        .metrics {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-spacing: 10px 0;
+            margin: 0 -10px 26px;
+        }
+
+        .metric {
+            display: table-cell;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-top: 4px solid var(--forek-blue);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            display: block;
+            margin-top: 4px;
+            color: var(--forek-blue);
+            font-size: 23px;
+            font-weight: 900;
+        }
+
+        .section { margin-top: 24px; }
+
+        .section-heading {
+            margin: 0 0 12px;
+            padding: 10px 13px;
+            border-left: 5px solid var(--forek-blue);
+            background: var(--soft);
+            color: var(--forek-blue);
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: auto;
+        }
+
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+
+        th {
+            padding: 9px 10px;
+            border-bottom: 2px solid var(--forek-blue);
+            background: var(--header-fill);
+            color: var(--forek-blue);
+            font-size: 10px;
+            letter-spacing: .06em;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: middle;
+        }
+
+        tbody tr:nth-child(even) td { background: #fbfdff; }
+        .numeric { text-align: right; }
+
+        .status {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .status-completed { background: var(--success-bg); color: var(--success-fg); }
+        .status-pending { background: var(--pending-bg); color: var(--pending-fg); }
+
+        .empty-state {
+            padding: 18px;
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .disclaimer {
+            margin-top: 32px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .disclaimer strong { color: var(--forek-blue); }
+    </style>
+</head>
+<body>
+    <header class="letterhead">
+        <img src="@LetterheadImageUrl" alt="Forek Letterhead" />
+    </header>
+
+    <main class="page">
+        <div class="document-title">
+            <h1>Learner Progress Report</h1>
+            <div class="title-rule"></div>
+            <div class="generated-on">Generated on @Model.GeneratedOn.ToString("yyyy-MM-dd")</div>
+        </div>
+
+        <section class="learner-card">
+            <div class="learner-column">
+                <span class="label">Learner</span>
+                <span class="value">@(string.IsNullOrWhiteSpace(Model.StudentName) ? "N/A" : Model.StudentName)</span>
+            </div>
+            <div class="learner-column">
+                <span class="label">Student Number</span>
+                <span class="value">@Model.StudentNumber</span>
+            </div>
+        </section>
+
+        <section class="learner-card">
+            <div class="learner-column">
+                <span class="label">Course</span>
+                <span class="value">@(string.IsNullOrWhiteSpace(Model.CourseTitle) ? "N/A" : Model.CourseTitle)</span>
+            </div>
+            <div class="learner-column">
+                <span class="label">Modules Assessed</span>
+                <span class="value">@groupedAssessments.Count</span>
+            </div>
+        </section>
+
+        <section class="metrics">
+            <div class="metric">
+                <span class="label">Average Score</span>
+                <span class="metric-value">@Model.AveragePercent%</span>
+            </div>
+            <div class="metric">
+                <span class="label">Completion</span>
+                <span class="metric-value">@Model.CompletionPercent%</span>
+            </div>
+            <div class="metric">
+                <span class="label">Completed</span>
+                <span class="metric-value">@Model.CompletedAssessments / @Model.TotalAssessments</span>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-heading">Module Averages</h2>
+            @if (Model.AverageByModule.Count == 0)
+            {
+                <div class="empty-state">No scored assessments are available yet.</div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th class="numeric">Average</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var module in Model.AverageByModule)
+                        {
+                            <tr>
+                                <td>@module.Key</td>
+                                <td class="numeric"><strong>@module.Value%</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <section class="section">
+            <h2 class="section-heading">Assessment Results</h2>
+            @if (Model.Assessments.Count == 0)
+            {
+                <div class="empty-state">No assessments were found for this learner.</div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>Assessment</th>
+                            <th>Date</th>
+                            <th class="numeric">Score</th>
+                            <th class="numeric">Percent</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var assessment in Model.Assessments.OrderBy(a => a.Module).ThenByDescending(a => a.CreatedOn))
+                        {
+                            <tr>
+                                <td>@assessment.Module</td>
+                                <td>@assessment.AssessmentType</td>
+                                <td>@assessment.CreatedOn.ToString("yyyy-MM-dd")</td>
+                                <td class="numeric">@(assessment.HasScore ? $"{assessment.Score:0.##} / {assessment.MaxScore:0.##}" : "—")</td>
+                                <td class="numeric">@(assessment.Percent.HasValue ? $"{assessment.Percent:0.##}%" : "—")</td>
+                                <td>
+                                    <span class="status @(assessment.HasScore ? "status-completed" : "status-pending")">
+                                        @assessment.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <section class="disclaimer">
+            <strong>Disclaimer:</strong> This progress report is generated from the learner assessment records held by Forek Institute of Technology as at the date shown above. Any discrepancies should be reported to the institute's administration.
+        </section>
+    </main>
+</body>
+</html>
