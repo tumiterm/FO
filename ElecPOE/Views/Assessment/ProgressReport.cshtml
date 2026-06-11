@@ -157,7 +157,7 @@ body{background:var(--c-bg-alt);color:var(--c-text);}
             </div>
             <div class="actions">
                 <a asp-action="StudAssessments" asp-controller="LearnerAssessment" class="btn"><i class="fa fa-arrow-left"></i> Back</a>
-                <button type="button" id="btnExport" class="btn-accent"><i class="fa fa-file-export"></i> Export</button>
+                <a asp-action="PrintProgressReportPdf" asp-controller="Assessment" asp-route-studentNumber="@Model.StudentNumber" class="btn btn-accent"><i class="fa fa-file-pdf"></i> Export PDF</a>
             </div>
         </div>
 
@@ -493,9 +493,8 @@ body{background:var(--c-bg-alt);color:var(--c-text);}
         });
     }
 
-    // Print + Export stub
+    // Print the interactive report. PDF export is handled by the server-side action.
     document.getElementById('btnPrint')?.addEventListener('click',()=> window.print());
-    document.getElementById('btnExport')?.addEventListener('click',()=> alert('Please contact Forek Admin to enable results export option in order for  you to be able to download your results'));
 
     applyFilters();
 })();</script>
