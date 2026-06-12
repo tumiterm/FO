@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forek Online — Complete System Overview</title>
+<style>
+  :root{
+    --navy:#0D1B2A; --navy2:#13263B; --teal:#1B7F8E; --teal-lt:#E2F1F4;
+    --gold:#F5A623; --gold-lt:#FDF1DC; --green:#2ECC71; --green-lt:#E4F8ED;
+    --purple:#7C5CBF; --purple-lt:#EFEAF9;
+    --bg:#F4F7FA; --grey:#8A9BAE; --text:#1A2533; --line:#D5DEE8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:var(--text);}
+
+  .page{max-width:1450px;margin:0 auto;padding:0 28px 40px;}
+
+  /* ── Print button ─────────────────────────────── */
+  .toolbar{position:fixed;top:14px;right:18px;z-index:99;}
+  .toolbar button{
+    background:var(--gold);color:var(--navy);border:none;font-weight:700;
+    padding:10px 18px;border-radius:8px;font-size:13px;cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.25);
+  }
+  .toolbar button:hover{filter:brightness(1.08);}
+
+  /* ── Hero ─────────────────────────────────────── */
+  .hero{
+    background:linear-gradient(135deg,var(--navy) 0%,#16324d 70%,#1B5566 100%);
+    color:#fff;border-radius:0 0 18px 18px;padding:34px 40px 28px;position:relative;overflow:hidden;
+  }
+  .hero::after{
+    content:'';position:absolute;right:-60px;top:-60px;width:280px;height:280px;
+    border-radius:50%;background:rgba(27,127,142,.25);
+  }
+  .hero .kicker{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:2.5px;}
+  .hero h1{font-size:42px;margin:4px 0 2px;}
+  .hero .sub{color:#BDD9E8;font-size:16px;margin-bottom:18px;}
+  .stats{display:flex;gap:14px;flex-wrap:wrap;position:relative;z-index:1;}
+  .stat{
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    border-radius:10px;padding:10px 22px;text-align:center;min-width:120px;
+  }
+  .stat b{display:block;font-size:24px;color:var(--gold);}
+  .stat span{font-size:11px;color:#BDD9E8;}
+
+  /* ── Section headers ──────────────────────────── */
+  .layer{margin-top:26px;}
+  .layer-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .layer-head .chip{
+    font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;
+    padding:5px 14px;border-radius:20px;white-space:nowrap;
+  }
+  .layer-head h2{font-size:19px;color:var(--navy);}
+  .layer-head .rule{flex:1;height:2px;background:var(--line);border-radius:2px;}
+
+  /* ── Persona row ──────────────────────────────── */
+  .personas{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+  .persona{
+    background:var(--bg);border:1px solid var(--line);border-top:5px solid var(--teal);
+    border-radius:10px;padding:14px 14px 12px;text-align:center;
+  }
+  .persona .avatar{
+    width:46px;height:46px;border-radius:50%;background:var(--teal);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 8px;font-weight:700;
+  }
+  .persona:nth-child(2){border-top-color:var(--gold);} .persona:nth-child(2) .avatar{background:var(--gold);}
+  .persona:nth-child(3){border-top-color:var(--navy);} .persona:nth-child(3) .avatar{background:var(--navy);}
+  .persona:nth-child(4){border-top-color:var(--green);} .persona:nth-child(4) .avatar{background:var(--green);}
+  .persona:nth-child(5){border-top-color:var(--purple);} .persona:nth-child(5) .avatar{background:var(--purple);}
+  .persona h3{font-size:13.5px;color:var(--navy);margin-bottom:4px;}
+  .persona p{font-size:11px;color:var(--grey);line-height:1.45;}
+
+  /* ── Flow arrows between layers ───────────────── */
+  .flow{display:flex;justify-content:center;margin:6px 0;}
+  .flow svg{display:block;}
+
+  /* ── Module grid ──────────────────────────────── */
+  .modules{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;}
+  .module{
+    border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff;
+    display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(13,27,42,.06);
+  }
+  .module .mod-head{
+    color:#fff;padding:10px 13px;font-weight:700;font-size:13px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .module .mod-head .num{
+    background:rgba(255,255,255,.22);border-radius:6px;width:24px;height:24px;
+    display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
+  }
+  .module ul{list-style:none;padding:10px 13px;flex:1;}
+  .module li{
+    font-size:11px;padding:3.5px 0 3.5px 14px;position:relative;color:var(--text);line-height:1.4;
+  }
+  .module li::before{content:'';position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;}
+  .m-teal .mod-head{background:var(--teal);} .m-teal li::before{background:var(--teal);}
+  .m-navy .mod-head{background:var(--navy);} .m-navy li::before{background:var(--navy);}
+  .m-gold .mod-head{background:var(--gold);} .m-gold li::before{background:var(--gold);}
+  .m-green .mod-head{background:var(--green);} .m-green li::before{background:var(--green);}
+  .m-purple .mod-head{background:var(--purple);} .m-purple li::before{background:var(--purple);}
+
+  /* ── Journey ──────────────────────────────────── */
+  .journey{
+    background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:22px 20px 18px;
+  }
+  .journey-track{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative;}
+  .journey-track::before{
+    content:'';position:absolute;top:26px;left:8.5%;right:8.5%;height:4px;
+    background:linear-gradient(90deg,var(--teal),var(--gold),var(--navy),var(--teal),var(--gold),var(--navy));
+    border-radius:4px;opacity:.45;
+  }
+  .jstep{text-align:center;position:relative;padding:0 8px;}
+  .jstep .dot{
+    width:52px;height:52px;border-radius:50%;margin:0 auto 10px;color:#fff;font-weight:800;font-size:19px;
+    display:flex;align-items:center;justify-content:center;border:4px solid #fff;
+    box-shadow:0 2px 8px rgba(13,27,42,.25);position:relative;z-index:1;
+  }
+  .jstep h4{font-size:12.5px;color:var(--navy);margin-bottom:4px;}
+  .jstep p{font-size:10.5px;color:var(--grey);line-height:1.45;}
+  .jstep:nth-child(1) .dot{background:var(--teal);} .jstep:nth-child(2) .dot{background:var(--gold);}
+  .jstep:nth-child(3) .dot{background:var(--navy);} .jstep:nth-child(4) .dot{background:var(--teal);}
+  .jstep:nth-child(5) .dot{background:var(--gold);} .jstep:nth-child(6) .dot{background:var(--green);}
+
+  /* ── Architecture ─────────────────────────────── */
+  .arch{display:flex;flex-direction:column;gap:10px;}
+  .arch-tier{
+    border-radius:11px;padding:14px 18px;display:grid;grid-template-columns:190px 1fr;gap:16px;align-items:center;
+    border:1px solid var(--line);
+  }
+  .arch-tier .tier-label b{display:block;font-size:13.5px;}
+  .arch-tier .tier-label span{font-size:10.5px;opacity:.75;}
+  .arch-boxes{display:flex;gap:9px;flex-wrap:wrap;}
+  .abox{
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 13px;
+    font-size:11px;font-weight:600;color:var(--navy);box-shadow:0 1px 3px rgba(13,27,42,.07);
+  }
+  .abox small{display:block;font-weight:400;color:var(--grey);font-size:9.5px;margin-top:1px;}
+  .t-present{background:var(--teal-lt);} .t-present .tier-label{color:var(--teal);}
+  .t-business{background:var(--gold-lt);} .t-business .tier-label{color:#B97A0D;}
+  .t-domain{background:var(--purple-lt);} .t-domain .tier-label{color:var(--purple);}
+  .t-data{background:var(--green-lt);} .t-data .tier-label{color:#1E9E55;}
+  .t-external{background:#ECEFF4;} .t-external .tier-label{color:var(--navy);}
+
+  /* ── Tech + value strip ───────────────────────── */
+  .duo{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;}
+  .panel{border:1px solid var(--line);border-radius:12px;padding:18px;background:#fff;}
+  .panel h3{font-size:15px;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .panel h3::before{content:'';width:8px;height:22px;border-radius:4px;background:var(--teal);display:inline-block;}
+  .tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .tech{
+    display:flex;gap:9px;align-items:flex-start;background:var(--bg);border-radius:8px;padding:9px 11px;
+  }
+  .tech .ic{
+    width:30px;height:30px;border-radius:7px;background:var(--navy);color:#fff;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;
+  }
+  .tech b{font-size:11.5px;color:var(--navy);display:block;}
+  .tech span{font-size:10px;color:var(--grey);}
+  .value-list{list-style:none;}
+  .value-list li{
+    display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line);
+  }
+  .value-list li:last-child{border-bottom:none;}
+  .value-list .tick{
+    width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:1px;
+  }
+  .value-list b{font-size:12px;color:var(--navy);display:block;}
+  .value-list span{font-size:10.5px;color:var(--grey);line-height:1.4;}
+
+  /* ── Footer ───────────────────────────────────── */
+  .foot{
+    margin-top:26px;background:var(--navy);color:#BDD9E8;border-radius:14px;
+    padding:18px 26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  }
+  .foot b{color:#fff;font-size:14px;}
+  .foot .badges{display:flex;gap:8px;flex-wrap:wrap;}
+  .foot .bdg{
+    border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:4px 13px;font-size:10.5px;color:#fff;
+  }
+
+  /* ── Print ────────────────────────────────────── */
+  @media print{
+    .toolbar{display:none;}
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .page{max-width:none;padding:0 10px;}
+    .layer{break-inside:avoid;}
+    .journey,.duo,.foot{break-inside:avoid;}
+    @page{size:A3 landscape;margin:8mm;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar"><button onclick="window.print()">⬇ Export to PDF</button></div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="kicker">FOREK INSTITUTE &nbsp;|&nbsp; COMPLETE SYSTEM OVERVIEW</div>
+    <h1>Forek Online</h1>
+    <div class="sub">End-to-End Occupational Training Management Platform — from first application to final certification</div>
+    <div class="stats">
+      <div class="stat"><b>88</b><span>Data Modules</span></div>
+      <div class="stat"><b>29</b><span>System Functions</span></div>
+      <div class="stat"><b>17+</b><span>Qualifications Supported</span></div>
+      <div class="stat"><b>55</b><span>Data Repositories</span></div>
+      <div class="stat"><b>8</b><span>Cloud Storage Containers</span></div>
+      <div class="stat"><b>100%</b><span>Cloud-Ready</span></div>
+    </div>
+  </div>
+
+  <!-- LAYER 1: WHO USES IT -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="chip" style="background:var(--teal)">LAYER 1</span>
+      <h2>Who Uses the System — Five Connected User Roles</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="personas">
+      <div class="persona">
+        <div class="avatar">S</div>
+        <h3>Students / Learners</h3>
+        <p>Apply online, attend lessons, take assessments, submit weekly reports, access learning materials</p>
+      </div>
+      <div class="persona">
+        <div class="avatar">M</div>
+        <h3>Workplace Mentors</h3>
+        <p>Review &amp; sign off weekly timesheets, log workplace visits, track learner progress on site</p>
+      </div>
+      <div class="persona">
+        <div class="avatar">F</div>
+        <h3>Facilitators / Assessors</h3>
+        <p>Deliver lessons, build question banks, run assessments, mark attendance, grade results</p>
+      </div>
+      <div class="persona">
+        <div class="avatar">A</div>
+        <h3>Administrators</h3>
+        <p>Manage applications, enrolments, courses, venues, users, communication and compliance</p>
+      </div>
+      <div class="persona">
+        <div class="avatar">₣</div>
+        <h3>Finance &amp; Compliance</h3>
+        <p>Issue financial clearance, track learner finance, enforce report deadlines &amp; audits</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <svg width="60" height="34" viewBox="0 0 60 34"><path d="M30 2 v20 M20 14 l10 12 10-12" stroke="#8A9BAE" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <!-- LAYER 2: FUNCTIONAL MODULES -->
+  <div class="layer" style="margin-top:0;">
+    <div class="layer-head">
+      <span class="chip" style="background:var(--gold)">LAYER 2</span>
+      <h2>What the System Does — Eight Functional Modules</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="modules">
+      <div class="module m-teal">
+        <div class="mod-head"><span class="num">1</span>Applications &amp; Enrolment</div>
+        <ul>
+          <li>Public online application portal</li>
+          <li>Configurable application cycles &amp; events</li>
+          <li>Document upload &amp; verification</li>
+          <li>Approval / rejection workflows with notifications</li>
+          <li>Bulk enrolment &amp; enrolment history</li>
+        </ul>
+      </div>
+      <div class="module m-navy">
+        <div class="mod-head"><span class="num">2</span>Student Management</div>
+        <ul>
+          <li>Full student profiles (ID, contact, address, guardian)</li>
+          <li>Enrolment tracking &amp; deregistration</li>
+          <li>Student documents &amp; attachments in the cloud</li>
+          <li>Offline-resilient student cache</li>
+          <li>Login &amp; activity history</li>
+        </ul>
+      </div>
+      <div class="module m-gold">
+        <div class="mod-head"><span class="num">3</span>Courses &amp; Lessons</div>
+        <ul>
+          <li>17+ occupational qualifications (Electrical, Welding, Plumbing…)</li>
+          <li>Modules, lesson plans &amp; lesson scheduling</li>
+          <li>Per-lesson attendance registers</li>
+          <li>Training records &amp; materials</li>
+          <li>Role-targeted learning resources library</li>
+        </ul>
+      </div>
+      <div class="module m-green">
+        <div class="mod-head"><span class="num">4</span>Assessments &amp; Results</div>
+        <ul>
+          <li>Question bank builder (multiple choice, short answer, maths)</li>
+          <li>Timed online assessments with password protection</li>
+          <li>Anti-cheating: focus tracking, auto-submit</li>
+          <li>Automatic marking, grading &amp; moderation</li>
+          <li>Attempt history &amp; learner analytics</li>
+        </ul>
+      </div>
+      <div class="module m-purple">
+        <div class="mod-head"><span class="num">5</span>Workplace Learning (WBL)</div>
+        <ul>
+          <li>Learner placements with employers</li>
+          <li>Weekly timesheets — mentor review &amp; sign-off queue</li>
+          <li>Workplace visit logging by facilitators</li>
+          <li>WBL module tracking per learner</li>
+          <li>Venue management, reservations &amp; bookings</li>
+        </ul>
+      </div>
+      <div class="module m-teal">
+        <div class="mod-head"><span class="num">6</span>Reports &amp; Compliance</div>
+        <ul>
+          <li>Progress, submission &amp; financial reports</li>
+          <li>Automated compliance deadline tracking</li>
+          <li>Grace periods &amp; extension management</li>
+          <li>One-click PDF export</li>
+          <li>SETA-aligned audit trails</li>
+        </ul>
+      </div>
+      <div class="module m-navy">
+        <div class="mod-head"><span class="num">7</span>Finance Management</div>
+        <ul>
+          <li>Learner finance records</li>
+          <li>Financial clearance workflow (payment → proof → cleared)</li>
+          <li>Payslip request management</li>
+          <li>Funder &amp; funding-type tracking</li>
+          <li>Full financial audit history</li>
+        </ul>
+      </div>
+      <div class="module m-gold">
+        <div class="mod-head"><span class="num">8</span>Communication &amp; Admin</div>
+        <ul>
+          <li>In-app notifications with rich content</li>
+          <li>Automated email &amp; SMS alerts</li>
+          <li>Role-based access control (RBAC)</li>
+          <li>Background automation (imports, reminders, sync)</li>
+          <li>Multi-tenant profiles &amp; subscriptions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <svg width="60" height="34" viewBox="0 0 60 34"><path d="M30 2 v20 M20 14 l10 12 10-12" stroke="#8A9BAE" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <!-- LAYER 3: LEARNER JOURNEY -->
+  <div class="layer" style="margin-top:0;">
+    <div class="layer-head">
+      <span class="chip" style="background:var(--navy)">LAYER 3</span>
+      <h2>The Learner Journey — One Continuous Digital Workflow</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="journey">
+      <div class="journey-track">
+        <div class="jstep">
+          <div class="dot">1</div>
+          <h4>Apply Online</h4>
+          <p>Application form, document uploads, automated status updates</p>
+        </div>
+        <div class="jstep">
+          <div class="dot">2</div>
+          <h4>Review &amp; Enrol</h4>
+          <p>Admin verifies, approves and enrols — profile auto-created</p>
+        </div>
+        <div class="jstep">
+          <div class="dot">3</div>
+          <h4>Learn &amp; Assess</h4>
+          <p>Lessons, attendance, online assessments with instant results</p>
+        </div>
+        <div class="jstep">
+          <div class="dot">4</div>
+          <h4>Workplace Placement</h4>
+          <p>Employer placement, mentor timesheets, facilitator visits</p>
+        </div>
+        <div class="jstep">
+          <div class="dot">5</div>
+          <h4>Report &amp; Comply</h4>
+          <p>Auto-tracked deadlines, progress reports, compliance status</p>
+        </div>
+        <div class="jstep">
+          <div class="dot">✓</div>
+          <h4>Qualify &amp; Certify</h4>
+          <p>Finance cleared, records finalised, full audit archive</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <svg width="60" height="34" viewBox="0 0 60 34"><path d="M30 2 v20 M20 14 l10 12 10-12" stroke="#8A9BAE" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+
+  <!-- LAYER 4: ARCHITECTURE -->
+  <div class="layer" style="margin-top:0;">
+    <div class="layer-head">
+      <span class="chip" style="background:var(--green)">LAYER 4</span>
+      <h2>Under the Hood — Enterprise-Grade Architecture</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="arch">
+      <div class="arch-tier t-present">
+        <div class="tier-label"><b>PRESENTATION</b><span>What users see &amp; touch</span></div>
+        <div class="arch-boxes">
+          <div class="abox">Web Application<small>ASP.NET Core MVC · 29 functional areas · responsive UI</small></div>
+          <div class="abox">Notification API<small>Standalone REST service for alerts &amp; announcements</small></div>
+          <div class="abox">Reporting &amp; PDF Engine<small>Stimulsoft · SSRS · HTML-to-PDF export</small></div>
+          <div class="abox">Mobile-Ready Foundation<small>Service layer prepared for .NET MAUI companion app</small></div>
+        </div>
+      </div>
+      <div class="arch-tier t-business">
+        <div class="tier-label"><b>BUSINESS LOGIC</b><span>The brain of the system</span></div>
+        <div class="arch-boxes">
+          <div class="abox">20+ Application Services<small>Students · Assessments · Applications · Visits · Finance</small></div>
+          <div class="abox">Validation Engine<small>FluentValidation on every input</small></div>
+          <div class="abox">Background Jobs<small>Hangfire — imports, reminders, sync, 24/7</small></div>
+          <div class="abox">Object Mapping<small>AutoMapper DTO pipeline</small></div>
+        </div>
+      </div>
+      <div class="arch-tier t-domain">
+        <div class="tier-label"><b>DOMAIN MODEL</b><span>The business vocabulary</span></div>
+        <div class="arch-boxes">
+          <div class="abox">88 Entities<small>Student · Assessment · Timesheet · Placement · Report…</small></div>
+          <div class="abox">50+ Business Enums<small>Statuses, roles, compliance states, qualification levels</small></div>
+          <div class="abox">ViewModels &amp; DTOs<small>Clean separation of data and presentation</small></div>
+        </div>
+      </div>
+      <div class="arch-tier t-data">
+        <div class="tier-label"><b>DATA ACCESS</b><span>Secure, audited storage</span></div>
+        <div class="arch-boxes">
+          <div class="abox">SQL Server Database<small>Entity Framework Core 8 · full migrations</small></div>
+          <div class="abox">55 Repositories<small>Unit-of-Work pattern · fully testable</small></div>
+          <div class="abox">SQLite Cache<small>Offline-resilient student data</small></div>
+          <div class="abox">Audit Interceptors<small>Every change logged — who, what, when</small></div>
+        </div>
+      </div>
+      <div class="arch-tier t-external">
+        <div class="tier-label"><b>CLOUD &amp; INTEGRATIONS</b><span>Connected services</span></div>
+        <div class="arch-boxes">
+          <div class="abox">Microsoft Azure Blob Storage<small>8 containers — profiles, reports, resources, assessments, documents…</small></div>
+          <div class="abox">WinSMS Gateway<small>Real-time SMS to learners &amp; staff</small></div>
+          <div class="abox">SMTP Email<small>Automated transactional mail</small></div>
+          <div class="abox">External Student API<small>JWT-secured legacy data sync</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYER 5: TECH + VALUE -->
+  <div class="layer">
+    <div class="layer-head">
+      <span class="chip" style="background:var(--purple)">LAYER 5</span>
+      <h2>Technology Stack &amp; Business Value</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>Built on Trusted Technology</h3>
+        <div class="tech-grid">
+          <div class="tech"><div class="ic">.N</div><div><b>.NET 8 (LTS)</b><span>Microsoft's enterprise platform — used by banks &amp; governments</span></div></div>
+          <div class="tech"><div class="ic">Az</div><div><b>Microsoft Azure</b><span>Cloud storage with automatic backup &amp; redundancy</span></div></div>
+          <div class="tech"><div class="ic">SQ</div><div><b>SQL Server</b><span>Industry-standard relational database</span></div></div>
+          <div class="tech"><div class="ic">EF</div><div><b>Entity Framework 8</b><span>Modern, migration-safe data access</span></div></div>
+          <div class="tech"><div class="ic">Hf</div><div><b>Hangfire</b><span>24/7 background processing &amp; scheduling</span></div></div>
+          <div class="tech"><div class="ic">Sf</div><div><b>Syncfusion EJ2</b><span>Licensed enterprise UI components</span></div></div>
+          <div class="tech"><div class="ic">St</div><div><b>Stimulsoft Reports</b><span>Professional reporting &amp; PDF engine</span></div></div>
+          <div class="tech"><div class="ic">CI</div><div><b>GitHub + CI/CD</b><span>Version-controlled, automated deployment pipeline</span></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Why It Wins</h3>
+        <ul class="value-list">
+          <li><span class="tick">✓</span><div><b>One system, every workflow</b><span>Replaces spreadsheets, paper registers and disconnected tools with a single source of truth</span></div></li>
+          <li><span class="tick">✓</span><div><b>SETA compliance built in</b><span>Deadlines, grace periods, audit trails and submission-ready documentation — automatic</span></div></li>
+          <li><span class="tick">✓</span><div><b>Scales without IT overhead</b><span>50 learners or 5,000 — cloud-hosted, accessible anywhere, on any device</span></div></li>
+          <li><span class="tick">✓</span><div><b>Security at every layer</b><span>Role-based access, full audit logging, POPIA-conscious data handling</span></div></li>
+          <li><span class="tick">✓</span><div><b>Future-proof</b><span>Clean architecture already prepared for mobile apps, APIs and new integrations</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <div><b>Forek Online</b> &nbsp;—&nbsp; Empowering Training Providers to Deliver Excellence</div>
+    <div class="badges">
+      <span class="bdg">Microsoft .NET 8</span>
+      <span class="bdg">Azure Cloud</span>
+      <span class="bdg">SETA-Aligned</span>
+      <span class="bdg">POPIA Ready</span>
+      <span class="bdg">www.forek.co.za</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

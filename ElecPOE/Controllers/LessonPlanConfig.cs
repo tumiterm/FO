@@ -442,7 +442,6 @@ namespace ElecPOE.Controllers
         /// <exception cref="InvalidOperationException">Thrown if the lesson plan could not be saved.</exception>
         private async Task<LessonPlan> SaveLessonPlanAsync(LessonPlan plan)
         {
-
             LessonPlan addedPlan = await _context.LessonPlans.AddAsync(plan);
 
             int rowsAffected = await _context.SaveAsync();
