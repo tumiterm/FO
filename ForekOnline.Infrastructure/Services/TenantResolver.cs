@@ -33,8 +33,8 @@ public sealed class TenantResolver : ITenantResolver
             return null;
 
         var hostCacheKey = HostCacheKey(normalizedHost);
-        if (_cache.TryGetValue(hostCacheKey, out Guid tenantId) && tenantId != Guid.Empty)
-            return await ResolveTenantAsync(tenantId, cancellationToken);
+        if (_cache.TryGetValue(hostCacheKey, out Guid tenantId))
+            return tenantId == Guid.Empty ? null : await ResolveTenantAsync(tenantId, cancellationToken);
 
         try
         {
@@ -49,7 +49,10 @@ public sealed class TenantResolver : ITenantResolver
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (tenant is null)
+            {
+                _cache.Set(hostCacheKey, Guid.Empty, TimeSpan.FromMinutes(5));
                 return null;
+            }
 
             _cache.Set(hostCacheKey, tenant.Id, HostCacheDuration);
             _cache.Set(TenantCacheKey(tenant.Id), tenant, TenantCacheDuration);

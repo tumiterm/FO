@@ -52,7 +52,15 @@ namespace ForekOnline.Infrastructure.DI
 
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                options.UseSqlServer(connectionString, sql =>
+                {
+                    sql.CommandTimeout(120); // seconds
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                });
 
                 options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
 

@@ -134,8 +134,11 @@ if (app.Environment.IsDevelopment())
 {
     using var tenantSeedScope = app.Services.CreateScope();
     var applicationDb = tenantSeedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var defaultTenantId = app.Configuration.GetValue<Guid>("Tenancy:DefaultTenantId");
-    await TenantDevelopmentSeeder.SeedLocalhostDomainAsync(applicationDb, defaultTenantId);
+    if (await applicationDb.Database.CanConnectAsync())
+    {
+        var defaultTenantId = app.Configuration.GetValue<Guid>("Tenancy:DefaultTenantId");
+        await TenantDevelopmentSeeder.SeedLocalhostDomainAsync(applicationDb, defaultTenantId);
+    }
 }
 
 using (var scope = app.Services.CreateScope())

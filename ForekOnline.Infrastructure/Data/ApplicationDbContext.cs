@@ -715,6 +715,8 @@ namespace ForekOnline.Infrastructure.Data
             {
                 entity.HasIndex(e => e.Slug).IsUnique();
                 entity.HasIndex(e => e.Code).IsUnique().HasFilter("[Code] IS NOT NULL");
+                entity.HasIndex(e => new { e.Id, e.IsActive, e.IsDeleted })  
+                      .HasDatabaseName("IX_TenantProfile_Id_Active_Deleted");
             });
 
             modelBuilder.Entity<TenantDomain>(entity =>
