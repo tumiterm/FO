@@ -20,8 +20,10 @@ namespace ForekOnline.Domain.Entities
     /// Represents a user entity with personal and authentication details.
     /// </summary>
     [SkipAuditInterceptor]
-    public partial class User : Base
+    public partial class User : Base, ForekOnline.Domain.Shared.ITenantOwned
     {
+        public Guid TenantId { get; set; }
+
         /// <summary>
         /// Gets or sets the unique identifier for the user.
         /// </summary>

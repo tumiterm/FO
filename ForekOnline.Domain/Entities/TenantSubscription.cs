@@ -79,4 +79,7 @@ public class TenantSubscription : EntityBase<Guid>
 
     [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public int DaysUntilExpiry => Math.Max(0, (ExpiresOn - DateTimeOffset.UtcNow).Days);
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public int GraceDaysRemaining => Math.Max(0, (ExpiresOn.AddDays(GracePeriodDays) - DateTimeOffset.UtcNow).Days);
 }

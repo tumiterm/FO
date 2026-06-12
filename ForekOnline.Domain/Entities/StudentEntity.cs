@@ -19,8 +19,10 @@ namespace ForekOnline.Domain.Entities
     /// This replaces the external API <see cref="Student"/> once the API is switched off.
     /// </summary>
     [Table("Students", Schema = "Academics")]
-    public class StudentEntity : EntityBase<Guid>
+    public class StudentEntity : EntityBase<Guid>, ForekOnline.Domain.Shared.ITenantOwned
     {
+        public Guid TenantId { get; set; }
+
         #region Identity 
         public string StudentNumber { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
