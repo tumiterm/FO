@@ -130,6 +130,14 @@ if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
     await applicationDb.Database.MigrateAsync();
 }
 
+if (app.Environment.IsDevelopment())
+{
+    using var tenantSeedScope = app.Services.CreateScope();
+    var applicationDb = tenantSeedScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var defaultTenantId = app.Configuration.GetValue<Guid>("Tenancy:DefaultTenantId");
+    await TenantDevelopmentSeeder.SeedLocalhostDomainAsync(applicationDb, defaultTenantId);
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var cacheDb = scope.ServiceProvider.GetRequiredService<StudentCacheDbContext>();
