@@ -39,6 +39,15 @@ public sealed class TenantSubscriptionMiddleware
             return;
         }
 
+        var tenantIdClaim = context.User.FindFirst("TenantId")?.Value;
+        if (context.Items["TenantId"] is Guid resolvedTenantId &&
+            (!Guid.TryParse(tenantIdClaim, out var claimedTenantId) || claimedTenantId != resolvedTenantId))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsync("The authenticated user does not belong to this tenant.", context.RequestAborted);
+            return;
+        }
+
         var isActive = await subscriptionService.IsActiveAsync(context.RequestAborted);
 
         if (!isActive)
@@ -50,7 +59,7 @@ public sealed class TenantSubscriptionMiddleware
                 context.Items["SubscriptionGracePeriod"] = true;
 
                 var subscription = await subscriptionService.GetCurrentAsync(context.RequestAborted);
-                context.Items["SubscriptionDaysRemaining"] = subscription?.DaysUntilExpiry ?? 0;
+                context.Items["SubscriptionDaysRemaining"] = subscription?.GraceDaysRemaining ?? 0;
             }
             else
             {

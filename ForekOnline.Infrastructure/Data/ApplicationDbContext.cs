@@ -7,6 +7,7 @@
 
 #region Usings
 using ForekOnline.Domain.Entities;
+using ForekOnline.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using static ForekOnline.Domain.Enums.EnumRegistry;
 using File = ForekOnline.Domain.Entities.File;
@@ -19,12 +20,71 @@ namespace ForekOnline.Infrastructure.Data
     /// </summary>
     public class ApplicationDbContext : DbContext
     {
+        private readonly ITenantContext? _tenantContext;
+        public Guid CurrentTenantId => _tenantContext?.TenantId ?? Guid.Empty;
+        public bool HasResolvedTenant => _tenantContext?.IsResolved == true;
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class with specified options.
         /// </summary>
         /// <param name="options">The options to configure the database context.</param>
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext? tenantContext = null) : base(options)
         {
+            _tenantContext = tenantContext;
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ApplyTenantOwnership();
+            await EnforceTenantQuotasAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            ApplyTenantOwnership();
+            EnforceTenantQuotasAsync(CancellationToken.None).GetAwaiter().GetResult();
+            return base.SaveChanges();
+        }
+
+        private void ApplyTenantOwnership()
+        {
+            foreach (var entry in ChangeTracker.Entries<ForekOnline.Domain.Shared.ITenantOwned>())
+            {
+                if (entry.State == EntityState.Added && entry.Entity.TenantId == Guid.Empty)
+                {
+                    if (!HasResolvedTenant)
+                        throw new InvalidOperationException("Tenant-owned data cannot be created without a resolved tenant.");
+                    entry.Entity.TenantId = CurrentTenantId;
+                }
+                else if ((entry.State is EntityState.Modified or EntityState.Deleted) &&
+                         HasResolvedTenant && entry.Entity.TenantId != CurrentTenantId)
+                {
+                    throw new InvalidOperationException("Cross-tenant data modification was blocked.");
+                }
+            }
+        }
+
+        private async Task EnforceTenantQuotasAsync(CancellationToken cancellationToken)
+        {
+            var addedUsers = ChangeTracker.Entries<User>().Where(e => e.State == EntityState.Added && e.Entity.IsActive).GroupBy(e => e.Entity.TenantId);
+            foreach (var group in addedUsers)
+            {
+                var maximum = await TenantSubscriptions.IgnoreQueryFilters().Where(s => s.TenantProfileId == group.Key && s.StartsOn <= DateTimeOffset.UtcNow &&
+                    (s.Status == eSubscriptionStatus.Active || s.Status == eSubscriptionStatus.Trial)).OrderByDescending(s => s.StartsOn)
+                    .Select(s => s.MaxUsers).FirstOrDefaultAsync(cancellationToken);
+                if (maximum.HasValue && await Users.IgnoreQueryFilters().CountAsync(u => u.TenantId == group.Key && u.IsActive, cancellationToken) + group.Count() > maximum.Value)
+                    throw new InvalidOperationException("The tenant's active-user subscription limit has been reached.");
+            }
+
+            var addedStudents = ChangeTracker.Entries<StudentEntity>().Where(e => e.State == EntityState.Added && e.Entity.IsActive).GroupBy(e => e.Entity.TenantId);
+            foreach (var group in addedStudents)
+            {
+                var maximum = await TenantSubscriptions.IgnoreQueryFilters().Where(s => s.TenantProfileId == group.Key && s.StartsOn <= DateTimeOffset.UtcNow &&
+                    (s.Status == eSubscriptionStatus.Active || s.Status == eSubscriptionStatus.Trial)).OrderByDescending(s => s.StartsOn)
+                    .Select(s => s.MaxStudents).FirstOrDefaultAsync(cancellationToken);
+                if (maximum.HasValue && await Students.IgnoreQueryFilters().CountAsync(st => st.TenantId == group.Key && st.IsActive, cancellationToken) + group.Count() > maximum.Value)
+                    throw new InvalidOperationException("The tenant's active-student subscription limit has been reached.");
+            }
         }
 
         #region DbSets
@@ -37,6 +97,7 @@ namespace ForekOnline.Infrastructure.Data
         #endregion
         public DbSet<TenantProfile> TenantProfiles { get; set; }
         public DbSet<TenantSubscription> TenantSubscriptions { get; set; }
+        public DbSet<TenantDomain> TenantDomains { get; set; }
         public DbSet<InAppNotification> InAppNotifications { get; set; }
         public DbSet<FinancialClearance> FinancialClearance { get; set; }
         public DbSet<EnrollmentEntity> Enrollments { get; set; }
@@ -624,6 +685,9 @@ namespace ForekOnline.Infrastructure.Data
             modelBuilder.Entity<TenantProfile>().HasData(new TenantProfile
             {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                Slug = "default",
+                LegalName = "Forek ICT Services",
+                IsActive = true,
                 AppTitle = "Forek Online",
                 Tagline = "Powered By Forek ICT Services",
                 LogoUrl = "/Theme/images/logob-removebg-preview.png",
@@ -646,6 +710,19 @@ namespace ForekOnline.Infrastructure.Data
                 Code = "DEFAULT",
             });
 
+
+            modelBuilder.Entity<TenantProfile>(entity =>
+            {
+                entity.HasIndex(e => e.Slug).IsUnique();
+                entity.HasIndex(e => e.Code).IsUnique().HasFilter("[Code] IS NOT NULL");
+            });
+
+            modelBuilder.Entity<TenantDomain>(entity =>
+            {
+                entity.HasIndex(e => e.HostName).IsUnique();
+                entity.HasOne(e => e.TenantProfile).WithMany().HasForeignKey(e => e.TenantProfileId).OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<TenantSubscription>(entity =>
             {
                 entity.HasOne(e => e.TenantProfile)
@@ -661,6 +738,18 @@ namespace ForekOnline.Infrastructure.Data
             });
 
             modelBuilder.ApplyEntityConventions();
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasQueryFilter(e => !HasResolvedTenant || e.TenantId == CurrentTenantId);
+                entity.HasIndex(e => e.TenantId);
+                entity.HasOne<TenantProfile>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<StudentEntity>(entity =>
+            {
+                entity.HasQueryFilter(e => !e.IsDeleted && (!HasResolvedTenant || e.TenantId == CurrentTenantId));
+                entity.HasIndex(e => e.TenantId);
+                entity.HasOne<TenantProfile>().WithMany().HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             // The deployed Academics.Students table predates the shared audit convention and
             // stores its audit timestamps as datetime2. Convert only this legacy entity so EF

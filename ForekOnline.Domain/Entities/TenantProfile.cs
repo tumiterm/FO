@@ -9,6 +9,26 @@ namespace ForekOnline.Domain.Entities;
 /// </summary>
 public class TenantProfile : EntityBase<Guid>
 {
+    [Required, StringLength(80)]
+    public string Slug { get; set; } = string.Empty;
+
+    [Required, StringLength(200)]
+    public string LegalName { get; set; } = string.Empty;
+
+    public bool IsActive { get; set; } = true;
+
+    [StringLength(100)]
+    public string TimeZoneId { get; set; } = "Africa/Johannesburg";
+
+    [StringLength(20)]
+    public string Culture { get; set; } = "en-ZA";
+
+    [StringLength(100)]
+    public string? BillingContactEmail { get; set; }
+
+    [StringLength(100)]
+    public string? ExternalCustomerReference { get; set; }
+
     [Required, StringLength(120)]
     public string AppTitle { get; set; } = "Forek Online";
 

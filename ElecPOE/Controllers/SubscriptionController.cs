@@ -20,6 +20,7 @@ public class SubscriptionController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> Expired()
     {
         var tenant = await _tenantProfileService.GetCurrentAsync();
@@ -35,6 +36,7 @@ public class SubscriptionController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Status()
     {
         var subscription = await _subscriptionService.GetCurrentAsync();

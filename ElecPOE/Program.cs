@@ -43,6 +43,10 @@ Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQx
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("PlatformAdmin", policy => policy.RequireRole("SuperAdmin").RequireClaim("PlatformAdmin", "true"));
+});
 
 builder.Services.AddSession(s =>
 {
@@ -119,6 +123,13 @@ builder.Services.AddScoped<BackgroundJobQueueDrainJob>();
 
 var app = builder.Build();
 
+if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+{
+    using var migrationScope = app.Services.CreateScope();
+    var applicationDb = migrationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await applicationDb.Database.MigrateAsync();
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var cacheDb = scope.ServiceProvider.GetRequiredService<StudentCacheDbContext>();
@@ -157,6 +168,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.UseAuthentication();
 
@@ -180,6 +192,8 @@ if (dashboardEnabled)
     });
 }
 #endregion
+
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
 app.MapControllerRoute(
 

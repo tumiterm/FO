@@ -100,10 +100,14 @@ namespace ForekOnline.Infrastructure.DI
             services.AddScoped<IInAppNotificationService, InAppNotificationService>();
             services.AddScoped<ILoginHistoryService, LoginHistoryService>();
 
+            services.AddScoped<ITenantContext, TenantContext>();
             services.AddScoped<IRepository<TenantProfile>, Repository<TenantProfile>>();
+            services.AddScoped<IRepository<TenantDomain>, Repository<TenantDomain>>();
             services.AddScoped<ITenantProfileService, TenantProfileService>();
             services.AddScoped<IRepository<TenantSubscription>, Repository<TenantSubscription>>();
             services.AddScoped<ITenantSubscriptionService, TenantSubscriptionService>();
+            services.AddScoped<ITenantProvisioningService, TenantProvisioningService>();
+            services.AddScoped<ITenantUsageService, TenantUsageService>();
             services.AddScoped<IReportComplianceService, ReportComplianceService>();
             services.AddScoped<IPlacementService, PlacementService>();
             services.AddScoped<IVisitService, VisitService>();

@@ -26,6 +26,7 @@ namespace ForekOnline.Application.Common.Services
         private readonly IFileStorageProviderResolver _providerResolver;
         private readonly IStoredDocumentLookup _storedDocumentLookup;
         private readonly IFileStorageSettingsService _fileStorageSettingsService;
+        private readonly ITenantContext _tenantContext;
         #endregion'
 
         /// <summary>
@@ -37,11 +38,12 @@ namespace ForekOnline.Application.Common.Services
         /// <param name="storedDocumentLookup">The service used to look up stored documents by their identifiers. Cannot be null.</param>
         /// <param name="fileStorageSettingsService">The service that provides access to file storage settings and configuration. Cannot be null.</param>
         /// <exception cref="ArgumentNullException">Thrown if providerResolver, storedDocumentLookup, or fileStorageSettingsService is null.</exception>
-        public FileUploadService(IFileStorageProviderResolver providerResolver, IStoredDocumentLookup storedDocumentLookup, IFileStorageSettingsService fileStorageSettingsService)
+        public FileUploadService(IFileStorageProviderResolver providerResolver, IStoredDocumentLookup storedDocumentLookup, IFileStorageSettingsService fileStorageSettingsService, ITenantContext tenantContext)
         {
             _providerResolver = providerResolver ?? throw new ArgumentNullException(nameof(providerResolver));
             _storedDocumentLookup = storedDocumentLookup ?? throw new ArgumentNullException(nameof(storedDocumentLookup));
             _fileStorageSettingsService = fileStorageSettingsService ?? throw new ArgumentNullException(nameof(fileStorageSettingsService));
+            _tenantContext = tenantContext ?? throw new ArgumentNullException(nameof(tenantContext));
         }
 
         /// <summary>
@@ -104,7 +106,7 @@ namespace ForekOnline.Application.Common.Services
             if (expiryInMinutes <= 0) throw new ArgumentOutOfRangeException(nameof(expiryInMinutes));
 
             var settings = await _fileStorageSettingsService
-                .ResolveAsync(tenantId: null, documentType: null, cancellationToken)
+                .ResolveAsync(_tenantContext.TenantId, documentType: null, cancellationToken)
                 .ConfigureAwait(false);
 
             if (settings is null || !settings.EnablePresignedUrls)
@@ -134,6 +136,7 @@ namespace ForekOnline.Application.Common.Services
         {
             if (request is null) throw new ArgumentNullException(nameof(request));
 
+            request = request with { TenantId = request.TenantId ?? _tenantContext.TenantId };
             var providerHint = request.ProviderHint;
 
             if (string.IsNullOrWhiteSpace(providerHint))

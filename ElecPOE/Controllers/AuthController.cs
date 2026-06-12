@@ -46,6 +46,7 @@ namespace ElecPOE.Controllers
         private readonly IFileUploadService _fileUploadService;
         private const string LoginSessionKeyClaim = "LoginSessionKey";
         private readonly ILoginHistoryService _loginHistoryService;
+        private readonly ITenantContext _tenantContext;
         #endregion
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace ElecPOE.Controllers
         public AuthController(IUnitOfWork context, ILoginHistoryService loginHistoryService,
                                 IWebHostEnvironment hostEnvironment,
                                 ILogger<AuthController> logger,
-                                IHttpClientFactory httpClientFactory, IConfiguration configuration, IUserService userService, IHelperService helperService, IFileUploadService fileUploadService)
+                                IHttpClientFactory httpClientFactory, IConfiguration configuration, IUserService userService, IHelperService helperService, IFileUploadService fileUploadService, ITenantContext tenantContext)
         {
             _context = context;
             _configuration = configuration;
@@ -75,6 +76,7 @@ namespace ElecPOE.Controllers
             _studentApiUrl = _helperService.GetConfigurationValue("ApiSettings:StudentApiUrl", "Unknown");
             _userService = userService;
             _fileUploadService = fileUploadService;
+            _tenantContext = tenantContext;
             _loginHistoryService = loginHistoryService ?? throw new ArgumentNullException(nameof(loginHistoryService));
         }
 
@@ -730,10 +732,15 @@ namespace ElecPOE.Controllers
                 new Claim(ClaimTypes.Name, userInfo.Name),
                 new Claim(ClaimTypes.Surname, userInfo.LastName),
                 new Claim(ClaimTypes.Role, userInfo.Role.ToString()),
+                new Claim("TenantId", userInfo.TenantId.ToString("D")),
+                new Claim("TenantSlug", _tenantContext.TenantSlug ?? string.Empty),
                 new Claim("POEAppCookie", "Code"),
 
                 new Claim(LoginSessionKeyClaim, sessionKey)
             };
+
+            if (userInfo.Role == eSysRole.SuperAdmin && userInfo.TenantId == Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                claims.Add(new Claim("PlatformAdmin", "true"));
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
