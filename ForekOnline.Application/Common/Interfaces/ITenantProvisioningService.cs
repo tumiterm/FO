@@ -18,7 +18,14 @@ public sealed record CreateTenantRequest(
     int? MaxUsers = null,
     int? MaxStudents = null,
     string? ContactEmail = null,
-    string? BillingContactEmail = null);
+    string? BillingContactEmail = null,
+    string? Tagline = null,
+    string? LogoUrl = null,
+    string PrimaryColor = "#e65100",
+    string AccentColor = "#ff9100",
+    string TimeZoneId = "Africa/Johannesburg",
+    string Culture = "en-ZA",
+    string? ExternalCustomerReference = null);
 
 public sealed record UpdateTenantProfileRequest(
     string LegalName,

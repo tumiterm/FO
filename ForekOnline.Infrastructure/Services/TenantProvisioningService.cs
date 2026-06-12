@@ -37,8 +37,13 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
         var tenant = new TenantProfile
         {
             Id = Guid.NewGuid(), Slug = slug, Code = slug.ToUpperInvariant(), LegalName = request.LegalName.Trim(),
-            Name = request.LegalName.Trim(), AppTitle = request.AppTitle.Trim(), ContactEmail = request.ContactEmail?.Trim(),
-            BillingContactEmail = request.BillingContactEmail?.Trim(), IsActive = true, DateCreated = now, DateModified = now
+            Name = request.LegalName.Trim(), AppTitle = request.AppTitle.Trim(),
+            Tagline = request.Tagline?.Trim() ?? "Powered By Forek ICT Services",
+            ContactEmail = request.ContactEmail?.Trim(), BillingContactEmail = request.BillingContactEmail?.Trim(),
+            LogoUrl = request.LogoUrl?.Trim(), PrimaryColor = request.PrimaryColor.Trim(), AccentColor = request.AccentColor.Trim(),
+            TimeZoneId = request.TimeZoneId.Trim(), Culture = request.Culture.Trim(),
+            ExternalCustomerReference = request.ExternalCustomerReference?.Trim(), IsActive = true,
+            DateCreated = now, DateModified = now
         };
         var domain = new TenantDomain
         {
@@ -145,7 +150,8 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
     {
         if (string.IsNullOrWhiteSpace(slug) || slug.Any(c => !char.IsLetterOrDigit(c) && c != '-')) throw new ArgumentException("Tenant slug may only contain letters, digits, and hyphens.");
         if (string.IsNullOrWhiteSpace(request.LegalName) || string.IsNullOrWhiteSpace(request.AppTitle)) throw new ArgumentException("Legal name and application title are required.");
-        if (string.IsNullOrWhiteSpace(host) || !host.Contains('.')) throw new ArgumentException("A valid tenant host name is required.");
+        if (string.IsNullOrWhiteSpace(host) || !host.Contains('.') || host.Contains('/') || host.Contains(':') || Uri.CheckHostName(host) == UriHostNameType.Unknown)
+            throw new ArgumentException("A valid tenant host name is required without a protocol, port, or path.");
         if (string.IsNullOrWhiteSpace(request.AdminEmail) || !request.AdminEmail.Contains('@')) throw new ArgumentException("A valid administrator email is required.");
         if (string.IsNullOrWhiteSpace(request.PlanName)) throw new ArgumentException("A subscription plan name is required.");
         if (string.IsNullOrWhiteSpace(request.AdminPassword) || request.AdminPassword.Length < 12) throw new ArgumentException("The initial administrator password must contain at least 12 characters.");
@@ -153,5 +159,10 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
         if (request.GracePeriodDays < 0) throw new ArgumentException("Grace period cannot be negative.");
         if (request.MaxUsers is < 1) throw new ArgumentException("MaxUsers must allow at least the initial administrator.");
         if (request.MaxStudents is < 0) throw new ArgumentException("MaxStudents cannot be negative.");
+        if (string.IsNullOrWhiteSpace(request.TimeZoneId) || string.IsNullOrWhiteSpace(request.Culture)) throw new ArgumentException("Time zone and culture are required.");
+        if (!IsHexColour(request.PrimaryColor) || !IsHexColour(request.AccentColor)) throw new ArgumentException("Brand colours must be six-digit hex values.");
     }
+
+    private static bool IsHexColour(string value) =>
+        !string.IsNullOrWhiteSpace(value) && System.Text.RegularExpressions.Regex.IsMatch(value, "^#[0-9A-Fa-f]{6}$");
 }

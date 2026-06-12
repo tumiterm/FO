@@ -34,6 +34,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ElecPOE\ElecPOE.csproj" />
     <ProjectReference Include="..\ForekOnline.Application\ForekOnline.Application.csproj" />
     <ProjectReference Include="..\ForekOnline.Domain\ForekOnline.Domain.csproj" />
     <ProjectReference Include="..\ForekOnline.Infrastructure\ForekOnline.Infrastructure.csproj" />

@@ -7,7 +7,7 @@ The application uses a shared application/shared SQL database model. A request i
 1. Apply `20260612120000_AddTenantOnboardingAndIsolation` before enabling strict host resolution.
 2. Insert and verify the production host for the legacy/default tenant, or temporarily enable `Tenancy:AllowDefaultTenant` for the first platform-administrator login.
 3. Sign in as a `SuperAdmin` in the default tenant. The login receives the `PlatformAdmin` claim required by the tenant administration API.
-4. Create each tenant through `POST /api/tenant-administration`.
+4. Open **Settings → Tenant onboarding studio** to create each tenant. The studio is visible only to users satisfying the `PlatformAdmin` policy. The API at `POST /api/tenant-administration` remains available for automation.
 5. Point the tenant DNS name at the application. Host resolution starts working as soon as the onboarding transaction commits.
 6. Disable default-tenant fallback in every shared production environment.
 
@@ -32,11 +32,18 @@ The application uses a shared application/shared SQL database model. A request i
   "maxUsers": 50,
   "maxStudents": 1000,
   "contactEmail": "support@example.edu",
-  "billingContactEmail": "billing@example.edu"
+  "billingContactEmail": "billing@example.edu",
+  "tagline": "Learn without limits",
+  "logoUrl": "https://cdn.example.edu/logo.png",
+  "primaryColor": "#102030",
+  "accentColor": "#f08020",
+  "timeZoneId": "Africa/Johannesburg",
+  "culture": "en-ZA",
+  "externalCustomerReference": "CRM-1042"
 }
 ```
 
-Onboarding creates the profile, verified primary domain, subscription, and initial tenant administrator in one SQL transaction. Duplicate slugs, hosts, and administrator email addresses are rejected.
+Onboarding creates the profile (including initial branding and locale), verified primary domain, subscription, and initial tenant administrator in one SQL transaction. Duplicate slugs, hosts, and administrator email addresses are rejected. The web studio also validates subscription dates, domain format, matching passwords, capacity limits, and brand colours before submitting.
 
 ## Administration endpoints
 
