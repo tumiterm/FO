@@ -101,6 +101,7 @@ namespace ForekOnline.Infrastructure.DI
             services.AddScoped<ILoginHistoryService, LoginHistoryService>();
 
             services.AddScoped<ITenantContext, TenantContext>();
+            services.AddScoped<ITenantResolver, TenantResolver>();
             services.AddScoped<IRepository<TenantProfile>, Repository<TenantProfile>>();
             services.AddScoped<IRepository<TenantDomain>, Repository<TenantDomain>>();
             services.AddScoped<ITenantProfileService, TenantProfileService>();

@@ -135,6 +135,7 @@ public sealed class TenantProvisioningService : ITenantProvisioningService
     {
         _cache.Remove($"TenantProfile:{tenantId:D}");
         _cache.Remove($"TenantSubscription:{tenantId:D}");
+        _cache.Remove(TenantResolver.TenantCacheKey(tenantId));
     }
 
     private static string NormalizeSlug(string value) => value.Trim().ToLowerInvariant();
