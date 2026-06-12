@@ -1,0 +1,223 @@
+@model ElecPOE.ViewModels.TenantOnboardingViewModel
+@{
+    ViewData["Title"] = "Onboard a tenant";
+    ViewData["MetaDescription"] = "Create a fully configured Forek Online tenant workspace.";
+}
+
+<style>
+    .tenant-studio { --ink:#19151d; --muted:#77717d; --line:#e9e4e1; --orange:#f36c21; --red:#94161c; max-width:1440px; margin:0 auto; padding:1.4rem 1rem 5rem; color:var(--ink); }
+    .tenant-studio * { box-sizing:border-box; }
+    .tenant-studio a { color:inherit; }
+    .tenant-hero { position:relative; overflow:hidden; min-height:310px; padding:3.2rem; border-radius:30px; background:linear-gradient(130deg,#21191f 0%,#421b20 52%,#8d211d 100%); color:#fff; box-shadow:0 28px 70px rgba(52,18,20,.2); isolation:isolate; }
+    .tenant-hero:before { content:""; position:absolute; width:430px; height:430px; right:-80px; top:-180px; border-radius:50%; border:1px solid rgba(255,255,255,.15); box-shadow:0 0 0 55px rgba(255,255,255,.04),0 0 0 110px rgba(255,255,255,.025); z-index:-1; }
+    .tenant-hero:after { content:""; position:absolute; inset:auto -4% -50% 48%; height:300px; background:radial-gradient(circle,#ff8b3d 0%,transparent 68%); opacity:.24; z-index:-1; }
+    .tenant-back { display:inline-flex; align-items:center; gap:.55rem; font-size:.76rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#ffc49f!important; text-decoration:none; margin-bottom:2.1rem; }
+    .tenant-kicker { display:flex; align-items:center; gap:.7rem; color:#ffb17d; font-size:.75rem; text-transform:uppercase; letter-spacing:.15em; font-weight:800; }
+    .tenant-kicker:before { content:""; width:30px; height:2px; background:#ff7b2e; }
+    .tenant-hero h1 { max-width:760px; margin:.8rem 0 .7rem; font:800 clamp(2.2rem,4.5vw,4.65rem)/.97 Georgia,serif; letter-spacing:-.045em; }
+    .tenant-hero h1 em { color:#ff9a58; font-style:normal; }
+    .tenant-hero p { max-width:660px; color:#dfd3d3; line-height:1.7; font-size:1rem; margin:0; }
+    .hero-chips { position:absolute; right:3rem; bottom:3rem; display:grid; grid-template-columns:repeat(2,minmax(140px,1fr)); gap:.7rem; }
+    .hero-chip { padding:.8rem 1rem; border:1px solid rgba(255,255,255,.13); border-radius:14px; background:rgba(255,255,255,.07); backdrop-filter:blur(10px); font-size:.72rem; color:#ddcece; }
+    .hero-chip strong { display:block; margin-top:.15rem; color:#fff; font-size:.86rem; }
+    .tenant-shell { display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:1.35rem; align-items:start; margin-top:-1.15rem; position:relative; z-index:2; padding:0 1.2rem; }
+    .tenant-form, .tenant-aside-card { background:#fff; border:1px solid rgba(115,73,65,.12); border-radius:24px; box-shadow:0 18px 45px rgba(57,31,25,.08); }
+    .tenant-form { padding:2rem; }
+    .form-intro { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:2rem; }
+    .form-intro h2 { font:800 1.45rem/1.2 Georgia,serif; margin:0 0 .35rem; }
+    .form-intro p { color:var(--muted); margin:0; font-size:.87rem; }
+    .secure-pill { white-space:nowrap; padding:.55rem .8rem; border-radius:999px; background:#edf8f1; color:#257548; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+    .tenant-validation { padding:1rem 1.1rem; margin-bottom:1.2rem; border-radius:14px; background:#fff0ef; border:1px solid #f3c7c4; color:#8f1f24; font-size:.84rem; }
+    .tenant-section { border:0; padding:0; margin:0 0 2rem; }
+    .section-head { display:grid; grid-template-columns:42px 1fr auto; align-items:center; gap:.8rem; padding-bottom:1rem; margin-bottom:1.1rem; border-bottom:1px solid var(--line); }
+    .section-number { display:grid; place-items:center; width:42px; height:42px; border-radius:13px; background:#21191f; color:#fff; font:700 .86rem Georgia,serif; }
+    .section-head h3 { margin:0 0 .18rem; font-size:.95rem; font-weight:800; }
+    .section-head p { margin:0; color:var(--muted); font-size:.75rem; }
+    .section-status { color:#a49da3; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+    .field-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:1rem; }
+    .field { grid-column:span 6; }
+    .field--4 { grid-column:span 4; } .field--8 { grid-column:span 8; } .field--12 { grid-column:span 12; }
+    .field label { display:flex; justify-content:space-between; margin:0 0 .45rem; font-size:.74rem; font-weight:800; color:#403940; }
+    .field label small { color:#aaa2a7; font-weight:600; }
+    .field input, .field select { width:100%; height:48px; padding:0 .85rem; border:1px solid #ddd7d4; border-radius:12px; background:#fcfbfa; color:#211b20; font-size:.87rem; outline:none; transition:.18s; }
+    .field input:focus, .field select:focus { border-color:#e66728; box-shadow:0 0 0 4px rgba(230,103,40,.1); background:#fff; }
+    .field input[type=color] { padding:.35rem; cursor:pointer; }
+    .field-note { display:block; color:#9a9297; font-size:.68rem; margin-top:.36rem; }
+    .field-error { display:block; color:#a52127; font-size:.7rem; margin-top:.32rem; }
+    .password-wrap { position:relative; } .password-wrap input { padding-right:2.8rem; }
+    .password-toggle { position:absolute; right:.45rem; top:.42rem; width:34px; height:34px; border:0; background:transparent; color:#888087; }
+    .form-finish { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.35rem; border-radius:18px; background:#f8f5f2; border:1px solid #ebe3de; }
+    .form-finish p { margin:0; color:#777078; font-size:.76rem; max-width:480px; line-height:1.55; }
+    .tenant-submit { min-width:225px; height:52px; border:0; border-radius:13px; background:linear-gradient(135deg,#f47b2d,#b51c20); color:#fff; font-size:.8rem; text-transform:uppercase; letter-spacing:.07em; font-weight:800; box-shadow:0 12px 25px rgba(181,28,32,.22); }
+    .tenant-submit:hover { transform:translateY(-1px); filter:saturate(1.08); }
+    .tenant-aside { display:grid; gap:1rem; position:sticky; top:1rem; }
+    .tenant-aside-card { padding:1.4rem; }
+    .aside-label { color:#a43a27; font-size:.68rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+    .tenant-aside h3 { margin:.45rem 0 1rem; font:800 1.2rem/1.2 Georgia,serif; }
+    .provision-list { list-style:none; padding:0; margin:0; }
+    .provision-list li { display:grid; grid-template-columns:34px 1fr; gap:.7rem; align-items:start; padding:.75rem 0; border-top:1px solid #eee9e6; }
+    .provision-list i { display:grid; place-items:center; width:30px; height:30px; border-radius:9px; background:#fff1e8; color:#d9571c; }
+    .provision-list strong { display:block; font-size:.78rem; }.provision-list span { color:#8a8388; font-size:.68rem; line-height:1.4; }
+    .preview-card { overflow:hidden; padding:0; }
+    .preview-top { height:94px; padding:1.2rem; color:#fff; background:linear-gradient(135deg,var(--preview-primary,#e65100),var(--preview-accent,#ff9100)); }
+    .preview-top span { font-size:.65rem; opacity:.78; text-transform:uppercase; letter-spacing:.1em; }.preview-top strong { display:block; margin-top:.4rem; font:700 1.05rem Georgia,serif; }
+    .preview-body { padding:1.2rem; }.preview-domain { color:#777078; font-size:.7rem; overflow-wrap:anywhere; }.preview-meta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:1rem; }.preview-meta span { padding:.35rem .5rem; border-radius:7px; background:#f5f1ef; font-size:.62rem; font-weight:800; color:#675f64; }
+    .success-panel { padding:2rem; border-radius:22px; background:linear-gradient(145deg,#173d2c,#216546); color:#fff; box-shadow:0 20px 45px rgba(24,85,57,.2); }
+    .success-icon { display:grid; place-items:center; width:50px; height:50px; border-radius:16px; background:rgba(255,255,255,.13); font-size:1.3rem; }.success-panel h2 { margin:1rem 0 .45rem; font:800 1.7rem Georgia,serif; }.success-panel p { color:#cae5d7; font-size:.82rem; line-height:1.6; }.success-ids { margin:1rem 0; padding:1rem; border-radius:13px; background:rgba(255,255,255,.08); font-size:.68rem; line-height:1.8; overflow-wrap:anywhere; }.success-panel a { display:inline-flex; padding:.7rem 1rem; border-radius:10px; background:#fff; color:#245d43!important; text-decoration:none; font-size:.72rem; font-weight:800; }
+    @@media (max-width:1050px) { .tenant-shell { grid-template-columns:1fr; }.tenant-aside { position:static; grid-template-columns:repeat(2,1fr); }.hero-chips{display:none;} }
+    @@media (max-width:700px) { .tenant-studio{padding:.5rem .5rem 3rem}.tenant-hero{padding:2rem 1.35rem;min-height:auto}.tenant-shell{padding:0 .35rem;margin-top:1rem}.tenant-form{padding:1.25rem}.field,.field--4,.field--8,.field--12{grid-column:span 12}.tenant-aside{grid-template-columns:1fr}.form-intro,.form-finish{align-items:stretch;flex-direction:column}.tenant-submit{width:100%}.section-status{display:none;} }
+</style>
+
+<main class="tenant-studio">
+    <section class="tenant-hero">
+        <a class="tenant-back" asp-controller="Auth" asp-action="Settings"><i class="fa-solid fa-arrow-left"></i> Settings control centre</a>
+        <div class="tenant-kicker">Platform administration</div>
+        <h1>Launch a new <em>workspace.</em></h1>
+        <p>One considered workflow provisions the tenant identity, verified domain, subscription and founding administrator—ready for DNS and first sign-in.</p>
+        <div class="hero-chips">
+            <div class="hero-chip">Provisioning mode<strong>Atomic transaction</strong></div>
+            <div class="hero-chip">Domain status<strong>Verified on create</strong></div>
+            <div class="hero-chip">Access level<strong>Super administrator</strong></div>
+            <div class="hero-chip">Workspace status<strong>Active immediately</strong></div>
+        </div>
+    </section>
+
+    <div class="tenant-shell">
+        <section class="tenant-form">
+            @if (Model.Result is not null)
+            {
+                <div class="success-panel">
+                    <div class="success-icon"><i class="fa-solid fa-check"></i></div>
+                    <h2>@Model.AppTitle is live.</h2>
+                    <p>The workspace and its primary administrator were created together. Point DNS for <strong>@Model.HostName</strong> to this application, then share the temporary credentials securely.</p>
+                    <div class="success-ids">Tenant ID: @Model.Result.TenantId<br />Subscription ID: @Model.Result.SubscriptionId<br />Administrator ID: @Model.Result.AdministratorId</div>
+                    <a asp-action="Create"><i class="fa-solid fa-plus me-2"></i> Onboard another tenant</a>
+                </div>
+            }
+            else
+            {
+                <div class="form-intro">
+                    <div><h2>Tenant launch brief</h2><p>Complete the four pillars below. Everything is editable later.</p></div>
+                    <span class="secure-pill"><i class="fa-solid fa-shield-halved me-1"></i> Platform admin only</span>
+                </div>
+                <form asp-action="Create" method="post" id="tenantForm">
+                    <div asp-validation-summary="ModelOnly" class="tenant-validation"></div>
+
+                    <fieldset class="tenant-section">
+                        <legend class="visually-hidden">Workspace identity</legend>
+                        <div class="section-head"><span class="section-number">01</span><div><h3>Workspace identity</h3><p>The organisation and customer-facing portal identity.</p></div><span class="section-status">TenantProfile</span></div>
+                        <div class="field-grid">
+                            <div class="field field--8"><label asp-for="LegalName"></label><input asp-for="LegalName" placeholder="Example College (Pty) Ltd" autocomplete="organization" /><span asp-validation-for="LegalName" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="Slug"></label><input asp-for="Slug" placeholder="example-college" /><span class="field-note">Permanent workspace key</span><span asp-validation-for="Slug" class="field-error"></span></div>
+                            <div class="field"><label asp-for="AppTitle"></label><input asp-for="AppTitle" placeholder="Example College Online" /><span asp-validation-for="AppTitle" class="field-error"></span></div>
+                            <div class="field"><label asp-for="Tagline"><span>Tagline</span><small>Optional</small></label><input asp-for="Tagline" /><span asp-validation-for="Tagline" class="field-error"></span></div>
+                            <div class="field field--8"><label asp-for="HostName"></label><input asp-for="HostName" placeholder="portal.example.edu" inputmode="url" /><span class="field-note">Hostname only—do not include https:// or a path</span><span asp-validation-for="HostName" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="ExternalCustomerReference"><span>Customer reference</span><small>Optional</small></label><input asp-for="ExternalCustomerReference" placeholder="CRM-1042" /><span asp-validation-for="ExternalCustomerReference" class="field-error"></span></div>
+                            <div class="field"><label asp-for="ContactEmail"><span>Support email</span><small>Optional</small></label><input asp-for="ContactEmail" placeholder="support@example.edu" autocomplete="email" /><span asp-validation-for="ContactEmail" class="field-error"></span></div>
+                            <div class="field"><label asp-for="BillingContactEmail"><span>Billing email</span><small>Optional</small></label><input asp-for="BillingContactEmail" placeholder="accounts@example.edu" autocomplete="email" /><span asp-validation-for="BillingContactEmail" class="field-error"></span></div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="tenant-section">
+                        <legend class="visually-hidden">Brand and locale</legend>
+                        <div class="section-head"><span class="section-number">02</span><div><h3>Brand & locale</h3><p>Give the new portal its own atmosphere from day one.</p></div><span class="section-status">Experience</span></div>
+                        <div class="field-grid">
+                            <div class="field field--8"><label asp-for="LogoUrl"><span>Logo URL</span><small>Optional</small></label><input asp-for="LogoUrl" placeholder="https://cdn.example.edu/logo.png" /><span asp-validation-for="LogoUrl" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="TimeZoneId"></label><select asp-for="TimeZoneId"><option>Africa/Johannesburg</option><option>Africa/Lagos</option><option>Africa/Nairobi</option><option>Europe/London</option><option>America/New_York</option><option>UTC</option></select><span asp-validation-for="TimeZoneId" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="PrimaryColor"></label><input asp-for="PrimaryColor" type="color" /><span asp-validation-for="PrimaryColor" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="AccentColor"></label><input asp-for="AccentColor" type="color" /><span asp-validation-for="AccentColor" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="Culture"></label><select asp-for="Culture"><option value="en-ZA">English (South Africa)</option><option value="en-US">English (United States)</option><option value="en-GB">English (United Kingdom)</option></select><span asp-validation-for="Culture" class="field-error"></span></div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="tenant-section">
+                        <legend class="visually-hidden">Subscription</legend>
+                        <div class="section-head"><span class="section-number">03</span><div><h3>Subscription envelope</h3><p>Define the commercial term, safety window and capacity.</p></div><span class="section-status">TenantSubscription</span></div>
+                        <div class="field-grid">
+                            <div class="field field--4"><label asp-for="PlanName"></label><select asp-for="PlanName"><option>Starter</option><option selected>Standard</option><option>Professional</option><option>Enterprise</option></select><span asp-validation-for="PlanName" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="StartsOn"></label><input asp-for="StartsOn" /><span asp-validation-for="StartsOn" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="ExpiresOn"></label><input asp-for="ExpiresOn" /><span asp-validation-for="ExpiresOn" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="MaxUsers"><span>User seats</span><small>Blank = unlimited</small></label><input asp-for="MaxUsers" min="1" /><span asp-validation-for="MaxUsers" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="MaxStudents"><span>Learner capacity</span><small>Blank = unlimited</small></label><input asp-for="MaxStudents" min="0" /><span asp-validation-for="MaxStudents" class="field-error"></span></div>
+                            <div class="field field--4"><label asp-for="GracePeriodDays"><span>Grace period</span><small>Days</small></label><input asp-for="GracePeriodDays" min="0" /><span asp-validation-for="GracePeriodDays" class="field-error"></span></div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="tenant-section">
+                        <legend class="visually-hidden">Founding administrator</legend>
+                        <div class="section-head"><span class="section-number">04</span><div><h3>Founding administrator</h3><p>Create the accountable owner for this workspace.</p></div><span class="section-status">SuperAdmin</span></div>
+                        <div class="field-grid">
+                            <div class="field"><label asp-for="AdminFirstName"></label><input asp-for="AdminFirstName" autocomplete="given-name" /><span asp-validation-for="AdminFirstName" class="field-error"></span></div>
+                            <div class="field"><label asp-for="AdminLastName"></label><input asp-for="AdminLastName" autocomplete="family-name" /><span asp-validation-for="AdminLastName" class="field-error"></span></div>
+                            <div class="field field--12"><label asp-for="AdminEmail"></label><input asp-for="AdminEmail" placeholder="admin@example.edu" autocomplete="email" /><span asp-validation-for="AdminEmail" class="field-error"></span></div>
+                            <div class="field"><label asp-for="AdminPassword"></label><div class="password-wrap"><input asp-for="AdminPassword" autocomplete="new-password" /><button class="password-toggle" type="button" aria-label="Show password"><i class="fa-regular fa-eye"></i></button></div><span class="field-note">Minimum 12 characters; share through a secure channel</span><span asp-validation-for="AdminPassword" class="field-error"></span></div>
+                            <div class="field"><label asp-for="ConfirmPassword"></label><div class="password-wrap"><input asp-for="ConfirmPassword" autocomplete="new-password" /><button class="password-toggle" type="button" aria-label="Show password"><i class="fa-regular fa-eye"></i></button></div><span asp-validation-for="ConfirmPassword" class="field-error"></span></div>
+                        </div>
+                    </fieldset>
+
+                    <div class="form-finish">
+                        <p><strong>Ready when you are.</strong><br />Creation is atomic: if any element fails, the profile, domain, subscription and administrator are all rolled back together.</p>
+                        <button class="tenant-submit" type="submit"><i class="fa-solid fa-rocket me-2"></i> Launch workspace</button>
+                    </div>
+                </form>
+            }
+        </section>
+
+        <aside class="tenant-aside">
+            @if (Model.Result is null)
+            {
+                <div class="tenant-aside-card preview-card" id="brandPreview">
+                    <div class="preview-top"><span>Live brand preview</span><strong id="previewTitle">Your new portal</strong></div>
+                    <div class="preview-body"><div class="preview-domain"><i class="fa-solid fa-globe me-1"></i> <span id="previewHost">portal.customer.org</span></div><div class="preview-meta"><span id="previewPlan">Standard</span><span>Verified domain</span><span>Active</span></div></div>
+                </div>
+            }
+            <div class="tenant-aside-card">
+                <div class="aside-label">One-click orchestration</div>
+                <h3>What gets provisioned</h3>
+                <ul class="provision-list">
+                    <li><i class="fa-solid fa-building"></i><div><strong>Tenant profile</strong><span>Identity, support contacts, locale and brand tokens.</span></div></li>
+                    <li><i class="fa-solid fa-globe"></i><div><strong>Primary domain</strong><span>Normalised, unique and marked verified for routing.</span></div></li>
+                    <li><i class="fa-solid fa-gem"></i><div><strong>Subscription</strong><span>Plan term, quotas, active status and grace period.</span></div></li>
+                    <li><i class="fa-solid fa-user-shield"></i><div><strong>Administrator</strong><span>Tenant-scoped SuperAdmin with verified email.</span></div></li>
+                </ul>
+            </div>
+            <div class="tenant-aside-card">
+                <div class="aside-label">Next on the roadmap</div>
+                <h3>Built to grow</h3>
+                <p style="color:#817980;font-size:.72rem;line-height:1.6;margin:0;">Welcome email delivery, invitation expiry, DNS health checks and an onboarding activity timeline can layer onto this workflow without changing its core transaction.</p>
+            </div>
+        </aside>
+    </div>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const byId = id => document.getElementById(id);
+            const legal = byId('LegalName');
+            const slug = byId('Slug');
+            let slugEdited = Boolean(slug?.value);
+            slug?.addEventListener('input', () => slugEdited = true);
+            legal?.addEventListener('input', () => {
+                if (!slugEdited && slug) slug.value = legal.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            });
+            const syncPreview = () => {
+                const primary = byId('PrimaryColor')?.value || '#e65100';
+                const accent = byId('AccentColor')?.value || '#ff9100';
+                byId('brandPreview')?.style.setProperty('--preview-primary', primary);
+                byId('brandPreview')?.style.setProperty('--preview-accent', accent);
+                if (byId('previewTitle')) byId('previewTitle').textContent = byId('AppTitle')?.value || 'Your new portal';
+                if (byId('previewHost')) byId('previewHost').textContent = byId('HostName')?.value || 'portal.customer.org';
+                if (byId('previewPlan')) byId('previewPlan').textContent = byId('PlanName')?.value || 'Standard';
+            };
+            ['PrimaryColor','AccentColor','AppTitle','HostName','PlanName'].forEach(id => byId(id)?.addEventListener('input', syncPreview));
+            document.querySelectorAll('.password-toggle').forEach(button => button.addEventListener('click', () => {
+                const input = button.previousElementSibling;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                button.querySelector('i').className = input.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+            }));
+            syncPreview();
+        })();
+    </script>
+}
