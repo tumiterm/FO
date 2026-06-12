@@ -57,6 +57,7 @@ namespace ForekOnline.Application.Common.Services
 
         private static readonly TimeSpan DefaultSliding = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan ListAbsolute = TimeSpan.FromMinutes(30);
+        private const int StudentQueryPageSize = 250;
         #endregion
 
         /// Initializes a new instance of the <see cref="StudentService"/> class.
@@ -270,11 +271,23 @@ namespace ForekOnline.Application.Common.Services
             // ── 1. SQL Server (primary — no API dependency) ────────────────────
             try
             {
-                var entities = await _unitOfWork.Students.GetAllAsync(
-                    includeProperties: new[] { nameof(StudentEntity.Enrollments) },
-                    asNoTracking: true);
+                var entities = new List<StudentEntity>();
+                IReadOnlyList<StudentEntity> page;
 
-                if (entities != null && entities.Count > 0)
+                do
+                {
+                    page = await _unitOfWork.Students.GetAllAsync(
+                        includeProperties: new[] { nameof(StudentEntity.Enrollments) },
+                        orderBy: query => query.OrderBy(student => student.Id),
+                        skip: entities.Count,
+                        take: StudentQueryPageSize,
+                        asNoTracking: true);
+
+                    entities.AddRange(page);
+                }
+                while (page.Count == StudentQueryPageSize);
+
+                if (entities.Count > 0)
                 {
                     students = entities.Select(MapToStudent).ToList();
 
