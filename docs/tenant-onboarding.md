@@ -61,3 +61,40 @@ All endpoints require the `PlatformAdmin` policy.
 - Branding and subscription caches are keyed by tenant ID.
 
 When another aggregate becomes independently queryable across tenants, make its root implement `ITenantOwned`, add its migration/backfill, and register a tenant query filter before exposing it to tenant-facing code.
+
+## Tenant-resolution timeout troubleshooting
+
+Tenant resolution uses the unique `IX_TenantDomains_HostName` index and caches successful host mappings and active tenant identities in application memory. A cache miss executes one joined query instead of separate domain and profile queries.
+
+An `SqlException` with number `-2` (`Execution Timeout Expired`) on this lookup normally indicates SQL blocking, database resource pressure, or connectivity rather than an expensive predicate. Do not treat a larger EF command timeout as the primary fix. Check the following while the request is waiting:
+
+```sql
+SELECT
+    request.session_id,
+    request.status,
+    request.blocking_session_id,
+    request.wait_type,
+    request.wait_time,
+    request.wait_resource,
+    request.command,
+    text.text AS running_sql
+FROM sys.dm_exec_requests AS request
+CROSS APPLY sys.dm_exec_sql_text(request.sql_handle) AS text
+WHERE request.database_id = DB_ID()
+ORDER BY request.wait_time DESC;
+```
+
+Also verify that the onboarding migration and hostname index exist in the same database used by the application:
+
+```sql
+SELECT MigrationId
+FROM __EFMigrationsHistory
+WHERE MigrationId = '20260612120000_AddTenantOnboardingAndIsolation';
+
+SELECT name, is_unique, is_disabled
+FROM sys.indexes
+WHERE object_id = OBJECT_ID(N'dbo.TenantDomains')
+  AND name = N'IX_TenantDomains_HostName';
+```
+
+If the migration or index is absent, apply the migration before enabling tenant resolution. If `blocking_session_id` is nonzero, inspect and correct the transaction holding the lock rather than increasing the command timeout.
