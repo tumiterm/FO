@@ -104,6 +104,8 @@
     }
 
     .avatar {
+        position: relative;
+        overflow: hidden;
         width: 100px;
         height: 100px;
         border-radius: 28px;
@@ -116,6 +118,102 @@
         flex-shrink: 0;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         backdrop-filter: blur(10px);
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .profile-picture-editor {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: #f8fafc;
+    }
+
+    .profile-picture-preview {
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        width: 112px;
+        height: 112px;
+        border: 4px solid #fff;
+        border-radius: 24px;
+        background: linear-gradient(135deg, var(--navy), var(--brand));
+        color: #fff;
+        box-shadow: var(--shadow-md);
+        font-size: 2rem;
+        font-weight: 900;
+    }
+
+        .profile-picture-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .picture-copy h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .picture-copy p {
+        margin: 0 0 0.85rem;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.5;
+    }
+
+    .picture-picker {
+        position: relative;
+        display: inline-flex;
+    }
+
+        .picture-picker input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0;
+        }
+
+    .picture-picker-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0.7rem 1rem;
+        border: 1px solid #d8dee9;
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 0.78rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .picture-picker-label:hover,
+        .picture-picker input:focus + .picture-picker-label {
+            border-color: var(--orange);
+            color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(243, 107, 53, 0.12);
+        }
+
+    .picture-file-name {
+        display: block;
+        margin-top: 0.55rem;
+        color: var(--muted);
+        font-size: 0.72rem;
     }
 
     .eyebrow {
@@ -574,6 +672,15 @@
             border-radius: 18px;
         }
 
+        .profile-picture-editor {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .profile-picture-preview {
+            margin: auto;
+        }
+
         .identity h1 {
             font-size: 1.5rem;
         }
@@ -610,7 +717,16 @@
     <section class="access-hero">
         <div class="hero-grid">
             <div class="identity">
-                <div class="avatar">@initials</div>
+                <div class="avatar" id="heroAvatar">
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+                    {
+                        <img src="@Url.Action("ProfileImage", "Auth", new { fileId = Model.ProfileImage })" alt="@fullName profile picture" />
+                    }
+                    else
+                    {
+                        <span>@initials</span>
+                    }
+                </div>
                 <div>
                     <div class="eyebrow">Identity & Access Profile</div>
                     <h1>@fullName</h1>
@@ -660,6 +776,32 @@
                     <input asp-for="OldPassword" type="hidden" />
                     <input asp-for="ConfirmPassword" type="hidden" />
                     <input asp-for="StudentNumber" type="hidden" />
+                    <input asp-for="ProfileImage" type="hidden" />
+                    <div class="profile-picture-editor">
+                        <div class="profile-picture-preview" id="profilePicturePreview">
+                            @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+                            {
+                                <img src="@Url.Action("ProfileImage", "Auth", new { fileId = Model.ProfileImage })" alt="Current profile picture for @fullName" />
+                            }
+                            else
+                            {
+                                <span>@initials</span>
+                            }
+                        </div>
+                        <div class="picture-copy">
+                            <h3>Profile picture</h3>
+                            <p>This image follows the user across reports, employee records, and other modules. Upload a square JPG, PNG, or WebP image up to 5 MB.</p>
+                            <div class="picture-picker">
+                                <input asp-for="ProfileImageFile" type="file" accept="image/jpeg,image/png,image/webp" />
+                                <label asp-for="ProfileImageFile" class="picture-picker-label">
+                                    <i class="fa fa-camera"></i>
+                                    <span>@(string.IsNullOrWhiteSpace(Model.ProfileImage) ? "Upload picture" : "Change picture")</span>
+                                </label>
+                            </div>
+                            <span class="picture-file-name" id="profilePictureFileName">@(string.IsNullOrWhiteSpace(Model.ProfileImage) ? "No picture uploaded yet" : "Current picture will be kept unless replaced")</span>
+                            <span asp-validation-for="ProfileImageFile" class="text-danger"></span>
+                        </div>
+                    </div>
                     <div class="field-grid">
                         <div class="field">
                             <label asp-for="Name"></label>
@@ -798,3 +940,45 @@
         </aside>
     </div>
 </main>
+
+<script>
+    (() => {
+        const input = document.getElementById('ProfileImageFile');
+        const preview = document.getElementById('profilePicturePreview');
+        const heroAvatar = document.getElementById('heroAvatar');
+        const fileName = document.getElementById('profilePictureFileName');
+        let previewUrl;
+
+        if (!input || !preview || !heroAvatar || !fileName) {
+            return;
+        }
+
+        input.addEventListener('change', () => {
+            const file = input.files && input.files[0];
+            if (!file) {
+                return;
+            }
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+
+            previewUrl = URL.createObjectURL(file);
+            const previewImage = document.createElement('img');
+            previewImage.src = previewUrl;
+            previewImage.alt = 'Selected profile picture preview';
+
+            const heroImage = previewImage.cloneNode();
+            heroImage.alt = 'Selected profile picture';
+            preview.replaceChildren(previewImage);
+            heroAvatar.replaceChildren(heroImage);
+            fileName.textContent = file.name;
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        });
+    })();
+</script>
