@@ -3,6 +3,7 @@
 using ElecPOE.Middleware;
 using ElecPOE.Profiles;
 using ElecPOE.Renderers;
+using ElecPOE.Services;
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Application.Common.Jobs;
 using ForekOnline.Application.Common.Jobs.Handlers;
@@ -101,6 +102,12 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 builder.Services.AddHostedService<StudentListCacheWarmupService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<ILearningPracticeService, LearningPracticeService>(client =>
+{
+    client.BaseAddress = new Uri("https://opentdb.com/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("ForekOnline-LearningPortal/1.0");
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileStorageProviderResolver, FileStorageProviderResolver>();
 builder.Services.AddScoped<IStoredDocumentLookup, StoredDocumentLookup>();
@@ -242,6 +249,5 @@ internal sealed class HangfireDashboardAuthorizationFilter : IDashboardAuthoriza
                && (http.User.IsInRole("Admin") || http.User.IsInRole("SuperAdmin"));
     }
 }
-
 
 
