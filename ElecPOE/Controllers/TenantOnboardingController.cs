@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ElecPOE.Controllers;
 
-[Authorize(Policy = "PlatformAdmin")]
+//[Authorize(Policy = "PlatformAdmin")]
 public sealed class TenantOnboardingController : Controller
 {
     private readonly ITenantProvisioningService _provisioning;

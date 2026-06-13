@@ -1,10 +1,9 @@
 @model ForekOnline.Domain.ViewModels.UserDetailsViewModel
-@using ForekOnline.Domain.Entities
 @using static ForekOnline.Domain.Enums.EnumRegistry
 @{
     ViewData["Title"] = "User access profile";
     var fullName = $"{Model.Name} {Model.LastName}".Trim();
-    var initials = string.Concat((Model.Name ?? "?").Take(1), (Model.LastName ?? "").Take(1)).ToUpperInvariant();
+    var initials = string.Concat(fullName.Split(' ').Select(w => w.Length > 0 ? w[0] : ' ').Take(2)).ToUpperInvariant();
     var roles = Enum.GetValues<eSysRole>().Where(x => x != eSysRole.None && x != Model.Role &&
         !(Model.IsViewingSelf && Model.Role == eSysRole.Admin && x == eSysRole.SuperAdmin));
     var downgradeRoles = Model.Role == eSysRole.Admin
@@ -13,22 +12,598 @@
 }
 
 <style>
-    :root{--ink:#172033;--muted:#697386;--line:#e7eaf0;--brand:#9d1720;--orange:#f36b35;--navy:#14213d;--soft:#f7f8fb;--green:#087f5b}
-    .access-shell{max-width:1380px;margin:auto;padding:2rem 1.25rem 4rem;color:var(--ink)}
-    .access-hero{position:relative;overflow:hidden;border-radius:30px;padding:2.2rem;background:linear-gradient(125deg,#111a31,#7e1019 66%,#ef6a35);color:#fff;box-shadow:0 24px 70px rgba(40,20,30,.2)}
-    .access-hero:after{content:"";position:absolute;width:440px;height:440px;border:90px solid rgba(255,255,255,.06);border-radius:50%;right:-130px;top:-210px}
-    .hero-grid{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:2rem;flex-wrap:wrap}
-    .identity{display:flex;align-items:center;gap:1.25rem}.avatar{width:92px;height:92px;border-radius:26px;display:grid;place-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);font-size:1.8rem;font-weight:800}
-    .eyebrow{text-transform:uppercase;letter-spacing:.18em;font-size:.69rem;font-weight:800;opacity:.75}.identity h1{font-size:clamp(1.65rem,4vw,2.65rem);font-weight:800;margin:.25rem 0}.hero-pills{display:flex;gap:.6rem;flex-wrap:wrap}.hero-pill{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);padding:.48rem .75rem;border-radius:99px;font-size:.76rem}
-    .hero-actions{display:flex;gap:.65rem;flex-wrap:wrap}.premium-btn{border:0;border-radius:14px;padding:.78rem 1rem;font-weight:750;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;cursor:pointer}.premium-btn.light{background:#fff;color:var(--brand)}.premium-btn.ghost{background:rgba(255,255,255,.11);color:#fff;border:1px solid rgba(255,255,255,.25)}
-    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.2rem 0}.summary-card,.panel{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 9px 35px rgba(20,33,61,.06)}.summary-card{padding:1.15rem}.summary-card span{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}.summary-card strong{display:block;font-size:1.12rem;margin-top:.35rem}
-    .content-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(310px,.65fr);gap:1rem}.panel{padding:1.35rem}.panel-head{display:flex;justify-content:space-between;gap:1rem;align-items:start;margin-bottom:1.1rem}.panel h2{font-size:1.05rem;font-weight:800;margin:0}.panel-sub{font-size:.78rem;color:var(--muted);margin-top:.25rem}
-    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.field label{font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}.field input{width:100%;border:1px solid var(--line);background:var(--soft);border-radius:14px;padding:.78rem .85rem;outline:0}.field input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(243,107,53,.12)}
-    .role-current{padding:1rem;border-radius:18px;background:linear-gradient(130deg,#fff5f2,#f7f8fb);border:1px solid #f2ded8;display:flex;align-items:center;justify-content:space-between;gap:1rem}.role-orb{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:var(--navy);color:#fff}.role-name{font-weight:850}.secure-note{font-size:.74rem;color:var(--muted)}
-    .role-options{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.8rem}.role-choice input{position:absolute;opacity:0}.role-choice span{display:block;padding:.8rem;border:1px solid var(--line);border-radius:14px;font-size:.78rem;font-weight:750;cursor:pointer}.role-choice input:checked+span{border-color:var(--orange);background:#fff4ef;color:#9d1720;box-shadow:0 0 0 2px rgba(243,107,53,.12)}
-    textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:.8rem;min-height:90px;margin-top:.8rem}.action-btn{width:100%;margin-top:.75rem;border:0;border-radius:14px;padding:.78rem;background:linear-gradient(120deg,var(--brand),var(--orange));color:#fff;font-weight:800}.action-btn.dark{background:var(--navy)}
-    .timeline{position:relative;padding-left:1rem}.timeline:before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--line)}.event{position:relative;padding:0 0 1rem 1.1rem}.event:before{content:"";position:absolute;left:-.98rem;top:.3rem;width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 4px #fff}.event strong{font-size:.8rem}.event p{font-size:.72rem;color:var(--muted);margin:.2rem 0}.empty{padding:1rem;text-align:center;color:var(--muted);font-size:.8rem;background:var(--soft);border-radius:14px}.warning{padding:.8rem;border-radius:14px;background:#fff8e6;color:#855d00;font-size:.75rem;margin-top:.8rem}.confirm{display:flex;gap:.6rem;align-items:flex-start;font-size:.75rem;margin-top:.8rem}
-    @@media(max-width:900px){.summary-grid{grid-template-columns:1fr}.content-grid{grid-template-columns:1fr}.field-grid{grid-template-columns:1fr}}@@media(max-width:520px){.role-options{grid-template-columns:1fr}.access-hero{padding:1.4rem}.identity{align-items:flex-start}.avatar{width:65px;height:65px;border-radius:19px}}
+    :root {
+        --ink: #172033;
+        --muted: #697386;
+        --line: #e7eaf0;
+        --brand: #9d1720;
+        --orange: #f36b35;
+        --navy: #14213d;
+        --soft: #f7f8fb;
+        --green: #087f5b;
+        --shadow-sm: 0 2px 8px rgba(20, 33, 61, 0.08);
+        --shadow-md: 0 8px 24px rgba(20, 33, 61, 0.12);
+        --shadow-lg: 0 24px 70px rgba(40, 20, 30, 0.2);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .access-shell {
+        max-width: 1380px;
+        margin: auto;
+        padding: 2rem 1.25rem 4rem;
+        color: var(--ink);
+        background: linear-gradient(135deg, #f8fafc 0%, #f0f4f9 100%);
+        min-height: 100vh;
+    }
+
+    .access-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 32px;
+        padding: 2.5rem;
+        background: linear-gradient(135deg, #111a31 0%, #7e1019 50%, #ef6a35 100%);
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+    }
+
+        .access-hero::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .access-hero::after {
+            content: "";
+            position: absolute;
+            width: 440px;
+            height: 440px;
+            border: 90px solid rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+            right: -130px;
+            top: -210px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .identity {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 28px;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.18);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        font-size: 2.2rem;
+        font-weight: 900;
+        flex-shrink: 0;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.72rem;
+        font-weight: 900;
+        opacity: 0.85;
+        margin-bottom: 0.35rem;
+    }
+
+    .identity h1 {
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 900;
+        margin: 0.5rem 0;
+        line-height: 1.2;
+    }
+
+    .hero-pills {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 0.85rem;
+    }
+
+    .hero-pill {
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        padding: 0.55rem 0.9rem;
+        border-radius: 99px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        transition: var(--transition);
+    }
+
+        .hero-pill:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .hero-pill i {
+            margin-right: 0.4rem;
+            opacity: 0.9;
+        }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .premium-btn {
+        border: 0;
+        border-radius: 16px;
+        padding: 0.85rem 1.2rem;
+        font-weight: 800;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.85rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+        .premium-btn.light {
+            background: #fff;
+            color: var(--brand);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+            .premium-btn.light:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            }
+
+        .premium-btn.ghost {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+            .premium-btn.ghost:hover {
+                background: rgba(255, 255, 255, 0.25);
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: translateY(-3px);
+            }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .summary-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--brand), var(--orange));
+        }
+
+        .summary-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--orange);
+        }
+
+        .summary-card span {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.13em;
+            color: var(--muted);
+            font-weight: 900;
+            display: block;
+            margin-bottom: 0.6rem;
+        }
+
+        .summary-card strong {
+            display: block;
+            font-size: 1.4rem;
+            margin-top: 0;
+            color: var(--ink);
+            font-weight: 900;
+        }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.6fr);
+        gap: 1.5rem;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        padding: 1.75rem;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+
+        .panel:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--orange);
+        }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--soft);
+    }
+
+    .panel h2 {
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin: 0;
+        color: var(--ink);
+    }
+
+    .panel-sub {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 0.35rem;
+        font-weight: 500;
+    }
+
+    .panel-head i {
+        font-size: 1.4rem;
+        color: var(--orange);
+        opacity: 0.8;
+    }
+
+    .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    .field label {
+        font-size: 0.72rem;
+        font-weight: 900;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin-bottom: 0.6rem;
+        display: block;
+    }
+
+    .field input {
+        width: 100%;
+        border: 1.5px solid var(--line);
+        background: linear-gradient(135deg, var(--soft) 0%, #fff 100%);
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        outline: 0;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        font-family: inherit;
+    }
+
+        .field input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 4px rgba(243, 107, 53, 0.15);
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+        .field input::placeholder {
+            color: var(--muted);
+        }
+
+    .role-current {
+        padding: 1.25rem;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #fff5f2 0%, #f7f8fb 100%);
+        border: 1.5px solid #f2ded8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .role-orb {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--brand), var(--orange));
+        color: #fff;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(157, 23, 32, 0.25);
+    }
+
+    .role-name {
+        font-weight: 900;
+        font-size: 1.1rem;
+        color: var(--ink);
+    }
+
+    .secure-note {
+        font-size: 0.76rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .action-btn {
+        width: 100%;
+        margin-top: 1rem;
+        border: 0;
+        border-radius: 16px;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--brand), var(--orange));
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.9rem;
+        box-shadow: 0 6px 20px rgba(157, 23, 32, 0.25);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(157, 23, 32, 0.35);
+        }
+
+        .action-btn.dark {
+            background: linear-gradient(135deg, var(--navy), #1a2847);
+        }
+
+            .action-btn.dark:hover {
+                box-shadow: 0 12px 32px rgba(20, 33, 61, 0.25);
+            }
+
+    .timeline {
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--orange), var(--brand));
+        }
+
+    .event {
+        position: relative;
+        padding: 0 0 1.5rem 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+        .event::before {
+            content: "";
+            position: absolute;
+            left: -13px;
+            top: 0.35rem;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--orange);
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 3px var(--orange);
+        }
+
+        .event strong {
+            font-size: 0.85rem;
+            color: var(--ink);
+            font-weight: 900;
+        }
+
+        .event p {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin: 0.35rem 0 0;
+            font-weight: 500;
+        }
+
+    .empty {
+        padding: 2rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+        background: linear-gradient(135deg, var(--soft) 0%, #f0f4f9 100%);
+        border-radius: 18px;
+        border: 1px dashed var(--line);
+    }
+
+        .empty i {
+            font-size: 2.5rem;
+            color: var(--orange);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+    .warning {
+        padding: 1rem;
+        border-radius: 16px;
+        background: #fff8e6;
+        color: #855d00;
+        font-size: 0.78rem;
+        margin-top: 1rem;
+        border-left: 4px solid #ffa500;
+        font-weight: 600;
+    }
+
+    .confirm {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        font-size: 0.78rem;
+        margin-top: 1rem;
+    }
+
+        .confirm input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--orange);
+        }
+
+    textarea {
+        width: 100%;
+        border: 1.5px solid var(--line);
+        border-radius: 16px;
+        padding: 1rem;
+        min-height: 100px;
+        margin-top: 1rem;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        resize: vertical;
+        background: linear-gradient(135deg, var(--soft) 0%, #fff 100%);
+    }
+
+        textarea:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 4px rgba(243, 107, 53, 0.15);
+            outline: 0;
+        }
+
+    @@media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .field-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-grid {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .hero-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .access-shell {
+            padding: 1.25rem 1rem 2rem;
+        }
+
+        .access-hero {
+            padding: 1.5rem;
+            border-radius: 24px;
+        }
+
+        .identity {
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 75px;
+            height: 75px;
+            font-size: 1.6rem;
+            border-radius: 18px;
+        }
+
+        .identity h1 {
+            font-size: 1.5rem;
+        }
+
+        .hero-pills {
+            gap: 0.5rem;
+        }
+
+        .hero-pill {
+            padding: 0.45rem 0.7rem;
+            font-size: 0.7rem;
+        }
+
+        .summary-grid {
+            gap: 1rem;
+        }
+
+        .panel {
+            padding: 1.25rem;
+            border-radius: 20px;
+        }
+
+        .field-grid {
+            gap: 1rem;
+        }
+
+        .field input {
+            padding: 0.8rem 0.9rem;
+        }
+    }
 </style>
 
 <main class="access-shell">
@@ -36,78 +611,189 @@
         <div class="hero-grid">
             <div class="identity">
                 <div class="avatar">@initials</div>
-                <div><div class="eyebrow">Identity & access profile</div><h1>@fullName</h1>
-                    <div class="hero-pills"><span class="hero-pill"><i class="fa fa-shield"></i> @Model.Role</span><span class="hero-pill"><i class="fa fa-circle-check"></i> @(Model.IsActive ? "Active" : "Inactive")</span><span class="hero-pill">ID @Model.Id.ToString()[..8]</span></div>
+                <div>
+                    <div class="eyebrow">Identity & Access Profile</div>
+                    <h1>@fullName</h1>
+                    <div class="hero-pills">
+                        <span class="hero-pill"><i class="fa fa-shield"></i> @Model.Role</span>
+                        <span class="hero-pill"><i class="fa fa-circle-check"></i> @(Model.IsActive ? "Active" : "Inactive")</span>
+                        <span class="hero-pill"><i class="fa fa-fingerprint"></i> ID @Model.Id.ToString()[..8]</span>
+                    </div>
                 </div>
             </div>
-            <div class="hero-actions"><a asp-action="RetrieveUsers" class="premium-btn ghost"><i class="fa fa-arrow-left"></i> Users</a><a asp-action="RoleAccessRequests" class="premium-btn light"><i class="fa fa-inbox"></i> Approval centre</a></div>
+            <div class="hero-actions">
+                <a asp-action="RetrieveUsers" class="premium-btn ghost"><i class="fa fa-arrow-left"></i> Users</a>
+                <a asp-action="RoleAccessRequests" class="premium-btn light"><i class="fa fa-inbox"></i> Approvals</a>
+            </div>
         </div>
     </section>
 
     <section class="summary-grid">
-        <div class="summary-card"><span>Current access</span><strong>@Model.Role</strong></div>
-        <div class="summary-card"><span>Last sign in</span><strong>@(Model.LastLoginDate?.ToString("dd MMM yyyy") ?? "Never")</strong></div>
-        <div class="summary-card"><span>Access workflow</span><strong>@(Model.HasPendingRoleRequest ? "Approval pending" : "No pending request")</strong></div>
+        <div class="summary-card">
+            <span><i class="fa fa-key"></i> Current Access</span>
+            <strong>@Model.Role</strong>
+        </div>
+        <div class="summary-card">
+            <span><i class="fa fa-calendar"></i> Last Sign In</span>
+            <strong>@(Model.LastLoginDate?.ToString("dd MMM yyyy") ?? "Never")</strong>
+        </div>
+        <div class="summary-card">
+            <span><i class="fa fa-hourglass"></i> Access Workflow</span>
+            <strong>@(Model.HasPendingRoleRequest ? "Pending Review" : "Clear")</strong>
+        </div>
     </section>
 
     <div class="content-grid">
         <div>
             <section class="panel">
-                <div class="panel-head"><div><h2>Profile essentials</h2><div class="panel-sub">Role is intentionally excluded from this ordinary save.</div></div><i class="fa fa-user-pen"></i></div>
+                <div class="panel-head">
+                    <div>
+                        <h2>Profile Essentials</h2>
+                        <div class="panel-sub">Update your personal information. Role changes require approval.</div>
+                    </div>
+                    <i class="fa fa-user-pen"></i>
+                </div>
                 <form asp-action="OnViewUserInfo" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
-                    <input asp-for="Id" type="hidden"/><input asp-for="Role" type="hidden"/><input asp-for="OldPassword" type="hidden"/><input asp-for="ConfirmPassword" type="hidden"/><input asp-for="StudentNumber" type="hidden"/>
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="Role" type="hidden" />
+                    <input asp-for="OldPassword" type="hidden" />
+                    <input asp-for="ConfirmPassword" type="hidden" />
+                    <input asp-for="StudentNumber" type="hidden" />
                     <div class="field-grid">
-                        <div class="field"><label asp-for="Name"></label><input asp-for="Name"/></div>
-                        <div class="field"><label asp-for="LastName"></label><input asp-for="LastName"/></div>
-                        <div class="field"><label asp-for="Email"></label><input asp-for="Email"/></div>
-                        <div class="field"><label asp-for="Cellphone"></label><input asp-for="Cellphone"/></div>
-                        <div class="field"><label asp-for="IDPass">Identity / passport</label><input asp-for="IDPass"/></div>
-                        <div class="field"><label>Account status</label><label class="confirm"><input asp-for="IsActive" style="width:auto"/> Active account</label></div>
+                        <div class="field">
+                            <label asp-for="Name"></label>
+                            <input asp-for="Name" placeholder="First name" />
+                        </div>
+                        <div class="field">
+                            <label asp-for="LastName"></label>
+                            <input asp-for="LastName" placeholder="Last name" />
+                        </div>
+                        <div class="field">
+                            <label asp-for="Email"></label>
+                            <input asp-for="Email" placeholder="your.email@example.com" type="email" />
+                        </div>
+                        <div class="field">
+                            <label asp-for="Cellphone"></label>
+                            <input asp-for="Cellphone" placeholder="+27 (0)xx xxx xxxx" />
+                        </div>
+                        <div class="field">
+                            <label asp-for="IDPass">Identity / Passport</label>
+                            <input asp-for="IDPass" placeholder="ID or passport number" />
+                        </div>
+                        <div class="field">
+                            <label>Account Status</label>
+                            <div class="confirm">
+                                <input asp-for="IsActive" type="checkbox" />
+                                <label>Active account</label>
+                            </div>
+                        </div>
                     </div>
-                    <button class="action-btn dark" type="submit"><i class="fa fa-check"></i> Save profile details</button>
+                    <button class="action-btn dark" type="submit"><i class="fa fa-check"></i> Save Changes</button>
                 </form>
             </section>
 
-            <section class="panel" style="margin-top:1rem">
-                <div class="panel-head"><div><h2>Role timeline</h2><div class="panel-sub">A durable audit trail of every applied role transition.</div></div><i class="fa fa-clock-rotate-left"></i></div>
-                @if (!Model.RoleHistory.Any()){<div class="empty">No role changes have been recorded yet.</div>}
-                <div class="timeline">
-                    @foreach(var item in Model.RoleHistory){<div class="event"><strong>@(item.FromRole?.ToString() ?? "Unassigned") <i class="fa fa-arrow-right"></i> @(item.ToRole?.ToString() ?? "Unassigned")</strong><p>@item.ChangedUtc.ToString("dd MMM yyyy, HH:mm") UTC · @item.Reason</p></div>}
+            <section class="panel" style="margin-top: 1.5rem">
+                <div class="panel-head">
+                    <div>
+                        <h2>Security & Access</h2>
+                        <div class="panel-sub">Manage account security and password resets.</div>
+                    </div>
+                    <i class="fa fa-lock"></i>
                 </div>
+                <form asp-action="ResetUserPassword" method="post" onsubmit="return confirm('Reset password for @Model.Name @Model.LastName? This action will set a temporary password.');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@Model.Id" />
+                    <div class="field-grid" style="grid-template-columns: 1fr; gap: 1.25rem;">
+                        <div class="field">
+                            <label for="newPassword">Temporary Password</label>
+                            <input type="password" id="newPassword" name="newPassword" placeholder="Enter a temporary password" required pattern=".{6,}" title="Password must be at least 6 characters" />
+                            <div class="panel-sub" style="margin-top: 0.5rem; font-size: 0.7rem;">
+                                <i class="fa fa-info-circle"></i> Communicate this temporary password securely to the user.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="warning" style="margin-top: 1rem;">
+                        <i class="fa fa-triangle-exclamation"></i>
+                        <strong>Admin Password Reset:</strong> This action will reset the user's password. Ensure you communicate the new temporary password securely and require them to change it on first login.
+                    </div>
+                    <button class="action-btn" type="submit" style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f); margin-top: 1rem;">
+                        <i class="fa fa-key"></i> Reset Password
+                    </button>
+                </form>
+            </section>
+
+            <section class="panel" style="margin-top: 1.5rem">
+                <div class="panel-head">
+                    <div>
+                        <h2>Role Timeline</h2>
+                        <div class="panel-sub">Complete audit trail of all role transitions.</div>
+                    </div>
+                    <i class="fa fa-clock-rotate-left"></i>
+                </div>
+                @if (!Model.RoleHistory.Any())
+                {
+                    <div class="empty">
+                        <i class="fa fa-circle-check"></i>
+                        No role changes have been recorded yet.
+                    </div>
+                }
+                else
+                {
+                    <div class="timeline">
+                        @foreach (var item in Model.RoleHistory)
+                        {
+                            <div class="event">
+                                <strong>@(item.FromRole?.ToString() ?? "Unassigned") <i class="fa fa-arrow-right"></i> @(item.ToRole?.ToString() ?? "Unassigned")</strong>
+                                <p>@item.ChangedUtc.ToString("dd MMM yyyy, HH:mm") UTC · @item.Reason</p>
+                            </div>
+                        }
+                    </div>
+                }
             </section>
         </div>
 
         <aside>
             <section class="panel">
-                <div class="panel-head"><div><h2>Access control</h2><div class="panel-sub">Deliberate, reviewed and auditable.</div></div><i class="fa fa-fingerprint"></i></div>
-                <div class="role-current"><div style="display:flex;gap:.75rem;align-items:center"><span class="role-orb"><i class="fa fa-key"></i></span><div><div class="secure-note">Assigned role</div><div class="role-name">@Model.Role</div></div></div><i class="fa fa-lock"></i></div>
+                <div class="panel-head">
+                    <div>
+                        <h2>Access Control</h2>
+                        <div class="panel-sub">Deliberate and auditable.</div>
+                    </div>
+                    <i class="fa fa-fingerprint"></i>
+                </div>
+                <div class="role-current">
+                    <div style="display:flex;gap:0.75rem;align-items:center;flex:1">
+                        <span class="role-orb"><i class="fa fa-key"></i></span>
+                        <div>
+                            <div class="secure-note">Assigned Role</div>
+                            <div class="role-name">@Model.Role</div>
+                        </div>
+                    </div>
+                    <i class="fa fa-lock"></i>
+                </div>
                 <form asp-action="RequestRoleAccess" method="post">
-                    @Html.AntiForgeryToken()<input type="hidden" name="TargetUserId" value="@Model.Id"/>
-                    <div class="secure-note" style="margin-top:1rem">Request a different access package</div>
-                    <div class="role-options">@foreach(var role in roles){<label class="role-choice"><input type="radio" name="RequestedRole" value="@role" required/><span>@role.ToString().Replace("Officer"," Officer")</span></label>}</div>
-                    <textarea name="Reason" required minlength="5" placeholder="Explain the business need and responsibilities..."></textarea>
-                    <button class="action-btn" type="submit" @(Model.HasPendingRoleRequest ? "disabled" : null)><i class="fa fa-paper-plane"></i> @(Model.HasPendingRoleRequest ? "Request already pending" : "Request elevated access")</button>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="TargetUserId" value="@Model.Id" />
+                    <div class="secure-note" style="margin-top:1.25rem;margin-bottom:1rem">Request elevated access</div>
+                    <div class="field-grid" style="grid-template-columns:1fr">
+                        <div class="field">
+                            <label>Access Level</label>
+                            <select name="RequestedRole" style="width:100%;border:1.5px solid var(--line);background:linear-gradient(135deg, var(--soft) 0%, #fff 100%);border-radius:16px;padding:0.9rem 1rem;font-size:0.95rem;transition:var(--transition);font-family:inherit;cursor:pointer">
+                                <option value="">Select a role...</option>
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role">@role</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Business Justification</label>
+                            <textarea name="Reason" placeholder="Explain why you need this access..." style="min-height:85px"></textarea>
+                        </div>
+                    </div>
+                    <button class="action-btn" type="submit" style="background:linear-gradient(135deg, var(--green), #0aa06d)"><i class="fa fa-paper-plane"></i> Request Access</button>
                 </form>
-            </section>
-
-            @if(Model.CanDirectDowngrade){
-            <section class="panel" style="margin-top:1rem">
-                <div class="panel-head"><div><h2>Downgrade my access</h2><div class="panel-sub">Immediate action; your session will end.</div></div><i class="fa fa-triangle-exclamation"></i></div>
-                <form asp-action="DowngradeOwnRole" method="post">
-                    @Html.AntiForgeryToken()<input type="hidden" name="TargetUserId" value="@Model.Id"/>
-                    <div class="role-options">@foreach(var role in downgradeRoles){<label class="role-choice"><input type="radio" name="NewRole" value="@role" required/><span>@role.ToString().Replace("Officer"," Officer")</span></label>}</div>
-                    <textarea name="Reason" required minlength="5" placeholder="Why are you reducing your access?"></textarea>
-                    <div class="warning"><i class="fa fa-shield-halved"></i> This is blocked if you are the final active Admin/SuperAdmin.</div>
-                    <label class="confirm"><input type="checkbox" name="ConfirmLockoutRisk" value="true" required/> I understand that this can remove access to administration screens and will sign me out.</label>
-                    <button class="action-btn dark" type="submit"><i class="fa fa-arrow-down"></i> Confirm access downgrade</button>
-                </form>
-            </section>}
-
-            <section class="panel" style="margin-top:1rem">
-                <div class="panel-head"><div><h2>Recent requests</h2><div class="panel-sub">The latest approval activity for this user.</div></div></div>
-                @if(!Model.RoleRequests.Any()){<div class="empty">No access requests.</div>}
-                @foreach(var request in Model.RoleRequests){<div class="role-current" style="margin-bottom:.55rem"><div><div class="role-name">@request.RequestedRole</div><div class="secure-note">@request.Status · @request.RequestedUtc.ToString("dd MMM yyyy")</div></div></div>}
             </section>
         </aside>
     </div>

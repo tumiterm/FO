@@ -113,9 +113,6 @@ namespace ForekOnline.Application.Common.Services
 
                         if (rc > 0)
                         {
-                            // Uncomment the email sending logic when ready
-                            // SendVerificationLinkEmail(user.Username, user.ActivationCode.ToString(), "", "VerifyAccount");
-
                             _logger.LogInformation("User successfully registered with email {Email} at {Time}", user.Username, DateTime.UtcNow);
                             return (true, "User Successfully Registered");
                         }
@@ -187,11 +184,19 @@ namespace ForekOnline.Application.Common.Services
                 throw new ArgumentNullException(nameof(userVM));
             }
 
+            var existingUser = await _context.Users.GetAsync(filter: u => u.Id == userVM.Id, asNoTracking: true);
+            if (existingUser == null)
+            {
+                _logger.LogWarning("Cannot update user {UserId}: user not found at {Time}", userVM.Id, DateTime.UtcNow);
+                return false;
+            }
+
             User user = MapToUserEntity(userVM);
+            user.TenantId = existingUser.TenantId;
 
             if (!string.IsNullOrEmpty(userVM.NewPassword))
             {
-                user.Password = Helper.ValueEncryption(user.Password);
+                user.Password = Helper.ValueEncryption(userVM.NewPassword);
             }
 
             if (string.IsNullOrEmpty(userVM.ConfirmPassword))
@@ -216,7 +221,7 @@ namespace ForekOnline.Application.Common.Services
             return new User
             {
                 ModifiedBy = Helper.loggedInUser,
-                ModifiedOn = Helper.OnGetCurrentDateTime(),
+                ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString(),
                 Username = userVM.Email,
                 Cellphone = userVM.Cellphone,
                 Password = GetPassword(userVM),
@@ -445,6 +450,7 @@ namespace ForekOnline.Application.Common.Services
                 throw;
             }
         }
+
         public async Task<bool> IsHeadOfDepartmentAsync(CancellationToken cancellationToken = default)
         {
             var loggedInUser = OnGetCurrentUser();

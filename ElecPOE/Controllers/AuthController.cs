@@ -100,7 +100,7 @@ namespace ElecPOE.Controllers
 
                 if(user == null)
                 {
-                    _logger.LogWarning("User with ID {UserId} not found at {Time}", Id, DateTime.UtcNow);
+                    _logger.LogWarning("User with ID {UserId} not found at {Time}", Id, DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
                     throw new InvalidOperationException("User not found.");
                 }
 
@@ -166,8 +166,10 @@ namespace ElecPOE.Controllers
                     return NotFound();
                 }
 
-                // Role transitions are deliberately excluded from ordinary profile updates.
                 user.Role = storedUser.Role;
+                user.OldPassword = storedUser.Password;
+                user.ConfirmPassword = storedUser.ConfirmPassword;
+
                 bool isUpdated = await _userService.UpdateUserInfoAsync(user);
 
                 if (isUpdated)
@@ -178,7 +180,7 @@ namespace ElecPOE.Controllers
                 }
                 else
                 {
-                    TempData["error"] = "Unable to add user!";
+                    TempData["error"] = "Unable to save user details!";
                 }
             }
             catch (Exception ex)
@@ -189,6 +191,59 @@ namespace ElecPOE.Controllers
             }
 
             return RedirectToAction(nameof(RetrieveUsers));
+        }
+
+        /// <summary>
+        /// Allows an admin to reset a user's password without requiring the old password.
+        /// Ensures proper audit logging and access control.
+        /// </summary>
+        [Authorize(Roles = "SuperAdmin, Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetUserPassword(Guid userId, string newPassword)
+        {
+            if (userId == Guid.Empty || string.IsNullOrWhiteSpace(newPassword))
+            {
+                TempData["error"] = "Invalid user or password provided.";
+                return RedirectToAction(nameof(RetrieveUsers));
+            }
+
+            try
+            {
+                var user = await _db.Users.SingleOrDefaultAsync(x => x.Id == userId);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.Password = Helper.ValueEncryption(newPassword);
+                user.ConfirmPassword = Helper.ValueEncryption(newPassword);
+                user.ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().ToString("0");
+                user.ModifiedBy = Helper.loggedInUser;
+
+                _db.Users.Update(user);
+                await _db.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Admin {AdminId} reset password for user {UserId} at {Time}",
+                    CurrentUserId(),
+                    userId,
+                    DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
+
+                TempData["success"] = "User password has been reset successfully.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Cross-tenant password reset attempt for user {UserId} at {Time}", userId, DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
+                TempData["error"] = "Cannot reset password for this user.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while resetting password for user {UserId} at {Time}", userId, DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
+                TempData["error"] = "An error occurred while resetting the password.";
+            }
+
+            return RedirectToAction(nameof(OnViewUserInfo), new { Id = userId });
         }
 
         [Authorize(Roles = "Admin,SuperAdmin")]
@@ -234,8 +289,8 @@ namespace ElecPOE.Controllers
                 FromRole = target.Role,
                 RequestedRole = input.RequestedRole,
                 Reason = input.Reason.Trim(),
-                RequestedUtc = DateTime.UtcNow,
-                IsActive = true
+                RequestedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime,
+                IsDeleted = false
             });
             await _db.SaveChangesAsync();
             TempData["success"] = "Role access request submitted for approval.";
@@ -268,7 +323,7 @@ namespace ElecPOE.Controllers
 
             var oldRole = actor.Role;
             actor.Role = input.NewRole;
-            actor.ModifiedOn = DateTime.UtcNow.ToString("O");
+            actor.ModifiedOn = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime.ToString("O");
             _db.UserRoleHistory.Add(NewRoleHistory(actor, actorId, oldRole, input.NewRole, input.Reason, null));
             await _db.SaveChangesAsync();
 
@@ -319,7 +374,7 @@ namespace ElecPOE.Controllers
             request.TargetUser.Role = request.RequestedRole;
             request.Status = RoleAccessRequestStatus.Approved;
             request.ReviewedByUserId = reviewerId;
-            request.ReviewedUtc = DateTime.UtcNow;
+            request.ReviewedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
             request.ReviewNote = input.ReviewNote;
             _db.UserRoleHistory.Add(NewRoleHistory(request.TargetUser, reviewerId, oldRole, request.RequestedRole, request.Reason, request.Id));
             await _db.SaveChangesAsync();
@@ -346,7 +401,7 @@ namespace ElecPOE.Controllers
                 return Forbid();
             request.Status = RoleAccessRequestStatus.Rejected;
             request.ReviewedByUserId = reviewerId;
-            request.ReviewedUtc = DateTime.UtcNow;
+            request.ReviewedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
             request.ReviewNote = input.ReviewNote;
             await _db.SaveChangesAsync();
             TempData["success"] = "Role request rejected.";
@@ -361,7 +416,7 @@ namespace ElecPOE.Controllers
             var request = await _db.RoleAccessRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.Status == RoleAccessRequestStatus.Pending);
             if (request == null)
                 return NotFound();
-            request.LastReminderUtc = DateTime.UtcNow;
+            request.LastReminderUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
             request.ReminderCount++;
             await _db.SaveChangesAsync();
             TempData["success"] = "The approval reminder was recorded.";
@@ -376,9 +431,15 @@ namespace ElecPOE.Controllers
         private static UserRoleHistory NewRoleHistory(User target, Guid actorId, eSysRole? fromRole, eSysRole? toRole, string reason, Guid? requestId) =>
             new()
             {
-                Id = Guid.NewGuid(), TenantId = target.TenantId, UserId = target.Id, ChangedByUserId = actorId,
-                FromRole = fromRole, ToRole = toRole, ChangedUtc = DateTime.UtcNow, Reason = reason.Trim(),
-                RoleAccessRequestId = requestId, IsActive = true
+                Id = Guid.NewGuid(),
+                TenantId = target.TenantId,
+                UserId = target.Id,
+                ChangedByUserId = actorId,
+                FromRole = fromRole,
+                ToRole = toRole,
+                ChangedUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime, 
+                Reason = reason.Trim(),
+                RoleAccessRequestId = requestId, IsDeleted = false
             };
 
         /// <summary>
@@ -624,8 +685,8 @@ namespace ElecPOE.Controllers
 
                     if (row is not null)
                     {
-                        row.LogoutTimeUtc = DateTimeOffset.UtcNow;
-                        row.LastActivityUtc = DateTimeOffset.UtcNow;
+                        row.LogoutTimeUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
+                        row.LastActivityUtc = DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime;
                         row.IsCurrentSession = false;
                         row.LogoutReason = "Explicit";
                         await _context.SaveAsync();
@@ -635,11 +696,11 @@ namespace ElecPOE.Controllers
                 ClearUserSession(HttpContext);
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-                _logger.LogInformation("User successfully logged out at {Time}", DateTime.UtcNow);
+                _logger.LogInformation("User successfully logged out at {Time}", DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during logout at {Time}", DateTime.UtcNow);
+                _logger.LogError(ex, "An error occurred during logout at {Time}", DateTimeHelper.GetCurrentSastDateTimeOffset().DateTime);
                 throw;
             }
 

@@ -1,9 +1,12 @@
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Infrastructure.Data;
 using Microsoft.Data.SqlClient;
+
+#region Usings
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+#endregion
 
 namespace ForekOnline.Infrastructure.Services;
 
@@ -12,12 +15,14 @@ namespace ForekOnline.Infrastructure.Services;
 /// </summary>
 public sealed class TenantResolver : ITenantResolver
 {
+    #region Usings
     private static readonly TimeSpan HostCacheDuration = TimeSpan.FromHours(1);
     private static readonly TimeSpan TenantCacheDuration = TimeSpan.FromMinutes(30);
 
     private readonly ApplicationDbContext _db;
     private readonly IMemoryCache _cache;
     private readonly ILogger<TenantResolver> _logger;
+    #endregion
 
     public TenantResolver(ApplicationDbContext db, IMemoryCache cache, ILogger<TenantResolver> logger)
     {

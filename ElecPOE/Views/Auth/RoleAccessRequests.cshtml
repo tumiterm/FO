@@ -1,19 +1,653 @@
 @model ForekOnline.Domain.ViewModels.RoleAccessManagementViewModel
-@using ForekOnline.Domain.Entities
-@{ ViewData["Title"] = "Role approval centre"; }
+@{ 
+    ViewData["Title"] = "Role approval centre";
+}
+
 <style>
-    .approval-shell{max-width:1320px;margin:auto;padding:2rem 1.25rem 4rem;color:#172033}.approval-hero{padding:2rem;border-radius:28px;color:#fff;background:linear-gradient(125deg,#131d35,#85131b 68%,#f06b35);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}.approval-hero h1{font-weight:850;margin:.2rem 0}.approval-hero p{margin:0;opacity:.78}.back{color:#fff;border:1px solid #ffffff45;border-radius:13px;padding:.7rem 1rem;text-decoration:none}.metric{display:inline-flex;margin-top:.7rem;padding:.4rem .7rem;border-radius:99px;background:#ffffff18;font-size:.75rem}.section{margin-top:1.2rem;background:#fff;border:1px solid #e7eaf0;border-radius:22px;padding:1.25rem;box-shadow:0 10px 35px #14213d0d}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}.section h2{font-size:1.05rem;font-weight:800;margin:0}.request-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.request{border:1px solid #e7eaf0;border-radius:18px;padding:1rem;background:linear-gradient(145deg,#fff,#fafbfc)}.route{display:flex;align-items:center;gap:.55rem;font-weight:850}.route span{padding:.35rem .6rem;border-radius:10px;background:#f1f3f7}.meta,.reason{font-size:.75rem;color:#697386;margin-top:.65rem}.reason{padding:.7rem;border-radius:12px;background:#f6f7fa;color:#374151}.actions{display:grid;grid-template-columns:1fr 1fr auto;gap:.5rem;margin-top:.8rem}.actions input{grid-column:1/-1;border:1px solid #e1e5eb;border-radius:11px;padding:.58rem}.btn{border:0;border-radius:11px;padding:.62rem .8rem;font-size:.75rem;font-weight:800}.approve{background:#087f5b;color:#fff}.reject{background:#9d1720;color:#fff}.remind{background:#eef1f6;color:#172033}.history{width:100%;border-collapse:collapse;font-size:.78rem}.history th,.history td{text-align:left;padding:.75rem;border-bottom:1px solid #edf0f4}.status{font-weight:800}.empty{text-align:center;padding:2rem;color:#697386;background:#f7f8fa;border-radius:16px}@@media(max-width:800px){.request-grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}}
+:root {
+    --ink: #172033;
+    --muted: #697386;
+    --line: #e7eaf0;
+    --brand: #9d1720;
+    --orange: #f36b35;
+    --navy: #14213d;
+    --soft: #f7f8fb;
+    --green: #087f5b;
+    --danger: #dc2626;
+    --shadow-sm: 0 2px 8px rgba(20, 33, 61, 0.08);
+    --shadow-md: 0 8px 24px rgba(20, 33, 61, 0.12);
+    --shadow-lg: 0 24px 70px rgba(40, 20, 30, 0.2);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4f9 100%);
+}
+
+.approval-shell {
+    max-width: 1380px;
+    margin: auto;
+    padding: 2rem 1.25rem 4rem;
+    color: var(--ink);
+    min-height: 100vh;
+}
+
+.approval-hero {
+    padding: 2.5rem;
+    border-radius: 32px;
+    color: #fff;
+    background: linear-gradient(135deg, #131d35 0%, #85131b 50%, #f06b35 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+.approval-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.approval-hero > div:first-child {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.approval-hero small {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    font-weight: 900;
+    opacity: 0.85;
+    margin-bottom: 0.5rem;
+}
+
+.approval-hero h1 {
+    font-weight: 900;
+    margin: 0.5rem 0;
+    font-size: 2.2rem;
+    line-height: 1.2;
+}
+
+.approval-hero p {
+    margin: 0.75rem 0 0;
+    opacity: 0.9;
+    font-size: 1.05rem;
+    max-width: 500px;
+}
+
+.metric {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 0.65rem 1.2rem;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+    font-size: 0.8rem;
+    font-weight: 900;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.back {
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 0.9rem 1.4rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: var(--transition);
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+.section {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.section:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--orange);
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid var(--soft);
+}
+
+.section h2 {
+    font-size: 1.25rem;
+    font-weight: 900;
+    margin: 0;
+    color: var(--ink);
+}
+
+.section-head i {
+    font-size: 1.6rem;
+    color: var(--orange);
+    opacity: 0.75;
+}
+
+.request-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+}
+
+.request {
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fff 0%, #fafbfc 100%);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.request::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand), var(--orange));
+}
+
+.request:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--orange);
+}
+
+.route {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-weight: 900;
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+}
+
+.route span {
+    padding: 0.5rem 0.85rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--soft), #f0f4f9);
+    border: 1px solid var(--line);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.route i {
+    color: var(--orange);
+    opacity: 0.7;
+}
+
+.meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.meta strong {
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.meta br {
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+.reason {
+    padding: 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f6f7fa, var(--soft));
+    color: var(--ink);
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+    border-left: 4px solid var(--orange);
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.actions input {
+    grid-column: 1 / -1;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    transition: var(--transition);
+    background: linear-gradient(135deg, var(--soft) 0%, #fff 100%);
+    font-family: inherit;
+}
+
+.actions input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px rgba(243, 107, 53, 0.15);
+    outline: 0;
+}
+
+.actions input::placeholder {
+    color: var(--muted);
+}
+
+.btn {
+    border: 0;
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.approve {
+    background: linear-gradient(135deg, var(--green), #0aa06d);
+    color: #fff;
+}
+
+.reject {
+    background: linear-gradient(135deg, var(--danger), #ef4444);
+    color: #fff;
+}
+
+.remind {
+    background: linear-gradient(135deg, var(--orange), #ff8a50);
+    color: #fff;
+    padding: 0.8rem 0.9rem;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.history {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.history thead {
+    background: linear-gradient(135deg, var(--soft), #f0f4f9);
+    border-bottom: 2px solid var(--line);
+}
+
+.history th {
+    text-align: left;
+    padding: 1rem;
+    color: var(--ink);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.history td {
+    text-align: left;
+    padding: 1.1rem 1rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.history tbody tr {
+    transition: var(--transition);
+}
+
+.history tbody tr:hover {
+    background: linear-gradient(90deg, #fff8f2, #fff);
+}
+
+.status {
+    font-weight: 900;
+    padding: 0.4rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+}
+
+.status.approved {
+    background: rgba(8, 127, 91, 0.15);
+    color: var(--green);
+}
+
+.status.rejected {
+    background: rgba(220, 38, 38, 0.15);
+    color: var(--danger);
+}
+
+.status.pending {
+    background: rgba(243, 107, 53, 0.15);
+    color: var(--orange);
+}
+
+.empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted);
+    background: linear-gradient(135deg, var(--soft), #f0f4f9);
+    border-radius: 20px;
+    border: 2px dashed var(--line);
+}
+
+.empty i {
+    font-size: 3rem;
+    color: var(--orange);
+    opacity: 0.5;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty p {
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.overflow-wrapper {
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+}
+
+@@media (max-width: 1200px) {
+    .request-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@@media (max-width: 900px) {
+    .approval-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 2rem;
+    }
+    
+    .approval-hero > div:first-child {
+        width: 100%;
+    }
+    
+    .back {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .request-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@@media (max-width: 640px) {
+    .approval-shell {
+        padding: 1.25rem 1rem 2rem;
+    }
+    
+    .approval-hero {
+        padding: 1.5rem;
+        border-radius: 24px;
+    }
+    
+    .approval-hero h1 {
+        font-size: 1.6rem;
+    }
+    
+    .approval-hero p {
+        font-size: 0.95rem;
+    }
+    
+    .section {
+        padding: 1.25rem;
+        border-radius: 20px;
+    }
+    
+    .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .request {
+        padding: 1.25rem;
+        border-radius: 18px;
+    }
+    
+    .route {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .history {
+        font-size: 0.8rem;
+    }
+    
+    .history th,
+    .history td {
+        padding: 0.75rem 0.5rem;
+    }
+}
 </style>
+
 <main class="approval-shell">
-    <header class="approval-hero"><div><small>SECURITY OPERATIONS</small><h1>Role approval centre</h1><p>Review elevated access with independent oversight and a complete audit trail.</p><span class="metric">@Model.Pending.Count pending decision(s)</span></div><a asp-action="RetrieveUsers" class="back"><i class="fa fa-users"></i> User directory</a></header>
-    <section class="section"><div class="section-head"><h2>Awaiting review</h2><i class="fa fa-inbox"></i></div>
-        @if(!Model.Pending.Any()){<div class="empty"><i class="fa fa-circle-check"></i><br/>The approval queue is clear.</div>}
-        <div class="request-grid">@foreach(var item in Model.Pending){<article class="request">
-            <div class="route"><span>@(item.FromRole?.ToString() ?? "None")</span><i class="fa fa-arrow-right"></i><span>@item.RequestedRole</span></div>
-            <div class="meta"><strong>@item.TargetUser.Name @item.TargetUser.LastName</strong> · requested by @item.RequestedByUser.Name @item.RequestedByUser.LastName<br/>@item.RequestedUtc.ToString("dd MMM yyyy, HH:mm") UTC · @item.ReminderCount reminder(s)</div>
-            <div class="reason">@item.Reason</div>
-            <form class="actions" method="post"><input type="hidden" name="RequestId" value="@item.Id"/>@Html.AntiForgeryToken()<input name="ReviewNote" placeholder="Optional review note"/><button formaction="@Url.Action("ApproveRoleAccess")" class="btn approve"><i class="fa fa-check"></i> Approve</button><button formaction="@Url.Action("RejectRoleAccess")" class="btn reject"><i class="fa fa-xmark"></i> Reject</button><button formaction="@Url.Action("RemindRoleApprovers")" name="requestId" value="@item.Id" class="btn remind" title="Record reminder"><i class="fa fa-bell"></i></button></form>
-        </article>}</div>
+    <header class="approval-hero">
+        <div>
+            <small><i class="fa fa-lock"></i> Security Operations</small>
+            <h1>Role Approval Centre</h1>
+            <p>Review and manage elevated access requests with complete transparency and audit trails.</p>
+            <span class="metric"><i class="fa fa-exclamation-circle"></i> @Model.Pending.Count Pending Decision@(Model.Pending.Count != 1 ? "s" : "")</span>
+        </div>
+        <a asp-action="RetrieveUsers" class="back"><i class="fa fa-arrow-left"></i> Back to Users</a>
+    </header>
+
+    <section class="section">
+        <div class="section-head">
+            <h2><i class="fa fa-inbox" style="margin-right:0.5rem"></i>Awaiting Review</h2>
+            <i class="fa fa-hourglass-end"></i>
+        </div>
+        
+        @if(!Model.Pending.Any())
+        {
+            <div class="empty">
+                <i class="fa fa-check-circle"></i>
+                <p>The approval queue is clear. All access requests have been reviewed.</p>
+            </div>
+        }
+        else
+        {
+            <div class="request-grid">
+                @foreach(var item in Model.Pending)
+                {
+                    <article class="request">
+                        <div class="route">
+                            <span>@(item.FromRole?.ToString() ?? "None")</span>
+                            <i class="fa fa-arrow-right"></i>
+                            <span>@item.RequestedRole</span>
+                        </div>
+                        
+                        <div class="meta">
+                            <strong>@item.TargetUser.Name @item.TargetUser.LastName</strong>
+                            <br/>
+                            Requested by <strong>@item.RequestedByUser.Name @item.RequestedByUser.LastName</strong>
+                            <br/>
+                            <i class="fa fa-calendar"></i> @item.RequestedUtc.ToString("dd MMM yyyy, HH:mm") UTC
+                            @if (item.ReminderCount > 0)
+                            {
+                                <br />
+                                <i class="fa fa-bell"></i>
+                                <strong>@item.ReminderCount</strong>
+                                @(item.ReminderCount == 1 ? "reminder" : "reminders")
+                            }
+                        </div>
+
+                        <div class="reason">
+                            <i class="fa fa-quote-left"></i> @item.Reason
+                        </div>
+
+                        <form class="actions" method="post">
+                            <input type="hidden" name="RequestId" value="@item.Id"/>
+                            @Html.AntiForgeryToken()
+                            <input name="ReviewNote" placeholder="Optional: Add a review note or decision reason"/>
+                            <button formaction="@Url.Action("ApproveRoleAccess")" class="btn approve" title="Approve this access request">
+                                <i class="fa fa-check"></i> Approve
+                            </button>
+                            <button formaction="@Url.Action("RejectRoleAccess")" class="btn reject" title="Reject this access request">
+                                <i class="fa fa-xmark"></i> Reject
+                            </button>
+                            <button formaction="@Url.Action("RemindRoleApprovers")" name="requestId" value="@item.Id" class="btn remind" type="button" title="Send reminder to approvers">
+                                <i class="fa fa-bell"></i>
+                            </button>
+                        </form>
+                    </article>
+                }
+            </div>
+        }
     </section>
-    <section class="section"><div class="section-head"><h2>Recent decisions</h2><i class="fa fa-clock-rotate-left"></i></div><div style="overflow:auto"><table class="history"><thead><tr><th>User</th><th>Transition</th><th>Decision</th><th>Reviewed</th></tr></thead><tbody>@foreach(var item in Model.Recent){<tr><td>@item.TargetUser.Name @item.TargetUser.LastName</td><td>@item.FromRole → @item.RequestedRole</td><td class="status">@item.Status</td><td>@item.ReviewedUtc?.ToString("dd MMM yyyy, HH:mm")</td></tr>}</tbody></table></div></section>
+
+    <section class="section">
+        <div class="section-head">
+            <h2><i class="fa fa-clock-rotate-left" style="margin-right:0.5rem"></i>Recent Decisions</h2>
+            <i class="fa fa-history"></i>
+        </div>
+        
+        @if(!Model.Recent.Any())
+        {
+            <div class="empty">
+                <i class="fa fa-inbox"></i>
+                <p>No role decisions have been made yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-wrapper">
+                <table class="history">
+                    <thead>
+                        <tr>
+                            <th><i class="fa fa-user"></i> User</th>
+                            <th><i class="fa fa-arrow-right-arrow-left"></i> Transition</th>
+                            <th><i class="fa fa-check-double"></i> Decision</th>
+                            <th><i class="fa fa-calendar"></i> Reviewed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in Model.Recent)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.TargetUser.Name @item.TargetUser.LastName</strong>
+                                </td>
+                                <td>
+                                    <span style="color:var(--muted)">@item.FromRole</span>
+                                    <i class="fa fa-arrow-right" style="margin:0 0.35rem;color:var(--orange)"></i>
+                                    <span style="color:var(--ink);font-weight:700">@item.RequestedRole</span>
+                                </td>
+                                <td>
+                                    @{
+                                        var status = item.Status.ToString().ToLower();
+                                    }
+
+                                    <span class="status @status">
+                                        @switch (status)
+                                        {
+                                            case "approved":
+                                                <text><i class="fa fa-check-circle"></i> Approved</text>
+                                                break;
+
+                                            case "rejected":
+                                                <text><i class="fa fa-circle-xmark"></i> Rejected</text>
+                                                break;
+
+                                            default:
+                                                <text><i class="fa fa-hourglass"></i> Pending</text>
+                                                break;
+                                        }
+                                    </span>
+                                </td>
+                                <td>
+                                    @if(item.ReviewedUtc.HasValue)
+                                    {
+                                        <small>@item.ReviewedUtc.Value.ToString("dd MMM yyyy, HH:mm")</small>
+                                    }
+                                    else
+                                    {
+                                        <small style="color:var(--muted);opacity:0.7"><em>—</em></small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 </main>

@@ -1,23 +1,16 @@
+
+#region Usings
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ForekOnline.Domain.Shared;
 using static ForekOnline.Domain.Enums.EnumRegistry;
+#endregion
 
 namespace ForekOnline.Domain.Entities;
 
-public enum RoleAccessRequestStatus
-{
-    Pending,
-    Approved,
-    Rejected,
-    Cancelled
-}
-
 [Table("RoleAccessRequests", Schema = "Security")]
-public class RoleAccessRequest : Base, ITenantOwned
+public class RoleAccessRequest : EntityBase<Guid>, ITenantOwned
 {
-    [Key]
-    public Guid Id { get; set; }
     public Guid TenantId { get; set; }
     public Guid TargetUserId { get; set; }
     public Guid RequestedByUserId { get; set; }

@@ -69,6 +69,13 @@ namespace ForekOnline.Domain.Enums
         }
         #endregion
 
+        public enum RoleAccessRequestStatus
+        {
+            Pending,
+            Approved,
+            Rejected,
+            Cancelled
+        }
         public enum eAdmissionCategory
         {
             FullTime, PartTime, Distance, Online
