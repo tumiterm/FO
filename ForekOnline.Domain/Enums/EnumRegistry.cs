@@ -312,7 +312,7 @@ namespace ForekOnline.Domain.Enums
         }
         public enum eSysRole
         {
-            None, Admin, Facilitator, Student, SuperAdmin
+            None, Admin, Facilitator, Student, SuperAdmin, AdmissionsOfficer, Finance
         }
         public enum eChoice
         {

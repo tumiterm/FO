@@ -116,6 +116,8 @@ namespace ForekOnline.Infrastructure.Data
         public DbSet<ApplicationRating> ApplicationRatings { get; set; }
         public DbSet<ResourceRoleAudience> ResourceRoleAudiences { get; set; }
         public DbSet<ResourceUserAudience> ResourceUserAudiences { get; set; }
+        public DbSet<RoleAccessRequest> RoleAccessRequests { get; set; }
+        public DbSet<UserRoleHistory> UserRoleHistory { get; set; }
 
         /// <summary>
         /// Gets or sets the collection of application cycles in the database.
@@ -380,6 +382,27 @@ namespace ForekOnline.Infrastructure.Data
         /// <param name="modelBuilder">The <see cref="ModelBuilder"/> used to configure the entity framework model.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<RoleAccessRequest>(entity =>
+            {
+                entity.HasQueryFilter(x => !HasResolvedTenant || x.TenantId == CurrentTenantId);
+                entity.HasIndex(x => new { x.TenantId, x.Status, x.RequestedUtc });
+                entity.HasIndex(x => new { x.TargetUserId, x.Status })
+                    .IsUnique()
+                    .HasFilter("[Status] = 0");
+                entity.HasOne(x => x.TargetUser).WithMany().HasForeignKey(x => x.TargetUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.RequestedByUser).WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.ReviewedByUser).WithMany().HasForeignKey(x => x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<UserRoleHistory>(entity =>
+            {
+                entity.HasQueryFilter(x => !HasResolvedTenant || x.TenantId == CurrentTenantId);
+                entity.HasIndex(x => new { x.UserId, x.ChangedUtc });
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.ChangedByUser).WithMany().HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.RoleAccessRequest).WithMany().HasForeignKey(x => x.RoleAccessRequestId).OnDelete(DeleteBehavior.SetNull);
+            });
+
             modelBuilder.Entity<ApplicationRating>(entity =>
             {
                 entity.ToTable(table =>
