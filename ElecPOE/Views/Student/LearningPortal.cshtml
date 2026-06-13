@@ -688,6 +688,18 @@
         vertical-align: middle;
     }
 
+    .practice-stage { display:grid; gap:1rem; }
+    .practice-toolbar { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.75rem; }
+    .practice-question { padding:1rem; border:1px solid var(--lp-border); border-radius:16px; background:var(--lp-bg-alt); }
+    .practice-question h5 { margin:0 0 .75rem; color:var(--lp-text); font-size:.72rem; line-height:1.55; }
+    .practice-options { display:grid; gap:.45rem; }
+    .practice-option { display:flex; align-items:flex-start; gap:.55rem; padding:.55rem .65rem; border:1px solid var(--lp-border); border-radius:10px; background:var(--lp-card); cursor:pointer; font-size:.65rem; color:var(--lp-text); }
+    .practice-option:hover { border-color:rgba(196,18,48,.4); }
+    .practice-option.correct { border-color:#16a34a; background:rgba(22,163,74,.08); }
+    .practice-option.incorrect { border-color:#dc2626; background:rgba(220,38,38,.08); }
+    .practice-result { display:none; padding:1rem; border-radius:16px; background:linear-gradient(135deg,rgba(196,18,48,.08),rgba(249,115,22,.08)); border:1px solid rgba(196,18,48,.2); }
+    .practice-result.active { display:block; animation:fade .35s ease; }
+
     /* ── Animations ── */
     @@keyframes fade {
         from { opacity: 0; transform: translateY(10px); }
@@ -825,6 +837,82 @@
             </div>
         </div>
 
+        <div class="action-card">
+            <div class="action-card-head">
+                <div class="action-icon"><i class="fa fa-flask-vial"></i></div>
+                <div class="action-card-title">
+                    <h3>Maths &amp; Science</h3>
+                    <p>Practise with fresh, automatically marked questions across mathematics and science.</p>
+                </div>
+            </div>
+            <ul class="card-list">
+                <li>Choose subject and difficulty</li>
+                <li>Instant scoring and answer review</li>
+                <li>Fresh questions from Open Trivia DB</li>
+            </ul>
+            <div class="action-actions">
+                <button type="button" class="btn-el primary" data-open="drawer-practice">
+                    <i class="fa fa-play"></i> Start Practice
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Drawer: Maths & Science Practice ── -->
+    <div id="drawer-practice" class="hidden-pane" aria-labelledby="drawer-practice-label"
+         data-questions-url="@Url.Action("Questions", "LearningPractice")">
+        <div class="drawer-header">
+            <h4 id="drawer-practice-label"><i class="fa fa-flask-vial"></i> Maths &amp; Science Practice</h4>
+            <button class="close-drawer" data-close="drawer-practice" title="Close"><i class="fa fa-times"></i></button>
+        </div>
+        <p style="font-size:.63rem;color:var(--lp-muted);font-weight:600;max-width:900px;">
+            Create a short practice assessment, answer every question, and receive an instant score with corrections.
+            Questions are supplied by Open Trivia DB; a Forek offline question bank is used automatically if the provider is unavailable.
+        </p>
+
+        <div class="practice-stage">
+            <div class="practice-toolbar">
+                <div class="field">
+                    <label for="practiceSubject">Subject</label>
+                    <div class="input-wrap"><i class="fa fa-book-open"></i>
+                        <select id="practiceSubject">
+                            <option value="maths">Maths</option>
+                            <option value="science">Science</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="practiceDifficulty">Difficulty</label>
+                    <div class="input-wrap"><i class="fa fa-signal"></i>
+                        <select id="practiceDifficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="practiceCount">Questions</label>
+                    <div class="input-wrap"><i class="fa fa-list-ol"></i>
+                        <select id="practiceCount">
+                            <option value="5">5 questions</option>
+                            <option value="10" selected>10 questions</option>
+                            <option value="15">15 questions</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="action-actions">
+                <button type="button" id="practiceLoad" class="btn-el primary"><i class="fa fa-wand-magic-sparkles"></i> Generate Assessment</button>
+                <button type="button" id="practiceSubmit" class="btn-el" disabled><i class="fa fa-check-double"></i> Mark My Answers</button>
+            </div>
+            <div id="practiceStatus" class="stat-pill" role="status" aria-live="polite">
+                <i class="fa fa-circle-info"></i> Choose your options, then generate an assessment.
+            </div>
+            <div id="practiceQuestions"></div>
+            <div id="practiceResult" class="practice-result" aria-live="polite"></div>
+        </div>
     </div>
 
     <!-- ── Drawer: Virtual Classes ── -->
@@ -1077,6 +1165,7 @@
 </section>
 
 <script src="https://8x8.vc/external_api.js"></script>
+<script src="~/js/learning-practice.js" asp-append-version="true"></script>
 <script>
     (function () {
       const themeToggle = document.getElementById('themeToggle');
