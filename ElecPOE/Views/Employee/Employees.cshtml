@@ -1,148 +1,6 @@
-﻿@* 
-    FUTURE DYNAMIC NOTE:
-    Replace the fallback 'departments' array with a strongly typed model:
-    @model IEnumerable<DepartmentSummaryViewModel>
-    where DepartmentSummaryViewModel {
-        string Name; string RouteKey; string IconClass; string AccentColor;
-        IEnumerable<StaffMember> Staff (Name, Role, RoleTagColor, IsInactive);
-    }
-*@
+﻿@model ForekOnline.Domain.ViewModels.EmployeeDirectoryViewModel
 @{
-    var departments = new[]
-    {
-        new {
-            Name = "Electrical",
-            RouteKey = "Electrical",
-            Icon = "fa-bolt",
-            Gradient = "linear-gradient(135deg, #FF6B35 0%, #D62828 100%)",
-            Staff = new[] {
-                new { Full="L Gamede", Role="HOD", Tag="danger", Inactive=false },
-                new { Full="P Dube", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="E Mgwenya", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="S Mahlinza", Role="Instructor", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Civil & Construction",
-            RouteKey = "Plumbing",
-            Icon = "fa-pipe-valve",
-            Gradient = "linear-gradient(135deg, #004E89 0%, #1A659E 100%)",
-            Staff = new[] {
-                new { Full="G Hlungwane", Role="HOD", Tag="danger", Inactive=false },
-                new { Full="P Mgwenya", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="S Mabuza", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="J Mbokodo", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="X Msimango", Role="Instructor", Tag="primary", Inactive=true },
-                new { Full="TP Molepo", Role="Instructor", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Fabrication",
-            RouteKey = "Welding",
-            Icon = "fa-fire-flame-curved",
-            Gradient = "linear-gradient(135deg, #8E0E14 0%, #FF6B35 100%)",
-            Staff = new[] {
-                new { Full="VH Phangisa", Role="HOD", Tag="danger", Inactive=false },
-                new { Full="B Mokgoshi", Role="Admin", Tag="primary", Inactive=false },
-                new { Full="X Thobela", Role="Instructor", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Administration",
-            RouteKey = "Admin",
-            Icon = "fa-print",
-            Gradient = "linear-gradient(135deg, #2A0506 0%, #8E0E14 100%)",
-            Staff = new[] {
-                new { Full="S Mawelele", Role="Manager", Tag="danger", Inactive=false },
-                new { Full="M Langa", Role="Admin", Tag="danger", Inactive=false },
-                new { Full="L Mthombothi", Role="Admin", Tag="danger", Inactive=false },
-                new { Full="A Mathebula", Role="Admin", Tag="danger", Inactive=false }
-            }
-        },
-        new {
-            Name = "Agriculture",
-            RouteKey = "Environmental",
-            Icon = "fa-seedling",
-            Gradient = "linear-gradient(135deg, #10B981 0%, #059669 100%)",
-            Staff = new[] {
-                new { Full="NN Mabuza", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="T Nyathi", Role="Mentor", Tag="secondary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Non-Trades",
-            RouteKey = "Operations",
-            Icon = "fa-arrows-spin",
-            Gradient = "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-            Staff = new[] {
-                new { Full="L Sibiya", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="K Mashaya", Role="Instructor", Tag="primary", Inactive=true },
-                new { Full="T Cuna", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="KP Ndlovu", Role="Instructor", Tag="primary", Inactive=false },
-                new { Full="JA Chibi", Role="Instructor", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "OHS",
-            RouteKey = "Health",
-            Icon = "fa-shield-heart",
-            Gradient = "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)",
-            Staff = new[] {
-                new { Full="G Seleka", Role="Safety Officer", Tag="primary", Inactive=false },
-                new { Full="S Zweni", Role="Instructor", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Training",
-            RouteKey = "Training",
-            Icon = "fa-chalkboard-user",
-            Gradient = "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)",
-            Staff = new[] {
-                new { Full="T Manyimo", Role="General Manager", Tag="danger", Inactive=false },
-                new { Full="NL Nsibande", Role="TT Admin", Tag="primary", Inactive=false },
-                new { Full="P Phiri", Role="HR", Tag="primary", Inactive=false },
-                new { Full="L Sibiya", Role="T Manager", Tag="danger", Inactive=false }
-            }
-        },
-        new {
-            Name = "Corporate",
-            RouteKey = "Corporate",
-            Icon = "fa-briefcase",
-            Gradient = "linear-gradient(135deg, #1F2937 0%, #111827 100%)",
-            Staff = new[] {
-                new { Full="E Chinyuke", Role="CEO", Tag="danger", Inactive=false },
-                new { Full="T Nkosi", Role="CEO's PA", Tag="primary", Inactive=false }
-            }
-        },
-        new {
-            Name = "Finance",
-            RouteKey = "Finance",
-            Icon = "fa-chart-line",
-            Gradient = "linear-gradient(135deg, #059669 0%, #047857 100%)",
-            Staff = new[] {
-                new { Full="HS Matjie", Role="Manager", Tag="danger", Inactive=false },
-            }
-        },
-        new {
-            Name = "ICT",
-            RouteKey = "ICT",
-            Icon = "fa-laptop-code",
-            Gradient = "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)",
-            Staff = new[] {
-                new { Full="IF Oliphant", Role="Manager", Tag="danger", Inactive=false },
-                new { Full="M Mkhabela", Role="ICT Officer", Tag="danger", Inactive=false },
-            }
-        },
-        new {
-            Name = "Marketing",
-            RouteKey = "Marketing",
-            Icon = "fa-bullhorn",
-            Gradient = "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)",
-            Staff = new[] {
-                new { Full="M Khoza", Role="Marketing Officer", Tag="primary", Inactive=false }
-            }
-        }
-    };
+    var departments = Model.Departments;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -565,7 +423,7 @@
             </div>
             <div class="header-title">
                 <h1>Departments Directory</h1>
-                <p class="header-subtitle">@departments.Length departments • Click to explore</p>
+                <p class="header-subtitle">@departments.Count departments • Click to explore</p>
             </div>
         </div>
         <div class="header-actions">
@@ -590,23 +448,36 @@
         </div>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>@Model.ErrorMessage
+        </div>
+    }
+    else if (departments.Count == 0)
+    {
+        <div class="alert alert-info" role="status">
+            <i class="fa-solid fa-circle-info me-2"></i>No departments are currently available.
+        </div>
+    }
+
     <div id="deptGrid" class="dept-grid">
         @foreach (var d in departments)
         {
             <a class="dept-card"
                asp-action="OnGetDeptEmployees"
                asp-controller="Employee"
-               asp-route-Dept="@d.RouteKey">
+               asp-route-Dept="@d.Name">
 
                 <div class="dept-header">
                     <div class="dept-icon" style="background: @d.Gradient">
-                        <i class="fa-solid @d.Icon"></i>
+                        <i class="fa-solid @d.IconClass"></i>
                     </div>
                     <div class="dept-info">
                         <h3 class="dept-name">@d.Name</h3>
                         <div class="dept-meta">
                             <i class="fa-solid fa-users"></i>
-                            <span>@d.Staff.Length @(d.Staff.Length == 1 ? "member" : "members")</span>
+                            <span>@d.EmployeeCount @(d.EmployeeCount == 1 ? "member" : "members")</span>
                         </div>
                     </div>
                 </div>
@@ -615,21 +486,17 @@
                     <ul class="staff-list">
                         @foreach (var s in d.Staff)
                         {
-                            var initials = string.Join("", s.Full.Split(' ').Select(n => n.FirstOrDefault()));
-                            var roleClass = s.Tag switch
-                            {
-                                "danger" => "role-danger",
-                                "primary" => "role-primary",
-                                "warning" => "role-warning",
-                                "secondary" => "role-secondary",
-                                _ => "role-primary"
-                            };
+                            var initials = string.Join("", s.DisplayName
+                                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                .Take(2)
+                                .Select(name => char.ToUpperInvariant(name[0])));
+                            var roleClass = s.IsHeadOfDepartment ? "role-danger" : "role-primary";
 
-                            <li class="staff-item @(s.Inactive ? "inactive" : "")">
+                            <li class="staff-item @(!s.IsActive ? "inactive" : "")">
                                 <div class="staff-avatar">@initials</div>
                                 <div class="staff-info">
-                                    <span class="staff-name">@s.Full</span>
-                                    <span class="staff-role @roleClass">@s.Role</span>
+                                    <span class="staff-name">@s.DisplayName</span>
+                                    <span class="staff-role @roleClass">@s.JobTitle</span>
                                 </div>
                             </li>
                         }

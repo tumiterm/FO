@@ -102,6 +102,16 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 builder.Services.AddHostedService<StudentListCacheWarmupService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IEmployeeDirectoryService, EmployeeDirectoryService>((serviceProvider, client) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var baseAddress = configuration["EmployeeDirectoryApi:BaseAddress"]
+        ?? "http://forekonline-001-site6.rtempurl.com/";
+
+    client.BaseAddress = new Uri(baseAddress.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(20);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("ForekOnline-EmployeeDirectory/1.0");
+});
 builder.Services.AddHttpClient<ILearningPracticeService, LearningPracticeService>(client =>
 {
     client.BaseAddress = new Uri("https://opentdb.com/");
@@ -249,5 +259,4 @@ internal sealed class HangfireDashboardAuthorizationFilter : IDashboardAuthoriza
                && (http.User.IsInRole("Admin") || http.User.IsInRole("SuperAdmin"));
     }
 }
-
 
