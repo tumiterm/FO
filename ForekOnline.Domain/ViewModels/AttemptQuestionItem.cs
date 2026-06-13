@@ -43,6 +43,11 @@ namespace ForekOnline.Domain.ViewModels
         public bool IsMultipleChoice { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the learner should use the equation editor.
+        /// </summary>
+        public bool IsMathInput { get; set; }
+
+        /// <summary>
         /// Gets or sets the collection of available attempt option items.
         /// </summary>
         /// <remarks>Each item in the collection represents a selectable option for an attempt. The list
