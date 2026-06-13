@@ -151,11 +151,32 @@ namespace ElecPOE.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnViewUserInfo(UserDetailsViewModel user)
         {
+            if (user.ProfileImageFile is { Length: > 0 })
+            {
+                const long maxProfileImageSize = 5 * 1024 * 1024;
+                var allowedImageTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp"
+                };
+
+                if (user.ProfileImageFile.Length > maxProfileImageSize)
+                {
+                    ModelState.AddModelError(nameof(user.ProfileImageFile), "The profile picture must be 5 MB or smaller.");
+                }
+
+                if (!allowedImageTypes.Contains(user.ProfileImageFile.ContentType))
+                {
+                    ModelState.AddModelError(nameof(user.ProfileImageFile), "Choose a JPG, PNG, or WebP image.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Please fill in all the fields!";
-
-                return RedirectToAction(nameof(RetrieveUsers));
+                TempData["error"] = ModelState[nameof(user.ProfileImageFile)]?.Errors.FirstOrDefault()?.ErrorMessage
+                    ?? "Please fill in all the fields!";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = user.Id });
             }
 
             try
@@ -169,6 +190,7 @@ namespace ElecPOE.Controllers
                 user.Role = storedUser.Role;
                 user.OldPassword = storedUser.Password;
                 user.ConfirmPassword = storedUser.ConfirmPassword;
+                user.ProfileImage = storedUser.ProfileImage;
 
                 bool isUpdated = await _userService.UpdateUserInfoAsync(user);
 
