@@ -284,6 +284,7 @@ namespace ForekOnline.Application.Common.Services
                             ImagePath = q.ImagePath,
                             EnableAnnotation = q.EnableAnnotation,
                             IsMultipleChoice = q.QuestionType == eAssessmentQuestionType.MultipleChoice,
+                            IsMathInput = q.QuestionType == eAssessmentQuestionType.MathInput,
                             Options = allOptions.Where(o => o.AssessmentQuestionId == q.Id)
                             .Select(o => new AttemptOptionItem
                             {
@@ -375,6 +376,7 @@ namespace ForekOnline.Application.Common.Services
                 EnableAnnotation = q.EnableAnnotation,
                 ImagePath = q.ImagePath,
                 IsMultipleChoice = (q.QuestionType == eAssessmentQuestionType.MultipleChoice),
+                IsMathInput = (q.QuestionType == eAssessmentQuestionType.MathInput),
                 Options = options.Where(o => o.AssessmentQuestionId == q.Id)
                    .Select(o => new AttemptOptionItem
                    {
@@ -468,7 +470,8 @@ namespace ForekOnline.Application.Common.Services
                     }
                 }
 
-                var shortAnswerValue = question.QuestionType == eAssessmentQuestionType.ShortAnswer
+                var shortAnswerValue = question.QuestionType == eAssessmentQuestionType.ShortAnswer ||
+                    question.QuestionType == eAssessmentQuestionType.MathInput
                     ? submitted.ShortAnswerValue
                     : null;
 

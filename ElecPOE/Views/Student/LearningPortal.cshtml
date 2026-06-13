@@ -592,6 +592,45 @@
     /* ── Question cards ── */
     .question-set  { display: flex; flex-direction: column; gap: .85rem; margin-top: .6rem; }
 
+    .assessment-workbench {
+        position: sticky;
+        bottom: .75rem;
+        z-index: 25;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin: .85rem 0;
+        padding: .65rem .75rem;
+        border: 1px solid var(--lp-border);
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--lp-card) 94%, transparent);
+        box-shadow: var(--lp-shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .assessment-workbench .action-actions { margin: 0; }
+    .draft-status { font-size: .55rem; color: var(--lp-muted); font-weight: 700; }
+    .draft-status.is-saving { color: var(--lp-orange); }
+    .draft-status.is-saved { color: #167846; }
+
+    .question-navigator {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) auto auto;
+        align-items: center;
+        gap: .5rem;
+        margin-top: .75rem;
+        padding: .6rem;
+        border: 1px solid var(--lp-border);
+        border-radius: 14px;
+        background: var(--lp-bg-alt);
+    }
+
+    .question-navigator select { width: 100%; }
+    .q-card.is-collapsed > :not(:first-child) { display: none !important; }
+    .q-card.is-active-question { border-color: var(--lp-red); box-shadow: var(--lp-focus); }
+
     .q-card {
         background: var(--lp-card);
         border: 1px solid var(--lp-border);
@@ -1116,7 +1155,14 @@
                     </div>
                 </div>
 
-                <input type="hidden" name="EnableMathRendering" value="false" />
+                <div class="field">
+                    <label>Maths support</label>
+                    <label class="lp-check" style="min-height:42px;">
+                        <input type="checkbox" id="chkEnableMath" name="EnableMathRendering" value="true" />
+                        <span>Enable equation editors and LaTeX previews</span>
+                    </label>
+                    <input type="hidden" name="EnableMathRendering" value="false" />
+                </div>
 
                 <div class="field">
                     <label>Supporting Link</label>
@@ -1145,8 +1191,30 @@
                 <a class="btn-el" href="@Url.Action("List", "Assessment")"><i class="fa fa-list"></i> All Assessments</a>
             </div>
 
+            <div class="question-navigator" id="questionNavigator" hidden>
+                <div class="input-wrap">
+                    <i class="fa fa-location-dot"></i>
+                    <select id="questionJump" aria-label="Jump to a question"></select>
+                </div>
+                <button type="button" class="btn-el" id="btnCollapseQuestions"><i class="fa fa-compress"></i> Collapse all</button>
+                <span class="stat-pill"><i class="fa fa-list-ol"></i> <strong id="questionCount">0</strong> questions</span>
+            </div>
+
             <div id="questionHost" class="question-set">
                 <div class="empty-box"><i class="fa fa-circle-info"></i> No questions added.</div>
+            </div>
+
+            <div class="assessment-workbench">
+                <div>
+                    <strong style="display:block;font-size:.62rem;color:var(--lp-text);">Assessment controls</strong>
+                    <span id="draftStatus" class="draft-status" role="status">Changes are saved locally while you work.</span>
+                </div>
+                <div class="action-actions">
+                    <button type="button" id="btnAddQuestionBottom" class="btn-el primary" @(isFacilitator ? "" : "disabled")><i class="fa fa-plus-circle"></i> Add Question</button>
+                    <button type="button" id="btnSaveDraft" class="btn-el" @(isFacilitator ? "" : "disabled")><i class="fa fa-cloud-arrow-down"></i> Save Draft</button>
+                    <button type="submit" class="btn-el" @(isFacilitator ? "" : "disabled")><i class="fa fa-save"></i> Save Assessment</button>
+                    <button type="button" id="btnBackToTop" class="btn-el"><i class="fa fa-arrow-up"></i> Top</button>
+                </div>
             </div>
         </form>
 
@@ -1628,7 +1696,7 @@
             mathPane.querySelectorAll('input, textarea, select').forEach((el) => { el.disabled = !isMath; });
           }
         }
-      function reindexQuestions() {
+        function reindexQuestions() {
       const cards = [...questionHost.querySelectorAll('.q-card')];
 
       cards.forEach((card, i) => {
@@ -1651,7 +1719,116 @@
       });
 
       questionIndex = cards.length;
+      refreshQuestionNavigator();
     }
+
+        const draftKey = `forek:assessment-draft:${location.pathname}`;
+        const draftStatus = document.getElementById('draftStatus');
+        const questionNavigator = document.getElementById('questionNavigator');
+        const questionJump = document.getElementById('questionJump');
+        let draftTimer = null;
+
+        function refreshQuestionNavigator() {
+          const cards = [...questionHost.querySelectorAll('.q-card')];
+          if (questionNavigator) questionNavigator.hidden = cards.length === 0;
+          const count = document.getElementById('questionCount');
+          if (count) count.textContent = cards.length.toString();
+          if (!questionJump) return;
+          const selected = questionJump.value;
+          questionJump.innerHTML = cards.map((card, i) => {
+            const prompt = card.querySelector('input[name$=".Prompt"]')?.value.trim();
+            const label = prompt ? `${i + 1}. ${prompt.slice(0, 70)}` : `${i + 1}. Untitled question`;
+            return `<option value="${i}">${esc(label)}</option>`;
+          }).join('');
+          if (selected && Number(selected) < cards.length) questionJump.value = selected;
+        }
+
+        function captureDraft() {
+          questionHost.querySelectorAll('.q-card').forEach(syncCorrectFlags);
+          const fields = {};
+          assessmentForm.querySelectorAll(':scope > .field-grid input[name], :scope > .field-grid textarea[name], :scope > .field-grid select[name]').forEach(el => {
+            if (el.name === '__RequestVerificationToken' || el.type === 'file') return;
+            fields[el.name] = el.type === 'checkbox' ? el.checked : el.value;
+          });
+          const questions = [...questionHost.querySelectorAll('.q-card')].map(card => ({
+            type: card.querySelector('[data-question-type]')?.value || 'MultipleChoice',
+            marks: card.querySelector('[data-qmarks]')?.value || '1',
+            prompt: card.querySelector('input[name$=".Prompt"]')?.value || '',
+            explanation: card.querySelector('textarea[name$=".Explanation"]')?.value || '',
+            imagePath: card.querySelector('[data-qimage-id]')?.value || '',
+            annotation: card.querySelector('[data-enable-annotation]')?.checked || false,
+            options: [...card.querySelectorAll('[data-options-host] .answer-row')].map(row => ({
+              text: row.querySelector('input[type="text"]')?.value || '',
+              correct: row.querySelector('[data-correct-hidden]')?.value === 'true'
+            }))
+          }));
+          return { version: 1, savedAt: new Date().toISOString(), fields, questions };
+        }
+
+        function saveDraft() {
+          try {
+            localStorage.setItem(draftKey, JSON.stringify(captureDraft()));
+            if (draftStatus) {
+              draftStatus.className = 'draft-status is-saved';
+              draftStatus.textContent = `Draft saved on this device at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`;
+            }
+          } catch {
+            if (draftStatus) {
+              draftStatus.className = 'draft-status';
+              draftStatus.textContent = 'Draft could not be saved. Your browser storage may be full.';
+            }
+          }
+        }
+
+        function scheduleDraftSave() {
+          if (draftStatus) {
+            draftStatus.className = 'draft-status is-saving';
+            draftStatus.textContent = 'Saving draft…';
+          }
+          clearTimeout(draftTimer);
+          draftTimer = setTimeout(saveDraft, 600);
+        }
+
+        function restoreDraft() {
+          let draft;
+          try { draft = JSON.parse(localStorage.getItem(draftKey) || 'null'); } catch { return; }
+          if (!draft?.questions?.length && !draft?.fields) return;
+          Object.entries(draft.fields || {}).forEach(([name, value]) => {
+            const el = assessmentForm.querySelector(`:scope > .field-grid [name="${CSS.escape(name)}"]`);
+            if (!el) return;
+            if (el.type === 'checkbox') el.checked = Boolean(value);
+            else el.value = value;
+          });
+          (draft.questions || []).forEach(question => {
+            addQuestionCard();
+            const card = questionHost.lastElementChild;
+            setQuestionType(card, question.type);
+            card.querySelector('[data-qmarks]').value = question.marks;
+            card.querySelector('input[name$=".Prompt"]').value = question.prompt;
+            card.querySelector('textarea[name$=".Explanation"]').value = question.explanation;
+            card.querySelector('[data-qimage-id]').value = question.imagePath;
+            card.querySelector('[data-enable-annotation]').checked = question.annotation;
+            const rows = [...card.querySelectorAll('[data-options-host] .answer-row')];
+            while (rows.length < question.options.length) {
+              addOptionRow(card);
+              rows.push(card.querySelector('[data-options-host] .answer-row:last-child'));
+            }
+            rows.forEach((row, i) => {
+              const option = question.options[i];
+              if (!option) return;
+              row.querySelector('input[type="text"]').value = option.text;
+              row.querySelector('[data-correct-radio]').checked = option.correct;
+            });
+            syncCorrectFlags(card);
+          });
+          updateMarksSummary();
+          refreshQuestionNavigator();
+          document.getElementById('chkEnableMath')?.dispatchEvent(new Event('change'));
+          if (draftStatus && draft.savedAt) {
+            draftStatus.className = 'draft-status is-saved';
+            draftStatus.textContent = `Restored local draft from ${new Date(draft.savedAt).toLocaleString()}.`;
+          }
+        }
         function reindexOptions(card) {
           const optionsHost = card.querySelector('[data-options-host]');
           if (!optionsHost) return;
@@ -1884,9 +2061,32 @@
 
           questionIndex++;
           updateMarksSummary();
+          refreshQuestionNavigator();
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         btnAddQuestion.addEventListener('click', addQuestionCard);
+        document.getElementById('btnAddQuestionBottom')?.addEventListener('click', addQuestionCard);
+        document.getElementById('btnSaveDraft')?.addEventListener('click', saveDraft);
+        document.getElementById('btnBackToTop')?.addEventListener('click', () => assessmentForm.scrollIntoView({ behavior: 'smooth' }));
+        questionJump?.addEventListener('change', () => {
+          const card = questionHost.querySelectorAll('.q-card')[Number(questionJump.value)];
+          if (!card) return;
+          card.classList.remove('is-collapsed');
+          questionHost.querySelectorAll('.q-card').forEach(item => item.classList.toggle('is-active-question', item === card));
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('btnCollapseQuestions')?.addEventListener('click', function () {
+          const cards = [...questionHost.querySelectorAll('.q-card')];
+          const collapse = cards.some(card => !card.classList.contains('is-collapsed'));
+          cards.forEach(card => card.classList.toggle('is-collapsed', collapse));
+          this.innerHTML = collapse ? '<i class="fa fa-expand"></i> Expand all' : '<i class="fa fa-compress"></i> Collapse all';
+        });
+        assessmentForm.addEventListener('input', e => {
+          scheduleDraftSave();
+          if (e.target?.matches('input[name$=".Prompt"]')) refreshQuestionNavigator();
+        });
+        assessmentForm.addEventListener('change', scheduleDraftSave);
 
         assessmentForm.addEventListener('submit', function (e) {
           const count = questionHost.querySelectorAll('.q-card').length;
@@ -1904,10 +2104,12 @@
           if (target > 0 && sum !== target) {
             e.preventDefault();
             alert(`Total question marks must equal Max Score.\n\nSum of question marks: ${sum}\nMax Score: ${target}`);
+            return;
           }
         });
 
         updateMarksSummary();
+        restoreDraft();
       }
 
     function renderMathInElement(el) {

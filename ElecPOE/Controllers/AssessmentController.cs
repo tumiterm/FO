@@ -726,7 +726,9 @@ namespace ElecPOE.Controllers
             var studentLookup = BuildLearnerIdPassToStudentLookup(students);
 
             var shortAnswerQuestions = assessment.Questions
-                .Where(q => q.IsActive && q.QuestionType == eAssessmentQuestionType.ShortAnswer)
+                .Where(q => q.IsActive &&
+                    (q.QuestionType == eAssessmentQuestionType.ShortAnswer ||
+                     q.QuestionType == eAssessmentQuestionType.MathInput))
                 .OrderBy(q => q.DisplayOrder)
                 .ToList();
 
@@ -808,7 +810,8 @@ namespace ElecPOE.Controllers
                         continue;
                     }
 
-                    if (q.QuestionType != eAssessmentQuestionType.ShortAnswer)
+                    if (q.QuestionType != eAssessmentQuestionType.ShortAnswer &&
+                        q.QuestionType != eAssessmentQuestionType.MathInput)
                     {
                         continue;
                     }
@@ -839,7 +842,8 @@ namespace ElecPOE.Controllers
             var shortAnswerScore = attempt.Answers
                 .Where(a =>
                     questionsById.TryGetValue(a.AssessmentQuestionId, out var q) &&
-                    q.QuestionType == eAssessmentQuestionType.ShortAnswer)
+                    (q.QuestionType == eAssessmentQuestionType.ShortAnswer ||
+                     q.QuestionType == eAssessmentQuestionType.MathInput))
                 .Sum(a => Math.Max(0, a.MarksAwarded ?? 0));
 
             var finalScore = mcqScore + shortAnswerScore;
@@ -1293,5 +1297,4 @@ namespace ElecPOE.Controllers
         #endregion
     }
 }
-
 
