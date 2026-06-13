@@ -6,6 +6,7 @@
 // Purpose:         Defines the EmployeeController class
 
 #region Usings
+using ElecPOE.Services;
 using ForekOnline.Application.Common.Interfaces;
 using ForekOnline.Application.Common.Services;
 using ForekOnline.Application.Common.Utility;
@@ -32,6 +33,7 @@ namespace ElecPOE.Controllers
         private readonly ILogger<EmployeeController> _logger;
         private readonly IFileUploadService _fileUploadService;
         private readonly IUserService _userService;
+        private readonly IEmployeeDirectoryService _employeeDirectoryService;
         #endregion
 
         /// <summary>
@@ -47,7 +49,8 @@ namespace ElecPOE.Controllers
                                 IPayslipRequestService payslipRequestService,
                                 IHelperService helperService,
                                 ILogger<EmployeeController> logger,
-                                IFileUploadService fileUploadService)
+                                IFileUploadService fileUploadService,
+                                IEmployeeDirectoryService employeeDirectoryService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _payslipRequestService = payslipRequestService ?? throw new ArgumentNullException(nameof(payslipRequestService));
@@ -55,15 +58,18 @@ namespace ElecPOE.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _fileUploadService = fileUploadService ?? throw new ArgumentNullException(nameof(fileUploadService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _employeeDirectoryService = employeeDirectoryService ?? throw new ArgumentNullException(nameof(employeeDirectoryService));
         }
 
         /// <summary>
         /// Displays the Employees page.
         /// </summary>
         /// <returns>The Employees view.</returns>
-        public IActionResult Employees()
+        public async Task<IActionResult> Employees(CancellationToken cancellationToken)
         {
-            return View();
+            var directory = await _employeeDirectoryService.GetDirectoryAsync(cancellationToken);
+
+            return View(directory);
         }
 
         /// <summary>
