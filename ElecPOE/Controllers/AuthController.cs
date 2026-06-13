@@ -11,10 +11,13 @@ using ForekOnline.Application.Common.Services;
 using ForekOnline.Application.Common.Utility;
 using ForekOnline.Domain.Entities;
 using ForekOnline.Domain.ViewModels;
+using ForekOnline.Domain.Security;
+using ForekOnline.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text;
@@ -47,6 +50,7 @@ namespace ElecPOE.Controllers
         private const string LoginSessionKeyClaim = "LoginSessionKey";
         private readonly ILoginHistoryService _loginHistoryService;
         private readonly ITenantContext _tenantContext;
+        private readonly ApplicationDbContext _db;
         #endregion
 
         /// <summary>
@@ -65,7 +69,7 @@ namespace ElecPOE.Controllers
         /// <param name="fileUploadService">The service responsible for handling file uploads.</param>
         public AuthController(IUnitOfWork context, ILoginHistoryService loginHistoryService,
                                 IWebHostEnvironment hostEnvironment,
-                                ILogger<AuthController> logger,
+                                ILogger<AuthController> logger, ApplicationDbContext db,
                                 IHttpClientFactory httpClientFactory, IConfiguration configuration, IUserService userService, IHelperService helperService, IFileUploadService fileUploadService, ITenantContext tenantContext)
         {
             _context = context;
@@ -78,6 +82,7 @@ namespace ElecPOE.Controllers
             _fileUploadService = fileUploadService;
             _tenantContext = tenantContext;
             _loginHistoryService = loginHistoryService ?? throw new ArgumentNullException(nameof(loginHistoryService));
+            _db = db;
         }
 
         /// <summary>
@@ -105,6 +110,20 @@ namespace ElecPOE.Controllers
                 ViewData["studNum"] = $"{user.Name} {user.LastName}";
 
                 var mapUserDetails = MapUserDetails(user);
+                var actorId = CurrentUserId();
+                mapUserDetails.IsViewingSelf = actorId == user.Id;
+                mapUserDetails.CanDirectDowngrade = mapUserDetails.IsViewingSelf && RoleTransitionPolicy.IsPrivileged(user.Role);
+                mapUserDetails.RoleHistory = await _db.UserRoleHistory
+                    .Where(x => x.UserId == user.Id)
+                    .OrderByDescending(x => x.ChangedUtc)
+                    .Take(20)
+                    .ToListAsync();
+                mapUserDetails.RoleRequests = await _db.RoleAccessRequests
+                    .Where(x => x.TargetUserId == user.Id)
+                    .OrderByDescending(x => x.RequestedUtc)
+                    .Take(10)
+                    .ToListAsync();
+                mapUserDetails.HasPendingRoleRequest = mapUserDetails.RoleRequests.Any(x => x.Status == RoleAccessRequestStatus.Pending);
 
                 return View(mapUserDetails);
             }
@@ -127,6 +146,7 @@ namespace ElecPOE.Controllers
         /// </summary>
         /// <param name="user">The User object with updated details.</param>
         /// <returns>An ActionResult indicating the outcome.</returns>
+        [Authorize(Roles = "SuperAdmin, Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnViewUserInfo(UserDetailsViewModel user)
@@ -140,6 +160,14 @@ namespace ElecPOE.Controllers
 
             try
             {
+                var storedUser = await _db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == user.Id);
+                if (storedUser == null)
+                {
+                    return NotFound();
+                }
+
+                // Role transitions are deliberately excluded from ordinary profile updates.
+                user.Role = storedUser.Role;
                 bool isUpdated = await _userService.UpdateUserInfoAsync(user);
 
                 if (isUpdated)
@@ -162,6 +190,196 @@ namespace ElecPOE.Controllers
 
             return RedirectToAction(nameof(RetrieveUsers));
         }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestRoleAccess(RoleAccessRequestInput input)
+        {
+            var actorId = CurrentUserId();
+            var actor = await _db.Users.SingleAsync(x => x.Id == actorId);
+            var target = await _db.Users.SingleOrDefaultAsync(x => x.Id == input.TargetUserId);
+            if (target == null)
+                return NotFound();
+
+            if (actorId != target.Id && !RoleTransitionPolicy.CanRequestForAnother(actor.Role))
+                return Forbid();
+            if (actorId == target.Id && target.Role == eSysRole.Admin && input.RequestedRole == eSysRole.SuperAdmin)
+            {
+                TempData["error"] = "Administrators cannot elevate themselves to SuperAdmin.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = target.Id });
+            }
+            if (!RoleTransitionPolicy.RequiresApproval(target.Role, input.RequestedRole))
+            {
+                TempData["error"] = "This transition is a downgrade. Use the confirmed downgrade action.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = target.Id });
+            }
+            if (!ModelState.IsValid || input.RequestedRole == eSysRole.None)
+            {
+                TempData["error"] = "Choose a valid role and provide a reason.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = target.Id });
+            }
+            if (await _db.RoleAccessRequests.AnyAsync(x => x.TargetUserId == target.Id && x.Status == RoleAccessRequestStatus.Pending))
+            {
+                TempData["error"] = "This user already has a pending role request.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = target.Id });
+            }
+
+            _db.RoleAccessRequests.Add(new RoleAccessRequest
+            {
+                Id = Guid.NewGuid(),
+                TenantId = target.TenantId,
+                TargetUserId = target.Id,
+                RequestedByUserId = actorId,
+                FromRole = target.Role,
+                RequestedRole = input.RequestedRole,
+                Reason = input.Reason.Trim(),
+                RequestedUtc = DateTime.UtcNow,
+                IsActive = true
+            });
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Role access request submitted for approval.";
+            return RedirectToAction(nameof(OnViewUserInfo), new { Id = target.Id });
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DowngradeOwnRole(DirectRoleDowngradeInput input)
+        {
+            var actorId = CurrentUserId();
+            if (actorId != input.TargetUserId)
+                return Forbid();
+
+            var actor = await _db.Users.SingleAsync(x => x.Id == actorId);
+            if (!input.ConfirmLockoutRisk || !RoleTransitionPolicy.CanDirectlyDowngradeSelf(actor.Role, input.NewRole))
+            {
+                TempData["error"] = "The downgrade requires explicit confirmation and a lower-power role.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = actorId });
+            }
+
+            var otherPrivilegedUsers = await _db.Users.CountAsync(x =>
+                x.Id != actorId && x.IsActive && (x.Role == eSysRole.Admin || x.Role == eSysRole.SuperAdmin));
+            if (otherPrivilegedUsers == 0)
+            {
+                TempData["error"] = "You are the last active administrator. Assign another Admin or SuperAdmin first.";
+                return RedirectToAction(nameof(OnViewUserInfo), new { Id = actorId });
+            }
+
+            var oldRole = actor.Role;
+            actor.Role = input.NewRole;
+            actor.ModifiedOn = DateTime.UtcNow.ToString("O");
+            _db.UserRoleHistory.Add(NewRoleHistory(actor, actorId, oldRole, input.NewRole, input.Reason, null));
+            await _db.SaveChangesAsync();
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            HttpContext.Session.Clear();
+            TempData["success"] = "Your role was downgraded. Sign in again to refresh your access.";
+            return RedirectToAction(nameof(SignIn));
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpGet]
+        public async Task<IActionResult> RoleAccessRequests()
+        {
+            var model = new RoleAccessManagementViewModel
+            {
+                Pending = await _db.RoleAccessRequests
+                    .Include(x => x.TargetUser).Include(x => x.RequestedByUser)
+                    .Where(x => x.Status == RoleAccessRequestStatus.Pending)
+                    .OrderBy(x => x.RequestedUtc).ToListAsync(),
+                Recent = await _db.RoleAccessRequests
+                    .Include(x => x.TargetUser).Include(x => x.RequestedByUser).Include(x => x.ReviewedByUser)
+                    .Where(x => x.Status != RoleAccessRequestStatus.Pending)
+                    .OrderByDescending(x => x.ReviewedUtc).Take(30).ToListAsync()
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveRoleAccess(RoleRequestDecisionInput input)
+        {
+            var reviewerId = CurrentUserId();
+            var reviewer = await _db.Users.SingleAsync(x => x.Id == reviewerId);
+            var request = await _db.RoleAccessRequests.Include(x => x.TargetUser)
+                .SingleOrDefaultAsync(x => x.Id == input.RequestId && x.Status == RoleAccessRequestStatus.Pending);
+            if (request == null)
+                return NotFound();
+            if (request.RequestedByUserId == reviewerId || request.TargetUserId == reviewerId)
+            {
+                TempData["error"] = "Role requests require an independent approver.";
+                return RedirectToAction(nameof(RoleAccessRequests));
+            }
+            if (!RoleTransitionPolicy.CanApprove(reviewer.Role, request.RequestedRole))
+                return Forbid();
+
+            var oldRole = request.TargetUser.Role;
+            request.TargetUser.Role = request.RequestedRole;
+            request.Status = RoleAccessRequestStatus.Approved;
+            request.ReviewedByUserId = reviewerId;
+            request.ReviewedUtc = DateTime.UtcNow;
+            request.ReviewNote = input.ReviewNote;
+            _db.UserRoleHistory.Add(NewRoleHistory(request.TargetUser, reviewerId, oldRole, request.RequestedRole, request.Reason, request.Id));
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Role request approved and applied.";
+            return RedirectToAction(nameof(RoleAccessRequests));
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectRoleAccess(RoleRequestDecisionInput input)
+        {
+            var reviewerId = CurrentUserId();
+            var reviewer = await _db.Users.SingleAsync(x => x.Id == reviewerId);
+            var request = await _db.RoleAccessRequests.SingleOrDefaultAsync(x => x.Id == input.RequestId && x.Status == RoleAccessRequestStatus.Pending);
+            if (request == null)
+                return NotFound();
+            if (request.RequestedByUserId == reviewerId || request.TargetUserId == reviewerId)
+            {
+                TempData["error"] = "Role requests require an independent reviewer.";
+                return RedirectToAction(nameof(RoleAccessRequests));
+            }
+            if (!RoleTransitionPolicy.CanApprove(reviewer.Role, request.RequestedRole))
+                return Forbid();
+            request.Status = RoleAccessRequestStatus.Rejected;
+            request.ReviewedByUserId = reviewerId;
+            request.ReviewedUtc = DateTime.UtcNow;
+            request.ReviewNote = input.ReviewNote;
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Role request rejected.";
+            return RedirectToAction(nameof(RoleAccessRequests));
+        }
+
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemindRoleApprovers(Guid requestId)
+        {
+            var request = await _db.RoleAccessRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.Status == RoleAccessRequestStatus.Pending);
+            if (request == null)
+                return NotFound();
+            request.LastReminderUtc = DateTime.UtcNow;
+            request.ReminderCount++;
+            await _db.SaveChangesAsync();
+            TempData["success"] = "The approval reminder was recorded.";
+            return RedirectToAction(nameof(RoleAccessRequests));
+        }
+
+        private Guid CurrentUserId() =>
+            Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id)
+                ? id
+                : throw new UnauthorizedAccessException("The current user identifier is unavailable.");
+
+        private static UserRoleHistory NewRoleHistory(User target, Guid actorId, eSysRole? fromRole, eSysRole? toRole, string reason, Guid? requestId) =>
+            new()
+            {
+                Id = Guid.NewGuid(), TenantId = target.TenantId, UserId = target.Id, ChangedByUserId = actorId,
+                FromRole = fromRole, ToRole = toRole, ChangedUtc = DateTime.UtcNow, Reason = reason.Trim(),
+                RoleAccessRequestId = requestId, IsActive = true
+            };
 
         /// <summary>
         /// Removes a user with the specified ID.
@@ -925,7 +1143,3 @@ namespace ElecPOE.Controllers
 }
 
 #endregion
-
-
-
-

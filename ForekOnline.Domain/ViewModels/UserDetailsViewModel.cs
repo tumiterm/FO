@@ -115,5 +115,19 @@ namespace ForekOnline.Domain.ViewModels
         /// </summary>
         public string ConfirmPassword { get; set; }
 
+        [ValidateNever]
+        public bool IsViewingSelf { get; set; }
+
+        [ValidateNever]
+        public bool CanDirectDowngrade { get; set; }
+
+        [ValidateNever]
+        public bool HasPendingRoleRequest { get; set; }
+
+        [ValidateNever]
+        public IReadOnlyList<UserRoleHistory> RoleHistory { get; set; } = [];
+
+        [ValidateNever]
+        public IReadOnlyList<RoleAccessRequest> RoleRequests { get; set; } = [];
     }
 }
